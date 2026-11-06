@@ -1,0 +1,47 @@
+{
+  "transcript" : {
+    "entries" : [
+      {
+        "contents" : [
+          {
+            "id" : "C76A9842-E062-497E-BA57-81CEFB8A4F8A",
+            "text" : "Hi",
+            "type" : "text"
+          }
+        ],
+        "contextOptions" : {
+
+        },
+        "id" : "AB3BA857-6F1B-4158-9084-385D7AFD6A33",
+        "options" : {
+
+        },
+        "role" : "user"
+      },
+      {
+        "contents" : [
+          {
+            "id" : "D4115E5D-DC9B-4CA2-864A-0B9EC7CA14D2",
+            "text" : "Hello.",
+            "type" : "text"
+          }
+        ],
+        "id" : "845C1E7F-6FCF-459E-9C05-FAF5111916E5",
+        "metadata" : {
+          "cost" : 0.00025,
+          "finishReason" : "stop",
+          "model" : "vendor/fallback",
+          "openRouter.region" : "iad",
+          "openRouter.responseCacheStatus" : "MISS",
+          "openRouter.routingAttempt" : 2,
+          "openRouter.routingStrategy" : "fallback",
+          "provider" : "Vendor",
+          "responseID" : "gen-1"
+        },
+        "role" : "response"
+      }
+    ]
+  },
+  "type" : "FoundationModels.Transcript",
+  "version" : "1.1"
+}

@@ -1,0 +1,44 @@
+{
+  "transcript" : {
+    "entries" : [
+      {
+        "contents" : [
+          {
+            "id" : "53D24945-AC15-473F-ADD1-69A7D609A0B8",
+            "text" : "Name one color of the sea.",
+            "type" : "text"
+          }
+        ],
+        "contextOptions" : {
+
+        },
+        "id" : "32528AA0-519F-4CCF-93BF-07DA4D0F3A4F",
+        "options" : {
+          "maximumResponseTokens" : 30
+        },
+        "role" : "user"
+      },
+      {
+        "contents" : [
+          {
+            "id" : "4565FC11-C4AF-48E2-9444-A76787354DFE",
+            "text" : "One color of the sea is turquoise.",
+            "type" : "text"
+          }
+        ],
+        "id" : "9FF0004F-6DE8-4337-A87A-3AAFA9D53608",
+        "metadata" : {
+          "cacheWriteTokenCount" : 0,
+          "finishReason" : "stop",
+          "model" : "gpt-4o-mini-2024-07-18",
+          "requestID" : "req_1",
+          "responseID" : "resp_bed7e9c7c4ccb46d8bc8fe3ab44e0c906dc39821b53ba4e5ba",
+          "serviceTier" : "default"
+        },
+        "role" : "response"
+      }
+    ]
+  },
+  "type" : "FoundationModels.Transcript",
+  "version" : "1.1"
+}

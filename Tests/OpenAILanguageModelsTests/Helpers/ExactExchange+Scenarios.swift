@@ -74,6 +74,15 @@ extension ExactExchange {
         }
     }
 
+    /// A real streamed answer with reasoning, recorded from OpenAI.
+    static func realStream() async throws -> ExactExchange {
+        let recorded = try Bundle.module.fixture("reasoning-stream.sse")
+        let stub = HTTPStub(StubResponse(status: 200, headers: ["Content-Type": "text/event-stream"], chunks: [recorded]))
+        return await ExactExchange(stub, LanguageModelSession(model: reasoningModel(stub))) { session, _ in
+            try await session.respond(to: "What is 17 times 23? Reply with the number only.").usage
+        }
+    }
+
     #if canImport(FoundationModels, _version: 2.1.14)
     /// An earlier prompt with an image and a labeled PDF, which go back with the next prompt.
     @available(iOS 27.2, macOS 27.2, visionOS 27.2, watchOS 27.2, *)

@@ -14,6 +14,10 @@ let package = Package(
         .library(name: "LanguageModels", targets: ["LanguageModels"])
     ]
         + providers.map(\.product),
+    dependencies: [
+        // For tests only: no product depends on it, so it never reaches an app's code.
+        .package(url: "https://github.com/pointfreeco/swift-snapshot-testing", from: "1.19.7")
+    ],
     targets: [
         .target(
             name: "LanguageModels",
@@ -59,10 +63,11 @@ let package = Package(
             dependencies: ["ResponsesAPI", "APIFormat", "LanguageModelsTestSupport"],
             swiftSettings: swiftSettings
         ),
-        // What the test targets share: HTTP stubs, fixtures, canonical JSON, exact exchanges and live-test tools.
+        // What the test targets share: HTTP stubs, fixtures, canonical JSON, exact exchanges, the snapshot strategy for
+        // request bodies and live-test tools.
         .target(
             name: "LanguageModelsTestSupport",
-            dependencies: ["LanguageModels"],
+            dependencies: ["LanguageModels", .product(name: "InlineSnapshotTesting", package: "swift-snapshot-testing")],
             swiftSettings: swiftSettings
         ),
         .testTarget(

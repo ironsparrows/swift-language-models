@@ -1,0 +1,114 @@
+{
+  "transcript" : {
+    "entries" : [
+      {
+        "contents" : [
+          {
+            "id" : "C6EA21F2-B235-4832-B478-082A10948370",
+            "text" : "Keep these.",
+            "type" : "text"
+          },
+          {
+            "attachment" : {
+              "imageURL" : "data:image/jpeg;base64,/9j/4QC+RXhpZgAATU0AKgAAAAgABQEaAAUAAAABAAAASgEbAAUAAAABAAAAUgEoAAMAAAABAAIAAAITAAMAAAABAAEAAIdpAAQAAAABAAAAWgAAAAAAAABIAAAAAQAAAEgAAAABAAeQAAAHAAAABDAyMjGRAQAHAAAABAECAwCgAAAHAAAABDAxMDCgAQADAAAAAQABAACgAgAEAAAAAQAAAAigAwAEAAAAAQAAAASkBgADAAAAAQAAAAAAAAAAAAD/2wCEAAEBAQEBAQIBAQIDAgICAwQDAwMDBAUEBAQEBAUGBQUFBQUFBgYGBgYGBgYHBwcHBwcICAgICAkJCQkJCQkJCQkBAQEBAgICBAICBAkGBQYJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCf/dAAQAAf/AABEIAAQACAMBIgACEQEDEQH/xAGiAAABBQEBAQEBAQAAAAAAAAAAAQIDBAUGBwgJCgsQAAIBAwMCBAMFBQQEAAABfQECAwAEEQUSITFBBhNRYQcicRQygZGhCCNCscEVUtHwJDNicoIJChYXGBkaJSYnKCkqNDU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6g4SFhoeIiYqSk5SVlpeYmZqio6Slpqeoqaqys7S1tre4ubrCw8TFxsfIycrS09TV1tfY2drh4uPk5ebn6Onq8fLz9PX29/j5+gEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoLEQACAQIEBAMEBwUEBAABAncAAQIDEQQFITEGEkFRB2FxEyIygQgUQpGhscEJIzNS8BVictEKFiQ04SXxFxgZGiYnKCkqNTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqCg4SFhoeIiYqSk5SVlpeYmZqio6Slpqeoqaqys7S1tre4ubrCw8TFxsfIycrS09TV1tfY2dri4+Tl5ufo6ery8/T19vf4+fr/2gAMAwEAAhEDEQA/AP5o/wBqr/mA/wDb1/7Rr5Dr68/aq/5gP/b1/wC0a+Q6/wCqT9iX/wAoxcM/9zf/AKnYk/oD9r3/AMpEcQ/9yv8A6hYc/9k=",
+              "label" : "Photo",
+              "type" : "image"
+            },
+            "id" : "5F860FAF-A359-4FB5-AA94-CAE2C347C071",
+            "type" : "attachment"
+          },
+          {
+            "attachment" : {
+              "data" : {
+                "contentType" : "com.adobe.pdf",
+                "data" : "JVBERi0xLjQKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4KZW5kb2JqCjIgMCBvYmoKPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0gL0NvdW50IDEgPj4KZW5kb2JqCjMgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAvTWVkaWFCb3ggWzAgMCA2MTIgNzkyXSAvQ29udGVudHMgNCAwIFIgL1Jlc291cmNlcyA8PCAvRm9udCA8PCAvRjEgNSAwIFIgPj4gPj4gPj4KZW5kb2JqCjQgMCBvYmoKPDwgL0xlbmd0aCA0NiA+PgpzdHJlYW0KQlQgL0YxIDI0IFRmIDcyIDcyMCBUZCAoU291cCBvZiB0aGUgZGF5KSBUaiBFVAplbmRzdHJlYW0KZW5kb2JqCjUgMCBvYmoKPDwgL1R5cGUgL0ZvbnQgL1N1YnR5cGUgL1R5cGUxIC9CYXNlRm9udCAvSGVsdmV0aWNhID4+CmVuZG9iagp4cmVmCjAgNgowMDAwMDAwMDAwIDY1NTM1IGYgCjAwMDAwMDAwMDkgMDAwMDAgbiAKMDAwMDAwMDA1OCAwMDAwMCBuIAowMDAwMDAwMTE1IDAwMDAwIG4gCjAwMDAwMDAyNDEgMDAwMDAgbiAKMDAwMDAwMDMzNyAwMDAwMCBuIAp0cmFpbGVyCjw8IC9TaXplIDYgL1Jvb3QgMSAwIFIgPj4Kc3RhcnR4cmVmCjQwNwolJUVPRgo=",
+                "metadata" : {
+
+                }
+              },
+              "label" : "Menu",
+              "type" : "data"
+            },
+            "id" : "104C7262-E2E1-4D6F-B6CD-3A4D87299002",
+            "type" : "attachment"
+          },
+          {
+            "attachment" : {
+              "data" : {
+                "contentType" : "com.microsoft.waveform-audio",
+                "data" : "UklGRi13YXZl",
+                "metadata" : {
+
+                }
+              },
+              "type" : "data"
+            },
+            "id" : "1E69EE42-0342-46E0-966A-6B5A730396A5",
+            "type" : "attachment"
+          }
+        ],
+        "contextOptions" : {
+
+        },
+        "id" : "DD1122A6-4BDA-4267-A3FD-DAAFD1C7E4A2",
+        "options" : {
+
+        },
+        "role" : "user"
+      },
+      {
+        "contents" : [
+          {
+            "id" : "4FE0A9D6-5738-4C67-8691-B1EA264A7773",
+            "text" : "Kept.",
+            "type" : "text"
+          }
+        ],
+        "id" : "7B986450-1745-433F-B4B6-B2F70ACE5330",
+        "metadata" : {
+          "assetIDs" : [
+
+          ]
+        },
+        "role" : "response"
+      },
+      {
+        "contents" : [
+          {
+            "id" : "CEF487C9-B767-493B-AE49-C91702C9A3F2",
+            "text" : "What's in these?",
+            "type" : "text"
+          }
+        ],
+        "contextOptions" : {
+
+        },
+        "id" : "AACC897E-7CC5-48EF-A8C5-7725CD956D3C",
+        "options" : {
+
+        },
+        "role" : "user"
+      },
+      {
+        "contents" : [
+          {
+            "id" : "0795006D-6D77-4234-917D-09B047647534",
+            "text" : "A menu, a photo and a song.",
+            "type" : "text"
+          }
+        ],
+        "id" : "CDC384D8-5C7F-46E8-911E-BB2864EB8421",
+        "metadata" : {
+          "cost" : 0.00025,
+          "finishReason" : "stop",
+          "model" : "vendor/model",
+          "provider" : "Vendor",
+          "responseID" : "gen-1"
+        },
+        "role" : "response"
+      }
+    ]
+  },
+  "type" : "FoundationModels.Transcript",
+  "version" : "1.1"
+}

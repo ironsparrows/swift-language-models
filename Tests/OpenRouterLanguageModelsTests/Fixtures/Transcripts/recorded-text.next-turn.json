@@ -1,0 +1,1 @@
+{"model":"mistralai/mistral-nemo","messages":[{"role":"user","content":"Name one color of the sea."},{"role":"assistant","content":"Blue"},{"role":"user","content":"And next?"}],"stream":true,"plugins":[{"id":"context-compression","enabled":false}],"session_id":"960B350B-470D-4BAD-B272-22ECAE8555B5"}

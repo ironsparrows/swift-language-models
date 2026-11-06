@@ -1,5 +1,6 @@
 import Foundation
 package import FoundationModels
+package import InlineSnapshotTesting
 import LanguageModels
 import UniformTypeIdentifiers
 
@@ -50,21 +51,25 @@ extension ExactExchange {
         do {
             usage = Self.description(of: try await answer(session, &lastSnapshot))
         } catch {
-            self.error = String(describing: error)
+            self.error = Self.description(of: error)
         }
         self.lastSnapshot = lastSnapshot
         transcript = session.transcript.map(Self.description(of:))
         // The session's id is its first prompt's, which the framework makes up, and a JPEG's bytes depend on the
         // system's encoder.
         func steady(_ text: String) -> String {
-            text.replacing(/[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}/, with: "<generated id>")
-                .replacing(/data:image\/jpeg;base64,[A-Za-z0-9+\/=]+/, with: "data:image/jpeg;base64,<jpeg>")
+            Self.withoutJPEGs(text.replacing(/[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}/, with: "<generated id>"))
         }
         bodies = stub.requests.map { steady(String(decoding: $0.body, as: UTF8.self)) }
         headers = stub.requests.map { recorded in
             (recorded.request.allHTTPHeaderFields ?? [:]).filter { $0.key.firstMatch(of: headerNames) != nil }
                 .map { steady("\($0.key): \($0.value)") }.sorted()
         }
+    }
+
+    /// A request body without the bytes of its JPEGs, which depend on the system's encoder.
+    package static func withoutJPEGs(_ text: String) -> String {
+        text.replacing(/data:image\/jpeg;base64,[A-Za-z0-9+\/=]+/, with: "data:image/jpeg;base64,<jpeg>")
     }
 
     /// Streams an answer, keeping its last snapshot, and returns the answer's usage.
@@ -137,5 +142,87 @@ extension ExactExchange {
     /// Data as UTF-8 text when it is, otherwise as Base64.
     private static func description(of data: Data) -> String {
         String(data: data, encoding: .utf8).map { JSONValue.string($0).text } ?? data.base64EncodedString()
+    }
+}
+
+extension Snapshotting where Value == ExactExchange, Format == String {
+    /// A whole exchange as text: each request's headers and body, one member per line, then the transcript, the usage,
+    /// the last snapshot and the error. A part the exchange doesn't have is left out.
+    package static var exchange: Snapshotting {
+        Snapshotting<String, String>.lines.pullback { exchange in
+            // Every request has both, so a part that's missing shows in the text instead of dropping the request.
+            let requests = (0..<max(exchange.bodies.count, exchange.headers.count)).map { index in
+                let headers = index < exchange.headers.count ? exchange.headers[index] : ["<no headers recorded>"]
+                let body =
+                    index < exchange.bodies.count ? BodySnapshot.snapshotText(of: Data(exchange.bodies[index].utf8)) : "<no body recorded>"
+                return (["request \(index + 1)"] + headers + [body]).joined(separator: "\n")
+            }
+            let parts: [(title: String, lines: [String])] = [
+                ("transcript", exchange.transcript),
+                ("usage", exchange.usage.map { [$0] } ?? []),
+                ("last snapshot", exchange.lastSnapshot.map { [$0] } ?? []),
+                ("error", exchange.error.map { [$0] } ?? []),
+            ]
+            let answers = parts.filter { !$0.lines.isEmpty }.map { ([$0.title] + $0.lines).joined(separator: "\n") }
+            return (requests + answers).joined(separator: "\n\n")
+        }
+    }
+}
+
+extension ExactExchange {
+    /// An error as text: Foundation Models' errors by their public properties, a connection's by its code, and any
+    /// other, such as a provider module's own, by its description.
+    package static func description(of error: any Error) -> String {
+        switch error {
+        case let error as LanguageModelError: description(of: error)
+        case let error as URLError: "URLError \(error.code.rawValue)"
+        // Foundation's description of a decoding error lists a dictionary, so its order varies from run to run.
+        default: String(describing: error).replacing(/be read: .*?", code:/, with: #"be read: <decoding error>", code:"#)
+        }
+    }
+
+    private static func description(of error: LanguageModelError) -> String {
+        func text(_ kind: String, _ facts: [String], _ debugDescription: String, _ metadata: [String: any Sendable]) -> String {
+            let metadata = metadata.sorted { $0.key < $1.key }.map { "\($0.key): \($0.value)" }.joined(separator: ", ")
+            // The system writes these two, in its language, and its words can change with the system.
+            let isSystemText = debugDescription.contains("NSURLErrorDomain") || debugDescription.hasPrefix("The selected model")
+            let message = isSystemText ? "<the system's text>" : debugDescription
+            return "LanguageModelError.\(([kind] + facts).joined(separator: " ")) \"\(message)\" metadata: [\(metadata)]"
+        }
+        switch error {
+        case .contextSizeExceeded(let context):
+            let facts = ["contextSize: \(context.contextSize)", "tokenCount: \(context.tokenCount)"]
+            return text("contextSizeExceeded", facts, context.debugDescription, context.metadata)
+        case .rateLimited(let context):
+            let resetDate = context.resetDate?.ISO8601Format() ?? "nil"
+            return text("rateLimited", ["resetDate: \(resetDate)"], context.debugDescription, context.metadata)
+        case .guardrailViolation(let context):
+            return text("guardrailViolation", [], context.debugDescription, context.metadata)
+        case .refusal(let context):
+            return text("refusal", [], context.debugDescription, context.metadata)
+        case .unsupportedCapability(let context):
+            let capability = name(of: context.capability)
+            return text("unsupportedCapability", ["capability: \(capability)"], context.debugDescription, context.metadata)
+        case .unsupportedTranscriptContent(let context):
+            let entries = context.unsupportedContent.map(description(of:))
+            return text("unsupportedTranscriptContent", ["entries: \(entries)"], context.debugDescription, context.metadata)
+        case .unsupportedGenerationGuide(let context):
+            let schema = context.schemaName ?? "nil"
+            return text("unsupportedGenerationGuide", ["schema: \(schema)"], context.debugDescription, context.metadata)
+        case .unsupportedLanguageOrLocale(let context):
+            let language = context.languageCode.identifier
+            return text("unsupportedLanguageOrLocale", ["language: \(language)"], context.debugDescription, context.metadata)
+        case .timeout(let context):
+            return text("timeout", [], context.debugDescription, context.metadata)
+        @unknown default:
+            return "another kind of language model error"
+        }
+    }
+
+    private static func name(of capability: LanguageModelCapabilities.Capability) -> String {
+        let names: [(LanguageModelCapabilities.Capability, String)] = [
+            (.toolCalling, "toolCalling"), (.guidedGeneration, "guidedGeneration"), (.reasoning, "reasoning"), (.vision, "vision"),
+        ]
+        return names.first { $0.0 == capability }?.1 ?? "another capability"
     }
 }

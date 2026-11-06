@@ -1,0 +1,61 @@
+{
+  "transcript" : {
+    "entries" : [
+      {
+        "contents" : [
+          {
+            "id" : "52DC4C10-FBB2-463D-B53C-9BB687944C58",
+            "text" : "How many days in a week?",
+            "type" : "text"
+          }
+        ],
+        "contextOptions" : {
+          "reasoningLevel" : "moderate"
+        },
+        "id" : "EFD07277-1A21-4B8B-8D8D-26747F8AD1FE",
+        "options" : {
+
+        },
+        "role" : "user"
+      },
+      {
+        "id" : "025D6E6B-B743-4CB9-8011-BEF4C98F86D4",
+        "metadata" : {
+          "model" : "vendor/model",
+          "reasoningOrigin" : "openrouter",
+          "taggedReasoning" : "<think>Count the days.</think>\n\n"
+        },
+        "reasoning" : {
+          "contents" : [
+            {
+              "id" : "2E219CB1-6A2B-44FD-9EF7-3833C7BFAAB6",
+              "text" : "Count the days.",
+              "type" : "text"
+            }
+          ]
+        },
+        "role" : "reasoning"
+      },
+      {
+        "contents" : [
+          {
+            "id" : "4FAB0D47-B055-4FA8-93FE-8A8F785F9E1C",
+            "text" : "Seven days.",
+            "type" : "text"
+          }
+        ],
+        "id" : "ED84080E-F9EF-4C60-A361-E35A86576EAD",
+        "metadata" : {
+          "cost" : 0.00025,
+          "finishReason" : "stop",
+          "model" : "vendor/model",
+          "provider" : "Vendor",
+          "responseID" : "gen-1"
+        },
+        "role" : "response"
+      }
+    ]
+  },
+  "type" : "FoundationModels.Transcript",
+  "version" : "1.1"
+}

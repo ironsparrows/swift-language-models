@@ -1,0 +1,84 @@
+{
+  "transcript" : {
+    "entries" : [
+      {
+        "contents" : [
+          {
+            "id" : "1E5A23C7-006F-45EF-90BA-69B553948A87",
+            "text" : "Name one color of the sea.",
+            "type" : "text"
+          }
+        ],
+        "contextOptions" : {
+
+        },
+        "id" : "ADFD779E-2813-4552-8D8D-6DB7B1E559CE",
+        "options" : {
+
+        },
+        "role" : "user"
+      },
+      {
+        "contents" : [
+          {
+            "id" : "7224151B-28B5-465F-9C67-7BA6BDC82F66",
+            "text" : "Blue.",
+            "type" : "text"
+          }
+        ],
+        "id" : "16B94F5E-10D3-425C-8899-8DDAA0FF0FC5",
+        "metadata" : {
+          "assetIDs" : [
+
+          ]
+        },
+        "role" : "response"
+      },
+      {
+        "contents" : [
+          {
+            "id" : "AEDBB440-8202-4A1B-AE5C-C814B70239A0",
+            "text" : "And one of the sky?",
+            "type" : "text"
+          }
+        ],
+        "contextOptions" : {
+
+        },
+        "id" : "79B2C92E-3D8B-4506-B554-26F94F48FBB5",
+        "options" : {
+          "maximumResponseTokens" : 30
+        },
+        "role" : "user"
+      },
+      {
+        "contents" : [
+          {
+            "id" : "5B457373-B1D2-4B67-A478-C12268B9A9A8",
+            "text" : "Blue.",
+            "type" : "text"
+          }
+        ],
+        "id" : "07CECCF2-554C-417A-82A5-6E19F1C81BD4",
+        "metadata" : {
+          "cacheWriteTokenCount" : 0,
+          "cost" : 0,
+          "finishReason" : "stop",
+          "model" : "mistralai/mistral-nemo",
+          "openRouter.isBYOK" : false,
+          "openRouter.responseCacheAge" : 1,
+          "openRouter.responseCacheSourceID" : "gen-1794002549-Xq7RkT2mZpLw9VbN4sYc",
+          "openRouter.responseCacheStatus" : "HIT",
+          "openRouter.upstreamInferenceCompletionCost" : 0,
+          "openRouter.upstreamInferenceCost" : 0,
+          "openRouter.upstreamInferencePromptCost" : 0,
+          "provider" : "DekaLLM",
+          "responseID" : "gen-1794002551-C6lD5ZoBnHGYsT3mUeWV"
+        },
+        "role" : "response"
+      }
+    ]
+  },
+  "type" : "FoundationModels.Transcript",
+  "version" : "1.1"
+}

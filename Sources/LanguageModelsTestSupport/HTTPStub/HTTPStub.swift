@@ -21,7 +21,14 @@ package final class HTTPStub: Sendable {
     /// Creates a stub that serves the given responses, in order.
     ///
     /// - Parameter responses: The responses, one for each request.
-    package init(_ responses: StubResponse...) {
+    package convenience init(_ responses: StubResponse...) {
+        self.init(responses: responses)
+    }
+
+    /// Creates a stub that serves the given responses, in order.
+    ///
+    /// - Parameter responses: The responses, one for each request.
+    package init(responses: [StubResponse]) {
         host = "\(UUID().uuidString.lowercased()).test"
         guard let baseURL = URL(string: "https://\(host)") else { preconditionFailure("\(host) isn't a valid host.") }
         self.baseURL = baseURL

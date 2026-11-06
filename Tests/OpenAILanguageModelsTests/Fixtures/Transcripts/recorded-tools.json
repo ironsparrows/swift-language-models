@@ -1,0 +1,154 @@
+{
+  "transcript" : {
+    "entries" : [
+      {
+        "contents" : [
+
+        ],
+        "id" : "EC41F70A-7D56-4F49-BC7F-22E15CEC9E28",
+        "role" : "instructions",
+        "tools" : [
+          {
+            "function" : {
+              "description" : "Looks up a food's calories.",
+              "name" : "lookUpFood",
+              "parameters" : {
+                "additionalProperties" : false,
+                "properties" : {
+                  "food" : {
+                    "type" : "string"
+                  }
+                },
+                "required" : [
+                  "food"
+                ],
+                "title" : "Arguments",
+                "type" : "object",
+                "x-order" : [
+                  "food"
+                ]
+              }
+            },
+            "type" : "function"
+          }
+        ]
+      },
+      {
+        "contents" : [
+          {
+            "id" : "FC7D296C-F0F5-40E7-A064-5C6BDC223870",
+            "text" : "Use the tool to look up an egg and rice, both at once, then give both results.",
+            "type" : "text"
+          }
+        ],
+        "contextOptions" : {
+          "reasoningLevel" : "minimal"
+        },
+        "id" : "13FE9DA6-A86D-46E9-B752-9037403E64E0",
+        "options" : {
+          "maximumResponseTokens" : 800
+        },
+        "role" : "user"
+      },
+      {
+        "id" : "B4A5781F-1D65-417F-977B-EBB65FD6E1FB",
+        "metadata" : {
+          "model" : "gpt-5-nano-2025-08-07",
+          "reasoningOrigin" : "openai-responses"
+        },
+        "reasoning" : {
+          "contents" : [
+
+          ],
+          "signature" : "W3siY29udGVudCI6W10sImVuY3J5cHRlZF9jb250ZW50IjoiZ0FBQUFBQnE3a21aOFpjc0U0MUtYRDh3X3ZaQzRZeDBjU0pJQ2w4TmFCS0RUSHY4NENBSW1KckFjajNBNWljU1hGd3RuV2E3aEQ3eDFLOGVZSnlSWlVaaExPcUZ0SEd4ZzFEQWVDbzB6MXVaS195Y0doTWo4ZThvWEcxRC1VS2stbm1scFZOTjZZZlpjMzNHelU4UFE0ZnFVNWhfaUw3djAtaTlKUEpOU0IyNFpadzZIQ2pma0p2a3pGMTMzeUlqcjd1VTlsbkN6dmFNdnZvdHZmUGFod051Rmp2YzNzSXV0LWNrRFNvSzNTWnNoTVJLLWxTanYyY0VBRGZhcnMzWkdpUDRxampsU1RmWUxPU1djQW54Wnh3QXp6cDdXS3pVcFBNZm1IUjUzOHF1X0Myd1hZcmh4V0JLNGdtaEc1V1JtRnFGRkQxVGx6Sm9qSDJZNUw4V2xtYTZtS3JLQmU4YkVOZUVvNkp5V09sQy0waTlHZkpHTjBLanZQMFc5MW1NR2E3RE9nbXZzVTZxZFpGU3k3UkZud2VEc0VNMVpybTl2a1AweXVQcG5qWk8wcE93UFYtb0pPT1FXb2lDbG9CV3NWUXd6ZFZOMnpBTnR1LThXc1FJY2JkSVNBa2Z5bERYWVh0dmgxeFEwRHBwQWhacG5vOFJXV0RlRjNndzljQTFtSE45Z2tXYkJ3VU5tb242UkRrQzA2VTlLc0R3U0s0ckk1dVFPT2JKT2dlc2FDNTdPbXl4SlR6VFJGMlZOTUdyZFpITnFma05MQk5iT3VtWTNHUFhXd2xRWG1MUDkzSndQOWdnTzZ3VWRucEF4QThGcF9lTTZxbHlQNUQzaUNSWFNYX2ZjQXNyUWc5aFBsMFVmbHNZandRTUNOb1drTGNJSzRqNmdCNjVHcjRpOF9ZMl9iMWRrY2pBVWhJTUdmS0lhUDdLRGFVc2NnWEFmQWNwWGRMOFJscXgyb20tankzbFpmYVNqUWRFTzJaV2hzSncyTHY2c3pqZGFPdUM3ZmtsS2VVT2c4SzNwMkJoUjRFaUQtc0ExNWJFVGFVYUZ1WGlqOXdOS1JEX1VfWlMwamNvd2xZSlRsYUppMzBuLUUyUGl6Q1RQaUFaSF9kYkRFbTE5TlFWa0t3cXFzd1FxY3ptbzRkbXk3XzdDX3JFaDZaZzlHZlBDT3FuSUVrcEFfTlBDUHpSQXZTb3ZkODdOLWVDLV8weWs0RlQyYzlIWUI5Tk1ESGVFTlFtYi1aaFJSZl9ia21EX2FrdlNQUElac2twWWd3dW0tRERjUzV0S0diOWpBTlJiS1A4ZDU2RXI0Q01TVUFwVlFoX3ZpWHZXS2d2S19CemU2LWNlVlpfdGhESklYMm0tYlRsMU5KYjdpdm5QSUpSOEFOdXp6dnl3OXM2MVRLV3ZzZ29mamphOTJQNUVzUWp4d2lVc3Q2R3hkbFRLUmZhcVFkaGFUNHRGU3E0U3pTelZkZWhMXzBhNExUenhOeVFHREdjN2dfblZ5NURVN0xvZWJsU0xoNXQzbVEtSGhkbW9xUDhybHplQlJGSTBKRXlOd3NVaDBJMlAyN2JwMFNsRjZHMWFfam9XQllNUDZrX1VqNnpxOVVWS01RT0ZHZk1obElweWxpNG1TU1VVWVJQTlFzOENSb3R0U2xGaXc1a0tBMWtjV2x2cHFKY3Vza3lZeXFCMjUxbF84bkdSdFZUWElzcXZTVFVKUWYyLTRUUHRZOFZOdWxyVGlRNnNfVW5jR2duZGloNFY1VE12a0JMQzdBSGQybmY0ek9Tczd5YjNIbEN5dXNlSXhhVzJWaF80bnc3S3dEZGhSZlM1dmFoekdBeVY0cEl4dFNLUzh2eGQyMEJWM09xU0JDNTlNTlk4WkM1bElSZDhqVE9FVmVjd09yNnRLTHNMZlVFUGxrck43eF9IUlFFaFNUTEsxUHI3bVNxZGEzNDhSX0xBSmNxc1hzdHFXRERqU2ZNanlRS1dpa0xKc0FSSzdhV0JBVlp5ckc5Q0JKSmFNQ1EteFo4ZGdzSkFzSDJkZWJxNlhYVTJGY1B1UjBOR1F4V0NsVEktaEZ2eW5fblQ5T29Va2gzV1NxUzN2aHB3dW95MGdjZ2JfTXRUX3g2dVd6VDQ1UGxHbmk3MTJfX3NtcFEzM2dNa2tGcHFxRnYyam5kSGlIU19LMHN4RGI2cWNZMXlJQkJ1TUZYQVpSRkR0YVVmSjc0UHAyZGZMYmVmYkxaZzY2NkFqd3BVV2RWTDZqSDE0QUtiTXRIbFlKMXAweHc1dEhGd0tkcmkxU00zTmc4dDJqWXFFOHdPSWFCWWZBTUpMLUVwdy1uVldZdEFPMGFmdjJhUmNTNVVyN0I0UjJXTlBzZ0lxVFVzcjZGa0dreDNkbnh5MTdFSGNDR0JCb3dmOS1tLXMwa053MUdrTWYtZkZSTUVDUFFSa09wOWJ6bUdlWmN2UFk9IiwiaWQiOiJyc19jOTU1NjcyYmE5YjdlNGU4OWE3N2JiNDYwNzQ2NDZlOWFkOWU3MmIzNGVlZGQwYTliZiIsInN1bW1hcnkiOltdLCJ0eXBlIjoicmVhc29uaW5nIn1d"
+        },
+        "role" : "reasoning"
+      },
+      {
+        "id" : "2E008557-AD97-4644-8A93-88FE00565EDF",
+        "role" : "response",
+        "toolCalls" : [
+          {
+            "arguments" : "{\"food\": \"egg\"}",
+            "id" : "call_qvEeFlsExQUF9sP6RSkVyPjj",
+            "metadata" : {
+              "cacheWriteTokenCount" : 0,
+              "finishReason" : "tool_calls",
+              "model" : "gpt-5-nano-2025-08-07",
+              "requestID" : "req_1",
+              "responseID" : "resp_eef168ee174906a270b14c6cf7d778e0867bae5e7d6962b1b2",
+              "serviceTier" : "default"
+            },
+            "name" : "lookUpFood"
+          },
+          {
+            "arguments" : "{\"food\": \"rice\"}",
+            "id" : "call_SMWH33wAL1wKdeujwcqj5kQE",
+            "name" : "lookUpFood"
+          }
+        ]
+      },
+      {
+        "contents" : [
+          {
+            "id" : "6A216A0C-9CEF-424E-A006-E0F9779605B3",
+            "text" : "egg: 100 kcal",
+            "type" : "text"
+          }
+        ],
+        "id" : "call_qvEeFlsExQUF9sP6RSkVyPjj",
+        "role" : "tool",
+        "toolCallID" : "call_qvEeFlsExQUF9sP6RSkVyPjj",
+        "toolName" : "lookUpFood"
+      },
+      {
+        "contents" : [
+          {
+            "id" : "881E1CC3-9CC4-406B-B05D-0548FA299E08",
+            "text" : "rice: 100 kcal",
+            "type" : "text"
+          }
+        ],
+        "id" : "call_SMWH33wAL1wKdeujwcqj5kQE",
+        "role" : "tool",
+        "toolCallID" : "call_SMWH33wAL1wKdeujwcqj5kQE",
+        "toolName" : "lookUpFood"
+      },
+      {
+        "id" : "975F3022-2765-46D8-8EA8-A3710E5ED834",
+        "metadata" : {
+          "model" : "gpt-5-nano-2025-08-07",
+          "reasoningOrigin" : "openai-responses"
+        },
+        "reasoning" : {
+          "contents" : [
+
+          ],
+          "signature" : "W3siY29udGVudCI6W10sImVuY3J5cHRlZF9jb250ZW50IjoiZ0FBQUFBQnE3a21hby1jRkh0NTJ5YVdJVkFBRXJqbDQxT0tZYjcxcmE0TFIzZUluaDMyTlM2RmpEZmJxVmZ2Skw0MzlqLTh5NGNEMTdoOU92YXBuMDgxeVFwUXN4WWxsYUJmQzBac3ZsWFpmZEludHNzdnFvbjZpcHZybW1RTlRqQWNwNEZQYi1aLTZHa1FKNjUwbkxTY0wxQkgya0tRZU9ibUNia0d0T2ltbUYzelJsWWR0bGREbHBIblJ0MjhDMGVoZktILS1jdW1KTS1pdUxPNHpMQTM2ekRHcUdhNUdxRmZ1U1FIMEdoSk9zOURKY3BtUWdUbVJsc2NmWXFqbUdTRGFoYWk1UWdhSHBsTlpleWRSVF9qSHZsRF9pNk1qLXh5WmcxVF80ZlhORWhfMHBWVmtqLU0xc1RlMVdxZ1RNVURtYVVDWkxGWmRVQ3FJdnJ5YVJZck9pR0NHSEJXSmFjNC05NTdMNXJkWnZhemV5TnR2d3J1ZlRrNHFUOFVXeXhfa2N2NkxCS2xwaXRaQTdFdllEWGU3WmFZSGhFRGd4dFhZc1FFNmhPUENPM2V1NGhBd3FfQlpDYi1Ta1JqM18tb1JrM1pESVo4ck4zUkhMTTZRdHNZajVJUWQ0TjV6OWlPSnByN2dpVTZiOXFtTDBSOFdSTzZzOHYycnZKb0QzQ1BENVMzV3BzeVBTbXpiWVdXUkE3WUhRYXFPMjkwSS1QSlhraUJyNkVuZXlIM2xjQklSaFVQY3RENVQ3Tzh6MGNMelozVXhSaG5lTklRLVJ1QkNfQmtFQklsakJkdDlEOXdWd2RDSWNIb2d0MWtFQXpraDRfcUVhT3JMVzYyS3JaWDZIMlBqbFRHY2QyWDg3VlVHTkgwREZabm5pM0NVRnlvUV9lUkRSWnIzV09LUW16Vkw5MTdUWWM3WFdkdzhsMmppVi14cEo0ektHT29xTzF0RmRtRjlIY2NOcWQ2OXgxbTUxcHlEXzRkcmR1QUtDTTViNXRtRWpzNF96ek03RHlKZGt5eHJQek82Yl9rU3IzNURwTjdVdG50cTlfeEpfLW90bFl1MVE3cloxYUxfZ2F2V2V3T1ZramNBLUVuVVR6RVNEeDRhM3l1RFQwZ2VSSG5jalVwa1BGUVI1X3ROM1p2aDBqOW8tQ1RLbUhhMUFMTmhOMExKOGNBTmJfZUpFSmc0aVUtNXdReFFNZTF3XzFCWFMtWHh5cm9lS2FhTnZsR2JCVDc1dUltZjNFMEFKWnFoX0Fib1pNbG9GZm1EVjhQeUM5T1RfR2RObmlfUGNpY3hzSlByUVN0NWZfbmRGaWFOU3RrSnZyOWhSVnBBd3huSFVGQTg5d0d1V3RhWjdzbEMyN1NDNE9SbDBsakg4MVdEMmdHMWVvMkJvTDA0MEFVNmZndEpLRnpfTzRiWVY0WXRyMUZzck81WVlERl90TGZyMWs5STlzTlEwVl9OdG5aQjZZNkc5eC1rSmhCMTVUalJjU05VX0tRSVhsVTBTQ3ZXcHVCUnpQUFFsNEZMVnZzczFILUo2VkVsVUI2eVVPd0Vid2o5bEU1WHJld2FiMmFDUWw2c2oxeE41NXYxbDZvWm5yaS01UjBSOGJoY3pXcldxZTFTMEFVTUZsV2FneGpKai03bnF3U0owN0N6ZjR3WExHbVV3R29EeWhLZk01RXZoVU5EQzhUTkNSRW9kSGFzSlhucDNHNFQ1WDNHRHF2bVJjbGhTV2htb0NSc25mQ2JNLVNzY1RpTjJ3Q1JubEYwSzZwWVNJRlJLTXozRk91dlJxcDN0RUFZazNfSWN3RlZ4b0pENk54aW5CY1YzdlFyTDBfODFCaVM1cWhRZExuWXNYd2FNMXFPcS0zbWZ1dHdIUm40SHlpMHVuT3VIYUlCaHFaeC1YZlpFSXUtTG5KcmpiV1JDWDczNE5qYl9yZEZiZVpQSmhYZW1KNnFuNFhMRC1VaTdkT012aWlDdDd6MjZGdWUyWU9LMmIxbGxCTlZyMWhaMFlWX0pibTZONDNSOXhtM0ZrZUp6YkgtbUtpb0Z6cXYxaFlvZUd6TWVjRFRlM2FOQ3JKRHI3RGtqSTkxMzFVbFJqZkZrZDIwZjJHVC1RMk1CUEdIaC1hb2c0MmlFYXVQVGhSdG1lN2txajRVWUtYUDBCQWVfZ2ViTkRqQXktbjAxdzQ3d1F2eGp6dVF6TlVSeW43WVVoUVRXcTdCcVpyaU5kTjRQMEtiVE9aZWVoMk1OMS1pdFJXT3ZvXzJab0FBNjVRQkpuMlFPM092NmJTTmYxcjdXRFZOa1ZZejUxdlpVc0w2UW5SRWtUd0xxOTZDVVpjZU9QaExIQ1g0Nmk1SmUwVlZqMk9IVDJCUldGYnFYV2dCWU9GenVNQXVNZ1VXdTU4d2FRNFVNSGRHME4xb1ZUMVRJd1JPcnRGNG1SN1A0ODZscDdDMU1XVmdoVE09IiwiaWQiOiJyc19hMzk4YjIzN2Y2ZGY2ZDVkZDI4MTkxZGZlNDc3OWI4YTU1NDM3YTVlNzY4ZTg3OTgwOSIsInN1bW1hcnkiOltdLCJ0eXBlIjoicmVhc29uaW5nIn1d"
+        },
+        "role" : "reasoning"
+      },
+      {
+        "contents" : [
+          {
+            "id" : "790F3892-7AB8-4AC4-9241-370E691E2B2F",
+            "text" : "Here are the results:\n\n- Egg: 100 kcal\n- Rice: 100 kcal\n\nIf you’d like, I can look up more details (per-serving size, calories for cooked vs. raw, etc.).",
+            "type" : "text"
+          }
+        ],
+        "id" : "0D32A3B1-0134-4C2F-896F-3EEB10A6DB85",
+        "metadata" : {
+          "cacheWriteTokenCount" : 0,
+          "finishReason" : "stop",
+          "model" : "gpt-5-nano-2025-08-07",
+          "requestID" : "req_1",
+          "responseID" : "resp_33556ad7b4c93c74edaa61f8f6d2f1c22bd0d0a6d9c6557c3d",
+          "serviceTier" : "default"
+        },
+        "role" : "response"
+      }
+    ]
+  },
+  "type" : "FoundationModels.Transcript",
+  "version" : "1.1"
+}

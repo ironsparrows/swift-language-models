@@ -1,0 +1,115 @@
+{
+  "transcript" : {
+    "entries" : [
+      {
+        "contents" : [
+          {
+            "id" : "DDEA9C1B-E1DA-4EEE-96A9-4492F4287864",
+            "text" : "Keep these.",
+            "type" : "text"
+          },
+          {
+            "attachment" : {
+              "imageURL" : "data:image/jpeg;base64,/9j/4QC+RXhpZgAATU0AKgAAAAgABQEaAAUAAAABAAAASgEbAAUAAAABAAAAUgEoAAMAAAABAAIAAAITAAMAAAABAAEAAIdpAAQAAAABAAAAWgAAAAAAAABIAAAAAQAAAEgAAAABAAeQAAAHAAAABDAyMjGRAQAHAAAABAECAwCgAAAHAAAABDAxMDCgAQADAAAAAQABAACgAgAEAAAAAQAAAAigAwAEAAAAAQAAAASkBgADAAAAAQAAAAAAAAAAAAD/2wCEAAEBAQEBAQIBAQIDAgICAwQDAwMDBAUEBAQEBAUGBQUFBQUFBgYGBgYGBgYHBwcHBwcICAgICAkJCQkJCQkJCQkBAQEBAgICBAICBAkGBQYJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCf/dAAQAAf/AABEIAAQACAMBIgACEQEDEQH/xAGiAAABBQEBAQEBAQAAAAAAAAAAAQIDBAUGBwgJCgsQAAIBAwMCBAMFBQQEAAABfQECAwAEEQUSITFBBhNRYQcicRQygZGhCCNCscEVUtHwJDNicoIJChYXGBkaJSYnKCkqNDU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6g4SFhoeIiYqSk5SVlpeYmZqio6Slpqeoqaqys7S1tre4ubrCw8TFxsfIycrS09TV1tfY2drh4uPk5ebn6Onq8fLz9PX29/j5+gEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoLEQACAQIEBAMEBwUEBAABAncAAQIDEQQFITEGEkFRB2FxEyIygQgUQpGhscEJIzNS8BVictEKFiQ04SXxFxgZGiYnKCkqNTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqCg4SFhoeIiYqSk5SVlpeYmZqio6Slpqeoqaqys7S1tre4ubrCw8TFxsfIycrS09TV1tfY2dri4+Tl5ufo6ery8/T19vf4+fr/2gAMAwEAAhEDEQA/AP5o/wBqr/mA/wDb1/7Rr5Dr68/aq/5gP/b1/wC0a+Q6/wCqT9iX/wAoxcM/9zf/AKnYk/oD9r3/AMpEcQ/9yv8A6hYc/9k=",
+              "label" : "Photo",
+              "type" : "image"
+            },
+            "id" : "D6D33E2E-CEBC-4D6A-8FBE-DB3A21B9EFE6",
+            "type" : "attachment"
+          },
+          {
+            "attachment" : {
+              "data" : {
+                "contentType" : "com.adobe.pdf",
+                "data" : "JVBERi0xLjQKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4KZW5kb2JqCjIgMCBvYmoKPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0gL0NvdW50IDEgPj4KZW5kb2JqCjMgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAvTWVkaWFCb3ggWzAgMCA2MTIgNzkyXSAvQ29udGVudHMgNCAwIFIgL1Jlc291cmNlcyA8PCAvRm9udCA8PCAvRjEgNSAwIFIgPj4gPj4gPj4KZW5kb2JqCjQgMCBvYmoKPDwgL0xlbmd0aCA0NiA+PgpzdHJlYW0KQlQgL0YxIDI0IFRmIDcyIDcyMCBUZCAoU291cCBvZiB0aGUgZGF5KSBUaiBFVAplbmRzdHJlYW0KZW5kb2JqCjUgMCBvYmoKPDwgL1R5cGUgL0ZvbnQgL1N1YnR5cGUgL1R5cGUxIC9CYXNlRm9udCAvSGVsdmV0aWNhID4+CmVuZG9iagp4cmVmCjAgNgowMDAwMDAwMDAwIDY1NTM1IGYgCjAwMDAwMDAwMDkgMDAwMDAgbiAKMDAwMDAwMDA1OCAwMDAwMCBuIAowMDAwMDAwMTE1IDAwMDAwIG4gCjAwMDAwMDAyNDEgMDAwMDAgbiAKMDAwMDAwMDMzNyAwMDAwMCBuIAp0cmFpbGVyCjw8IC9TaXplIDYgL1Jvb3QgMSAwIFIgPj4Kc3RhcnR4cmVmCjQwNwolJUVPRgo=",
+                "metadata" : {
+
+                }
+              },
+              "label" : "Menu",
+              "type" : "data"
+            },
+            "id" : "2137B916-30D9-4F8E-AE4F-435C6902AD9B",
+            "type" : "attachment"
+          }
+        ],
+        "contextOptions" : {
+
+        },
+        "id" : "A9B57B67-C47F-4B4F-89D9-F39B92E725A8",
+        "options" : {
+
+        },
+        "role" : "user"
+      },
+      {
+        "contents" : [
+          {
+            "id" : "1F6972B7-E416-405E-B37A-60AF59E3A926",
+            "text" : "Kept.",
+            "type" : "text"
+          }
+        ],
+        "id" : "6977AF79-07E1-4C28-8BF2-95367E6319DF",
+        "metadata" : {
+          "assetIDs" : [
+
+          ]
+        },
+        "role" : "response"
+      },
+      {
+        "contents" : [
+          {
+            "id" : "DF3B7EA6-4B69-4BC3-AF8E-25BB4B4F8BC5",
+            "text" : "What's in these?",
+            "type" : "text"
+          }
+        ],
+        "contextOptions" : {
+          "reasoningLevel" : "minimal"
+        },
+        "id" : "FAAC942E-077F-477E-B832-A8DBC1109593",
+        "options" : {
+          "maximumResponseTokens" : 500
+        },
+        "role" : "user"
+      },
+      {
+        "id" : "50AE367C-625D-4C57-A0DF-1F9E6CEC13F2",
+        "metadata" : {
+          "model" : "gpt-5-nano-2025-08-07",
+          "reasoningOrigin" : "openai-responses"
+        },
+        "reasoning" : {
+          "contents" : [
+
+          ],
+          "signature" : "W3siY29udGVudCI6W10sImVuY3J5cHRlZF9jb250ZW50IjoiZ0FBQUFBQnE3azZiVmgwYWkwak5rbTQtWkxwRHl5X1NweVZ2SWo4bnhYQ3FkdlBWUTh6NXdLdkVZZzE5NHEzX0ZNNl85ZFRVRExfbDJCYmFFUmpsNnJLTkRLbXI3Rk9aOERHSVlLYV92MV9mTXBtcHlYTzNxYTdtQ0hEWmc5cGtTS29VWWliNFZGZThJRUp3dE11YjF2Y1V1WTB5X05UMWJFV2NxeHVfRjYwNTQ0U0N1UDltVWlmcTlTVmhCSUNQSVR0WjRybnpZU01ZSTNIaGtSdWJPSzZINjlrbTltMEVjZWcxdnE4WTVpNEtqNlVDOGJVcEVSb19NQ3hhY2c0VVdmQVNrQ1J5MHRoYWtHczdQZEhLZkp5Q2VmdXpVUFZudVNiY1BmZFpkSVEzMzk5YU5LV3lTcGtSNnJYWXhDX0hzTGZGUUFRWWVCTnd0RGh6RGFHcVBKZVk2THFyVVhGOUpaTTRtWlBuWW5PQy1lY0Fhb09VM3BGcFlMRkVaQ3oxTUhiVUJtd1dRRHJ5OXBERTV5b0hwWDV4aUVHNkpWUG8wWEpEeXhSLWRKbVdaXzE4SE1sUTN0T0hqMTJhX0xkNFctc3Naajcwd3l3VzBjcmZJQVhJWWYxX0o5aDQtbU5pcWc4M0R6U2lzSlNJMm8tUDNvNm84T2lIazlBWUNTcWt5MUNwWC1aV1V3RlY2ZkEzRXFYVGhHQ0d1X3NDal85eTdlX0ZOZDYwclJNd3kwVklJMktPMk5HdkgycmwydVhXZ2R6VkI5WDZ2YWp3T0hZRnFTclBFYmU3M2NiT3puQ0lWR3FGNnBtQ0ljTVd3S0JnWXljbW5kOTg5akllWjA0bm95QmlXWmo1cDNic3hMTHFMeHFkM3NDVGFMT1Z6Q1lKUDVlWEg3b0hWSHFTZWN4MVlEWW9CZkhRYXNaeU8tMHhSZXozMmFjbXBVSWFFZ2E1TF9OeFhOTUVXSzN6ZE1iZW4yM3lGbWtjd2VvWk1VZnlxam80SHdrTEoydjd0ekdhV0pSdGMyZXdsVXB5ZlJoQzg4bVg3dll2ZjZvWEdBMGROZkFraUVYWGVOLVNPSHBqR3BYSnRYWTBGOE85cWlCa2VZWEp6cE1iS1I1Ul8tWTZSTDRoVjFlSjB6eUR2NS1nMnVzMDJmY3h4NGxDZzQyX3UwakpJSVZfdFhLZm8weDRPTDJzTk40MWxLZ2JpZGlrT3pGLTBLQ0E5SzI3eS1JdllVUmJFQVZDTVctUEZQMEIwVXVsX1FXbGlaTFpXdzBCcG5XVGNUa3F1WXNaN0FqOWg4MWU2eE51ZnU2RXVnTEJfVGdTazRLckNLNHZlLVlqS0pnNWtpOGxtRGxFSWh4dTdnT3lXeEFzbVZBZGJSUnR3Uno1dGVzZ19KR3JTTmZHU1VxMlJSbzFLVXBWa3hldG1oaGtCUVl6RW5leklxS2FhajNnV1JrU1JNQmNsX3U1Y1BFazZRSFBuTkFLTkhOcGdpNlpKSzZhUy1mZzA3TlNrSFFVcjVoZDhGTFJjcVN5Wm14V0FJT1VwckVsdWdRSllsVHY4VlFuWUdmWHRCQU44ZEg0LXdQWnJFT1VXbmhQR0t4YVd5Zmt1cVpYRXBzbE1iSnh2dVNnV3d1eU5YOUxiQXh4c3lWSmtnS1VlSW1pTGh2aFV4QU94ajl0cWRGQ1NDTWRhZE03UWU2cl8tX0FGTmRRRlMwdExleVNsNHBTcXYwMjNSdlE5S01xaDVKSTIxZExDQ2R4MUFDa0RlcGJ3cFBGWTVCMFA5T0U0Z1lReDQzQ2VCbXBOZFhaOGtpXzNpbU9QTF80bUhQd05Bclp6SGhDcVhNSVd6VDhKb2NFNDBmOWdnazNad2VsTGVNZU14YUY2a29KbWhUWXpXcE05dUk0eEJZUjNVVDA3cVdPNFRBdl9OTmhfV0hKdmR3Q1pCRDJ5TGxqQXMxck5oZkhYY3FzcGgwZ3lpRHp1U2xIQ29EZTRoekFrVVBKTzhxZGxCRldpa1p1TE1qdUpfc3NZUl9XM3ROVVRuMzUzRmtsbDViRTR6OUFNVzFLa0Y2XzFnWFlMUWV0WG9jWXBGaDUxOEZ0cWVvaWVQQVc0TVlERjEybl96T2lRa2dQT2kzcVdKcHBZUTAyekxNdFZiRGdZSWFSVzAyUHpKTFdQYmh0SVpDRmVOc2hlYl9mTEFhN1lRT09PakdMUVRkVllKbWJjUG5GcTdfelpwcWtwNkZHajhrYUZkTWNIOEtEaEZfZWZIZ19nU3F2NlhxdmEwejBMVlhBWnJVc19fd1FOVDVrZ2xLNjNuNnhic2tqOUFXRjdjVXRMSnh4NFFGdWxsUVdqdkFVdXdLcVdJenRpRDk2cU9ZOEtNMUllTWNFamJxVHo3anh6bW5ma2tjb280eWhOZVFLTTF2NDg2Wkp2ekZpTkE9PSIsImlkIjoicnNfM2Y5NzBjMTJiZTA2MmY2OTBmOGJiYjkwY2U2Mzg5ZmJmYjBlY2IzYjdiMjFiOWVjZWYiLCJzdW1tYXJ5IjpbXSwidHlwZSI6InJlYXNvbmluZyJ9XQ=="
+        },
+        "role" : "reasoning"
+      },
+      {
+        "contents" : [
+          {
+            "id" : "0412CB3E-BE40-49A7-8C01-704C480A986D",
+            "text" : "You shared two items:\n- A small image labeled “Photo” that shows a black-on-orange menu item with “Menu” text; I can’t identify its contents from the image alone.\n- Text that says “Soup of the day.”\n\nIf you want details, you could:\n- Describe the photo or upload a clearer image for transcription or ingredient guesses.\n- Provide the menu context or day’s soup to help identify possible ingredients.",
+            "type" : "text"
+          }
+        ],
+        "id" : "946F0E82-3E82-478E-AECB-12782A389147",
+        "metadata" : {
+          "cacheWriteTokenCount" : 0,
+          "finishReason" : "stop",
+          "model" : "gpt-5-nano-2025-08-07",
+          "requestID" : "req_1",
+          "responseID" : "resp_12470ac8003684594a0702f762bdd25d295cd6e7a161e146bd",
+          "serviceTier" : "default"
+        },
+        "role" : "response"
+      }
+    ]
+  },
+  "type" : "FoundationModels.Transcript",
+  "version" : "1.1"
+}

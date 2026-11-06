@@ -1,0 +1,1 @@
+{"model":"gpt-4o-mini","input":[{"role":"user","content":"Name one color of the sea."},{"role":"assistant","content":"One color of the sea is turquoise."},{"role":"user","content":"And next?"}],"stream":true}

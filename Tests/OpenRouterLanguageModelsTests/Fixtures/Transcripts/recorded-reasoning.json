@@ -1,0 +1,67 @@
+{
+  "transcript" : {
+    "entries" : [
+      {
+        "contents" : [
+          {
+            "id" : "C61BB818-4D8C-4581-920D-FA60F60632FC",
+            "text" : "What is 17 times 23? Think it through.",
+            "type" : "text"
+          }
+        ],
+        "contextOptions" : {
+          "reasoningLevel" : "light"
+        },
+        "id" : "7474D7F7-3293-49FB-8124-96740D657672",
+        "options" : {
+          "maximumResponseTokens" : 1200
+        },
+        "role" : "user"
+      },
+      {
+        "id" : "B49424A9-2BC0-4AB9-B764-1DFCCA4F27CC",
+        "metadata" : {
+          "model" : "openai/gpt-5-nano",
+          "reasoningOrigin" : "openrouter"
+        },
+        "reasoning" : {
+          "contents" : [
+            {
+              "id" : "42CF9D4E-CE4B-4702-B028-D76A71933717",
+              "text" : "**Calculating the multiplication**\n\nI need to compute 17 multiplied by 23. I checked that 17 times 23 equals 391, and I walked through the calculation step by step. I can illustrate it as 23 times (20 - 3), and I ended up with 230 plus 161, which also gives me 391. So, the final answer is indeed 391. I'm ready to provide a brief explanation without using any images. Let's respond to the user!",
+              "type" : "text"
+            }
+          ],
+          "signature" : "W3siZm9ybWF0Ijoib3BlbmFpLXJlc3BvbnNlcy12MSIsImluZGV4IjowLCJzdW1tYXJ5IjoiKipDYWxjdWxhdGluZyB0aGUgbXVsdGlwbGljYXRpb24qKlxuXG5JIG5lZWQgdG8gY29tcHV0ZSAxNyBtdWx0aXBsaWVkIGJ5IDIzLiBJIGNoZWNrZWQgdGhhdCAxNyB0aW1lcyAyMyBlcXVhbHMgMzkxLCBhbmQgSSB3YWxrZWQgdGhyb3VnaCB0aGUgY2FsY3VsYXRpb24gc3RlcCBieSBzdGVwLiBJIGNhbiBpbGx1c3RyYXRlIGl0IGFzIDIzIHRpbWVzICgyMCAtIDMpLCBhbmQgSSBlbmRlZCB1cCB3aXRoIDIzMCBwbHVzIDE2MSwgd2hpY2ggYWxzbyBnaXZlcyBtZSAzOTEuIFNvLCB0aGUgZmluYWwgYW5zd2VyIGlzIGluZGVlZCAzOTEuIEknbSByZWFkeSB0byBwcm92aWRlIGEgYnJpZWYgZXhwbGFuYXRpb24gd2l0aG91dCB1c2luZyBhbnkgaW1hZ2VzLiBMZXQncyByZXNwb25kIHRvIHRoZSB1c2VyISIsInR5cGUiOiJyZWFzb25pbmcuc3VtbWFyeSJ9LHsiZGF0YSI6ImdBQUFBQUJxN2tpM3VOT0ZWSFRGOVJoMEQta1JiT2Z3eEFaT1JmUjVST0pQZXBRWjkwakE4Z253M1ByR0N4RFIwTzJJMG5RVmVSbHZhaDVaN3YyblFhcmZZLW9VZFI2YnFQVS1tMWhEZWlXUl9YdWVMXzFvVTFjT00tS1BJNWdac21LNVhtMC03Um5pdVlvRHVqR242SlhSaUdoRDY5bzlYVzRjd19LU25hNThDVDV3MGdYM2FwZzBxZlFvdDVMOWN1XzZpaHM1TkctRVFRUWRaNlAyNWJ0WF9NSENHd1VSNm9VUlR6eWZDM3cxekdBRnJNRGl4UVFDbWgtM242OXJwZER0LXN1alJLcW93enJLMVhBTzgxRFJrdHdkX1l2VHlhVlBTM21acmR6VkFxT0RPbjZ0Rl95WFd1T1lhWjNqWFhXQy14LXJ2bzNPb0tXX0V1anpreEVaQWZtY09seVVVN29XeXpIamNUb3Znbzc5alVha3JGWFo3cHJRNE1BOFp3c3lXcVFwenFyaGxfbVdrWlhBQUZUQXJpaHM4UC1yZEEtUWNZZS1scXQtc0tGUUw5MVVHRnZwSVdacnVzVEFSQjMzbFNRajlfU3NTbk1sVUhBTTFIYTFJV0RnSmlfaUdwN1hOcmhtUDdxWnZQci1DOWN1WWhKWHdNVXJHS3BNWHpzWEIyd2NRSXFBQVNwSjN0UFYxbVJsNzIyWXhoVDcwRFRwdDNGVE1ZRGltcHBEcEM2Q0RzNjN0Wmt1NnpiZGZsbWw4VExYQk11TnZjQjJfQlk1RnZ1QklCdXhrNjREVUZtS0lPeWoxNVA2eThUQmFWc19Lb3JyWk1SQXI1REJIUEFGcjdsOTc4NVJlRG9FR2ltR2RiUk1jdDFISlF6ckZpN2NLdW5JaUJjNnpSUUR1LVVIY1JOYmtOMTlCSGxtS0hCMU9PZGg4WkQ3ZGZUcXJYRGVmV1B3N29Yc2dJWDJtamJ1Tm5ZYjZNSGFCTU03Wk5KbGFjOUgxNUlPVWpBelFlcFhQU0JkelkxTGM2ZDg3WTVMRHIwN3Uybkk4ejQybDlpV293QU42aERJZ192dy15SUpTNEhLNlIxY19pRG1UVThPeHJXM3VKYllNSWZPZHJ1dHhnVmU0blRmeDJmUl84VVdDNmF3aExINnZEYTFSRlFsdXljSEg2TUF1Qk1SY0pEMW95TmVxLW5ncjA1M3Ric0tDUWktejhXNmhpV29FNjZ3Q2VQcGlZcVcwQ1FrN1lDWHU3Q0U0TWVYX05rdVd1Y3BWcklNU0xrVXhFcHBVNlc1UllXTUE0Z1dqTmdDdVlHeURWSzNkcE91Vnh4Z3pHeE03dWU0cXVBUDlUc19sTEc5UVQtMVk0R213aFl1blFvamhlOGpNNVRvd0hla0dhd0d0RVY0QWVaWGNvSGJsTFBQNWtYNWhQNzdrd0MwSjlPbjNBNmRJR3FLell3cUlhTDJ3MjBkYU5JU0pxSDdVcnVKMHBSSzd0cHJDbElzbUZoa2k1Zk1wVUpMbkZtaUNKTjlSSnc3MXBfWFhuU0Fya3NDTVpIdEFiMlRFZTZJVjFnQzdZNlpHTWFkN09SYTBnUkkzWk9TZDA1VW5BcVZsdHNjVkExcUFNM1drLWRTSkNXbk45dFdFNDh6Q3VhSUJZeHplS3pjZm9MaDRUX1o4TG1lQkhWbG9nVDVnamN0Rm4yTTdwQl9NWHk2UVZOYXRiWWxERFV6Sjc1UmdNWTI2NS1PVDRWcUdiZFZwZk9lNGpZYzRRWTZxTG1TMkR3WTIydHFmRGlqYTFNbTBPa0g3RlFIYm12aEhob3NVb0ZfZkozc3VQQXRrdkx6SlZGbkJHZGNtWGp5N21PRjVTUGhxSG5WRkNDZjA2dUI0Q0VNd0UtbEp0cFNRV0J0bjdVeElXak1WWFRjM3BrMFdQWDQ4MHhYTlJ2Zk1iS1NvLVJwQk1pbjRNZlRvOVdTakRnRDZrMXB3OThpYVZMUEEtYW9GX0lvT1ZrYmVYc0hxU3l2Vld3amU5MVVxQndfYWZRWG53ZklaYzlzVVlTVDB4b1J3b19TaGxQc2hIRlBaeTB2aVROMUg4MjR6WUtKekI5Q1ZzakZ5MS1yN20tNy1ldTcxUDVJX3pJWW83SlBDYW80Y2QtM0Q1Mld2c0lmZ25UN2kwbElMZXRzakgyblJfUG9tVzNIQVp3SEJ3VE1HV0tmeEpNLVZyTUdBTzVMekxmWERHakRtY2VndGtyTTU1bklDMWZSZ3Bqanh3cGZZTk9hRlB6OWtMRXZDOTB2N2NiTjB0NS0wYmI2T2Z6UENseDJSS3BsaXJVblNPc2E1WnVpYmlnQmh1NllJSmpjT2JOVnV5RW1fVW9vOEFOSFVYNWFUOWFaNzVtOVozNnBqbXROSzB6dFF5amZfSUZtWDNUdHB5ckkyLW9Mb1NwYVVEczBFcnVzd015MHVGVGcxZ1JJNGloVzNYeVUxV2xnamcydHJZNjZaS013ZGZ1Y1pLNjNrdjBfRmxkdXFBVFU3dnpzYzNSZkxVeW05X2kyRzl5WUxwVkw5ZFRfa25MZjVXVW9EVl9rRmFTZVNmNHdqdHRzOHFNLXRudWtoM0RpOGVBbXVZdmFvMWo5SmtNS0tFbE13V0VJR3NzRjhqYzZPMjlmblJtV2xmajVwd2c5WU0wZ0Mzbmhxb0ZHWDFWSFZ2OEtlV05rMUdPXzRJQzVMaWRmQkVqVG1GMnFTTUhONkJGWVVoVkhnNE9LQkd1dkFNejVsVXYxNnBHZXlURkVTZlpWcGk5cmpsWTlGalBlaFdGVnR5THhyellhanItOXZKT1ZWQWl3ZzlWeUJ3VlNybVpBQ0dpUWZKRnB0NkhmOWYxLUdNT2hCOHh1aTJEc3ZWcFA3cVdJSURZd3IxMEUybGtJOWhadXVvcUhjTmhuR1laRVJYWFBFUE56cnotZkU1WFJUTC1ld0JTc1B0T0VJcFNzUkZKYmxMQmdqVVdtbkh1eVlXWHhXVHUzMjRPeFVqaTJPQXNwTk9Tcm03TmhTNGZiZGlEaHdlTXJFdWdVTmJEVWQ4OHFKbVQ2aEdDdWpNeDMtQnJURXJzY015cjgyNWE5QUJ1RktJZWNLVWFFNzdTZkhzRThPQnFBRDRUaFd4VFhmMERBSHpNYXU4WG93Y2dSVG5fQmQ5RHdvUzZjT3Voa2t4WFRESWF6MGxGb3o5ak1vT0pieFZjQUVUN2FQWEZkeEtKZ1RTNUVHalVCTHdaRU1QREpMRGZyblllZUliVUxsTUs4NXA4QTlSOXhmNzR1Z2FBRXN5RXJVT0psbUN1N1NsT1Jyak8yNFM5WHF5VzRBSnRQQTNaTFVKSHB5aUtzWEhGQ25XQ1B5VGt3TXZxUnJ1QmZfV3FzUHhmOXJHcEJZU2dnS1V1WHBmVWNnRmZMYWUtSmZ4Zmw2NFo2cC1NX2YzTkNQVW5yYVduQUxtemplM3czRHRhRldqM0lJZEZoUzZlVUphTU0tR1l2dnZTZ1hFODNTWElUOWE4RVI1X0ZVX294d19zM2NoaXYwUGpYVk16ejhOUkg0MzFKTWo0aTBqTUQyS2RpOWxPUGwydDBWbEpINDlDVXVIaDM0ZVgtZU9HcnV6eGNYbVhfaEdZcUNMWl9oS1Vha2RqVEJYaUNxSVpxRGRRN1VILS1hWGd1UU5VcjF1djV4QWJHNWdtVE5WZy1UNy0xcHhUQXlzR0gyM0lEZGlZVy1PSXRTcGd6MXZTODQ5TG9xQ0d4VDJxMUkzdWJqV1NjX1FIdi1PS0FSdUVadGtaTE90VFZrNnNseTF2XzVoVEJMa1dOZ0xPamFVLTZORXY2b242TExjNnQ5ZEN5R09jUlJXM2U5cjBvbHUyOTAzSWE3eUNyTS0tZHRZQ1ljRTdqLU9yZjM5SmE0NVNVdkJoZFA3Mnd1SXNJOE5ldnhwQzlfMWExdmVaYkZya2YtN053Z0JfR3RSRWV2bkpDRUJhU3ptSmtFU2o1ekhielllQXBRY3h6LmV5SmxibVJ3YjJsdWRGOXpiSFZuSWpvaWIzQmxibUZwTDJkd2RDMDFMVzVoYm04dE1qQXlOUzB3T0Mwd04zeHZjR1Z1WVdraWZRIiwiZm9ybWF0Ijoib3BlbmFpLXJlc3BvbnNlcy12MSIsImlkIjoicnNfNzIyMDdkNzYzNWUxZmE2NDI3MDMzYTgxNzdhOWRhOTZjMDQ2YTVmMTQ2M2RmYjY1MGMiLCJpbmRleCI6MSwidHlwZSI6InJlYXNvbmluZy5lbmNyeXB0ZWQifV0="
+        },
+        "role" : "reasoning"
+      },
+      {
+        "contents" : [
+          {
+            "id" : "A143DB55-AA9C-4074-99A2-99893D10A499",
+            "text" : "391\n\nReason: 17 × 23 = (10 + 7) × 23 = 10×23 + 7×23 = 230 + 161 = 391.",
+            "type" : "text"
+          }
+        ],
+        "id" : "7112832D-0DE9-4665-BD05-C4B12221052A",
+        "metadata" : {
+          "cacheWriteTokenCount" : 0,
+          "cost" : 6.57e-05,
+          "finishReason" : "stop",
+          "model" : "openai/gpt-5-nano",
+          "openRouter.isBYOK" : false,
+          "openRouter.upstreamInferenceCompletionCost" : 6.48e-05,
+          "openRouter.upstreamInferenceCost" : 6.57e-05,
+          "openRouter.upstreamInferencePromptCost" : 9e-07,
+          "provider" : "OpenAI",
+          "responseID" : "gen-1794001077-6fBZduGtFnS6mmgx2YCK",
+          "serviceTier" : "default"
+        },
+        "role" : "response"
+      }
+    ]
+  },
+  "type" : "FoundationModels.Transcript",
+  "version" : "1.1"
+}

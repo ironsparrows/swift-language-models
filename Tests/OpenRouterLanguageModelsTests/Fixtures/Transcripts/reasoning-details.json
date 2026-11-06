@@ -1,0 +1,112 @@
+{
+  "transcript" : {
+    "entries" : [
+      {
+        "contents" : [
+          {
+            "id" : "098877DA-0300-40A1-8390-21346C07608F",
+            "text" : "How many days in a week?",
+            "type" : "text"
+          }
+        ],
+        "contextOptions" : {
+
+        },
+        "id" : "0BA873DD-1C38-4675-A118-3B48A3C2A7D0",
+        "options" : {
+
+        },
+        "role" : "user"
+      },
+      {
+        "id" : "86E3D047-0AAF-41F1-BAD5-8FA74064B340",
+        "metadata" : {
+          "model" : "vendor/model",
+          "reasoningOrigin" : "openrouter"
+        },
+        "reasoning" : {
+          "contents" : [
+            {
+              "id" : "0FEFC996-A1D1-4660-955F-D2A867FAB5A0",
+              "text" : "Count them.",
+              "type" : "text"
+            }
+          ],
+          "signature" : "W3sidHlwZSI6InJlYXNvbmluZy50ZXh0IiwidGV4dCI6IkNvdW50IHRoZW0uIiwic2lnbmF0dXJlIjoic2lnLTEiLCJmb3JtYXQiOiJhbnRocm9waWMtY2xhdWRlLXYxIiwiaW5kZXgiOjB9XQ=="
+        },
+        "role" : "reasoning"
+      },
+      {
+        "contents" : [
+          {
+            "id" : "B841E789-7428-4F7F-950C-2B58C259F230",
+            "text" : "Seven.",
+            "type" : "text"
+          }
+        ],
+        "id" : "D10620D6-3716-4880-9AB4-CCEFE04C641E",
+        "metadata" : {
+          "assetIDs" : [
+
+          ]
+        },
+        "role" : "response"
+      },
+      {
+        "contents" : [
+          {
+            "id" : "15B341AB-006B-46BD-A6F2-750A4C7C693D",
+            "text" : "And in a fortnight?",
+            "type" : "text"
+          }
+        ],
+        "contextOptions" : {
+
+        },
+        "id" : "0A421D70-F582-4406-9FBC-166165A7A66B",
+        "options" : {
+
+        },
+        "role" : "user"
+      },
+      {
+        "id" : "90BFF47F-0694-433B-9EFA-F1811F34F9CE",
+        "metadata" : {
+          "model" : "vendor/model",
+          "reasoningOrigin" : "openrouter"
+        },
+        "reasoning" : {
+          "contents" : [
+            {
+              "id" : "BA6FBF0F-C77E-47C9-BB34-023F6459600B",
+              "text" : "Two weeks.",
+              "type" : "text"
+            }
+          ],
+          "signature" : "W3siZm9ybWF0IjoiYW50aHJvcGljLWNsYXVkZS12MSIsImluZGV4IjowLCJ0ZXh0IjoiVHdvIHdlZWtzLiIsInR5cGUiOiJyZWFzb25pbmcudGV4dCIsInNpZ25hdHVyZSI6InNpZy0yIn0seyJkYXRhIjoiYmxvYiIsImluZGV4IjoxLCJ0eXBlIjoicmVhc29uaW5nLmVuY3J5cHRlZCJ9XQ=="
+        },
+        "role" : "reasoning"
+      },
+      {
+        "contents" : [
+          {
+            "id" : "33C05AE9-1200-4BD2-A1C7-51404B75B720",
+            "text" : "Fourteen.",
+            "type" : "text"
+          }
+        ],
+        "id" : "B6E81168-2E1B-47B8-9E35-776681A1E78A",
+        "metadata" : {
+          "cost" : 0.00025,
+          "finishReason" : "stop",
+          "model" : "vendor/model",
+          "provider" : "Vendor",
+          "responseID" : "gen-1"
+        },
+        "role" : "response"
+      }
+    ]
+  },
+  "type" : "FoundationModels.Transcript",
+  "version" : "1.1"
+}

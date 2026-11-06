@@ -1,0 +1,135 @@
+{
+  "transcript" : {
+    "entries" : [
+      {
+        "contents" : [
+
+        ],
+        "id" : "DDF15F1C-EDEA-4F19-BBAE-7DDD9F931800",
+        "role" : "instructions",
+        "tools" : [
+          {
+            "function" : {
+              "description" : "Looks up a food's calories.",
+              "name" : "lookUpFood",
+              "parameters" : {
+                "additionalProperties" : false,
+                "properties" : {
+                  "food" : {
+                    "type" : "string"
+                  }
+                },
+                "required" : [
+                  "food"
+                ],
+                "title" : "Arguments",
+                "type" : "object",
+                "x-order" : [
+                  "food"
+                ]
+              }
+            },
+            "type" : "function"
+          }
+        ]
+      },
+      {
+        "contents" : [
+          {
+            "id" : "67002CD1-69AE-496F-84E5-BE6A9FF67735",
+            "text" : "Calories in an egg and rice?",
+            "type" : "text"
+          }
+        ],
+        "contextOptions" : {
+
+        },
+        "id" : "5369FF58-4B08-49C5-88F0-D338AC5C6447",
+        "options" : {
+
+        },
+        "role" : "user"
+      },
+      {
+        "contents" : [
+          {
+            "id" : "C7AD173C-6A33-4E93-8877-AC416A2A1C01",
+            "text" : "Looking both up. ",
+            "type" : "text"
+          }
+        ],
+        "id" : "8A72905A-3148-4B76-888B-C108CEB7FC21",
+        "role" : "response"
+      },
+      {
+        "id" : "964627C8-0FDB-4006-B0DE-FD76795AACE8",
+        "role" : "response",
+        "toolCalls" : [
+          {
+            "arguments" : "{\"food\": \"egg\"}",
+            "id" : "call_1",
+            "metadata" : {
+              "cost" : 0.00025,
+              "finishReason" : "tool_calls",
+              "model" : "vendor/model",
+              "provider" : "Vendor",
+              "responseID" : "gen-1"
+            },
+            "name" : "lookUpFood"
+          },
+          {
+            "arguments" : "{\"food\": \"rice\"}",
+            "id" : "call_2",
+            "name" : "lookUpFood"
+          }
+        ]
+      },
+      {
+        "contents" : [
+          {
+            "id" : "8D22B474-C66E-4404-9C8F-CBB6562487BE",
+            "text" : "egg: 100 kcal",
+            "type" : "text"
+          }
+        ],
+        "id" : "call_1",
+        "role" : "tool",
+        "toolCallID" : "call_1",
+        "toolName" : "lookUpFood"
+      },
+      {
+        "contents" : [
+          {
+            "id" : "8D978FE7-ABDF-4E71-9F40-D8C81EA14AD6",
+            "text" : "rice: 100 kcal",
+            "type" : "text"
+          }
+        ],
+        "id" : "call_2",
+        "role" : "tool",
+        "toolCallID" : "call_2",
+        "toolName" : "lookUpFood"
+      },
+      {
+        "contents" : [
+          {
+            "id" : "965A4ACA-2975-49C1-8D80-BF04B08464AE",
+            "text" : "An egg and rice have 100 kcal each.",
+            "type" : "text"
+          }
+        ],
+        "id" : "BC7D127E-9BB9-46F2-AA01-E4E63BEEB82F",
+        "metadata" : {
+          "cost" : 0.00025,
+          "finishReason" : "stop",
+          "model" : "vendor/model",
+          "provider" : "Vendor",
+          "responseID" : "gen-1"
+        },
+        "role" : "response"
+      }
+    ]
+  },
+  "type" : "FoundationModels.Transcript",
+  "version" : "1.1"
+}

@@ -1,0 +1,67 @@
+{
+  "transcript" : {
+    "entries" : [
+      {
+        "contents" : [
+          {
+            "id" : "B9E21BF9-E542-4AA7-8286-7949733933EA",
+            "text" : "Name one color of the sea.",
+            "type" : "text"
+          }
+        ],
+        "contextOptions" : {
+          "reasoningLevel" : "light"
+        },
+        "id" : "333D9F8E-9592-4301-B3E6-A3FBEF3BA690",
+        "options" : {
+          "maximumResponseTokens" : 300
+        },
+        "role" : "user"
+      },
+      {
+        "id" : "07563575-3F07-4019-B454-B86A82F4C160",
+        "metadata" : {
+          "model" : "openai/gpt-5-nano",
+          "reasoningOrigin" : "openrouter"
+        },
+        "reasoning" : {
+          "contents" : [
+            {
+              "id" : "C92F36BB-0B61-4421-B293-79B7F2A53BD4",
+              "text" : "**Deciding on sea color**\n\nI'm thinking we just need to choose one color to describe the sea. The most common choice is blue, but other options could be green or turquoise. It seems like going with \"blue\" would be the simplest and most straightforward response. I'll just keep it brief and straightforward, so I can respond with \"Blue.\" That's definitely an easy one!",
+              "type" : "text"
+            }
+          ],
+          "signature" : "W3siZm9ybWF0Ijoib3BlbmFpLXJlc3BvbnNlcy12MSIsImluZGV4IjowLCJzdW1tYXJ5IjoiKipEZWNpZGluZyBvbiBzZWEgY29sb3IqKlxuXG5JJ20gdGhpbmtpbmcgd2UganVzdCBuZWVkIHRvIGNob29zZSBvbmUgY29sb3IgdG8gZGVzY3JpYmUgdGhlIHNlYS4gVGhlIG1vc3QgY29tbW9uIGNob2ljZSBpcyBibHVlLCBidXQgb3RoZXIgb3B0aW9ucyBjb3VsZCBiZSBncmVlbiBvciB0dXJxdW9pc2UuIEl0IHNlZW1zIGxpa2UgZ29pbmcgd2l0aCBcImJsdWVcIiB3b3VsZCBiZSB0aGUgc2ltcGxlc3QgYW5kIG1vc3Qgc3RyYWlnaHRmb3J3YXJkIHJlc3BvbnNlLiBJJ2xsIGp1c3Qga2VlcCBpdCBicmllZiBhbmQgc3RyYWlnaHRmb3J3YXJkLCBzbyBJIGNhbiByZXNwb25kIHdpdGggXCJCbHVlLlwiIFRoYXQncyBkZWZpbml0ZWx5IGFuIGVhc3kgb25lISIsInR5cGUiOiJyZWFzb25pbmcuc3VtbWFyeSJ9LHsiZGF0YSI6ImdBQUFBQUJxN2s1TVZoNkUtSE83Qk5Qb19UNjRVWnZFUnJlbnpEeTlfeENTZFZZdzJOMTRHR2FsX3QyaTI0Ny1IejdCRmxTRmFZa0VwZnBWaGNYcGVWNmRKNURFakJES1UtcXd3UVJ2UDVpSFRZeENtbzNnenlzNHJpT3NNYzZFeFRualdMMlN5RW1PNC1oeFRHV2NUc3gwTllwUW9MNlMwUmdVbk9GbHY5a09JWWo1OHlMU2FtajNQaWk2QURiVUhHUEVEVXNGT3JqMTdsakJZVUNXWUZLMW9FaU5Hb2gzM2NhQnAyM2N2M0taVnd1R0QyLWdvUjlabDVuSEhuR2h1TE51SnhBWVFXN1dDLWZSdkRwajhwNlBZaHY5UUhHX0R2N3hlZlYySEFiSExzNTRBX3NfZmJhdVFTeDhneDM2R2ZZUVZzSTdYNDdBbkNOTVVqMGtHMng0a0prUE9ia2xqYnZqOVZ3dnMwVzdueVg0aUxfS0R4VndrNzZRdWVQRDRJcHpDQlZDa1ZwbjA1anNDVUZ1ank0Q01jQzBJa1NpTTNJNDMxdFFjX0JQQ0pnZW1Oa19qRUIzLVQ2RzhpOFBZdHdSSVNIcUtkc3pWNFZwNU91VU1SaW12bjJtWFFRcnFkZ25RSy1SZDB5ZVpqNlZzTUFJS0JLZTFpQ3JidUJmcEpQQUpGS2E4NlVTVVJWaUFsQ2JUeVNFRDdBbm1yRHZ1dVZZYVB2V1BDNHkzelRLWF94V0VrY0xtS2lhWFdQRDY5R3N5VDgyX1ozTFFVX05aUXFwMDRMUmdKMElDVEotajA1bTB6Ml9hV1QwYzdrcEJ2dTdVZ3l4ZjBXYWhMamh5S0VqZFVjR2tRdG1JNFF2OC1IVGNjc0V5Qkk1OFZZdURCaEQ4NFptajZCLVFac18zYW1FVl9TdnJVbGc4aVJ0Yk5iNVdIZEZoTHVTMmMxTXpHYjlFMEZOQWZQZVM1RGU0Z2dnNENzMHZOYzNvZ0xqS0lxVUh5S3ItMnFVZWEtZmU1R25JYkJOU2FYeVdrR25FX3FjazdveENwRm9uZFdZTXUyQldQOW5ibUFGdTJqVFl2VFBsSkxJREYxVmxiYV9CZFRRMFpGWFNyRWViS2tud1RtekEyYmQxV0E3Z2VBMVJPTjFsQUFoUnpKVzFaS3kxYWFtVHZscExZUDlOMmFBZnhDcUJXVTBTSnc3bXpsSzR5ejF5dF9xR2ZSMWx0VllNUG5IWTFkV2d3VGRrcFpGeUNiRzY0WEx3elprTHJsVUtkTFU1Yzd3U2hTNFMzTWc3WHhUcjRYTW1OOEdVUkFEc2JkOHdfczYyWXVPQ1dVbW14OHRxN0xxc05sT1prU1V0X0ZvT0xDcF9YcnI5U0xvNE5sLWc4cHY3dlhqc1VUVGpHRTRfUVo1eWpGYTZJLVBiUV9RTGFwQWc4bXlYYmI2a1NzUk8wWVVPSnFHSC1jeXhkUWNxOTNSLURyLVBnQlRyWDZ2Nk9WXzVYd3FsQk9lQks5a19QbVp6NkNkNE9yRzM3SGQ1dkM1ODdENW1iQlhjbmFIQUpHYmxYOEJ1Mm9QZUgyUnhCT0tPUEJOLTdaZUNVcWp1V1lzcm9ySDVaWVZCdS02bDdOQmpYWFJKWG9QTVZlTVpHOGdhd0REQU02VXhxV0oxWlNlSXoxcTFTcmw5QWh3cU1OZTluN2xYY1NsTWZJbU5jSVBudThWN1hBMkZXb3V4UGd1Uk5VdkpzbjFFWVg1Zm03LTNZZGV5eTUxcEpLOXZEUjdneWtKWXdtTzMwLUhuVmpTRm9td19ZOXh5anExNWJQR3VxeGhCRjZDZlZMeXhVdEQxRU42TGVELU9RS0ZrOHF2SWtBRDdWRnFNUk5fejBTd1hWRjhLS3BSLWRVekpYbElLWG9NLXo2N0J3VmcxcTRQQm9vTzZFWXBWYzdyMWFQOUdLUEdBVFhFdG1EOHNMMllGWmcyelNkdG9VSkx2WWthQzJlYnZXcV9jdHBUMWtGVUd5MlUwdzgtTHpvRkNsYmg2OUxsQS1FaThrU0tPZWVBRVlCNDNOS0VhZXNvbnhXMjdGQjR2TnM3YUxUR0RxZWY0aWZpNnVwa05nN0tQZ3FLY0tVSUVEeU01VTFrM05heGlHSlh4WVoxTVRtQmtzeTFsbllwUFlGakhtWVdiQkhNcVhFODRoSmY1bm4wQ1JiMmJmVlNERHJqdlNYWGIxQmRwRFk3UTYzb0c4VHhmMUpYdHQtZWR1OWJtbzBUQXUwa2czV1V0LXJ1X0loVDJ6MEVURDdOTF9CX1BVSXBsVnJwQVBEZ0NtbEp6TWhneS13Y3V4bUVfOHpzUWFXYlhNZHR1Z3gzZlJHRmQzcU0tTXBsYWdYaXpWbWR6YnMtSHE1YzRad2E3ZE96d2JWWU5iNE5GcnItRlhWLTBPU0c5djBCTkROdmNqdl9nakpVbEdLYmtLTThsMkhIWjRLSTJQZFl6R0Qycms1UDgxQjRBZVk2N3VERXBRMURtNVFIaFFLajU1NVQ4WFRpaU9jcHFOVUlnd3R3cE9HVGphZGdBeDZiMWNmWHFpeTcwa2FpdVV3RE9JS2d0c1U1dUJ0cFV6b1lmNFhTcWZaTGlJZXg5WlNLN2duSlh6ZHdZell2Z0RJYjlid1RDYzdsMGRvRFVNcWdQMzlpaGZBNVBSalpHX0pNZ25zUTZlQWFib1RxUHdMTU1ZSHItQS1TVWdtUTJkVDlDWEJ1M2FtTmNkM1lqaS1aNWRvenhsOFJXQ3ZIdHlyLTRLSDdNZkFEUHRBa3JuWGw1czVxZ1dnX2xPbndYc0VVS2tOMVBaeTJlVTJyZmJFLXk1R3A0amlJaEc2RDd5c2tjeWZ6NDlUNWtkMkg4cC1oU19pNW5wS0FGNG1jcE9SNmpkUTI0Vl81dWN4c0hQSGMzc2pnYlBoS2h6UERtaFVtZ1VqS3hKUzBoeUxzM1NOTUtKNEVydDlXTWNQTWRKYUIzNll6LmV5SmxibVJ3YjJsdWRGOXpiSFZuSWpvaWIzQmxibUZwTDJkd2RDMDFMVzVoYm04dE1qQXlOUzB3T0Mwd04zeHZjR1Z1WVdraWZRIiwiZm9ybWF0Ijoib3BlbmFpLXJlc3BvbnNlcy12MSIsImlkIjoicnNfM2NhYzcyYzQ0ODg1ZDIwNTE4NGViYjhiMmQ2NThhZjJmNTlmYmY5NWM0NDAzYmU5MzEiLCJpbmRleCI6MSwidHlwZSI6InJlYXNvbmluZy5lbmNyeXB0ZWQifV0="
+        },
+        "role" : "reasoning"
+      },
+      {
+        "contents" : [
+          {
+            "id" : "E8E55569-9BBC-4E5F-8B37-B52DC2CD1AFA",
+            "text" : "Blue.",
+            "type" : "text"
+          }
+        ],
+        "id" : "A05B3955-4391-426A-9A34-E6D33020C36B",
+        "metadata" : {
+          "cacheWriteTokenCount" : 0,
+          "cost" : 8.725e-06,
+          "finishReason" : "stop",
+          "model" : "openai/gpt-5-nano",
+          "openRouter.isBYOK" : false,
+          "openRouter.upstreamInferenceCompletionCost" : 8.4e-06,
+          "openRouter.upstreamInferenceCost" : 8.725e-06,
+          "openRouter.upstreamInferencePromptCost" : 3.25e-07,
+          "provider" : "OpenAI",
+          "responseID" : "gen-1794002505-xg5TZ448CsoD2SNZVUzH",
+          "serviceTier" : "flex"
+        },
+        "role" : "response"
+      }
+    ]
+  },
+  "type" : "FoundationModels.Transcript",
+  "version" : "1.1"
+}

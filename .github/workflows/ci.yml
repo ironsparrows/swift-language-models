@@ -17,6 +17,8 @@ env:
   # Only the `xcode-27` image (a public preview) has Xcode 27.x; `/Applications/Xcode_27.2.app` is a link that stays
   # when the release candidate becomes the release.
   DEVELOPER_DIR: /Applications/Xcode_27.2.app/Contents/Developer
+  # A snapshot that's missing or wrong fails here. Snapshots are recorded on a developer's machine and reviewed.
+  SNAPSHOT_TESTING_RECORD: never
 
 jobs:
   build:

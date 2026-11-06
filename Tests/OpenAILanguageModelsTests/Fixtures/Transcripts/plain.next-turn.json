@@ -1,0 +1,1 @@
+{"model":"gpt-plain","input":[{"role":"system","content":"Be brief."},{"role":"user","content":"Hi"},{"role":"assistant","content":"Hello."},{"role":"user","content":"And next?"}],"stream":true}

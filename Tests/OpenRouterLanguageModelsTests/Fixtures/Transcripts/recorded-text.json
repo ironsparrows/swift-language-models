@@ -1,0 +1,48 @@
+{
+  "transcript" : {
+    "entries" : [
+      {
+        "contents" : [
+          {
+            "id" : "4D8D3D6A-7B0D-4782-976E-3C07064D51A9",
+            "text" : "Name one color of the sea.",
+            "type" : "text"
+          }
+        ],
+        "contextOptions" : {
+
+        },
+        "id" : "960B350B-470D-4BAD-B272-22ECAE8555B5",
+        "options" : {
+          "maximumResponseTokens" : 30
+        },
+        "role" : "user"
+      },
+      {
+        "contents" : [
+          {
+            "id" : "AD41CF76-2D1A-4C38-A302-C4A76B6DE2B1",
+            "text" : "Blue",
+            "type" : "text"
+          }
+        ],
+        "id" : "B1C467F7-6E63-48F5-B551-88B1D6D273B0",
+        "metadata" : {
+          "cacheWriteTokenCount" : 0,
+          "cost" : 2.4e-07,
+          "finishReason" : "stop",
+          "model" : "mistralai/mistral-nemo",
+          "openRouter.isBYOK" : false,
+          "openRouter.upstreamInferenceCompletionCost" : 6e-08,
+          "openRouter.upstreamInferenceCost" : 2.4e-07,
+          "openRouter.upstreamInferencePromptCost" : 1.8e-07,
+          "provider" : "DekaLLM",
+          "responseID" : "gen-1794001075-yf9TzUNNrW9Wui7QQzsr"
+        },
+        "role" : "response"
+      }
+    ]
+  },
+  "type" : "FoundationModels.Transcript",
+  "version" : "1.1"
+}

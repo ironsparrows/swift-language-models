@@ -1,0 +1,1 @@
+{"model":"vendor/model","messages":[{"role":"user","content":"How many days in a week?"},{"role":"assistant","content":"<think>Count the days.</think>\n\nSeven days."},{"role":"user","content":"And next?"}],"stream":true,"plugins":[{"id":"context-compression","enabled":false}],"session_id":"EFD07277-1A21-4B8B-8D8D-26747F8AD1FE"}

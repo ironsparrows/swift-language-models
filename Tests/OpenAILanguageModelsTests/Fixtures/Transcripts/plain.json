@@ -1,0 +1,55 @@
+{
+  "transcript" : {
+    "entries" : [
+      {
+        "contents" : [
+          {
+            "id" : "556054F3-1EA3-4559-A9B4-75BB62B3A19C",
+            "text" : "Be brief.",
+            "type" : "text"
+          }
+        ],
+        "id" : "9CA2B141-467D-4E21-BB96-B4054F454E46",
+        "role" : "instructions"
+      },
+      {
+        "contents" : [
+          {
+            "id" : "71319995-8273-4D52-970F-86DECEBC5D0C",
+            "text" : "Hi",
+            "type" : "text"
+          }
+        ],
+        "contextOptions" : {
+
+        },
+        "id" : "39A0FBD3-4A8F-4A5F-8FC1-4D771E3DEF36",
+        "options" : {
+          "randomSeed" : 7,
+          "temperature" : 0.5,
+          "topP" : 0.9
+        },
+        "role" : "user"
+      },
+      {
+        "contents" : [
+          {
+            "id" : "00CE873F-9B17-42DE-BC21-DD1E3A496DF4",
+            "text" : "Hello.",
+            "type" : "text"
+          }
+        ],
+        "id" : "41283544-E14C-4413-8B73-192C0D0203F8",
+        "metadata" : {
+          "finishReason" : "stop",
+          "model" : "gpt-plain",
+          "responseID" : "resp_1",
+          "serviceTier" : "default"
+        },
+        "role" : "response"
+      }
+    ]
+  },
+  "type" : "FoundationModels.Transcript",
+  "version" : "1.1"
+}

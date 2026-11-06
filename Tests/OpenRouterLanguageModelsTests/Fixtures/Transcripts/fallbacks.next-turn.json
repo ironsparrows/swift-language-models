@@ -1,0 +1,1 @@
+{"model":"vendor/model","messages":[{"role":"user","content":"Hi"},{"role":"assistant","content":"Hello."},{"role":"user","content":"And next?"}],"stream":true,"plugins":[{"id":"context-compression","enabled":false}],"session_id":"AB3BA857-6F1B-4158-9084-385D7AFD6A33"}
