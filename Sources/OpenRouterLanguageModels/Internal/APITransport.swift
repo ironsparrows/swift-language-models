@@ -1,7 +1,7 @@
 import Foundation
 import LanguageModels
 
-/// Reads what OpenRouter's API lists about a model, besides chat completions, and decodes it, through the core's
+/// Reads what OpenRouter's API lists about a model, besides chat completions, and decodes it, through the shared
 /// ``InfoTransport``: to the base URL, or OpenRouter's own API, with a failure thrown as a chat request's would be.
 struct APITransport: Sendable {
     /// How the calls reach OpenRouter: the session, the authentication and its base URL, and how a call retries.

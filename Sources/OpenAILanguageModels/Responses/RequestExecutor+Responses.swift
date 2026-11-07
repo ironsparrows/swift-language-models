@@ -1,6 +1,5 @@
 public import FoundationModels
 import LanguageModels
-import ResponsesAPI
 
 extension OpenAILanguageModel.RequestExecutor {
     /// Sends one request and streams its answer.

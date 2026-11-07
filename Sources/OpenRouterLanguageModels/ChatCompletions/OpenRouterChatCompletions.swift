@@ -1,4 +1,3 @@
-import ChatCompletionsAPI
 import Foundation
 import FoundationModels
 import LanguageModels
@@ -51,9 +50,9 @@ extension OpenRouterChatCompletions: ChatCompletionsDialect {
 
     var imageEncoding: ImageEncoding { configuration.settings.images }
 
-    static var memberOrder: [MemberKey] { MemberKey.openRouterOrder }
+    static var memberOrder: [ChatCompletions.Member] { ChatCompletions.Member.openRouterOrder }
 
-    static var listedMembers: Set<MemberKey> { MemberKey.openRouterListed }
+    static var listedMembers: Set<ChatCompletions.Member> { ChatCompletions.Member.openRouterListed }
 
     /// The response cache's settings, the session id while the cache is on, the request for router metadata, which every
     /// request sends because only the router's report says a guardrail blocked it, and the app's name, address,
@@ -71,7 +70,7 @@ extension OpenRouterChatCompletions: ChatCompletionsDialect {
     }
 
     /// Whether the model and each fallback list a parameter, which OpenRouter names as the body does.
-    func lists(_ member: MemberKey) -> Bool {
+    func lists(_ member: ChatCompletions.Member) -> Bool {
         details.supportedParameters.contains(OpenRouterParameter(rawValue: member.rawValue))
     }
 
@@ -103,7 +102,7 @@ extension OpenRouterChatCompletions {
     /// - Throws: `LanguageModelError.unsupportedCapability` when tool calls are required and a model doesn't take
     ///   `tool_choice`, when there are server tools and a model doesn't take tools, and for a schema when a model
     ///   doesn't take structured outputs.
-    func body(_ context: BodyContext) throws(LanguageModelError) -> BodyPlan<BodyExtras> {
+    func body(_ context: BodyContext) throws(LanguageModelError) -> ChatCompletionsBodyPlan<BodyExtras> {
         let options = model.options
         // A model that doesn't take tools gets none of the session's, and requiring a call needs `tool_choice`, the
         // only way to require one.
@@ -148,7 +147,7 @@ extension OpenRouterChatCompletions {
             sessionID: model.responseCache == nil ? Self.sessionID(context.firstPromptID) : nil,
             cacheControl: model.requestCacheControl?.directive
         )
-        var plan = BodyPlan(extras: extras)
+        var plan = ChatCompletionsBodyPlan(extras: extras)
         plan.sessionTools = sendsSessionTools ? .sent : .leftOut
         plan.serverTools = serverTools
         // The token limit goes as `max_tokens` to models that don't list `max_completion_tokens`.

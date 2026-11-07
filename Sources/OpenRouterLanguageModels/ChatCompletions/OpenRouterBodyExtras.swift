@@ -1,4 +1,3 @@
-import ChatCompletionsAPI
 import Foundation
 import LanguageModels
 
@@ -26,7 +25,7 @@ struct OpenRouterBodyExtras: Encodable {
     let cacheControl: OpenRouterCacheControl.Directive?
 
     func encode(to encoder: any Encoder) throws {
-        var container = encoder.container(keyedBy: MemberKey.self)
+        var container = encoder.container(keyedBy: ChatCompletions.Member.self)
         try container.encodeIfPresent(models, forKey: .models)
         try container.encodeIfPresent(modalities, forKey: .modalities)
         try container.encodeIfPresent(parallelToolCalls, forKey: .parallelToolCalls)
@@ -136,7 +135,7 @@ struct OpenRouterBodyExtras: Encodable {
     }
 }
 
-extension MemberKey {
+extension ChatCompletions.Member {
     static let models: Self = "models"
     static let modalities: Self = "modalities"
     static let parallelToolCalls: Self = "parallel_tool_calls"
@@ -159,14 +158,14 @@ extension MemberKey {
 
     /// The order OpenRouter's requests have always sent their members in, which a host's prompt cache and OpenRouter's
     /// response cache depend on.
-    static let openRouterOrder: [MemberKey] = [
+    static let openRouterOrder: [ChatCompletions.Member] = [
         model, models, messages, modalities, stream, tools, toolChoice, parallelToolCalls, responseFormat, reasoning, temperature,
         topP, topK, seed, maxCompletionTokens, maxTokens, frequencyPenalty, presencePenalty, repetitionPenalty, minP, topA, stop,
         logitBias, verbosity, serviceTier, user, provider, plugins, sessionID, metadata, cacheControl,
     ]
 
     /// The members that go out only when the model and each fallback list them.
-    static let openRouterListed: Set<MemberKey> = [
+    static let openRouterListed: Set<ChatCompletions.Member> = [
         toolChoice, parallelToolCalls, temperature, topP, topK, seed, maxTokens, frequencyPenalty, presencePenalty,
         repetitionPenalty, minP, topA, stop, logitBias, verbosity,
     ]

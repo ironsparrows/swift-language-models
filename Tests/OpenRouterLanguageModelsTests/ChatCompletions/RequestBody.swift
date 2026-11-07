@@ -1,8 +1,7 @@
 import Foundation
 import FoundationModels
-import LanguageModels
 
-@testable import ChatCompletionsAPI
+@testable import LanguageModels
 @testable import OpenRouterLanguageModels
 
 /// The body of the request for a transcript, built straight from it, without the checks a session makes first.

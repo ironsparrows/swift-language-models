@@ -1,4 +1,3 @@
-import ChatCompletionsAPI
 public import FoundationModels
 import LanguageModels
 

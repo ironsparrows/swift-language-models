@@ -1,4 +1,3 @@
-import APIFormat
 import Foundation
 import FoundationModels
 import LanguageModels

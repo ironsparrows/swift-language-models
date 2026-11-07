@@ -1,7 +1,6 @@
 import Foundation
 import FoundationModels
 import LanguageModels
-import ResponsesAPI
 import UniformTypeIdentifiers
 
 /// OpenAI's dialect of the Responses format: the reasoning effort and summary, the storage, the options only OpenAI
@@ -41,7 +40,7 @@ extension OpenAIResponses: ResponsesDialect {
     static var phasesMetadataKey: String { OpenAIMetadataKey.phases }
 
     /// The settings that go out only to models that take them.
-    static var listedMembers: Set<MemberKey> {
+    static var listedMembers: Set<Responses.Member> {
         [.temperature, .topP, .maxOutputTokens, .tools, .toolChoice, .reasoning, OpenAIBodyExtras.parallelToolCallsKey]
     }
 
@@ -60,7 +59,7 @@ extension OpenAIResponses: ResponsesDialect {
     var instructionsRole: InstructionsRole { details.reasoning.isSupported ? .developer : .system }
 
     /// Whether the model takes a setting, which the catalog names as the body does.
-    func lists(_ member: MemberKey) -> Bool {
+    func lists(_ member: Responses.Member) -> Bool {
         details.supportedParameters.contains(OpenAIParameter(rawValue: member.rawValue))
     }
 
@@ -101,7 +100,7 @@ extension OpenAIResponses {
     ///
     /// - Throws: `LanguageModelError.unsupportedCapability` when tool calls are required and the model doesn't take
     ///   tools, or when the request has a response schema and the model doesn't take structured outputs.
-    func body(_ context: BodyContext) throws(LanguageModelError) -> BodyPlan<BodyExtras> {
+    func body(_ context: BodyContext) throws(LanguageModelError) -> ResponsesBodyPlan<BodyExtras> {
         let options = model.options
         let sendsSessionTools = context.hasSessionTools && lists(.tools)
         if context.hasSessionTools, !sendsSessionTools, context.toolCallingMode?.kind == .required {
@@ -112,7 +111,7 @@ extension OpenAIResponses {
                 .guidedGeneration, "The model doesn't take structured outputs, so it can't hold its answer to a schema.")
         }
         let (effort, movedEffort) = reasoningEffort(context.reasoningLevel)
-        var plan = BodyPlan(
+        var plan = ResponsesBodyPlan(
             extras: BodyExtras(
                 // The parallel calls concern only the session's tools.
                 parallelToolCalls: sendsSessionTools ? options.parallelToolCalls.value : nil,
@@ -125,7 +124,7 @@ extension OpenAIResponses {
         plan.textExtras = options.verbosity.map(OpenAITextExtras.init)
         plan.movedEffort = movedEffort
         if details.reasoning.isSupported {
-            plan.reasoning = BodyPlan.Reasoning(effort: effort, summary: options.reasoningSummary?.rawValue)
+            plan.reasoning = ResponsesBodyPlan.Reasoning(effort: effort, summary: options.reasoningSummary?.rawValue)
             plan.asksForEncryptedReasoning = true
             let reasons = effort.map { $0 != ContextOptions.ReasoningLevel.off.effortWord } ?? (details.reasoning == .mandatory)
             if reasons { plan.leftOutMembers = [.temperature, .topP] }
@@ -162,7 +161,7 @@ extension OpenAIOptions.ParallelToolCalls {
 
 extension OpenAIOptions.Storage {
     /// The format's storage for the option.
-    fileprivate var planned: BodyPlan<OpenAIBodyExtras>.Storage {
+    fileprivate var planned: ResponsesBodyPlan<OpenAIBodyExtras>.Storage {
         switch self {
         case .automatic: .automatic
         case .stored: .stored

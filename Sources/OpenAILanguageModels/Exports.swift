@@ -1,3 +1,3 @@
-// Re-exports the core every provider shares, so `import OpenAILanguageModels` is all an app needs: typed reasoning
-// efforts, `FileAttachment`, the model details and logging come with it.
+// Re-exports `LanguageModels`, and through it the core every provider shares, so `import OpenAILanguageModels` is all an
+// app needs: typed reasoning efforts, `FileAttachment`, the model details and logging come with it.
 @_exported public import LanguageModels

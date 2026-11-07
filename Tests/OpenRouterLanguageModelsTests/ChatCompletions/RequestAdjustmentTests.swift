@@ -1,11 +1,9 @@
-import APIFormat
 import Foundation
 import FoundationModels
-import LanguageModels
 import LanguageModelsTestSupport
 import Testing
 
-@testable import ChatCompletionsAPI
+@testable import LanguageModels
 @testable import OpenRouterLanguageModels
 
 @Suite("Request adjustments")

@@ -1,6 +1,6 @@
 /// Renders the named reasoning levels and the effort ranking, as an extension of Apple's `ReasoningLevel`.
 enum ReasoningLevelTemplate {
-    static let path = "Sources/LanguageModels/Generated/ReasoningLevel+Efforts.swift"
+    static let path = "Sources/LanguageModelsCore/Generated/ReasoningLevel+Efforts.swift"
 
     /// The names that `ContextOptions.ReasoningLevel` already has, which no effort word's member can take.
     static let reservedNames: Set<String> = ["light", "moderate", "deep", "custom", "effortRanking"]

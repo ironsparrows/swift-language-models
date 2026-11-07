@@ -11,7 +11,8 @@ let package = Package(
         .watchOS(.v27),
     ],
     products: [
-        .library(name: "LanguageModels", targets: ["LanguageModels"])
+        .library(name: "LanguageModelsCore", targets: ["LanguageModelsCore"]),
+        .library(name: "LanguageModels", targets: ["LanguageModels"]),
     ]
         + providers.map(\.product),
     dependencies: [
@@ -19,48 +20,28 @@ let package = Package(
         .package(url: "https://github.com/pointfreeco/swift-snapshot-testing", from: "1.19.7")
     ],
     targets: [
+        // The public contract every provider shares: the model protocol, details, efforts, configuration, attachments,
+        // metadata, guide violations and the logging switch. A library that needs only the contract compiles no HTTP code.
+        .target(
+            name: "LanguageModelsCore",
+            swiftSettings: swiftSettings
+        ),
+        .testTarget(
+            name: "LanguageModelsCoreTests",
+            dependencies: ["LanguageModelsCore", "LanguageModelsTestSupport"],
+            swiftSettings: swiftSettings
+        ),
+        // OpenAI's Chat Completions and Responses formats, which provider modules build on, and what they share: sending
+        // requests, reading transcripts and streams, writing Foundation Models' channel. It re-exports the core and
+        // declares nothing public of its own.
         .target(
             name: "LanguageModels",
+            dependencies: ["LanguageModelsCore"],
             swiftSettings: swiftSettings
         ),
         .testTarget(
             name: "LanguageModelsTests",
             dependencies: ["LanguageModels", "LanguageModelsTestSupport"],
-            swiftSettings: swiftSettings
-        ),
-        // What the API formats share and providers never name: reading transcripts and streams, assembling tool calls,
-        // sending an answer to Foundation Models' channel, opening a stream with the portable-schema retry, the changes a
-        // request makes and the limits of OpenAI's formats. Provider modules don't depend on it.
-        .target(
-            name: "APIFormat",
-            dependencies: ["LanguageModels"],
-            swiftSettings: swiftSettings
-        ),
-        .testTarget(
-            name: "APIFormatTests",
-            dependencies: ["APIFormat", "LanguageModelsTestSupport"],
-            swiftSettings: swiftSettings
-        ),
-        // OpenAI's Chat Completions format, which provider modules build on. It isn't a product, so apps never import it.
-        .target(
-            name: "ChatCompletionsAPI",
-            dependencies: ["LanguageModels", "APIFormat"],
-            swiftSettings: swiftSettings
-        ),
-        .testTarget(
-            name: "ChatCompletionsAPITests",
-            dependencies: ["ChatCompletionsAPI", "APIFormat", "LanguageModelsTestSupport"],
-            swiftSettings: swiftSettings
-        ),
-        // OpenAI's Responses format, which provider modules build on. It isn't a product, so apps never import it.
-        .target(
-            name: "ResponsesAPI",
-            dependencies: ["LanguageModels", "APIFormat"],
-            swiftSettings: swiftSettings
-        ),
-        .testTarget(
-            name: "ResponsesAPITests",
-            dependencies: ["ResponsesAPI", "APIFormat", "LanguageModelsTestSupport"],
             swiftSettings: swiftSettings
         ),
         // What the test targets share: HTTP stubs, fixtures, canonical JSON, exact exchanges, the snapshot strategy for
@@ -118,12 +99,11 @@ nonisolated var swiftSettings: [SwiftSetting] {
 }
 
 // Each provider is a module named `<Name>LanguageModels`, with its own library product and test target. Adding a
-// provider here creates them; the module depends on `LanguageModels` and on the API formats it uses, and re-exports
-// only `LanguageModels`.
+// provider here creates them; the module depends on `LanguageModels` and re-exports it.
 var providers: [Provider] {
     [
-        provider("OpenRouter", uses: ["ChatCompletionsAPI"]),
-        provider("OpenAI", uses: ["ResponsesAPI"]),
+        provider("OpenRouter"),
+        provider("OpenAI"),
     ]
 }
 
@@ -137,19 +117,18 @@ struct Provider {
     }
 }
 
-func provider(_ name: String, uses formats: [String]) -> Provider {
-    let formatDependencies = formats.map { Target.Dependency.target(name: $0) }
-    return Provider(
+func provider(_ name: String) -> Provider {
+    Provider(
         name: name,
         targets: [
             .target(
                 name: "\(name)LanguageModels",
-                dependencies: ["LanguageModels"] + formatDependencies,
+                dependencies: ["LanguageModels"],
                 swiftSettings: swiftSettings
             ),
             .testTarget(
                 name: "\(name)LanguageModelsTests",
-                dependencies: [.target(name: "\(name)LanguageModels"), "APIFormat", "LanguageModelsTestSupport"] + formatDependencies,
+                dependencies: [.target(name: "\(name)LanguageModels"), "LanguageModelsTestSupport"],
                 resources: [.copy("Fixtures")],
                 swiftSettings: swiftSettings
             ),

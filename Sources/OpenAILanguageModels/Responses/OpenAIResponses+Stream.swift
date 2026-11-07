@@ -1,6 +1,5 @@
 import FoundationModels
 import LanguageModels
-import ResponsesAPI
 
 /// What OpenAI reports about one answer beyond the format's facts: the request's id, from the response's headers.
 struct OpenAIStreamState: Sendable {
