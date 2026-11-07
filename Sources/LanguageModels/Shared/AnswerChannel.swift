@@ -623,6 +623,9 @@ struct AnswerUsage {
     fileprivate let output: LanguageModelExecutorGenerationChannel.Usage.Output
     fileprivate let cacheWriteTokens: Int?
 
+    /// Clamps the prompt's counts, so its tokens are never below zero and its cached tokens lie between zero and its
+    /// tokens, whatever the provider reports.
+    ///
     /// - Parameters:
     ///   - inputTokens: The prompt's tokens, cached ones included.
     ///   - cachedTokens: The prompt's tokens read from the host's cache.
@@ -630,7 +633,8 @@ struct AnswerUsage {
     ///   - outputTokens: The answer's tokens, reasoning included.
     ///   - reasoningTokens: The answer's reasoning tokens.
     init(inputTokens: Int, cachedTokens: Int, cacheWriteTokens: Int?, outputTokens: Int, reasoningTokens: Int) {
-        input = .init(totalTokenCount: inputTokens, cachedTokenCount: cachedTokens)
+        let inputTokens = max(inputTokens, 0)
+        input = .init(totalTokenCount: inputTokens, cachedTokenCount: min(max(cachedTokens, 0), inputTokens))
         output = .init(totalTokenCount: outputTokens, reasoningTokenCount: reasoningTokens)
         self.cacheWriteTokens = cacheWriteTokens
     }

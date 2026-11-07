@@ -87,6 +87,25 @@ extension ResponsesModelTests {
             #expect(exchange.usage == #"input 12 cached 4, output 9 reasoning 3, metadata: {"cacheWriteTokenCount":2}"#)
         }
 
+        @Test(
+            arguments: [
+                (["input_tokens": 10, "input_tokens_details": ["cached_tokens": 12]], "input 10 cached 10"),
+                (["input_tokens": -1], "input 0 cached 0"),
+                (["input_tokens": 10, "input_tokens_details": ["cached_tokens": -2]], "input 10 cached 0"),
+            ] as [(JSONValue, String)])
+        func `a prompt's counts are clamped, so its cached tokens lie between zero and its total`(
+            usage: JSONValue, counts: String
+        ) async {
+            let stub = HTTPStub(events(textDelta("Seven"), lifecycle("response.completed", ["usage": usage])))
+
+            let exchange = await ExactExchange(stub, LanguageModelSession(model: model(stub)), recordingHeaders: /^X-/) { session, _ in
+                try await session.respond(to: "How many days in a week?").usage
+            }
+
+            #expect(exchange.error == nil)
+            #expect(exchange.usage == "\(counts), output 0 reasoning 0, metadata: {}")
+        }
+
         @Test func `a commentary and a final answer keep their own phases, and reasoning text shows as reasoning`() async {
             let reasoningText: JSONValue = [
                 "type": "response.reasoning_text.delta", "output_index": 0, "content_index": 0, "delta": "Think.",

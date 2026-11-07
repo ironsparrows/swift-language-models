@@ -5,8 +5,8 @@ Update your code from 1.x of this package to 2.0.
 ## Overview
 
 2.0 reads what a provider reports through typed values, and a provider module of your own writes Foundation Models'
-executor itself. Requests, answers, retries, errors and logs stay as they were, and a transcript you saved with 1.x keeps
-working: its metadata is stored under the same keys.
+executor itself. Requests, answers, retries, errors and logs stay as they were, apart from usage out of range, which no
+longer stops your app. A transcript you saved with 1.x keeps working: its metadata is stored under the same keys.
 
 ### Reading what a provider reports
 
@@ -208,6 +208,13 @@ Name another model. If one of these still answers for you, describe it by hand w
 
 A member whose provider has announced a retirement date stays, deprecated: 2.0 removes only models OpenRouter had already
 stopped listing. <doc:ModelCatalogs> describes when a member goes.
+
+### Usage out of range
+
+A provider can report usage that doesn't add up. In 1.x, an answer that reported more cached prompt tokens than prompt
+tokens stopped your app. 2.0 clamps the prompt's counts instead, which changes behavior: `usage.input.totalTokenCount`
+is never below zero, and `usage.input.cachedTokenCount` lies between zero and it. Usage within range reads as before,
+and the output's counts stay as the provider reports them.
 
 ### The contract's module
 
