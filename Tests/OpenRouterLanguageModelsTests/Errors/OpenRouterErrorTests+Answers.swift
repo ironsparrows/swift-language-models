@@ -120,7 +120,7 @@ extension OpenRouterErrorTests {
             }
             #expect(info.contextSize == 8_192)
             #expect(info.tokenCount == 9_000)
-            #expect(info.metadata[LanguageModelMetadataKey.status] as? Int == 400)
+            #expect(info.metadata["status"] as? Int == 400)
         }
 
         @Test func `a 400 in the stream that mentions the context throws contextSizeExceeded with the model's context size`() async throws {
@@ -229,9 +229,9 @@ extension OpenRouterErrorTests {
                 Issue.record("Expected a rate limit, got \(error)")
                 return
             }
-            #expect(info.metadata[LanguageModelMetadataKey.provider] as? String == "openai")
-            #expect(info.metadata[LanguageModelMetadataKey.status] as? Int == 429)
-            #expect(info.metadata[LanguageModelMetadataKey.errorCode] as? String == "rate_limit_exceeded")
+            #expect(info.metadata["provider"] as? String == "openai")
+            #expect(info.metadata["status"] as? Int == 429)
+            #expect(info.metadata["errorCode"] as? String == "rate_limit_exceeded")
             #expect(error.providerMetadata.provider == "openai")
             #expect(error.providerMetadata.status == 429)
             #expect(error.openRouter.provider == "openai")
@@ -248,7 +248,7 @@ extension OpenRouterErrorTests {
                 Issue.record("Expected a refusal, got \(error)")
                 return
             }
-            #expect(info.metadata[LanguageModelMetadataKey.provider] as? String == "Vendor")
+            #expect(info.metadata["provider"] as? String == "Vendor")
         }
 
         @Test func `a content filter throws a guardrail violation`() async throws {
@@ -260,7 +260,7 @@ extension OpenRouterErrorTests {
                 Issue.record("Expected a guardrail violation, got \(error)")
                 return
             }
-            #expect(info.metadata[LanguageModelMetadataKey.provider] as? String == "Vendor")
+            #expect(info.metadata["provider"] as? String == "Vendor")
         }
 
         @Test(
@@ -278,7 +278,7 @@ extension OpenRouterErrorTests {
                 Issue.record("Expected a guardrail violation, got \(error)")
                 return
             }
-            #expect(info.metadata[LanguageModelMetadataKey.status] as? Int == 403)
+            #expect(info.metadata["status"] as? Int == 403)
         }
 
         @Test(

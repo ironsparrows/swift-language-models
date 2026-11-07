@@ -200,18 +200,22 @@ struct AnswerChannel {
     /// Sends the answer's facts and usage on the entry that ends it: the response entry, or the tool-calls entry when
     /// tool calls end the answer.
     private func sendFacts(report: AnswerReport, facts: AnswerAdditions) async {
-        var metadata = report.metadata
-        metadata.merge(facts.metadata) { $1 }
         let usage = report.usage
-        let usageMetadata = usage.map { $0.metadata.merging(facts.usageMetadata) { $1 } }
+        let usageMetadata = usage.map { usage in
+            ProviderUsageMetadata(cost: facts.cost, cacheWriteTokenCount: usage.cacheWriteTokens, webSearchCount: facts.webSearchCount)
+                .channelMetadata.merging(facts.usageMetadata) { $1 }
+        }
+        // Citations point into the answer's text, so they go on the response entry even when tool calls end the answer.
+        var metadata = ProviderResponseMetadata(
+            model: report.model, host: facts.host, responseID: report.responseID, requestID: facts.requestID,
+            finishReason: report.finishReason, serviceTier: report.serviceTier, citations: toolCalls.isEmpty ? citations : []
+        ).channelMetadata
+        metadata.merge(facts.metadata) { $1 }
         // Foundation Models keeps only the last request's usage on a response, so each request's usage facts also go
         // on the entry that ends it, where a response whose tool calls ran reads every request's cost.
         metadata.merge(usageMetadata ?? [:]) { $1 }
-        // Citations point into the answer's text, so they go on the response entry even when tool calls end the answer.
-        let citations = self.citations.isEmpty ? nil : self.citations.map(\.metadataValue)
         if toolCalls.isEmpty {
             if !hasText { await channel.send(.response(entryID: responseEntryID, action: .appendText("", tokenCount: 0))) }
-            metadata[LanguageModelMetadataKey.citations] = citations
             await channel.send(.response(entryID: responseEntryID, action: .updateMetadata(metadata)))
             if let usage, let usageMetadata {
                 await channel.send(
@@ -220,9 +224,10 @@ struct AnswerChannel {
                 )
             }
         } else {
-            if hasText, let citations {
+            if hasText, !citations.isEmpty {
                 await channel.send(
-                    .response(entryID: responseEntryID, action: .updateMetadata([LanguageModelMetadataKey.citations: citations])))
+                    .response(
+                        entryID: responseEntryID, action: .updateMetadata(ProviderResponseMetadata(citations: citations).channelMetadata)))
             }
             // Foundation Models gives the tool-calls entry no readable metadata, so the round's facts go on its first call.
             if let first = toolCalls.firstCall {
@@ -571,7 +576,7 @@ private enum AnswerEnding: Equatable {
     ///   - host: The company whose servers ran the model, when the provider names one.
     /// - Returns: `LanguageModelError.refusal` or `.guardrailViolation`, or `GeneratedContent.ParsingError`.
     func error(responseText: String, host: String?) -> (any Error)? {
-        let metadata = LanguageModelError.failureMetadata(status: nil, code: nil, provider: host)
+        let metadata = ProviderErrorMetadata.metadata(status: nil, code: nil, provider: host)
         switch self {
         case .refusal(let refusal):
             return LanguageModelError(.refusal, message: refusal, metadata: metadata)
@@ -623,24 +628,13 @@ struct AnswerReport {
 
     /// Why the answer ended, once an event says so. A stream that ends without one was cut off.
     var finishReason: FinishReason?
-
-    /// The facts as metadata of the entry that ends the answer; the usage goes with the entry's usage instead.
-    fileprivate var metadata: [String: any ConvertibleToGeneratedContent] {
-        var metadata: [String: any ConvertibleToGeneratedContent] = [:]
-        metadata[LanguageModelMetadataKey.model] = model
-        metadata[LanguageModelMetadataKey.responseID] = responseID
-        metadata[LanguageModelMetadataKey.finishReason] = finishReason?.rawValue
-        metadata[LanguageModelMetadataKey.serviceTier] = serviceTier
-        return metadata
-    }
 }
 
-/// An answer's usage as Foundation Models' running totals, with the prompt tokens written to the host's cache in the
-/// metadata.
+/// An answer's usage as Foundation Models' running totals, with the prompt tokens written to the host's cache.
 struct AnswerUsage {
     fileprivate let input: LanguageModelExecutorGenerationChannel.Usage.Input
     fileprivate let output: LanguageModelExecutorGenerationChannel.Usage.Output
-    fileprivate let metadata: [String: any ConvertibleToGeneratedContent]
+    fileprivate let cacheWriteTokens: Int?
 
     /// - Parameters:
     ///   - inputTokens: The prompt's tokens, cached ones included.
@@ -651,22 +645,29 @@ struct AnswerUsage {
     init(inputTokens: Int, cachedTokens: Int, cacheWriteTokens: Int?, outputTokens: Int, reasoningTokens: Int) {
         input = .init(totalTokenCount: inputTokens, cachedTokenCount: cachedTokens)
         output = .init(totalTokenCount: outputTokens, reasoningTokenCount: reasoningTokens)
-        var metadata: [String: any ConvertibleToGeneratedContent] = [:]
-        metadata[LanguageModelMetadataKey.cacheWriteTokenCount] = cacheWriteTokens
-        self.metadata = metadata
+        self.cacheWriteTokens = cacheWriteTokens
     }
 }
 
-/// What a provider adds to an answer once it's over: the host, the facts of the entry that ends it and of its usage, and
-/// its reasoning signature.
+/// What a provider adds to an answer once it's over: the facts every provider shares, as typed values, its own facts,
+/// and its reasoning signature.
 package struct AnswerAdditions {
-    /// The company whose servers ran the model, as `LanguageModelMetadataKey.provider` names it, once known.
+    /// The company whose servers ran the model, once known.
     var host: String?
 
-    /// The facts the provider adds to the metadata of the entry that ends the answer.
+    /// The provider's id for the request that got the answer.
+    var requestID: String?
+
+    /// What the answer cost, in US dollars.
+    var cost: Decimal?
+
+    /// The web searches the provider ran for the answer.
+    var webSearchCount: Int?
+
+    /// The provider's own facts, as its typed value writes them, for the metadata of the entry that ends the answer.
     var metadata: [String: any ConvertibleToGeneratedContent]
 
-    /// The facts the provider adds to the metadata of the answer's usage.
+    /// The provider's own facts, as its typed value writes them, for the metadata of the answer's usage.
     var usageMetadata: [String: any ConvertibleToGeneratedContent]
 
     /// The signature of the answer's reasoning entry, such as reasoning in the provider's form that goes back on later
@@ -675,11 +676,17 @@ package struct AnswerAdditions {
 
     package init(
         host: String? = nil,
+        requestID: String? = nil,
+        cost: Decimal? = nil,
+        webSearchCount: Int? = nil,
         metadata: [String: any ConvertibleToGeneratedContent] = [:],
         usageMetadata: [String: any ConvertibleToGeneratedContent] = [:],
         reasoningSignature: Data? = nil
     ) {
         self.host = host
+        self.requestID = requestID
+        self.cost = cost
+        self.webSearchCount = webSearchCount
         self.metadata = metadata
         self.usageMetadata = usageMetadata
         self.reasoningSignature = reasoningSignature

@@ -30,7 +30,7 @@ extension OpenRouterExchangeTests {
             #expect(facts.model == "vendor/model-2026-10-01")
             #expect(facts.serviceTier == .flex)
             #expect(facts.responseID == "gen-1")
-            #expect(metadataNumber(response.usage.metadata, LanguageModelMetadataKey.cost) == 0.000_1)
+            #expect(metadataNumber(response.usage.metadata, "cost") == 0.000_1)
         }
 
         @Test func `the metadata names the host, with the response cache's status and the router's report`() async throws {
@@ -47,10 +47,10 @@ extension OpenRouterExchangeTests {
             let response = try await LanguageModelSession(model: model).respond(to: "Hi")
 
             let metadata = try lastResponse(of: response).metadata
-            #expect(metadataString(metadata, LanguageModelMetadataKey.provider) == "Vendor")
-            #expect(metadataString(metadata, OpenRouterMetadataKey.responseCacheStatus) == "MISS")
-            #expect(metadataString(metadata, OpenRouterMetadataKey.routingStrategy) == "price")
-            #expect(metadataNumber(metadata, OpenRouterMetadataKey.generationTime) == 1.5)
+            #expect(metadataString(metadata, "provider") == "Vendor")
+            #expect(metadataString(metadata, "openRouter.responseCacheStatus") == "MISS")
+            #expect(metadataString(metadata, "openRouter.routingStrategy") == "price")
+            #expect(metadataNumber(metadata, "openRouter.generationTime") == 1.5)
         }
 
         @Test func `facts that no chunk reported are left out of the metadata`() async throws {
@@ -62,7 +62,7 @@ extension OpenRouterExchangeTests {
             #expect(facts.provider == nil)
             #expect(facts.responseID == nil)
             #expect(facts.serviceTier == nil)
-            #expect(response.usage.metadata[LanguageModelMetadataKey.cost] == nil)
+            #expect(response.usage.metadata["cost"] == nil)
         }
 
         @Test func `a model that doesn't take tools gets none of the session's, nor a tool choice`() async throws {

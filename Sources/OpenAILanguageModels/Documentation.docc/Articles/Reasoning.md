@@ -98,15 +98,16 @@ whether or not OpenAI keeps the response. A session that moves from stored to no
 
 A model can write an answer as several messages, each with a `phase`, such as `commentary` or `final_answer`. The
 answer's text joins them, and the entry that ends the answer keeps the `phase` of each message, with the length of its
-text, under ``OpenAIMetadataKey/phases``: a list of structures with a `phase` and a `length`, which
-``OpenAIResponseMetadata/messages`` reads. On later turns, each message goes back as an `assistant` message of its own,
-with its `phase`, as OpenAI asks. When the lengths don't add up to the answer's text, as when the text changed, the
-messages held out of the text go back first, then the whole text as one message with the phase of the last message shown
-in it.
+text, which ``OpenAIResponseMetadata/messages`` reads as a list of ``OpenAIResponseMetadata/Message`` values, each with
+its ``OpenAIResponseMetadata/Message/phase`` and ``OpenAIResponseMetadata/Message/length``. On later turns, each message
+goes back as an `assistant` message of its own, with its `phase`, as OpenAI asks. When the lengths don't add up to the
+answer's text, as when the text changed, the messages held out of the text go back first, then the whole text as one
+message with the phase of the last message shown in it.
 
 A guided answer decodes only its first message with no phase or the `final_answer` phase, as the official SDKs parse
-it. The text of its other messages, such as a `commentary` preamble, stays out of the answer's text, and its structure
-in ``OpenAIMetadataKey/phases`` keeps the text under `heldText`, with a `length` of 0, so it goes back in its place.
+it. The text of its other messages, such as a `commentary` preamble, stays out of the answer's text, and
+``OpenAIResponseMetadata/Message/heldText`` keeps it, with a ``OpenAIResponseMetadata/Message/length`` of 0, so it goes
+back in its place.
 
 ### OpenAI's guides
 

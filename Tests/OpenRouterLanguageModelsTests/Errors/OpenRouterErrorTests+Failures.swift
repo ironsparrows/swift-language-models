@@ -58,8 +58,8 @@ extension OpenRouterErrorTests {
                 Issue.record("Expected the context size to be exceeded, got \(error)")
                 return
             }
-            #expect(info.metadata[LanguageModelMetadataKey.status] as? Int == 400)
-            #expect(info.metadata[LanguageModelMetadataKey.errorCode] as? String == "context_length_exceeded")
+            #expect(info.metadata["status"] as? Int == 400)
+            #expect(info.metadata["errorCode"] as? String == "context_length_exceeded")
         }
 
         @Test func `a budget that resets throws a rate limit with its reset date and limit source`() throws {
@@ -74,8 +74,8 @@ extension OpenRouterErrorTests {
                 return
             }
             #expect(info.resetDate == Date(timeIntervalSince1970: 1_793_664_000))
-            #expect(info.metadata[OpenRouterMetadataKey.limitSource] as? String == "api_key")
-            #expect(info.metadata[LanguageModelMetadataKey.errorCode] as? String == "budget_exceeded")
+            #expect(info.metadata["openRouter.limitSource"] as? String == "api_key")
+            #expect(info.metadata["errorCode"] as? String == "budget_exceeded")
             #expect(error.openRouter.limitSource == .apiKey)
             #expect(error.openRouter.errorCode == .budgetExceeded)
             #expect(error.openRouter.status == 403)

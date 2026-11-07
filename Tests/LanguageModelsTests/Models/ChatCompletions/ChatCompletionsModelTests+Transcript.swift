@@ -38,9 +38,9 @@ extension ChatCompletionsModelTests {
         @Test func `the provider's own reasoning goes back after the content, in its order, and another provider's doesn't`() throws {
             var model = ChatCompletions.Model<ChatCompletionsTestExchange>.test()
             model.exchange.reasoningMember = "reasoning"
-            let first = Transcript.Reasoning(metadata: [ReasoningOrigin.metadataKey: "test"], segments: [text("Think. ")])
-            let second = Transcript.Reasoning(metadata: [ReasoningOrigin.metadataKey: "test"], segments: [text("Again.")])
-            let other = Transcript.Reasoning(metadata: [ReasoningOrigin.metadataKey: "other"], segments: [text("Other.")])
+            let first = Transcript.Reasoning(metadata: ["reasoningOrigin": "test"], segments: [text("Think. ")])
+            let second = Transcript.Reasoning(metadata: ["reasoningOrigin": "test"], segments: [text("Again.")])
+            let other = Transcript.Reasoning(metadata: ["reasoningOrigin": "other"], segments: [text("Other.")])
             let entries: [Transcript.Entry] = [
                 prompt(text("Hi")), .reasoning(first), .reasoning(other), .reasoning(second),
                 .response(Transcript.Response(assetIDs: [], segments: [text("Hello.")])),
@@ -55,7 +55,7 @@ extension ChatCompletionsModelTests {
         @Test func `each answer's reasoning goes back on its own message, even when another answer had the same`() throws {
             var model = ChatCompletions.Model<ChatCompletionsTestExchange>.test()
             model.exchange.reasoningMember = "reasoning"
-            let reasoning = Transcript.Reasoning(metadata: [ReasoningOrigin.metadataKey: "test"], segments: [text("Think.")])
+            let reasoning = Transcript.Reasoning(metadata: ["reasoningOrigin": "test"], segments: [text("Think.")])
             let entries: [Transcript.Entry] = [
                 prompt(text("One?")), .reasoning(reasoning), .response(Transcript.Response(assetIDs: [], segments: [text("One.")])),
                 prompt(text("Two?")), .reasoning(reasoning), .response(Transcript.Response(assetIDs: [], segments: [text("Two.")])),

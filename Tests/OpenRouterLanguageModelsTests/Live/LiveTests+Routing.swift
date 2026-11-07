@@ -25,9 +25,9 @@ extension LiveTests {
 
             let answer = try #require(lastAnswer(in: response.transcriptEntries))
             record(answer.metadata, named: "metadata.txt")
-            #expect(metadataString(answer.metadata, LanguageModelMetadataKey.model)?.hasPrefix("mistralai/mistral-nemo") == true)
+            #expect(answer.openRouter.model?.rawValue.hasPrefix("mistralai/mistral-nemo") == true)
             #expect(response.usage.input.totalTokenCount > 16_384)
-            #expect(metadataString(answer.metadata, OpenRouterMetadataKey.routingStrategy) != nil)
+            #expect(answer.openRouter.routingStrategy?.rawValue != nil)
         }
 
         /// With one attempt, the report has no list of attempts.
@@ -44,14 +44,14 @@ extension LiveTests {
 
             let answer = try #require(lastAnswer(in: response.transcriptEntries))
             record(answer.metadata, named: "metadata.txt")
-            #expect(metadataString(answer.metadata, OpenRouterMetadataKey.routingStrategy) == "fallback")
-            #expect((metadataNumber(answer.metadata, OpenRouterMetadataKey.routingAttempt) ?? 0) >= 1)
-            let endpoints = elements(try metadataJSON(answer.metadata, OpenRouterMetadataKey.routingEndpoints))
+            #expect(answer.openRouter.routingStrategy?.rawValue == "fallback")
+            #expect((answer.openRouter.routingAttempt ?? 0) >= 1)
+            let endpoints = answer.openRouter.routingEndpoints
             #expect(endpoints.count >= 2, "Expected the endpoints of both models: \(endpoints)")
-            #expect(endpoints.allSatisfy { $0["provider"]?.stringValue != nil && $0["model"]?.stringValue != nil })
-            #expect(endpoints.filter { $0["selected"] == true }.count == 1)
-            #expect(metadataString(answer.metadata, OpenRouterMetadataKey.region)?.isEmpty == false)
-            #expect((metadataNumber(answer.metadata, OpenRouterMetadataKey.generationTime) ?? 0) > 0)
+            #expect(endpoints.allSatisfy { $0.provider != nil && $0.model != nil })
+            #expect(endpoints.filter { $0.isSelected == true }.count == 1)
+            #expect(answer.openRouter.region?.isEmpty == false)
+            #expect((answer.openRouter.generationTime ?? .zero) > .zero)
         }
 
         @Test func `a pinned host serves the answer`() async throws {
@@ -60,7 +60,7 @@ extension LiveTests {
             let response = try await session.respond(to: "Reply with the single word: hello", options: LiveTests.short)
 
             let answer = try #require(lastAnswer(in: response.transcriptEntries))
-            #expect(metadataString(answer.metadata, LanguageModelMetadataKey.provider) == "Mistral")
+            #expect(answer.openRouter.provider?.rawValue == "Mistral")
         }
 
         @Test func `a pinned host that doesn't serve the model throws OpenRouter's error`() async throws {
@@ -88,9 +88,9 @@ extension LiveTests {
 
             record(answerMetadata(response), named: "metadata.txt")
             let answer = try #require(lastAnswer(in: response.transcriptEntries))
-            let answering = try #require(metadataString(answer.metadata, LanguageModelMetadataKey.model))
+            let answering = try #require(answer.openRouter.model?.rawValue)
             #expect(allowed.contains { answering.hasPrefix($0.dropLast()) })
-            #expect((metadataNumber(response.usage.metadata, LanguageModelMetadataKey.cost) ?? 0) > 0)
+            #expect((response.usage.openRouter.cost ?? 0) > 0)
         }
 
         @Test func `an alias answers with a model of its vendor`() async throws {
@@ -104,7 +104,7 @@ extension LiveTests {
 
             let answer = try #require(lastAnswer(in: response.transcriptEntries))
             record(answer.metadata, named: "metadata.txt")
-            #expect(metadataString(answer.metadata, LanguageModelMetadataKey.model)?.hasPrefix("deepseek/") == true)
+            #expect(answer.openRouter.model?.rawValue.hasPrefix("deepseek/") == true)
         }
 
         @Test(arguments: [OpenRouterRouting.Variant.nitro, .floor])
@@ -118,8 +118,8 @@ extension LiveTests {
 
             let answer = try #require(lastAnswer(in: response.transcriptEntries))
             record(answer.metadata, named: "metadata.txt")
-            #expect(metadataString(answer.metadata, LanguageModelMetadataKey.model)?.hasPrefix("meta-llama/llama-3.1-8b-instruct") == true)
-            #expect(metadataString(answer.metadata, LanguageModelMetadataKey.provider) != nil)
+            #expect(answer.openRouter.model?.rawValue.hasPrefix("meta-llama/llama-3.1-8b-instruct") == true)
+            #expect(answer.openRouter.provider?.rawValue != nil)
         }
     }
 }

@@ -3,10 +3,125 @@ public import FoundationModels
 
 // MARK: - Response
 
+/// What a provider reported about an answer, read from the metadata of its response entry, or about a request that
+/// ended in tool calls, read from its first call.
+///
+/// `providerMetadata` on a `Transcript.Response` or a `Transcript.ToolCalls` reads it, whichever provider module wrote
+/// the entry. The response entry that ends an answer carries the facts, and one that tool calls follow carries only
+/// the ``citations``. A fact the provider didn't report is `nil`, and a list it didn't report is empty:
+///
+/// ```swift
+/// let response = try await session.respond(to: "Plan dinner.")
+/// if case .response(let answer)? = response.transcriptEntries.last {
+///     print("\(answer.providerMetadata.model ?? "A model") answered.")
+///     if answer.providerMetadata.finishReason == .length {
+///         print("The answer was cut short at its token limit.")
+///     }
+/// }
+/// ```
+///
+/// Each provider module also reads these facts in its own words, with what only it reports, through a property named
+/// for the provider, such as `openRouter` for what OpenRouter's router did.
+///
+/// A provider module of your own writes the facts by passing ``channelMetadata`` to the channel's `updateMetadata`
+/// action, so it needs no key.
+public struct ProviderResponseMetadata: Sendable, Hashable {
+    /// The model that answered, in the provider's spelling of its id, which can differ from the one asked for when the
+    /// provider routes the request or a fallback answers.
+    public let model: String?
+
+    /// The company whose servers ran the model, such as `Anthropic`, when the provider names one.
+    public let host: String?
+
+    /// The provider's id for the answer.
+    public let responseID: String?
+
+    /// The provider's id for the request that got the answer, which its support asks for.
+    public let requestID: String?
+
+    /// Why the answer ended, such as ``FinishReason/length`` when it reached its token limit.
+    ///
+    /// A text answer cut off at its token limit doesn't throw, so its reason is the way to tell. A guided answer, or
+    /// tool calls, cut off there throw instead.
+    public let finishReason: FinishReason?
+
+    /// The processing tier that served the answer, which it's billed at, in the provider's own word for it.
+    public let serviceTier: String?
+
+    /// The web pages the answer cites, in the order the provider listed them.
+    ///
+    /// Citations point into the answer's text, so they're on the response entry even when tool calls end the answer.
+    public let citations: [Citation]
+
+    /// What the provider reported about the request's cost and counts.
+    ///
+    /// A response's own `usage` has only its last request's facts, so a response whose tool calls ran reads each
+    /// earlier request's here, on the tool calls it asked for.
+    public let usage: ProviderUsageMetadata
+
+    /// Creates the facts of an answer, for a provider module to write or for a test.
+    ///
+    /// - Parameters:
+    ///   - model: The model that answered, in the provider's spelling of its id.
+    ///   - host: The company whose servers ran the model.
+    ///   - responseID: The provider's id for the answer.
+    ///   - requestID: The provider's id for the request that got the answer.
+    ///   - finishReason: Why the answer ended.
+    ///   - serviceTier: The processing tier that served the answer, in the provider's own word for it.
+    ///   - citations: The web pages the answer cites.
+    ///   - usage: What the provider reported about the request's cost and counts.
+    public init(
+        model: String? = nil,
+        host: String? = nil,
+        responseID: String? = nil,
+        requestID: String? = nil,
+        finishReason: FinishReason? = nil,
+        serviceTier: String? = nil,
+        citations: [Citation] = [],
+        usage: ProviderUsageMetadata = ProviderUsageMetadata()
+    ) {
+        self.model = model
+        self.host = host
+        self.responseID = responseID
+        self.requestID = requestID
+        self.finishReason = finishReason
+        self.serviceTier = serviceTier
+        self.citations = citations
+        self.usage = usage
+    }
+
+    /// The facts in a response entry's metadata.
+    package init(_ metadata: [String: GeneratedContent]) {
+        let values = MetadataValues(metadata)
+        model = values.string(Key.model)
+        host = values.string(Key.provider)
+        responseID = values.string(Key.responseID)
+        requestID = values.string(Key.requestID)
+        finishReason = values.string(Key.finishReason).map(FinishReason.init(rawValue:))
+        serviceTier = values.string(Key.serviceTier)
+        citations = values.array(Key.citations).compactMap(Citation.init(metadataValue:))
+        usage = ProviderUsageMetadata(metadata)
+    }
+
+    /// The facts as the metadata of the entry that ends the answer, to pass to the channel's `updateMetadata` action.
+    /// A fact that's `nil` and an empty list are left out.
+    public var channelMetadata: [String: any ConvertibleToGeneratedContent] {
+        var metadata = usage.channelMetadata
+        metadata[Key.model] = model
+        metadata[Key.provider] = host
+        metadata[Key.responseID] = responseID
+        metadata[Key.requestID] = requestID
+        metadata[Key.finishReason] = finishReason?.rawValue
+        metadata[Key.serviceTier] = serviceTier
+        metadata[Key.citations] = citations.isEmpty ? nil : citations.map(\.metadataValue)
+        return metadata
+    }
+}
+
 /// A web page that an answer cites.
 ///
-/// The response entry of an answer that cites pages lists them in its metadata, under
-/// ``LanguageModelMetadataKey/citations``, and a provider module's reader of that metadata reads them as citations.
+/// ``ProviderResponseMetadata/citations`` lists the pages an answer cites, and so does each provider module's reader of
+/// the answer's metadata.
 public struct Citation: Sendable, Hashable {
     /// The page's address.
     public let url: URL
@@ -18,14 +133,14 @@ public struct Citation: Sendable, Hashable {
     /// parts of the page.
     public let excerpt: String?
 
-    /// Where the text that cites the page starts in the answer's text, as an offset, when the service reported it.
+    /// Where the text that cites the page starts in the answer's text, as an offset, when the provider reported it.
     ///
-    /// Services pass on their host's offset without saying what it counts, characters, UTF-16 code units or bytes, so
+    /// Providers pass on their host's offset without saying what it counts, characters, UTF-16 code units or bytes, so
     /// check that it falls within the text before using it.
     public let startOffset: Int?
 
     /// Where the text that cites the page ends in the answer's text, as an offset in the same unit as
-    /// ``startOffset``, when the service reported it.
+    /// ``startOffset``, when the provider reported it.
     ///
     /// Whether it's the offset of the last cited character or of the one after it isn't documented either.
     public let endOffset: Int?
@@ -49,7 +164,7 @@ public struct Citation: Sendable, Hashable {
 
 extension Citation {
     /// The citation as a value of an entry's metadata.
-    package var metadataValue: GeneratedContent {
+    fileprivate var metadataValue: GeneratedContent {
         GeneratedContent(properties: [
             Field.url: url.absoluteString,
             Field.title: title,
@@ -61,8 +176,8 @@ extension Citation {
 
     /// A citation read back from an entry's metadata, or `nil` when the value has no valid URL.
     ///
-    /// - Parameter content: One element of the list under ``LanguageModelMetadataKey/citations``.
-    package init?(metadataValue content: GeneratedContent) {
+    /// - Parameter content: One element of an entry's list of citations.
+    fileprivate init?(metadataValue content: GeneratedContent) {
         guard let address = try? content.value(String.self, forProperty: Field.url), let url = URL(string: address) else {
             return nil
         }
@@ -87,10 +202,9 @@ extension Citation {
 
 /// Why an answer ended, such as ``length`` when it reached its token limit.
 ///
-/// The entry that ends an answer carries it under ``LanguageModelMetadataKey/finishReason``. Each provider module maps
-/// its service's reasons onto these words, and passes on any other reason in its service's spelling, which is valid
-/// too. An answer that a content filter stopped or that ended in an error throws instead, so no entry carries such a
-/// reason.
+/// ``ProviderResponseMetadata/finishReason`` reads it from the entry that ends an answer. Each provider module maps its
+/// provider's reasons onto these words, and passes on any other reason in the provider's spelling, which is valid too.
+/// An answer that a content filter stopped or that ended in an error throws instead, so no entry carries such a reason.
 public struct FinishReason: ProviderVocabulary {
     /// The model finished.
     public static let stop: Self = "stop"
@@ -112,6 +226,67 @@ public struct FinishReason: ProviderVocabulary {
     }
 }
 
+// MARK: - Usage
+
+/// What a provider reported about an answer's cost and counts beyond Foundation Models' own, read from its usage's
+/// metadata.
+///
+/// `LanguageModelSession.Usage.providerMetadata` reads it, whichever provider module wrote the usage. The usage's own
+/// input, cached, output and reasoning token counts hold the rest. A fact the provider didn't report is `nil`:
+///
+/// ```swift
+/// let response = try await session.respond(to: "Plan dinner.")
+/// if let cost = response.usage.providerMetadata.cost {
+///     print("The answer cost \(cost) US dollars.")
+/// }
+/// ```
+///
+/// The facts are those of one request. A response whose tool calls ran has the last request's, and a session's own
+/// `usage` keeps no metadata, so its facts are all `nil`. Each request's facts are also on the transcript entry that
+/// ends it, which ``ProviderResponseMetadata/usage`` reads.
+///
+/// A provider module of your own writes the facts by passing ``channelMetadata`` to the channel's `updateUsage` action.
+public struct ProviderUsageMetadata: Sendable, Hashable {
+    /// What the answer cost, in US dollars, when the provider reports it.
+    public let cost: Decimal?
+
+    /// The prompt tokens written to the host's prompt cache.
+    public let cacheWriteTokenCount: Int?
+
+    /// The web searches the provider ran for the answer.
+    public let webSearchCount: Int?
+
+    /// Creates the facts of an answer's usage, for a provider module to write or for a test.
+    ///
+    /// - Parameters:
+    ///   - cost: What the answer cost, in US dollars.
+    ///   - cacheWriteTokenCount: The prompt tokens written to the host's prompt cache.
+    ///   - webSearchCount: The web searches the provider ran for the answer.
+    public init(cost: Decimal? = nil, cacheWriteTokenCount: Int? = nil, webSearchCount: Int? = nil) {
+        self.cost = cost
+        self.cacheWriteTokenCount = cacheWriteTokenCount
+        self.webSearchCount = webSearchCount
+    }
+
+    /// The facts in a usage's metadata.
+    package init(_ metadata: [String: GeneratedContent]) {
+        let values = MetadataValues(metadata)
+        cost = values.decimal(Key.cost)
+        cacheWriteTokenCount = values.integer(Key.cacheWriteTokenCount)
+        webSearchCount = values.integer(Key.webSearchCount)
+    }
+
+    /// The facts as the metadata of an answer's usage, to pass to the channel's `updateUsage` action. A fact that's `nil`
+    /// is left out.
+    public var channelMetadata: [String: any ConvertibleToGeneratedContent] {
+        var metadata: [String: any ConvertibleToGeneratedContent] = [:]
+        metadata[Key.cost] = cost?.metadataNumber
+        metadata[Key.cacheWriteTokenCount] = cacheWriteTokenCount
+        metadata[Key.webSearchCount] = webSearchCount
+        return metadata
+    }
+}
+
 // MARK: - Error
 
 /// What a provider reported about a failure that throws Foundation Models' `LanguageModelError`, read from the error's
@@ -130,10 +305,9 @@ public struct FinishReason: ProviderVocabulary {
 /// }
 /// ```
 ///
-/// Each fact comes from a ``LanguageModelMetadataKey`` key, such as ``status`` from
-/// ``LanguageModelMetadataKey/status``. An error that Foundation Models threw itself, such as for a capability the
-/// model lacks, has none of them. Each provider module also reads its own facts, in its own words, through a property
-/// named for the provider, such as `openRouter` for the budget a request ran into.
+/// An error that Foundation Models threw itself, such as for a capability the model lacks, has none of them. Each
+/// provider module also reads its own facts, in its own words, through a property named for the provider, such as
+/// `openRouter` for the budget a request ran into.
 public struct ProviderErrorMetadata: Sendable, Hashable {
     /// The HTTP status of the response that failed, such as 429 for a rate limit, or `nil` for a failure in the stream,
     /// which arrives after the response's HTTP 200.
@@ -149,11 +323,48 @@ public struct ProviderErrorMetadata: Sendable, Hashable {
     public let requestID: String?
 
     /// The facts in an error's metadata.
-    init(_ metadata: [String: any Sendable]) {
-        status = metadata[LanguageModelMetadataKey.status] as? Int
-        errorCode = metadata[LanguageModelMetadataKey.errorCode] as? String
-        provider = metadata[LanguageModelMetadataKey.provider] as? String
-        requestID = metadata[LanguageModelMetadataKey.requestID] as? String
+    package init(_ metadata: [String: any Sendable]) {
+        status = metadata[Key.status] as? Int
+        errorCode = metadata[Key.errorCode] as? String
+        provider = metadata[Key.provider] as? String
+        requestID = metadata[Key.requestID] as? String
+    }
+
+    /// A failure's shared metadata: its HTTP status, the provider's code for it, the company that failed and the
+    /// provider's id for the request, each when known.
+    package static func metadata(status: Int?, code: String?, provider: String?, requestID: String? = nil) -> [String: any Sendable] {
+        var metadata: [String: any Sendable] = [:]
+        metadata[Key.status] = status
+        metadata[Key.errorCode] = code
+        metadata[Key.provider] = provider
+        metadata[Key.requestID] = requestID
+        return metadata
+    }
+}
+
+// MARK: - Reading
+
+extension Transcript.Response {
+    /// What the provider reported about the answer, such as the model that answered and why the answer ended.
+    public var providerMetadata: ProviderResponseMetadata {
+        ProviderResponseMetadata(metadata)
+    }
+}
+
+extension Transcript.ToolCalls {
+    /// What the provider reported about the request that asked for these tool calls, such as the model that answered.
+    ///
+    /// Foundation Models keeps no readable metadata on the tool-calls entry itself, so the request's facts sit on its
+    /// first call, and this reads them from there. A request that asked for several calls has one set of facts.
+    public var providerMetadata: ProviderResponseMetadata {
+        ProviderResponseMetadata(first?.metadata ?? [:])
+    }
+}
+
+extension LanguageModelSession.Usage {
+    /// What the provider reported about the answer's cost and counts, such as its cost in US dollars.
+    public var providerMetadata: ProviderUsageMetadata {
+        ProviderUsageMetadata(metadata)
     }
 }
 
@@ -178,19 +389,7 @@ extension LanguageModelError {
         @unknown default: [:]
         }
     }
-
-    /// A failure's shared metadata: its HTTP status, the provider's code for it and the company that failed, each
-    /// when known.
-    package static func failureMetadata(status: Int?, code: String?, provider: String?) -> [String: any Sendable] {
-        var metadata: [String: any Sendable] = [:]
-        metadata[LanguageModelMetadataKey.status] = status
-        metadata[LanguageModelMetadataKey.errorCode] = code
-        metadata[LanguageModelMetadataKey.provider] = provider
-        return metadata
-    }
 }
-
-// MARK: - Reading
 
 /// Typed reads of an entry's or usage's metadata, or of a structure in it. A read is `nil`, or a list empty, when the
 /// key is missing or its value is of another kind.
@@ -220,11 +419,9 @@ package struct MetadataValues {
         number(key).flatMap { Int(exactly: $0) }
     }
 
-    /// An amount as the decimal number its shortest spelling names, so `0.000012345` reads as exactly that rather than
-    /// the binary fraction nearest to it, `0.000012344999999999997952`.
+    /// An amount as a decimal number.
     package func decimal(_ key: String) -> Decimal? {
-        // A nil locale always reads `.` as the decimal separator; Double's description is never localized.
-        number(key).flatMap { $0.isFinite ? Decimal(string: String($0), locale: nil) : nil }
+        number(key).flatMap(Decimal.init(metadataNumber:))
     }
 
     /// A number of seconds as a duration, rounded to the nanosecond, so `2.016` is exactly 2,016 milliseconds.
@@ -233,7 +430,7 @@ package struct MetadataValues {
     }
 
     /// The elements of a list.
-    package func array(_ key: String) -> [GeneratedContent] {
+    fileprivate func array(_ key: String) -> [GeneratedContent] {
         if case .array(let elements)? = values[key]?.kind { elements } else { [] }
     }
 
@@ -247,56 +444,53 @@ package struct MetadataValues {
     }
 }
 
+extension Decimal {
+    /// An amount as the decimal number its shortest spelling names, so `0.000012345` reads as exactly that rather than
+    /// the binary fraction nearest to it, `0.000012344999999999997952`.
+    ///
+    /// - Parameter number: The amount as metadata keeps it, or as a provider's response reports it.
+    package init?(metadataNumber number: Double) {
+        guard number.isFinite else { return nil }
+        // A nil locale always reads `.` as the decimal separator; Double's description is never localized.
+        self.init(string: String(number), locale: nil)
+    }
+
+    /// The amount as metadata keeps it, the number nearest to its spelling, so an amount read from a number goes back as
+    /// that number.
+    fileprivate var metadataNumber: Double? {
+        isFinite ? Double(description) : nil
+    }
+}
+
 // MARK: - Keys
 
-/// The keys of the metadata facts that every provider module reports the same way, on the entries of an answer and on
-/// the errors it ends in.
-///
-/// The response or tool-calls entry that ends an answer carries facts about it, such as the model that answered and
-/// why it ended, and the answer's usage carries what it cost. A `LanguageModelError` a provider's failure becomes
-/// carries the HTTP status and the provider's code for it. Each provider module writes these keys with the meaning
-/// given here and leaves out a key its service doesn't report, so code that reads them works with any provider's
-/// model. A provider module's own facts use keys of its own, with a prefix that names the module, such as `vendor.`.
+/// The keys of the facts that every provider module reports the same way, on the entries of an answer and on the errors
+/// it ends in. A provider module's own facts use keys of its own, with a prefix that names the module, such as `vendor.`.
 ///
 /// Saved transcripts keep the keys, so their spellings never change.
-public enum LanguageModelMetadataKey {
-    /// The model that answered, in the provider's spelling of its id, which can differ from the one asked for when
-    /// the service routes the request or a fallback answers. The answer's reasoning entry carries it too.
-    public static let model = "model"
+private enum Key {
+    static let model = "model"
 
-    /// The company whose servers ran the model, such as `Anthropic`, when the service names one. On the metadata of a
-    /// `LanguageModelError`, the company that failed.
-    public static let provider = "provider"
+    /// The host of an answer, and on an error's metadata the company that failed.
+    static let provider = "provider"
 
-    /// The service's id for the answer.
-    public static let responseID = "responseID"
+    static let responseID = "responseID"
+    static let requestID = "requestID"
 
-    /// The service's id for the request that got the answer, which its support asks for. On the metadata of a
-    /// `LanguageModelError`, the id of the request that failed.
-    public static let requestID = "requestID"
+    /// A ``FinishReason`` raw value.
+    static let finishReason = "finishReason"
 
-    /// Why the answer ended, as a ``FinishReason`` raw value such as `length` when it reached its token limit.
-    public static let finishReason = "finishReason"
+    static let serviceTier = "serviceTier"
 
-    /// The processing tier that served the answer, which it's billed at, in the provider's own word for it.
-    public static let serviceTier = "serviceTier"
+    /// A list of structures, each with the page's `url`, and its `title`, `excerpt`, `startOffset` and `endOffset` when
+    /// known.
+    static let citations = "citations"
 
-    /// The web pages the answer cites, on its response entry, each a structure with the page's `url`, and its `title`,
-    /// `excerpt`, `startOffset` and `endOffset` when known, which a provider module reads as ``Citation`` values.
-    public static let citations = "citations"
+    /// In US dollars, as a number.
+    static let cost = "cost"
 
-    /// What the answer cost, in US dollars, when the service reports it.
-    public static let cost = "cost"
-
-    /// The prompt tokens written to the host's prompt cache.
-    public static let cacheWriteTokenCount = "cacheWriteTokenCount"
-
-    /// The web searches the service ran for the answer.
-    public static let webSearchCount = "webSearchCount"
-
-    /// The HTTP status of the failed request, on the metadata of a `LanguageModelError`, such as 429 for a rate limit.
-    public static let status = "status"
-
-    /// The provider's own code for the failure, in its own vocabulary, on the metadata of a `LanguageModelError`.
-    public static let errorCode = "errorCode"
+    static let cacheWriteTokenCount = "cacheWriteTokenCount"
+    static let webSearchCount = "webSearchCount"
+    static let status = "status"
+    static let errorCode = "errorCode"
 }

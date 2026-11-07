@@ -77,32 +77,37 @@ SDKs lack them. Built with an earlier Xcode, the package takes no data attachmen
 | `response.output_text.delta` | Response text, as it is, even text in `<think>` tags |
 | `response.reasoning_summary_text.delta`, `response.reasoning_text.delta` | Reasoning text, in the order it arrives, with a blank line between the parts of a summary |
 | `reasoning` items, as `response.output_item.done` carries them | The reasoning entry's signature, with every member OpenAI sent, and with the places of the messages and calls that came between them, so they go back on later turns in their order |
-| A `message` item's `phase` | The `phase` and the text's length of each message, under ``OpenAIMetadataKey/phases`` |
-| The messages of a guided answer | As the official SDKs parse them, only the first message with no phase or the `final_answer` phase is the answer that decodes. The others, such as `commentary`, stay out of the response text, and their text goes under ``OpenAIMetadataKey/phases`` with their phase, so they go back on later turns in their places |
+| A `message` item's `phase` | The `phase` and the text's length of each message, which ``OpenAIResponseMetadata/messages`` reads |
+| The messages of a guided answer | As the official SDKs parse them, only the first message with no phase or the `final_answer` phase is the answer that decodes. The others, such as `commentary`, stay out of the response text, and ``OpenAIResponseMetadata/Message/heldText`` keeps their text, with their phase, so they go back on later turns in their places |
 | `function_call` items and `response.function_call_arguments.delta` | One tool-calls entry per answer, so parallel calls make one round; a call whose arguments arrive only in `response.output_item.done` gets them from there |
-| `response.output_text.annotation.added` of type `url_citation` | `Citation` values on the response entry, under `LanguageModelMetadataKey.citations`, once each, with offsets that count from the start of the answer's text, or none when text that isn't ASCII comes before the cited message; they aren't sent back |
+| `response.output_text.annotation.added` of type `url_citation` | ``Citation`` values on the response entry, which ``OpenAIResponseMetadata/citations`` reads, once each, with offsets that count from the start of the answer's text, or none when text that isn't ASCII comes before the cited message; they aren't sent back |
 | `response.refusal.delta` | `LanguageModelError.refusal`, with the refusal's text |
 | `usage` | Usage: `input_tokens`, `input_tokens_details.cached_tokens`, `output_tokens` and `output_tokens_details.reasoning_tokens`; in its metadata, the prompt tokens written to the cache when OpenAI reports them |
-| The response's `id`, `model` and `service_tier`, and the `x-request-id` header | Metadata of the entry that ends the answer, under the shared keys of `LanguageModelMetadataKey`; `model` also goes on the reasoning entry |
+| The response's `id`, `model` and `service_tier`, and the `x-request-id` header | Metadata of the entry that ends the answer, which ``OpenAIResponseMetadata`` reads; `model` also goes on the reasoning entry |
 | `response.completed` | Finish reason `stop`, or `tool_calls` when the answer ends in tool calls |
 | `response.incomplete` with `incomplete_details.reason` `max_output_tokens` | Finish reason `length`: an answer cut short at its token limit, which ends without an error; a guided answer cut short throws `GeneratedContent.ParsingError`, and one cut short inside its tool calls throws ``OpenAIError`` with ``OpenAIError/Code/invalidResponse`` instead, so no tool runs with partial arguments |
 | `response.incomplete` with `incomplete_details.reason` `content_filter` | `LanguageModelError.guardrailViolation` |
 | Another `incomplete_details.reason` | The reason as the finish reason, or `incomplete` when there's none |
 | An `error` event, `response.failed` | The error its `error` object stands for, as the next table says |
 
-### Metadata keys
+### Metadata
 
-| OpenAI | Key |
+``OpenAIResponseMetadata``, ``OpenAIUsageMetadata`` and ``OpenAIErrorMetadata`` read what OpenAI reports about a
+response entry, a usage and a failure as typed properties. Saved transcripts keep these facts. `providerMetadata` reads
+the ones any provider can report, the same way for every provider module, as
+<doc:/LanguageModels/ReadingWhatAProviderReports> shows.
+
+| OpenAI | Reader |
 |---|---|
-| `model` | `model`, on the entry that ends the answer and on its reasoning entry |
-| `id` | `responseID` |
-| `x-request-id` header | `requestID` |
-| Why the answer ended | `finishReason` |
-| `service_tier` | `serviceTier` |
-| `url_citation` annotations | `citations`, on the response entry |
-| `usage.input_tokens_details.cache_write_tokens` | `cacheWriteTokenCount`, in the usage's metadata |
-| Each message's `phase`, and the text of a guided answer's messages that don't decode | `openAI.phases`, on the entry that ends the answer |
-| A failure's HTTP status, the code an ``OpenAIError`` would have, and the request id | `status`, `errorCode` and `requestID`, in the metadata of the `LanguageModelError` it becomes |
+| `model` | ``OpenAIResponseMetadata/model``, on the entry that ends the answer; its reasoning entry keeps the model too |
+| `id` | ``OpenAIResponseMetadata/responseID`` |
+| `x-request-id` header | ``OpenAIResponseMetadata/requestID`` |
+| Why the answer ended | ``OpenAIResponseMetadata/finishReason`` |
+| `service_tier` | ``OpenAIResponseMetadata/serviceTier`` |
+| `url_citation` annotations | ``OpenAIResponseMetadata/citations``, on the response entry |
+| `usage.input_tokens_details.cache_write_tokens` | ``OpenAIUsageMetadata/cacheWriteTokenCount`` |
+| Each message's `phase`, and the text of a guided answer's messages that don't decode | ``OpenAIResponseMetadata/messages``, on the entry that ends the answer |
+| A failure's HTTP status, the code an ``OpenAIError`` would have, and the request id | ``OpenAIErrorMetadata/status``, ``OpenAIErrorMetadata/errorCode`` and ``OpenAIErrorMetadata/requestID``, on the `LanguageModelError` it becomes |
 
 ### Errors
 

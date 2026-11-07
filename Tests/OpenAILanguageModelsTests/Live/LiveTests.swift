@@ -76,11 +76,6 @@ func metadata(of response: LanguageModelSession.Response<some Generable>) -> [St
     lastAnswer(in: response.transcriptEntries)?.metadata ?? [:]
 }
 
-/// A text value of metadata.
-func string(_ metadata: [String: GeneratedContent], _ key: String) -> String? {
-    if case .string(let text)? = metadata[key]?.kind { text } else { nil }
-}
-
 /// Why OpenAI couldn't serve a request right now, when that, rather than the request, made it fail: a rate limit, a
 /// timeout, or OpenAI failing or overloaded. A quota that ran out fails the test, since it needs someone to act.
 private func isUnavailable(_ error: any Error) -> Bool {

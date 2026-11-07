@@ -30,7 +30,7 @@ private func annotations(_ annotations: JSONValue...) -> JSONValue {
 private func citations(_ entries: some Sequence<Transcript.Entry>) -> [[Citation]] {
     entries.compactMap { entry in
         guard case .response(let response) = entry else { return nil }
-        return MetadataValues(response.metadata).array(LanguageModelMetadataKey.citations).compactMap(Citation.init(metadataValue:))
+        return response.providerMetadata.citations
     }
 }
 

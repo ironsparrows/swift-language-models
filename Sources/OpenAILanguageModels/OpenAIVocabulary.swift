@@ -58,8 +58,7 @@ public struct OpenAIParameter: ProviderVocabulary {
 
 /// A processing tier, which trades speed against price.
 ///
-/// The answer's metadata names the tier that served it, under `LanguageModelMetadataKey.serviceTier`, which can differ
-/// from the one asked for.
+/// ``OpenAIResponseMetadata/serviceTier`` names the tier that served an answer, which can differ from the one asked for.
 public struct OpenAIServiceTier: ProviderVocabulary {
     /// The tier the project's settings choose, which is `default` unless the project set another.
     public static let auto: Self = "auto"

@@ -48,7 +48,7 @@ extension OpenRouterExchangeTests {
                 return
             }
             #expect(info.unsupportedContent.count == 1)
-            #expect(info.metadata[LanguageModelMetadataKey.errorCode] as? String == type)
+            #expect(info.metadata["errorCode"] as? String == type)
         }
 
         @Test func `an image the host rejects in the stream names the entries with images too`() async throws {

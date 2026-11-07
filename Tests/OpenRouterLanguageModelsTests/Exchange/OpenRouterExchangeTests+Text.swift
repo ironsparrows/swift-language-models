@@ -25,8 +25,8 @@ extension OpenRouterExchangeTests {
 
             let response = try await LanguageModelSession(model: model(stub)).respond(to: "Hi")
 
-            #expect(metadataNumber(response.usage.metadata, LanguageModelMetadataKey.cost) == 0.000_25)
-            #expect(metadataString(try lastResponse(of: response).metadata, LanguageModelMetadataKey.provider) == "Vendor")
+            #expect(metadataNumber(response.usage.metadata, "cost") == 0.000_25)
+            #expect(metadataString(try lastResponse(of: response).metadata, "provider") == "Vendor")
         }
 
         @Test func `the latest host in the stream wins`() async throws {
@@ -34,7 +34,7 @@ extension OpenRouterExchangeTests {
 
             let response = try await LanguageModelSession(model: model(stub)).respond(to: "Hi")
 
-            #expect(metadataString(try lastResponse(of: response).metadata, LanguageModelMetadataKey.provider) == "Other")
+            #expect(metadataString(try lastResponse(of: response).metadata, "provider") == "Other")
         }
 
         @Test func `a request turns context compression off, even for a model whose context is large`() async throws {

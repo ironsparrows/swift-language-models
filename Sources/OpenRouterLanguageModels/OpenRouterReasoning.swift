@@ -9,7 +9,7 @@ import LanguageModels
 ///
 /// The details are stored in a reasoning entry's signature, and the entry's metadata names OpenRouter as its origin, so
 /// only reasoning that OpenRouter wrote is sent back. The metadata also names the model that
-/// wrote it, under `LanguageModelMetadataKey.model`, so reasoning a fallback wrote isn't sent to another model.
+/// wrote it, so reasoning a fallback wrote isn't sent to another model.
 struct ReasoningDetails: Sendable, Equatable {
     private var details: [JSONValue] = []
 

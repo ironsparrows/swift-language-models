@@ -23,6 +23,7 @@ struct PublicAPITests {
         }
         #expect(answer.openRouter.provider == "DekaLLM")
         #expect(answer.openRouter.model == "mistralai/mistral-nemo")
+        #expect(answer.providerMetadata.host == "DekaLLM")
         let request = try #require(server.requests.first?.request)
         #expect(request.url?.path == "/chat/completions")
         #expect(request.value(forHTTPHeaderField: "Authorization") == "Bearer sk-or-test")

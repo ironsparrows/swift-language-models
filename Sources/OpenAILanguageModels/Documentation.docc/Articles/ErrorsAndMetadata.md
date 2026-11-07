@@ -44,10 +44,10 @@ A request that ends in tool calls has the same facts. Foundation Models keeps no
 entry, so they sit on its first call, and `openAI` on the `Transcript.ToolCalls` entry reads them from there, as
 ``OpenAIResponseMetadata``. A request that asks for several calls at once has one set of facts.
 
-The facts are stored in the metadata under keys that saved transcripts keep, so their spellings never change. Facts
-that every model reports, such as `model` and `requestID`, use the bare keys of `LanguageModelMetadataKey`. The only
-fact OpenAI reports that other providers don't is the `phase` of each of an answer's messages, under
-``OpenAIMetadataKey/phases``, which ``OpenAIResponseMetadata/messages`` reads and <doc:Reasoning> describes.
+Saved transcripts keep these facts. The ones any provider can report, such as the model and the request id, also read
+through `providerMetadata`, as ``ProviderResponseMetadata`` and ``ProviderUsageMetadata``, so code that reads them
+works with any language model in this package, as <doc:/LanguageModels/ReadingWhatAProviderReports> shows. The only fact
+OpenAI reports that other providers don't is the `phase` of each of an answer's messages, which ``OpenAIResponseMetadata/messages`` reads and <doc:Reasoning> describes.
 
 ### Add up a response's usage
 

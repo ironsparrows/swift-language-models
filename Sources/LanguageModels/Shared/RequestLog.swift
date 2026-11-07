@@ -177,13 +177,8 @@ extension LoggedError {
             let fields = error.logFields
             self.init(kind: fields.kind, status: fields.status, code: fields.code, host: fields.host)
         case let error as LanguageModelError:
-            let (name, metadata) = error.parts
-            self.init(
-                kind: "LanguageModelError.\(name)",
-                status: metadata[LanguageModelMetadataKey.status] as? Int,
-                code: metadata[LanguageModelMetadataKey.errorCode] as? String,
-                host: metadata[LanguageModelMetadataKey.provider] as? String
-            )
+            let facts = error.providerMetadata
+            self.init(kind: "LanguageModelError.\(error.caseName)", status: facts.status, code: facts.errorCode, host: facts.provider)
         default:
             self.init(kind: String(reflecting: type(of: error)), status: nil, code: nil, host: nil)
         }
@@ -197,19 +192,19 @@ package protocol LoggableError: Error {
 }
 
 extension LanguageModelError {
-    /// The case's name and metadata.
-    fileprivate var parts: (name: String, metadata: [String: any Sendable]) {
+    /// The case's name.
+    fileprivate var caseName: String {
         switch self {
-        case .contextSizeExceeded(let context): ("contextSizeExceeded", context.metadata)
-        case .rateLimited(let context): ("rateLimited", context.metadata)
-        case .guardrailViolation(let context): ("guardrailViolation", context.metadata)
-        case .refusal(let context): ("refusal", context.metadata)
-        case .unsupportedCapability(let context): ("unsupportedCapability", context.metadata)
-        case .unsupportedTranscriptContent(let context): ("unsupportedTranscriptContent", context.metadata)
-        case .unsupportedGenerationGuide(let context): ("unsupportedGenerationGuide", context.metadata)
-        case .unsupportedLanguageOrLocale(let context): ("unsupportedLanguageOrLocale", context.metadata)
-        case .timeout(let context): ("timeout", context.metadata)
-        @unknown default: ("unknown", [:])
+        case .contextSizeExceeded: "contextSizeExceeded"
+        case .rateLimited: "rateLimited"
+        case .guardrailViolation: "guardrailViolation"
+        case .refusal: "refusal"
+        case .unsupportedCapability: "unsupportedCapability"
+        case .unsupportedTranscriptContent: "unsupportedTranscriptContent"
+        case .unsupportedGenerationGuide: "unsupportedGenerationGuide"
+        case .unsupportedLanguageOrLocale: "unsupportedLanguageOrLocale"
+        case .timeout: "timeout"
+        @unknown default: "unknown"
         }
     }
 }

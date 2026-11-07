@@ -21,11 +21,9 @@ public import LanguageModels
 /// }
 /// ```
 ///
-/// Each fact comes from an ``OpenRouterMetadataKey`` key, such as ``responseCacheStatus`` from
-/// ``OpenRouterMetadataKey/responseCacheStatus``. The keys of ``model``, ``provider``, ``responseID``,
-/// ``finishReason``, ``serviceTier`` and ``citations`` are shared, so another language model's answer reads too, in
-/// that model's own words. The routing facts come from the router's report, which
-/// ``OpenRouterOptions/includesRouterMetadata`` asks for.
+/// The facts ``model``, ``provider``, ``responseID``, ``finishReason``, ``serviceTier`` and ``citations`` are shared, so
+/// another language model's answer reads too, in that model's own words. The routing facts come from the router's report,
+/// which ``OpenRouterOptions/includesRouterMetadata`` asks for.
 public struct OpenRouterResponseMetadata: Sendable, Hashable {
     /// The model that answered, which can differ from the one asked for when OpenRouter routes the request or a
     /// fallback answers. The request is billed at this model's price.
@@ -103,24 +101,25 @@ public struct OpenRouterResponseMetadata: Sendable, Hashable {
 
     /// The facts in a response entry's metadata.
     init(_ metadata: [String: GeneratedContent]) {
+        let shared = ProviderResponseMetadata(metadata)
         let values = MetadataValues(metadata)
-        model = values.string(LanguageModelMetadataKey.model).map(OpenRouterModelID.init(rawValue:))
-        provider = values.string(LanguageModelMetadataKey.provider).map(OpenRouterProviderName.init(rawValue:))
-        responseID = values.string(LanguageModelMetadataKey.responseID)
-        finishReason = values.string(LanguageModelMetadataKey.finishReason).map(FinishReason.init(rawValue:))
-        serviceTier = values.string(LanguageModelMetadataKey.serviceTier).map(OpenRouterServiceTier.init(rawValue:))
-        citations = values.array(LanguageModelMetadataKey.citations).compactMap(Citation.init(metadataValue:))
-        responseCacheStatus = values.string(OpenRouterMetadataKey.responseCacheStatus).map(OpenRouterResponseCache.Status.init(rawValue:))
-        responseCacheAge = values.duration(OpenRouterMetadataKey.responseCacheAge)
-        responseCacheSourceID = values.string(OpenRouterMetadataKey.responseCacheSourceID)
-        routingStrategy = values.string(OpenRouterMetadataKey.routingStrategy).map(
+        model = shared.model.map(OpenRouterModelID.init(rawValue:))
+        provider = shared.host.map(OpenRouterProviderName.init(rawValue:))
+        responseID = shared.responseID
+        finishReason = shared.finishReason
+        serviceTier = shared.serviceTier.map(OpenRouterServiceTier.init(rawValue:))
+        citations = shared.citations
+        responseCacheStatus = values.string(Key.responseCacheStatus).map(OpenRouterResponseCache.Status.init(rawValue:))
+        responseCacheAge = values.duration(Key.responseCacheAge)
+        responseCacheSourceID = values.string(Key.responseCacheSourceID)
+        routingStrategy = values.string(Key.routingStrategy).map(
             OpenRouterResponseMetadata.RoutingStrategy.init(rawValue:))
-        routingAttempt = values.integer(OpenRouterMetadataKey.routingAttempt)
-        routingAttempts = values.structures(OpenRouterMetadataKey.routingAttempts).map(RoutingAttempt.init)
-        routingEndpoints = values.structures(OpenRouterMetadataKey.routingEndpoints).map(RoutingEndpoint.init)
-        routingPipeline = values.structures(OpenRouterMetadataKey.routingPipeline).map(PipelineStage.init)
-        region = values.string(OpenRouterMetadataKey.region)
-        generationTime = values.duration(OpenRouterMetadataKey.generationTime)
+        routingAttempt = values.integer(Key.routingAttempt)
+        routingAttempts = values.structures(Key.routingAttempts).map(RoutingAttempt.init)
+        routingEndpoints = values.structures(Key.routingEndpoints).map(RoutingEndpoint.init)
+        routingPipeline = values.structures(Key.routingPipeline).map(PipelineStage.init)
+        region = values.string(Key.region)
+        generationTime = values.duration(Key.generationTime)
         usage = OpenRouterUsageMetadata(metadata)
     }
 }
@@ -255,6 +254,53 @@ extension OpenRouterResponseMetadata {
     }
 }
 
+extension OpenRouterResponseCache.Report {
+    /// The report as metadata of the entry that ends the answer.
+    var metadata: [String: any ConvertibleToGeneratedContent] {
+        var metadata: [String: any ConvertibleToGeneratedContent] = [Key.responseCacheStatus: status.rawValue]
+        metadata[Key.responseCacheAge] = age
+        metadata[Key.responseCacheSourceID] = sourceID
+        return metadata
+    }
+}
+
+extension OpenRouterChunkExtras.RouterMetadata {
+    /// The router's report as metadata of the entry that ends the answer, with the generation time in seconds.
+    var metadata: [String: any ConvertibleToGeneratedContent] {
+        typealias Field = OpenRouterResponseMetadata.Field
+        var metadata: [String: any ConvertibleToGeneratedContent] = [:]
+        metadata[Key.routingStrategy] = strategy
+        metadata[Key.routingAttempt] = attempt
+        metadata[Key.routingAttempts] = attempts?.map { attempt in
+            GeneratedContent(properties: [Field.provider: attempt.provider, Field.model: attempt.model, Field.status: attempt.status])
+        }
+        metadata[Key.routingEndpoints] = endpoints?.available?.map { endpoint in
+            GeneratedContent(properties: [
+                Field.provider: endpoint.provider, Field.model: endpoint.model, Field.selected: endpoint.selected,
+            ])
+        }
+        metadata[Key.routingPipeline] = pipeline?.map { stage in
+            GeneratedContent(properties: [Field.type: stage.type, Field.name: stage.name, Field.summary: stage.summary])
+        }
+        metadata[Key.region] = region
+        metadata[Key.generationTime] = generationTime.map { $0 / 1_000 }
+        return metadata
+    }
+}
+
+extension OpenRouterResponseMetadata {
+    /// The names of the fields of the router report's structures in an entry's metadata.
+    fileprivate enum Field {
+        static let provider = "provider"
+        static let model = "model"
+        static let status = "status"
+        static let selected = "selected"
+        static let type = "type"
+        static let name = "name"
+        static let summary = "summary"
+    }
+}
+
 // MARK: - Usage
 
 /// What OpenRouter reported about an answer's cost and counts, read from its usage's metadata.
@@ -285,8 +331,8 @@ extension OpenRouterResponseMetadata {
 /// }
 /// ```
 ///
-/// Each fact comes from the ``OpenRouterMetadataKey`` key of its name. The keys of ``cost``, ``cacheWriteTokenCount``
-/// and ``webSearchCount`` are shared, so another language model's usage reads too.
+/// The facts ``cost``, ``cacheWriteTokenCount`` and ``webSearchCount`` are shared, so another language model's usage reads
+/// too.
 public struct OpenRouterUsageMetadata: Sendable, Hashable {
     /// What the answer cost, in US dollars, from the account's OpenRouter credits.
     ///
@@ -330,17 +376,34 @@ public struct OpenRouterUsageMetadata: Sendable, Hashable {
 
     /// The facts in a usage's metadata.
     init(_ metadata: [String: GeneratedContent]) {
+        let shared = ProviderUsageMetadata(metadata)
         let values = MetadataValues(metadata)
-        cost = values.decimal(LanguageModelMetadataKey.cost)
-        cacheWriteTokenCount = values.integer(LanguageModelMetadataKey.cacheWriteTokenCount)
-        isBYOK = values.bool(OpenRouterMetadataKey.isBYOK)
-        upstreamInferenceCost = values.decimal(OpenRouterMetadataKey.upstreamInferenceCost)
-        upstreamInferencePromptCost = values.decimal(OpenRouterMetadataKey.upstreamInferencePromptCost)
-        upstreamInferenceCompletionCost = values.decimal(OpenRouterMetadataKey.upstreamInferenceCompletionCost)
-        serverToolCost = values.decimal(OpenRouterMetadataKey.serverToolCost)
-        requestedServerToolCallCount = values.integer(OpenRouterMetadataKey.requestedServerToolCallCount)
-        executedServerToolCallCount = values.integer(OpenRouterMetadataKey.executedServerToolCallCount)
-        webSearchCount = values.integer(LanguageModelMetadataKey.webSearchCount)
+        cost = shared.cost
+        cacheWriteTokenCount = shared.cacheWriteTokenCount
+        isBYOK = values.bool(Key.isBYOK)
+        upstreamInferenceCost = values.decimal(Key.upstreamInferenceCost)
+        upstreamInferencePromptCost = values.decimal(Key.upstreamInferencePromptCost)
+        upstreamInferenceCompletionCost = values.decimal(Key.upstreamInferenceCompletionCost)
+        serverToolCost = values.decimal(Key.serverToolCost)
+        requestedServerToolCallCount = values.integer(Key.requestedServerToolCallCount)
+        executedServerToolCallCount = values.integer(Key.executedServerToolCallCount)
+        webSearchCount = shared.webSearchCount
+    }
+}
+
+extension OpenRouterChunkExtras.Usage {
+    /// What only OpenRouter reports about the usage, as metadata of the answer's usage: the parts of the cost, whether the
+    /// account's own key paid and the server tools' calls.
+    var metadata: [String: any ConvertibleToGeneratedContent] {
+        var metadata: [String: any ConvertibleToGeneratedContent] = [:]
+        metadata[Key.isBYOK] = isBYOK
+        metadata[Key.upstreamInferenceCost] = costDetails?.upstreamInferenceCost
+        metadata[Key.upstreamInferencePromptCost] = costDetails?.upstreamInferencePromptCost
+        metadata[Key.upstreamInferenceCompletionCost] = costDetails?.upstreamInferenceCompletionsCost
+        metadata[Key.serverToolCost] = costDetails?.serverToolCost
+        metadata[Key.requestedServerToolCallCount] = serverToolUseDetails?.toolCallsRequested
+        metadata[Key.executedServerToolCallCount] = serverToolUseDetails?.toolCallsExecuted
+        return metadata
     }
 }
 
@@ -362,8 +425,7 @@ public struct OpenRouterUsageMetadata: Sendable, Hashable {
 /// }
 /// ```
 ///
-/// Its facts are the shared ones that `providerMetadata` also reads, as OpenRouter's types, and ``limitSource`` from
-/// ``OpenRouterMetadataKey/limitSource``.
+/// Its facts are the shared ones that `providerMetadata` also reads, as OpenRouter's types, and ``limitSource``.
 public struct OpenRouterErrorMetadata: Sendable, Hashable {
     /// The HTTP status of the response that failed, such as 429 for a rate limit, or `nil` for a failure in the stream,
     /// which arrives after the response's HTTP 200.
@@ -380,10 +442,20 @@ public struct OpenRouterErrorMetadata: Sendable, Hashable {
 
     /// The facts in an error's metadata.
     init(_ metadata: [String: any Sendable]) {
-        status = metadata[LanguageModelMetadataKey.status] as? Int
-        errorCode = (metadata[LanguageModelMetadataKey.errorCode] as? String).map(OpenRouterError.Code.init(rawValue:))
-        provider = (metadata[LanguageModelMetadataKey.provider] as? String).map(OpenRouterProviderName.init(rawValue:))
-        limitSource = (metadata[OpenRouterMetadataKey.limitSource] as? String).map(LimitSource.init(rawValue:))
+        let shared = ProviderErrorMetadata(metadata)
+        status = shared.status
+        errorCode = shared.errorCode.map(OpenRouterError.Code.init(rawValue:))
+        provider = shared.provider.map(OpenRouterProviderName.init(rawValue:))
+        limitSource = (metadata[Key.limitSource] as? String).map(LimitSource.init(rawValue:))
+    }
+
+    /// The metadata of a `LanguageModelError`: the status, the code, the host that failed and the budget it ran into.
+    static func metadata(
+        status: Int?, code: OpenRouterError.Code, provider: OpenRouterProviderName?, limitSource: LimitSource?
+    ) -> [String: any Sendable] {
+        var metadata = ProviderErrorMetadata.metadata(status: status, code: code.rawValue, provider: provider?.rawValue)
+        metadata[Key.limitSource] = limitSource?.rawValue
+        return metadata
     }
 }
 
@@ -428,43 +500,6 @@ extension Transcript.ToolCalls {
     }
 }
 
-extension OpenRouterChunkExtras.RouterMetadata {
-    /// The router's report as metadata of the entry that ends the answer, with the generation time in seconds.
-    var metadata: [String: any ConvertibleToGeneratedContent] {
-        typealias Field = OpenRouterResponseMetadata.Field
-        var metadata: [String: any ConvertibleToGeneratedContent] = [:]
-        metadata[OpenRouterMetadataKey.routingStrategy] = strategy
-        metadata[OpenRouterMetadataKey.routingAttempt] = attempt
-        metadata[OpenRouterMetadataKey.routingAttempts] = attempts?.map { attempt in
-            GeneratedContent(properties: [Field.provider: attempt.provider, Field.model: attempt.model, Field.status: attempt.status])
-        }
-        metadata[OpenRouterMetadataKey.routingEndpoints] = endpoints?.available?.map { endpoint in
-            GeneratedContent(properties: [
-                Field.provider: endpoint.provider, Field.model: endpoint.model, Field.selected: endpoint.selected,
-            ])
-        }
-        metadata[OpenRouterMetadataKey.routingPipeline] = pipeline?.map { stage in
-            GeneratedContent(properties: [Field.type: stage.type, Field.name: stage.name, Field.summary: stage.summary])
-        }
-        metadata[OpenRouterMetadataKey.region] = region
-        metadata[OpenRouterMetadataKey.generationTime] = generationTime.map { $0 / 1_000 }
-        return metadata
-    }
-}
-
-extension OpenRouterResponseMetadata {
-    /// The names of the fields of the router report's structures in an entry's metadata.
-    fileprivate enum Field {
-        static let provider = "provider"
-        static let model = "model"
-        static let status = "status"
-        static let selected = "selected"
-        static let type = "type"
-        static let name = "name"
-        static let summary = "summary"
-    }
-}
-
 extension LanguageModelSession.Usage {
     /// What OpenRouter reported about the answer's cost and counts, such as its cost in US dollars.
     public var openRouter: OpenRouterUsageMetadata {
@@ -481,101 +516,49 @@ extension LanguageModelError {
 
 // MARK: - Keys
 
-/// The keys of the metadata facts that only OpenRouter reports about an answer, which start with `openRouter.`, so
-/// they never collide with another provider's keys.
+/// The keys of the facts that only OpenRouter reports, which start with `openRouter.`, so they never collide with another
+/// provider's keys.
 ///
-/// The response or tool-calls entry that ends an answer carries what the response cache did, and the router's report
-/// when ``OpenRouterOptions/includesRouterMetadata`` asks for it. The answer's usage carries the parts of its cost,
-/// whether the account's own key paid the host, and the server tools' calls. The facts every provider reports, such as
-/// the model, the cost and an error's status, use the bare keys of `LanguageModelMetadataKey`. A key is left out when
-/// OpenRouter didn't report its value.
-///
-/// `Transcript.Response.openRouter` and `LanguageModelSession.Usage.openRouter` read a response entry's and a usage's
-/// facts, under both kinds of key, as ``OpenRouterResponseMetadata`` and ``OpenRouterUsageMetadata``:
-///
-/// ```swift
-/// let response = try await session.respond(to: "Plan dinner.")
-/// let cost = response.usage.openRouter.cost
-/// ```
+/// The response or tool-calls entry that ends an answer carries what the response cache did, and the router's report when
+/// ``OpenRouterOptions/includesRouterMetadata`` asks for it. The answer's usage carries the parts of its cost, whether the
+/// account's own key paid the host, and the server tools' calls. A key is left out when OpenRouter didn't report its
+/// value.
 ///
 /// Saved transcripts keep the keys, so their spellings never change.
-public enum OpenRouterMetadataKey {
-    /// Whether the ``OpenRouterResponseCache`` served the answer, as an ``OpenRouterResponseCache/Status`` raw value:
-    /// `HIT` for an answer it kept from an earlier request, at no cost, and `MISS` for a new answer that it now keeps.
-    public static let responseCacheStatus = "openRouter.responseCacheStatus"
+private enum Key {
+    /// An ``OpenRouterResponseCache/Status`` raw value: `HIT` or `MISS`.
+    static let responseCacheStatus = "openRouter.responseCacheStatus"
 
-    /// How long the ``OpenRouterResponseCache`` had kept the answer, in seconds, when it served it.
-    public static let responseCacheAge = "openRouter.responseCacheAge"
+    /// In seconds.
+    static let responseCacheAge = "openRouter.responseCacheAge"
 
-    /// The response id of the answer that the ``OpenRouterResponseCache`` kept and served again, such as `gen-…`.
-    ///
-    /// The answer's own response id is new for each answer the cache serves.
-    public static let responseCacheSourceID = "openRouter.responseCacheSourceID"
+    static let responseCacheSourceID = "openRouter.responseCacheSourceID"
+    static let routingStrategy = "openRouter.routingStrategy"
+    static let routingAttempt = "openRouter.routingAttempt"
 
-    /// How OpenRouter picked the model and host, such as `direct`, `fallback`, `alias`, `auto` or `free`, in the
-    /// router's report.
-    public static let routingStrategy = "openRouter.routingStrategy"
+    /// A list of structures, each with the host's `provider`, the `model` and the HTTP `status` it answered with.
+    static let routingAttempts = "openRouter.routingAttempts"
 
-    /// Which attempt answered, from 1, in the router's report. More than 1 means that earlier hosts or models failed.
-    public static let routingAttempt = "openRouter.routingAttempt"
+    /// A list of structures, each with the host's `provider`, the `model`, and whether it was `selected`.
+    static let routingEndpoints = "openRouter.routingEndpoints"
 
-    /// The hosts and models OpenRouter tried, in order, in the router's report.
-    ///
-    /// Each is a structure with the host's `provider`, the `model` and the HTTP `status` it answered with.
-    public static let routingAttempts = "openRouter.routingAttempts"
-
-    /// The endpoints OpenRouter could pick from, in the router's report.
-    ///
-    /// Each is a structure with the host's `provider`, the `model`, and whether it was `selected`.
-    public static let routingEndpoints = "openRouter.routingEndpoints"
-
-    /// The plugins that changed the request or the answer, such as context compression or a guardrail, in the
-    /// router's report.
-    ///
-    /// Each is a structure with the stage's `type`, such as `guardrail`, the plugin's `name`, such as
+    /// A list of structures, each with the stage's `type`, such as `guardrail`, the plugin's `name`, such as
     /// `content-filter`, and a `summary` of what it did when OpenRouter wrote one.
-    public static let routingPipeline = "openRouter.routingPipeline"
+    static let routingPipeline = "openRouter.routingPipeline"
 
-    /// The OpenRouter edge region that handled the request, such as `iad`, in the router's report.
-    public static let region = "openRouter.region"
+    static let region = "openRouter.region"
 
-    /// How long the host took, in seconds, from OpenRouter sending it the request until its answer ended, in the
-    /// router's report.
-    ///
-    /// The output tokens divided by it give the host's throughput.
-    public static let generationTime = "openRouter.generationTime"
+    /// In seconds.
+    static let generationTime = "openRouter.generationTime"
 
-    /// Whether the request used the account's own key for the host, rather than OpenRouter's, so the host billed that
-    /// key.
-    ///
-    /// When it's `true`, the answer's cost is only OpenRouter's fee, and the host bills the account's own key for
-    /// ``upstreamInferenceCost``.
-    public static let isBYOK = "openRouter.isBYOK"
+    static let isBYOK = "openRouter.isBYOK"
+    static let upstreamInferenceCost = "openRouter.upstreamInferenceCost"
+    static let upstreamInferencePromptCost = "openRouter.upstreamInferencePromptCost"
+    static let upstreamInferenceCompletionCost = "openRouter.upstreamInferenceCompletionCost"
+    static let serverToolCost = "openRouter.serverToolCost"
+    static let requestedServerToolCallCount = "openRouter.requestedServerToolCallCount"
+    static let executedServerToolCallCount = "openRouter.executedServerToolCallCount"
 
-    /// What the host charged for the answer, in US dollars, when OpenRouter reports it, as for a request that used the
-    /// account's own key.
-    public static let upstreamInferenceCost = "openRouter.upstreamInferenceCost"
-
-    /// The part of the host's charge for the prompt, in US dollars.
-    public static let upstreamInferencePromptCost = "openRouter.upstreamInferencePromptCost"
-
-    /// The part of the host's charge for the output, in US dollars.
-    public static let upstreamInferenceCompletionCost = "openRouter.upstreamInferenceCompletionCost"
-
-    /// What server tools that are billed by use cost, in US dollars, such as the time a sandbox ran; 0 when they ran
-    /// for free.
-    public static let serverToolCost = "openRouter.serverToolCost"
-
-    /// The server-tool calls the model asked for, of every kind, such as ``OpenRouterServerTool`` web searches and
-    /// fetches. A host's own web search isn't counted.
-    ///
-    /// The shared web search count also counts a search by ``OpenRouterServerTool``, so don't add the two together.
-    public static let requestedServerToolCallCount = "openRouter.requestedServerToolCallCount"
-
-    /// The server-tool calls that ran and gave the model a result.
-    public static let executedServerToolCallCount = "openRouter.executedServerToolCallCount"
-
-    /// The budget or limit a request ran into, as OpenRouter's `limit_source` names it, such as a key's spending budget
-    /// or the requests in flight at once, on the metadata of every `LanguageModelError` whose body names one.
-    public static let limitSource = "openRouter.limitSource"
+    /// On the metadata of every `LanguageModelError` whose body names one.
+    static let limitSource = "openRouter.limitSource"
 }

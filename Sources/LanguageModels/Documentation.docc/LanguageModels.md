@@ -19,9 +19,9 @@ Describe provider modules' models and choose their reasoning level in Foundation
 
 ![The Swift Language Models icon: a network of model providers on an indigo background.](swift-language-models-icon)
 
-Each provider module plugs one service's models into Foundation Models:
+Each provider module plugs one provider's models into Foundation Models:
 
-| Service | Module |
+| Provider | Module |
 |---|---|
 | [OpenRouter](https://openrouter.ai) | [`OpenRouterLanguageModels`](https://ironsparrows.github.io/swift-language-models/documentation/openrouterlanguagemodels) |
 | [OpenAI](https://openai.com/api/) | [`OpenAILanguageModels`](https://ironsparrows.github.io/swift-language-models/documentation/openailanguagemodels) |
@@ -76,11 +76,16 @@ The package logs each request to the unified logging system, never with API keys
 
 ### Answer metadata
 
-- ``LanguageModelMetadataKey``
-- ``FinishReason``
-- ``Citation``
+- <doc:ReadingWhatAProviderReports>
+- ``FoundationModels/Transcript/Response/providerMetadata``
+- ``FoundationModels/Transcript/ToolCalls/providerMetadata``
+- ``ProviderResponseMetadata``
+- ``FoundationModels/LanguageModelSession/Usage/providerMetadata``
+- ``ProviderUsageMetadata``
 - ``FoundationModels/LanguageModelError/providerMetadata``
 - ``ProviderErrorMetadata``
+- ``Citation``
+- ``FinishReason``
 
 ### Guided answers
 

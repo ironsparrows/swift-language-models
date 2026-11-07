@@ -112,7 +112,7 @@ public struct OpenRouterServerTool: Sendable, Hashable {
     /// The model sends the advisor a prompt, and OpenRouter returns the advisor's answer to the model, which writes the
     /// final answer. Each consultation is a request to the advisor model, billed at its price on top of the model's
     /// tokens, and it adds the time the advisor takes. The consultation never reaches the session: the answer's usage
-    /// counts it among ``OpenRouterMetadataKey/requestedServerToolCallCount``, and chat completions return neither the
+    /// counts it among ``OpenRouterUsageMetadata/requestedServerToolCallCount``, and chat completions return neither the
     /// prompt nor the advice. So the advisor can't recall its earlier consultations on later turns; with
     /// `forwardsTranscript`, it reads the whole conversation instead.
     ///
@@ -158,7 +158,7 @@ public struct OpenRouterServerTool: Sendable, Hashable {
     /// only that description, never the conversation, and keeps nothing between tasks. Each task is a request to the
     /// worker model, billed at its price on top of the model's tokens, and more when the worker uses server tools. The
     /// task never reaches the session; the answer's usage counts it among
-    /// ``OpenRouterMetadataKey/requestedServerToolCallCount``.
+    /// ``OpenRouterUsageMetadata/requestedServerToolCallCount``.
     ///
     /// To offer several workers, list one subagent per model with a `name` each; at most one can go without a name,
     /// and keep their order across a session's requests.

@@ -60,8 +60,8 @@ public struct OpenRouterOptions: Sendable, Hashable {
     /// Whether the answer reports how OpenRouter routed the request: the strategy, the endpoints it considered, each
     /// attempt, the edge region, the generation time and the plugins that changed the request or answer.
     ///
-    /// The entry that ends the answer carries them under ``OpenRouterMetadataKey``, such as
-    /// ``OpenRouterMetadataKey/routingStrategy``. An answer from the response cache never has them. Every request asks
+    /// ``OpenRouterResponseMetadata`` reads them from the entry that ends the answer, such as
+    /// ``OpenRouterResponseMetadata/routingStrategy``. An answer from the response cache never has them. Every request asks
     /// OpenRouter for this report, since only the report says a guardrail blocked a request, and this decides whether
     /// the answer keeps it.
     public var includesRouterMetadata: Bool

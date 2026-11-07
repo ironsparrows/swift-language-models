@@ -1,4 +1,5 @@
 import Foundation
+import FoundationModels
 import LanguageModelsCore
 import Testing
 
@@ -21,6 +22,7 @@ struct CitationTests {
             url: try #require(URL(string: "https://swift.org/blog/swift-6.4")), title: "Swift 6.4 Released",
             excerpt: "Swift 6.4 is now available.", startOffset: 0, endOffset: 18)
 
-        #expect(Citation(metadataValue: citation.metadataValue) == citation)
+        let metadata = ProviderResponseMetadata(citations: [citation]).channelMetadata.mapValues { $0.generatedContent }
+        #expect(ProviderResponseMetadata(metadata).citations == [citation])
     }
 }

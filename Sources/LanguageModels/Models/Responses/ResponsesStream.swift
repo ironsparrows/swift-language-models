@@ -106,8 +106,8 @@ extension Responses.Stream {
 
         /// The message as the metadata keeps it: its phase with the length of its text, counted on the whole text
         /// since a character can span deltas, or with the text itself when it's held out.
-        var kept: MessagePhase {
-            isHeldOut ? MessagePhase(phase: phase, heldText: text) : MessagePhase(phase: phase, length: text.count)
+        var kept: Responses.MessagePhase {
+            isHeldOut ? Responses.MessagePhase(phase: phase, heldText: text) : Responses.MessagePhase(phase: phase, length: text.count)
         }
     }
 
@@ -194,7 +194,7 @@ extension Responses.Stream {
             var message = messages[index, default: Message()]
             message.phase = item["phase"]?.stringValue
             if requiresCompleteAnswer {
-                let isFinal = message.phase.map { $0 == MessagePhase.finalAnswer } ?? true
+                let isFinal = message.phase.map { $0 == Responses.MessagePhase.finalAnswer } ?? true
                 if isFinal, answerIndex == nil { answerIndex = index }
                 message.isHeldOut = answerIndex != index
             }

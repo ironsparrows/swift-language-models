@@ -365,9 +365,7 @@ struct OpenRouterFailure: Sendable {
 
     /// The metadata of a `LanguageModelError`: the status, the code, the host that failed and the budget it ran into.
     private var metadata: [String: any Sendable] {
-        var metadata = LanguageModelError.failureMetadata(status: status, code: code.rawValue, provider: providerName?.rawValue)
-        metadata[OpenRouterMetadataKey.limitSource] = body.limitSource?.rawValue
-        return metadata
+        OpenRouterErrorMetadata.metadata(status: status, code: code, provider: providerName, limitSource: body.limitSource)
     }
 
     /// The kind of failure: the error type the body names, then the type its status stands for, then the code the body

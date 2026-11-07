@@ -20,9 +20,8 @@ public import LanguageModels
 /// }
 /// ```
 ///
-/// Each fact comes from a key that saved transcripts keep. The keys of ``model``, ``responseID``, ``requestID``,
-/// ``finishReason``, ``serviceTier`` and ``citations`` are `LanguageModelMetadataKey`'s, which every provider module
-/// shares, and ``messages`` comes from ``OpenAIMetadataKey/phases``.
+/// The facts ``model``, ``responseID``, ``requestID``, ``finishReason``, ``serviceTier`` and ``citations`` are the shared
+/// ones that `providerMetadata` also reads, as OpenAI's types.
 public struct OpenAIResponseMetadata: Sendable, Hashable {
     /// The model that answered, as OpenAI names it, such as the dated snapshot `gpt-5-nano-2025-08-07` for
     /// `gpt-5-nano`.
@@ -62,14 +61,14 @@ public struct OpenAIResponseMetadata: Sendable, Hashable {
 
     /// The facts in a response entry's metadata.
     init(_ metadata: [String: GeneratedContent]) {
-        let values = MetadataValues(metadata)
-        model = values.string(LanguageModelMetadataKey.model).map(OpenAIModelID.init(rawValue:))
-        responseID = values.string(LanguageModelMetadataKey.responseID)
-        requestID = values.string(LanguageModelMetadataKey.requestID)
-        finishReason = values.string(LanguageModelMetadataKey.finishReason).map(FinishReason.init(rawValue:))
-        serviceTier = values.string(LanguageModelMetadataKey.serviceTier).map(OpenAIServiceTier.init(rawValue:))
-        citations = values.array(LanguageModelMetadataKey.citations).compactMap(Citation.init(metadataValue:))
-        messages = values.structures(OpenAIMetadataKey.phases).compactMap(Message.init)
+        let shared = ProviderResponseMetadata(metadata)
+        model = shared.model.map(OpenAIModelID.init(rawValue:))
+        responseID = shared.responseID
+        requestID = shared.requestID
+        finishReason = shared.finishReason
+        serviceTier = shared.serviceTier.map(OpenAIServiceTier.init(rawValue:))
+        citations = shared.citations
+        messages = MetadataValues(metadata).structures(Self.phasesKey).compactMap(Message.init)
         usage = OpenAIUsageMetadata(metadata)
     }
 }
@@ -91,12 +90,12 @@ extension OpenAIResponseMetadata {
         /// The message's text when it's held out of the answer's text, or `nil` when the answer's text holds it.
         public let heldText: String?
 
-        /// A message read from an element of ``OpenAIMetadataKey/phases``, or `nil` for an element that isn't one.
+        /// A message read from an element of the metadata's list of phases, or `nil` for an element that isn't one.
         fileprivate init?(_ values: MetadataValues) {
-            guard let length = values.integer(Field.length) else { return nil }
-            phase = values.string(Field.phase).map(Phase.init(rawValue:))
-            self.length = length
-            heldText = values.string(Field.heldText)
+            guard let message = Responses.MessagePhase(values) else { return nil }
+            phase = message.phase.map(Phase.init(rawValue:))
+            length = message.length
+            heldText = message.heldText
         }
     }
 
@@ -117,13 +116,6 @@ extension OpenAIResponseMetadata {
         public init(rawValue: String) {
             self.rawValue = rawValue
         }
-    }
-
-    /// The names of the fields of an element of ``OpenAIMetadataKey/phases``, which saved transcripts keep.
-    private enum Field {
-        static let phase = "phase"
-        static let length = "length"
-        static let heldText = "heldText"
     }
 }
 
@@ -150,7 +142,7 @@ public struct OpenAIUsageMetadata: Sendable, Hashable {
 
     /// The facts in a usage's metadata.
     init(_ metadata: [String: GeneratedContent]) {
-        cacheWriteTokenCount = MetadataValues(metadata).integer(LanguageModelMetadataKey.cacheWriteTokenCount)
+        cacheWriteTokenCount = ProviderUsageMetadata(metadata).cacheWriteTokenCount
     }
 }
 
@@ -185,9 +177,10 @@ public struct OpenAIErrorMetadata: Sendable, Hashable {
 
     /// The facts in an error's metadata.
     init(_ metadata: [String: any Sendable]) {
-        status = metadata[LanguageModelMetadataKey.status] as? Int
-        errorCode = (metadata[LanguageModelMetadataKey.errorCode] as? String).map(OpenAIError.Code.init(rawValue:))
-        requestID = metadata[LanguageModelMetadataKey.requestID] as? String
+        let shared = ProviderErrorMetadata(metadata)
+        status = shared.status
+        errorCode = shared.errorCode.map(OpenAIError.Code.init(rawValue:))
+        requestID = shared.requestID
     }
 }
 
@@ -228,16 +221,14 @@ extension LanguageModelError {
 
 // MARK: - Keys
 
-/// The keys of the metadata facts that only OpenAI's models report about an answer, which start with `openAI.`, so they
-/// never collide with another provider's keys.
-///
-/// The facts every provider reports, such as the model, the response id and the request id, use the bare keys of
-/// `LanguageModelMetadataKey`. Saved transcripts keep the keys, so their spellings never change.
-public enum OpenAIMetadataKey {
-    /// The `phase` of each of an answer's messages, such as `commentary` or `final_answer`, on the entry that ends the
-    /// answer: a list of structures with a `phase` and the `length` of the message's text, in characters. A guided
-    /// answer's message that doesn't decode, such as a `commentary` preamble, stays out of the answer's text, so its
-    /// structure keeps the text itself under `heldText`, with a `length` of 0. Each message goes back with its phase
-    /// on later turns. ``OpenAIResponseMetadata/messages`` reads them.
-    public static let phases = "openAI.phases"
+extension OpenAIResponseMetadata {
+    /// The key of the `phase` of each of an answer's messages, such as `commentary` or `final_answer`, on the entry that
+    /// ends the answer: a list of structures with a `phase` and the `length` of the message's text, in characters. A
+    /// guided answer's message that doesn't decode, such as a `commentary` preamble, stays out of the answer's text, so
+    /// its structure keeps the text itself under `heldText`, with a `length` of 0. Each message goes back with its phase
+    /// on later turns.
+    ///
+    /// It starts with `openAI.`, so it never collides with another provider's keys. Saved transcripts keep it, so its
+    /// spelling never changes.
+    static let phasesKey = "openAI.phases"
 }

@@ -23,6 +23,10 @@ extension OpenRouterMetadataTests {
 
             let response = try await LanguageModelSession(model: model(stub)).respond(to: "Hi")
 
+            let shared = response.usage.providerMetadata
+            #expect(shared.cost == Decimal(string: "0.0001"))
+            #expect(shared.cacheWriteTokenCount == 176)
+            #expect(shared.webSearchCount == 1)
             let metadata = response.usage.openRouter
             #expect(metadata.cost == Decimal(string: "0.0001"))
             #expect(metadata.cacheWriteTokenCount == 176)

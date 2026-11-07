@@ -15,14 +15,14 @@ extension OpenRouterMetadataTests {
             let response = try await LanguageModelSession(model: model(stub)).respond(to: "Hi")
 
             let keys = [
-                OpenRouterMetadataKey.isBYOK, OpenRouterMetadataKey.upstreamInferenceCost,
-                OpenRouterMetadataKey.upstreamInferencePromptCost,
-                OpenRouterMetadataKey.upstreamInferenceCompletionCost, OpenRouterMetadataKey.serverToolCost,
-                OpenRouterMetadataKey.requestedServerToolCallCount, OpenRouterMetadataKey.executedServerToolCallCount,
-                LanguageModelMetadataKey.webSearchCount,
+                "openRouter.isBYOK", "openRouter.upstreamInferenceCost",
+                "openRouter.upstreamInferencePromptCost",
+                "openRouter.upstreamInferenceCompletionCost", "openRouter.serverToolCost",
+                "openRouter.requestedServerToolCallCount", "openRouter.executedServerToolCallCount",
+                "webSearchCount",
             ]
             #expect(keys.allSatisfy { response.usage.metadata[$0] == nil })
-            #expect(metadataNumber(response.usage.metadata, LanguageModelMetadataKey.cost) == 0.000_25)
+            #expect(metadataNumber(response.usage.metadata, "cost") == 0.000_25)
         }
 
         @Test func `a null upstream cost and null server-tool counts are left out`() async throws {
@@ -38,10 +38,10 @@ extension OpenRouterMetadataTests {
             let response = try await LanguageModelSession(model: model(stub)).respond(to: "Hi")
 
             let metadata = response.usage.metadata
-            #expect(try metadataJSON(metadata, OpenRouterMetadataKey.isBYOK) == false)
-            #expect(metadata[OpenRouterMetadataKey.upstreamInferenceCost] == nil)
-            #expect(try metadataJSON(metadata, OpenRouterMetadataKey.upstreamInferencePromptCost) == 0)
-            #expect(metadata[LanguageModelMetadataKey.webSearchCount] == nil)
+            #expect(try metadataJSON(metadata, "openRouter.isBYOK") == false)
+            #expect(metadata["openRouter.upstreamInferenceCost"] == nil)
+            #expect(try metadataJSON(metadata, "openRouter.upstreamInferencePromptCost") == 0)
+            #expect(metadata["webSearchCount"] == nil)
         }
 
         @Test func `a tool round's facts reach its first call, and its tool-calls entry reads them`() async throws {
@@ -68,6 +68,8 @@ extension OpenRouterMetadataTests {
             #expect(calls.openRouter.provider == "Vendor")
             #expect(calls.openRouter.responseID == "gen-1")
             #expect(calls.openRouter.finishReason == .toolCalls)
+            #expect(calls.providerMetadata.model == "vendor/round-model")
+            #expect(calls.providerMetadata.host == "Vendor")
             #expect(calls.last?.metadata.isEmpty == true)
         }
     }

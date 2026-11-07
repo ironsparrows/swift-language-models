@@ -150,7 +150,7 @@ struct LiveSweepTests {
 
     /// Checks that the answer names the model, as its id or a dated version of it.
     private static func expectAnsweringModel(of response: LanguageModelSession.Response<some Generable>, is model: LiveModel) {
-        let answering = lastAnswer(in: response.transcriptEntries).flatMap { metadataString($0.metadata, LanguageModelMetadataKey.model) }
+        let answering = lastAnswer(in: response.transcriptEntries).flatMap { $0.openRouter.model?.rawValue }
         #expect(answering?.hasPrefix(model.details.id.rawValue) == true, "Answered by \(answering ?? "an unnamed model")")
     }
 }

@@ -153,7 +153,7 @@ the same hook names. The Responses format has fewer, since OpenAI is its only pr
 | `check(_:in:)` | no | `AttachmentKind`, the entry | throws | which inputs the models take | which inputs the model takes |
 | `extraMedia` | no, Chat Completions only | none | `[MediaPart]` | AIFF, M4A, AAC, FLAC and OGG audio, and video | |
 | `instructionsRole` | no, Responses only | none | `InstructionsRole` | | `developer` for a model that reasons, `system` otherwise |
-| `reasoningOrigin`, `phasesMetadataKey` | no | none | an origin, a metadata key | `openrouter` | `openai-responses`, `openAI.phases` |
+| `reasoningOrigin`, `phasesKey` | no | none | an origin, a metadata key | `openrouter` | `openai-responses`, `openAI.phases` |
 | `replays(_:)` | no | a reasoning entry | whether it goes back | only to the model that wrote it, not a fallback | only to the model that wrote it, or to the model it's a dated snapshot of |
 | `replayMembers(_:)` | when `ReplayMembers` is set, Chat Completions only | `[ReplayedReasoning]` | `ReplayMembers` | `reasoning` and `reasoning_details` | the format's own: the answer's encrypted `reasoning` items, in the order they came |
 | `streamState(_:)`, `facts(of:)` | when `StreamState` is set | `ResponseHeaders` | state, `AnswerFacts` | the host, cost, router report, cache status | the request's id |

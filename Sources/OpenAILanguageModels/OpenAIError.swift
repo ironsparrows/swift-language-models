@@ -230,8 +230,7 @@ struct OpenAIFailure: Sendable {
                 status: status, message: message, code: code, errorType: body?.type.map(OpenAIError.Code.init(rawValue:)),
                 parameter: body?.param, requestID: requestID, retryAfter: retryAfter, isQuotaExhausted: isQuotaExhausted)
         }
-        var metadata = LanguageModelError.failureMetadata(status: status, code: code.rawValue, provider: nil)
-        metadata[LanguageModelMetadataKey.requestID] = requestID
+        let metadata = ProviderErrorMetadata.metadata(status: status, code: code.rawValue, provider: nil, requestID: requestID)
         return LanguageModelError(failure, message: message, metadata: metadata)
     }
 

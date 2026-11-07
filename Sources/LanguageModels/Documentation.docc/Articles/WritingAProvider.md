@@ -111,16 +111,19 @@ The format targets are `package` code, so only this package's own provider modul
 ### Report what happened
 
 Put facts about an answer in the metadata of the entry that ends it, and what it cost and counted in its usage's
-metadata. A fact that every provider module reports, such as the model, the finish reason or the cost, uses the bare
-key ``LanguageModelMetadataKey`` names, with the meaning it gives: a ``FinishReason`` for why the answer ended, and
-``Citation`` values for the pages it cites. A fact only one module reports takes the module's prefix, such as
-`openRouter.`, so keys never collide.
+metadata. For a fact that any provider module can report, such as the model, the finish reason or the cost, pass the
+``ProviderResponseMetadata/channelMetadata`` of a ``ProviderResponseMetadata`` to the channel's `updateMetadata` action,
+and the ``ProviderUsageMetadata/channelMetadata`` of a ``ProviderUsageMetadata`` to its `updateUsage` action, so
+`providerMetadata` reads them for your model too, with a ``FinishReason`` for why the answer ended and ``Citation``
+values for the pages it cites. A fact only one module reports takes a key with the module's prefix, such as `vendor.`,
+so keys never collide.
 
 Give apps typed readers for those facts, so they never read metadata as a dictionary, in the same four places for every
 provider, each through a property named for the provider: `Transcript.Response` and `Transcript.ToolCalls` read a
 `<Provider>ResponseMetadata`, `LanguageModelSession.Usage` a `<Provider>UsageMetadata`, and `LanguageModelError` a
-`<Provider>ErrorMetadata`, as `openRouter` and `openAI` do. Put a failure's shared facts under the bare keys `status`,
-`errorCode`, `provider` and `requestID`, which ``ProviderErrorMetadata`` also reads from any `LanguageModelError`.
+`<Provider>ErrorMetadata`, as `openRouter` and `openAI` do. ``ProviderErrorMetadata`` reads the shared facts of a
+`LanguageModelError` that this package's provider modules throw. No public API writes them, so with a module of your
+own its facts are `nil`.
 
 Never log API keys, prompts, answers, tool arguments or outputs, or attachments.
 

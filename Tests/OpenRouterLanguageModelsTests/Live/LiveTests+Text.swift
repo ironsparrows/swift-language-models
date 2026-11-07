@@ -18,12 +18,12 @@ extension LiveTests {
             #expect(response.content.localizedCaseInsensitiveContains("hello"))
             #expect(response.usage.input.totalTokenCount > 0)
             #expect(response.usage.output.totalTokenCount > 0)
-            #expect((metadataNumber(response.usage.metadata, LanguageModelMetadataKey.cost) ?? 0) > 0)
+            #expect((response.usage.openRouter.cost ?? 0) > 0)
             let answer = try #require(lastAnswer(in: response.transcriptEntries))
-            #expect(metadataString(answer.metadata, LanguageModelMetadataKey.model)?.hasPrefix("openai/gpt-4.1-nano") == true)
-            #expect(metadataString(answer.metadata, LanguageModelMetadataKey.provider) != nil)
-            #expect(metadataString(answer.metadata, LanguageModelMetadataKey.responseID)?.hasPrefix("gen-") == true)
-            #expect(metadataString(answer.metadata, LanguageModelMetadataKey.finishReason) == "stop")
+            #expect(answer.openRouter.model?.rawValue.hasPrefix("openai/gpt-4.1-nano") == true)
+            #expect(answer.openRouter.provider?.rawValue != nil)
+            #expect(answer.openRouter.responseID?.hasPrefix("gen-") == true)
+            #expect(answer.openRouter.finishReason?.rawValue == "stop")
         }
 
         @Test func `a streamed answer grows with each snapshot`() async throws {
@@ -60,7 +60,7 @@ extension LiveTests {
             #expect(!response.content.isEmpty)
             #expect(response.usage.output.totalTokenCount <= 16)
             let answer = try #require(lastAnswer(in: response.transcriptEntries))
-            #expect(metadataString(answer.metadata, LanguageModelMetadataKey.finishReason) == "length")
+            #expect(answer.openRouter.finishReason?.rawValue == "length")
         }
 
         /// Foundation Models ends a cancelled stream without throwing, so only the stop and the next answer count.
@@ -112,7 +112,7 @@ extension LiveTests {
                 )
                 record(response.content, named: "\(verbosity.rawValue).txt")
                 let entry = try #require(lastAnswer(in: response.transcriptEntries))
-                #expect(metadataString(entry.metadata, LanguageModelMetadataKey.finishReason) == "stop")
+                #expect(entry.openRouter.finishReason?.rawValue == "stop")
                 return response.content
             }
 

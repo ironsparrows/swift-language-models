@@ -18,7 +18,7 @@ struct MetadataValuesTests {
         #expect(values.integer("text") == nil)
         #expect(values.decimal("text") == nil)
         #expect(values.duration("text") == nil)
-        #expect(values.array("text").isEmpty)
+        #expect(values.structures("text").isEmpty)
         #expect(values.structures("list").map { $0.string("provider") } == ["Other"])
         #expect(values.structures("list").map { $0.integer("status") } == [nil])
     }

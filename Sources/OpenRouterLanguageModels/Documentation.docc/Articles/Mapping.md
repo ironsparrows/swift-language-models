@@ -104,40 +104,39 @@ for images.
 | `delta.reasoning_details`, `delta.reasoning`, and a `<think>` or `<thinking>` block that opens `delta.content` | Reasoning text, in the order it arrives; the details go in the reasoning entry's signature and are sent back on later turns, unless a fallback wrote them. A block leaves the answer with its tags and the whitespace around it, and goes back as the model wrote it, at the start of the `assistant` message's `content`, unless a fallback wrote it; its text isn't sent again as `reasoning`. Only a block at the start counts, after any whitespace, so a tag later in the answer stays text; a block the answer never closes is reasoning to the end |
 | `delta.tool_calls` | One tool-calls entry per answer, so parallel calls make one round |
 | `delta.images` | One data entry per image, of the kind its data URL names, from OS 27.2; an image at a web address is left out |
-| `delta.annotations` of type `url_citation` | ``Citation`` values on the response entry, under ``LanguageModelMetadataKey/citations``, once each; they aren't sent back |
+| `delta.annotations` of type `url_citation` | ``Citation`` values on the response entry, which ``OpenRouterResponseMetadata/citations`` reads, once each; they aren't sent back |
 | `reasoning.server_tool_call` in `delta.reasoning_details` | OpenRouter's record of a server tool's call and result, kept with the other details and sent back on later turns; it never becomes a tool call |
 | `usage` | Usage: prompt, cached, output and reasoning tokens; in its metadata, the `cost`, `cache_write_tokens` and `is_byok` |
-| `usage.cost_details` | Usage metadata: `upstream_inference_cost`, `upstream_inference_prompt_cost`, `upstream_inference_completions_cost` and `server_tool_cost`, under ``OpenRouterMetadataKey`` |
+| `usage.cost_details` | Usage metadata: `upstream_inference_cost`, `upstream_inference_prompt_cost`, `upstream_inference_completions_cost` and `server_tool_cost`, which ``OpenRouterUsageMetadata`` reads |
 | `usage.server_tool_use_details` | Usage metadata: `tool_calls_requested`, `tool_calls_executed` and `web_search_requests` as counts |
-| `model`, `provider`, `id`, `finish_reason`, `service_tier` | Metadata of the entry that ends the answer, under the shared keys of `LanguageModelMetadataKey`; `model` also goes on the reasoning entry |
+| `model`, `provider`, `id`, `finish_reason`, `service_tier` | Metadata of the entry that ends the answer, which ``OpenRouterResponseMetadata`` reads; `model` also goes on the reasoning entry |
 | `X-OpenRouter-Cache-Status`, `X-OpenRouter-Cache-Age`, `X-OpenRouter-Cache-Source-Id` headers | Metadata of the entry that ends the answer: whether the response cache served it, how many seconds it had kept it, and the response id it kept |
 | `openrouter_metadata` on the last chunk | Metadata of the entry that ends the answer: `strategy`, `attempt`, `attempts`, `endpoints.available`, `region`, `generation_time` in seconds, and each `pipeline` stage's `type`, `name` and `summary` |
 | `finish_reason: length` | An answer cut short at its token limit, which ends without an error; a guided answer cut short throws `GeneratedContent.ParsingError`, and one cut short inside its tool calls throws ``OpenRouterError`` with `invalid_response` instead, so no tool runs with partial arguments |
 
-### Metadata keys
+### Metadata
 
-A fact every provider module reports has a bare key, which `LanguageModelMetadataKey` names and every module spells
-the same way. ``OpenRouterMetadataKey`` names the keys only OpenRouter has, which start with `openRouter.`. Saved
-transcripts keep the keys.
-``OpenRouterResponseMetadata`` and ``OpenRouterUsageMetadata`` read the keys of a response entry and a usage as typed
-properties, with amounts as `Decimal` values and times as `Duration` values.
+``OpenRouterResponseMetadata``, ``OpenRouterUsageMetadata`` and ``OpenRouterErrorMetadata`` read what OpenRouter
+reports about a response entry, a usage and a failure as typed properties, with amounts as `Decimal` values and times
+as `Duration` values. Saved transcripts keep these facts. `providerMetadata` reads the ones any provider can report,
+the same way for every provider module, as <doc:/LanguageModels/ReadingWhatAProviderReports> shows.
 
-| OpenRouter | Key |
+| OpenRouter | Reader |
 |---|---|
-| `model` | `model`, on the entry that ends the answer and on its reasoning entry |
-| `provider`, the host that served the answer | `provider` |
-| `id` | `responseID` |
-| `finish_reason` | `finishReason` |
-| `service_tier` | `serviceTier` |
-| `delta.annotations` of type `url_citation` | `citations`, on the response entry |
-| `usage.cost` | `cost`, in the usage's metadata |
-| `usage.prompt_tokens_details.cache_write_tokens` | `cacheWriteTokenCount`, in the usage's metadata |
-| `usage.is_byok` | `openRouter.isBYOK`, in the usage's metadata |
-| `usage.cost_details`: `upstream_inference_cost`, `upstream_inference_prompt_cost`, `upstream_inference_completions_cost`, `server_tool_cost` | `openRouter.upstreamInferenceCost`, `openRouter.upstreamInferencePromptCost`, `openRouter.upstreamInferenceCompletionCost`, `openRouter.serverToolCost`, in the usage's metadata |
-| `usage.server_tool_use_details`: `tool_calls_requested`, `tool_calls_executed`, `web_search_requests` | `openRouter.requestedServerToolCallCount`, `openRouter.executedServerToolCallCount`, `webSearchCount`, in the usage's metadata |
-| `X-OpenRouter-Cache-Status`, `X-OpenRouter-Cache-Age`, `X-OpenRouter-Cache-Source-Id` headers | `openRouter.responseCacheStatus`, `openRouter.responseCacheAge`, `openRouter.responseCacheSourceID` |
-| `openrouter_metadata`: `strategy`, `attempt`, `attempts`, `endpoints.available`, `pipeline`, `region`, `generation_time` | `openRouter.routingStrategy`, `openRouter.routingAttempt`, `openRouter.routingAttempts`, `openRouter.routingEndpoints`, `openRouter.routingPipeline`, `openRouter.region`, `openRouter.generationTime` |
-| A failure's HTTP status, error code and host | `status`, `errorCode` and `provider`, in the metadata of the `LanguageModelError` it becomes |
+| `model` | ``OpenRouterResponseMetadata/model``, on the entry that ends the answer; its reasoning entry keeps the model too |
+| `provider`, the host that served the answer | ``OpenRouterResponseMetadata/provider`` |
+| `id` | ``OpenRouterResponseMetadata/responseID`` |
+| `finish_reason` | ``OpenRouterResponseMetadata/finishReason`` |
+| `service_tier` | ``OpenRouterResponseMetadata/serviceTier`` |
+| `delta.annotations` of type `url_citation` | ``OpenRouterResponseMetadata/citations``, on the response entry |
+| `usage.cost` | ``OpenRouterUsageMetadata/cost`` |
+| `usage.prompt_tokens_details.cache_write_tokens` | ``OpenRouterUsageMetadata/cacheWriteTokenCount`` |
+| `usage.is_byok` | ``OpenRouterUsageMetadata/isBYOK`` |
+| `usage.cost_details`: `upstream_inference_cost`, `upstream_inference_prompt_cost`, `upstream_inference_completions_cost`, `server_tool_cost` | ``OpenRouterUsageMetadata/upstreamInferenceCost``, ``OpenRouterUsageMetadata/upstreamInferencePromptCost``, ``OpenRouterUsageMetadata/upstreamInferenceCompletionCost``, ``OpenRouterUsageMetadata/serverToolCost`` |
+| `usage.server_tool_use_details`: `tool_calls_requested`, `tool_calls_executed`, `web_search_requests` | ``OpenRouterUsageMetadata/requestedServerToolCallCount``, ``OpenRouterUsageMetadata/executedServerToolCallCount``, ``OpenRouterUsageMetadata/webSearchCount`` |
+| `X-OpenRouter-Cache-Status`, `X-OpenRouter-Cache-Age`, `X-OpenRouter-Cache-Source-Id` headers | ``OpenRouterResponseMetadata/responseCacheStatus``, ``OpenRouterResponseMetadata/responseCacheAge``, ``OpenRouterResponseMetadata/responseCacheSourceID`` |
+| `openrouter_metadata`: `strategy`, `attempt`, `attempts`, `endpoints.available`, `pipeline`, `region`, `generation_time` | ``OpenRouterResponseMetadata/routingStrategy``, ``OpenRouterResponseMetadata/routingAttempt``, ``OpenRouterResponseMetadata/routingAttempts``, ``OpenRouterResponseMetadata/routingEndpoints``, ``OpenRouterResponseMetadata/routingPipeline``, ``OpenRouterResponseMetadata/region``, ``OpenRouterResponseMetadata/generationTime`` |
+| A failure's HTTP status, error code and host | ``OpenRouterErrorMetadata/status``, ``OpenRouterErrorMetadata/errorCode`` and ``OpenRouterErrorMetadata/provider``, on the `LanguageModelError` it becomes |
 
 ### Errors
 
@@ -145,7 +144,7 @@ properties, with amounts as `Decimal` values and times as `Duration` values.
 |---|---|
 | `context_length_exceeded`, a 400 whose message mentions the context | `LanguageModelError.contextSizeExceeded` |
 | `token_limit_exceeded`, a token budget that OpenRouter enforces | ``OpenRouterError`` with ``OpenRouterError/Code/tokenLimitExceeded`` |
-| 429, `rate_limit_exceeded`, a 402 for too many requests in flight, a 403 for a spending budget that resets | `LanguageModelError.rateLimited`, with the reset date, and the budget's `openRouter.limitSource` |
+| 429, `rate_limit_exceeded`, a 402 for too many requests in flight, a 403 for a spending budget that resets | `LanguageModelError.rateLimited`, with the reset date, and the budget's ``OpenRouterErrorMetadata/limitSource`` |
 | A 403 for a spending budget that never resets | ``OpenRouterError`` with ``OpenRouterError/Code/budgetExceeded`` |
 | `content_policy_violation`, `finish_reason: content_filter`, a moderation 403, a 403 whose `openrouter_metadata.pipeline` has a `guardrail` stage with `data.action` `blocked` | `LanguageModelError.guardrailViolation` |
 | `refusal`, `delta.refusal` | `LanguageModelError.refusal` |

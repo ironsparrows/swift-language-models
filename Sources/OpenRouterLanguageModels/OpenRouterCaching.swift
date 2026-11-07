@@ -121,9 +121,9 @@ extension OpenRouterModel {
 /// model.responseCache = OpenRouterResponseCache(timeToLive: .seconds(3_600))
 /// ```
 ///
-/// A hit bills nothing: its usage is zero tokens and its cost zero. It has a response id of its own, and its entry
-/// names the answer it repeats under ``OpenRouterMetadataKey/responseCacheSourceID``.
-/// ``OpenRouterMetadataKey/responseCacheStatus`` says whether the cache served an answer.
+/// A hit bills nothing: its usage is zero tokens and its cost zero. It has a response id of its own, and
+/// ``OpenRouterResponseMetadata/responseCacheSourceID`` names the answer it repeats.
+/// ``OpenRouterResponseMetadata/responseCacheStatus`` says whether the cache served an answer.
 ///
 /// - A hit repeats the kept answer as it is, whatever the temperature, sampling mode or seed, so sampling with
 ///   randomness gives the same answer each time. Set ``refreshes`` to replace kept answers with new ones.
@@ -217,10 +217,10 @@ extension OpenRouterResponseCache {
         let status: Status
 
         /// How long the cache had kept the answer, in seconds, on a hit.
-        private let age: Int?
+        let age: Int?
 
         /// The generation id of the answer the cache kept, on a hit.
-        private let sourceID: String?
+        let sourceID: String?
 
         /// The report that a response's headers hold, or `nil` when they hold none, as when the cache is off.
         ///
@@ -230,14 +230,6 @@ extension OpenRouterResponseCache {
             self.status = Status(rawValue: status.uppercased())
             age = header(API.Header.cacheAge).flatMap { Int($0) }
             sourceID = header(API.Header.cacheSourceID)
-        }
-
-        /// The report as metadata of the entry that ends the answer.
-        var metadata: [String: any ConvertibleToGeneratedContent] {
-            var metadata: [String: any ConvertibleToGeneratedContent] = [OpenRouterMetadataKey.responseCacheStatus: status.rawValue]
-            metadata[OpenRouterMetadataKey.responseCacheAge] = age
-            metadata[OpenRouterMetadataKey.responseCacheSourceID] = sourceID
-            return metadata
         }
     }
 }

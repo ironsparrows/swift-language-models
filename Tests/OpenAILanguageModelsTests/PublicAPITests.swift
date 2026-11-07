@@ -22,6 +22,7 @@ struct PublicAPITests {
             return
         }
         #expect(answer.openAI.model == "gpt-5-nano-2025-08-07")
+        #expect(answer.providerMetadata.model == "gpt-5-nano-2025-08-07")
         let request = try #require(server.requests.first?.request)
         #expect(request.url?.path == "/responses")
         #expect(request.value(forHTTPHeaderField: "Authorization") == "Bearer sk-test")

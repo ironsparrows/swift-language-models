@@ -51,7 +51,7 @@ extension LiveTests {
             record(context.metadata, named: "metadata.txt")
             #expect(context.contextSize == 16_384)
             #expect(context.tokenCount > 16_384)
-            #expect(context.metadata[LanguageModelMetadataKey.status] as? Int != nil)
+            #expect(context.metadata["status"] as? Int != nil)
         }
 
         @Test func `a request that gets no data in time throws Foundation Models' timeout`() async throws {

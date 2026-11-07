@@ -22,11 +22,8 @@ extension LiveTests {
             #expect(!citations.isEmpty)
             // A search engine may cite a page that's only served over http.
             #expect(citations.allSatisfy { ["http", "https"].contains($0.url.scheme) })
-            let usage = response.usage.metadata
-            #expect(
-                metadataNumber(usage, LanguageModelMetadataKey.webSearchCount) != nil
-                    || metadataNumber(usage, OpenRouterMetadataKey.serverToolCost) != nil
-            )
+            let usage = response.usage.openRouter
+            #expect(usage.webSearchCount != nil || usage.serverToolCost != nil)
         }
 
         @Test func `a fetched page reaches the answer`() async throws {
@@ -37,7 +34,7 @@ extension LiveTests {
 
             record(answerMetadata(response), named: "metadata.txt")
             #expect(response.content.contains("Example Domain"))
-            #expect((metadataNumber(response.usage.metadata, OpenRouterMetadataKey.requestedServerToolCallCount) ?? 0) >= 1)
+            #expect((response.usage.openRouter.requestedServerToolCallCount ?? 0) >= 1)
         }
 
         @Test func `the date tool gives the current year`() async throws {
@@ -64,7 +61,7 @@ extension LiveTests {
             record(answerMetadata(response), named: "metadata.txt")
             record(session.transcript, named: "transcript.txt")
             #expect(!response.content.isEmpty)
-            #expect((metadataNumber(response.usage.metadata, OpenRouterMetadataKey.requestedServerToolCallCount) ?? 0) >= 1)
+            #expect((response.usage.openRouter.requestedServerToolCallCount ?? 0) >= 1)
             #expect(session.transcript.toolCalls.isEmpty)
         }
 
@@ -80,7 +77,7 @@ extension LiveTests {
             record(answerMetadata(response), named: "metadata.txt")
             record(session.transcript, named: "transcript.txt")
             #expect(response.content.contains("HARBOR"))
-            #expect((metadataNumber(response.usage.metadata, OpenRouterMetadataKey.requestedServerToolCallCount) ?? 0) >= 1)
+            #expect((response.usage.openRouter.requestedServerToolCallCount ?? 0) >= 1)
             #expect(session.transcript.toolCalls.isEmpty)
         }
 
@@ -98,7 +95,7 @@ extension LiveTests {
             if let response {
                 // A server tool's call can meet the requirement on its own.
                 record(answerMetadata(response), named: "metadata.txt")
-                #expect((metadataNumber(response.usage.metadata, OpenRouterMetadataKey.requestedServerToolCallCount) ?? 0) >= 1)
+                #expect((response.usage.openRouter.requestedServerToolCallCount ?? 0) >= 1)
             } else {
                 #expect(session.transcript.toolCalls.contains { $0.toolName == "getWeather" })
             }

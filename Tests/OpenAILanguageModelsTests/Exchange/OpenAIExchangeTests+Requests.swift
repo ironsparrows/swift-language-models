@@ -97,7 +97,7 @@ extension OpenAIExchangeTests {
             func reasoning(by writer: String) -> Transcript.Entry {
                 .reasoning(
                     Transcript.Reasoning(
-                        metadata: ["reasoningOrigin": "openai-responses", LanguageModelMetadataKey.model: writer], segments: [],
+                        metadata: ["reasoningOrigin": "openai-responses", "model": writer], segments: [],
                         signature: JSONValue.array([item]).data))
             }
             func items(after writer: String) async throws -> [JSONValue] {

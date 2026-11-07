@@ -33,10 +33,10 @@ The catalog lists a model's dated snapshots as members of their own, such as `.g
 its model's details, and its model's name with its day, such as GPT-5.5 (2026-04-23).
 
 An answer names the model that answered, which can be a dated snapshot of the one the request named, such as
-`gpt-5-nano-2025-08-07` for `gpt-5-nano`. The entry that ends the answer keeps it under
-`LanguageModelMetadataKey.model`, as <doc:ErrorsAndMetadata> shows. Reasoning that a snapshot wrote goes back on later
-turns to the model it's a snapshot of, as <doc:Reasoning> describes. To keep the model the same from run to run, name
-a dated snapshot, as <doc:RepeatableRuns> describes.
+`gpt-5-nano-2025-08-07` for `gpt-5-nano`. The entry that ends the answer keeps it, and
+``OpenAIResponseMetadata/model`` reads it, as <doc:ErrorsAndMetadata> shows. Reasoning that a snapshot wrote goes back
+on later turns to the model it's a snapshot of, as <doc:Reasoning> describes. To keep the model the same from run to
+run, name a dated snapshot, as <doc:RepeatableRuns> describes.
 
 ### How the catalog stays current
 

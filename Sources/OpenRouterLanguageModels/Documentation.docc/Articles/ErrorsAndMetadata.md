@@ -42,12 +42,12 @@ A request that ends in tool calls has the same facts. Foundation Models keeps no
 entry, so they sit on its first call, and `openRouter` on the `Transcript.ToolCalls` entry reads them from there, as
 ``OpenRouterResponseMetadata``. A request that asks for several calls at once has one set of facts.
 
-The facts are stored in the metadata under keys that saved transcripts keep. Facts that every model reports, such as
-`model`, `provider` and `cost`, use the bare keys of `LanguageModelMetadataKey`, so code that reads them works with any
-language model in this package; facts only OpenRouter has use the keys of ``OpenRouterMetadataKey``, which start with
-`openRouter.`. OpenRouter calls the host that serves a model its provider, so `provider` names the host. The model and
-host that answered depend on routing and fallbacks, as <doc:RoutingAndFallbacks> describes, and the response cache's
-facts on <doc:Caching#Answer-repeated-requests-from-the-response-cache>.
+Saved transcripts keep these facts. The ones any provider can report, such as the model, the host and the cost, also
+read through `providerMetadata`, as ``ProviderResponseMetadata`` and ``ProviderUsageMetadata``, so code that reads them
+works with any language model in this package, as <doc:/LanguageModels/ReadingWhatAProviderReports> shows. OpenRouter calls the host that serves a model its provider, so
+``OpenRouterResponseMetadata/provider`` names the host. The model and host that answered depend on routing and
+fallbacks, as <doc:RoutingAndFallbacks> describes, and the response cache's facts on
+<doc:Caching#Answer-repeated-requests-from-the-response-cache>.
 
 ### Add up what a response cost
 

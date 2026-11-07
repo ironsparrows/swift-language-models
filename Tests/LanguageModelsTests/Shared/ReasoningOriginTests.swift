@@ -5,8 +5,10 @@ import Testing
 
 @Suite("Reasoning origin", .timeLimit(.minutes(1)))
 struct ReasoningOriginTests {
-    @Test func `saved transcripts keep the origin under a key that never changes`() {
-        #expect(ReasoningOrigin.metadataKey == "reasoningOrigin")
+    @Test func `saved transcripts keep a reasoning entry's facts under keys that never change`() {
+        let metadata = ReasoningOrigin(rawValue: "vendor").metadata(model: "vendor/model", taggedBlock: "<think>Hm.</think>")
+
+        #expect(Set(metadata.keys) == ["reasoningOrigin", "model", "taggedReasoning"])
     }
 
     @Test func `an entry tagged with an origin names it`() {
@@ -31,7 +33,7 @@ struct ReasoningOriginTests {
     }
 
     @Test func `a tag that isn't text names no origin`() {
-        let reasoning = Transcript.Reasoning(metadata: [ReasoningOrigin.metadataKey: 1], segments: [])
+        let reasoning = Transcript.Reasoning(metadata: ["reasoningOrigin": 1], segments: [])
 
         #expect(ReasoningOrigin(of: reasoning) == nil)
     }

@@ -342,24 +342,12 @@ struct OpenRouterExchange: ChatCompletions.Exchange {
     /// The host, the response cache's report and the router's; the cost, its parts, whether the account's own key paid
     /// and the server tools' counts; and the reasoning details as the reasoning entry's signature.
     func additions(header: (String) -> String?) -> AnswerAdditions {
-        var metadata: [String: any ConvertibleToGeneratedContent] = [:]
-        metadata[LanguageModelMetadataKey.provider] = host?.rawValue
-        metadata.merge(OpenRouterResponseCache.Report(header: header)?.metadata ?? [:]) { $1 }
+        var metadata = OpenRouterResponseCache.Report(header: header)?.metadata ?? [:]
         metadata.merge(routerReport?.metadata ?? [:]) { $1 }
-        var usage: [String: any ConvertibleToGeneratedContent] = [:]
-        usage[LanguageModelMetadataKey.cost] = self.usage?.cost
-        usage[OpenRouterMetadataKey.isBYOK] = self.usage?.isBYOK
-        let costs = self.usage?.costDetails
-        usage[OpenRouterMetadataKey.upstreamInferenceCost] = costs?.upstreamInferenceCost
-        usage[OpenRouterMetadataKey.upstreamInferencePromptCost] = costs?.upstreamInferencePromptCost
-        usage[OpenRouterMetadataKey.upstreamInferenceCompletionCost] = costs?.upstreamInferenceCompletionsCost
-        usage[OpenRouterMetadataKey.serverToolCost] = costs?.serverToolCost
-        let serverTools = self.usage?.serverToolUseDetails
-        usage[OpenRouterMetadataKey.requestedServerToolCallCount] = serverTools?.toolCallsRequested
-        usage[OpenRouterMetadataKey.executedServerToolCallCount] = serverTools?.toolCallsExecuted
-        usage[LanguageModelMetadataKey.webSearchCount] = serverTools?.webSearchRequests
         return AnswerAdditions(
-            host: host?.rawValue, metadata: metadata, usageMetadata: usage, reasoningSignature: reasoningDetails?.signature)
+            host: host?.rawValue, cost: usage?.cost.flatMap(Decimal.init(metadataNumber:)),
+            webSearchCount: usage?.serverToolUseDetails?.webSearchRequests, metadata: metadata, usageMetadata: usage?.metadata ?? [:],
+            reasoningSignature: reasoningDetails?.signature)
     }
 
     /// `LanguageModelError` for a failure Foundation Models has a case for, and `OpenRouterError` for the rest: with
@@ -422,7 +410,7 @@ struct OpenRouterChunkExtras: Decodable {
 
     /// What OpenRouter adds to the usage: the cost, its parts, whether the account's own key paid, and how often
     /// the server tools ran.
-    fileprivate struct Usage: Decodable {
+    struct Usage: Decodable {
         /// The parts of the cost, in US dollars.
         struct CostDetails: Decodable {
             let upstreamInferenceCost: Double?

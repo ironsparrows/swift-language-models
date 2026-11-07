@@ -22,7 +22,7 @@ extension OpenAILanguageModel {
         model.instructionsRole = details.reasoning.isSupported ? .developer : .system
         model.images = configuration.settings.images
         model.reasoningOrigin = API.reasoningOrigin
-        model.phasesKey = OpenAIMetadataKey.phases
+        model.phasesKey = OpenAIResponseMetadata.phasesKey
         return model
     }
 }
@@ -144,9 +144,7 @@ struct OpenAIExchange: Responses.Exchange {
 
     /// The request's id, on the entry that ends the answer.
     func additions(header: (String) -> String?) -> AnswerAdditions {
-        var metadata: [String: any ConvertibleToGeneratedContent] = [:]
-        metadata[LanguageModelMetadataKey.requestID] = header(API.Header.requestID)
-        return AnswerAdditions(metadata: metadata)
+        AnswerAdditions(requestID: header(API.Header.requestID))
     }
 
     /// What a failure becomes: `LanguageModelError` for a rate limit, an oversized context, a safety system, a timeout

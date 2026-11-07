@@ -32,16 +32,16 @@ extension LiveTests {
 
             record([first.usage, second.usage], named: "usage.txt")
             let providers = [first, second].map { response in
-                lastAnswer(in: response.transcriptEntries).flatMap { metadataString($0.metadata, LanguageModelMetadataKey.provider) }
+                lastAnswer(in: response.transcriptEntries).flatMap { $0.openRouter.provider?.rawValue }
                     ?? "none"
             }
             record(providers, named: "providers.txt")
             #expect(first.usage.input.cachedTokenCount == 0)
-            #expect((metadataNumber(first.usage.metadata, LanguageModelMetadataKey.cacheWriteTokenCount) ?? 0) > 0)
+            #expect((first.usage.openRouter.cacheWriteTokenCount ?? 0) > 0)
             #expect(second.usage.input.cachedTokenCount >= 2_000)
             #expect(second.usage.input.cachedTokenCount <= second.usage.input.totalTokenCount)
-            let firstCost = try #require(metadataNumber(first.usage.metadata, LanguageModelMetadataKey.cost))
-            let secondCost = try #require(metadataNumber(second.usage.metadata, LanguageModelMetadataKey.cost))
+            let firstCost = try #require(first.usage.openRouter.cost)
+            let secondCost = try #require(second.usage.openRouter.cost)
             #expect(secondCost < firstCost)
         }
 

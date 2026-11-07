@@ -8,9 +8,9 @@ import Testing
 
 /// The keys of the router's report.
 private let routingKeys = [
-    OpenRouterMetadataKey.routingStrategy, OpenRouterMetadataKey.routingAttempt, OpenRouterMetadataKey.routingAttempts,
-    OpenRouterMetadataKey.routingEndpoints, OpenRouterMetadataKey.routingPipeline, OpenRouterMetadataKey.region,
-    OpenRouterMetadataKey.generationTime,
+    "openRouter.routingStrategy", "openRouter.routingAttempt", "openRouter.routingAttempts",
+    "openRouter.routingEndpoints", "openRouter.routingPipeline", "openRouter.region",
+    "openRouter.generationTime",
 ]
 
 extension OpenRouterMetadataTests {
@@ -71,29 +71,29 @@ extension OpenRouterMetadataTests {
             let response = try await LanguageModelSession(model: model(stub, options: options)).respond(to: "Hi")
 
             let metadata = try lastResponse(of: response).metadata
-            #expect(metadataString(metadata, OpenRouterMetadataKey.routingStrategy) == "fallback")
-            #expect(try metadataJSON(metadata, OpenRouterMetadataKey.routingAttempt) == 2)
+            #expect(metadataString(metadata, "openRouter.routingStrategy") == "fallback")
+            #expect(try metadataJSON(metadata, "openRouter.routingAttempt") == 2)
             #expect(
-                try metadataJSON(metadata, OpenRouterMetadataKey.routingAttempts) == [
+                try metadataJSON(metadata, "openRouter.routingAttempts") == [
                     ["provider": "Vendor", "model": "vendor/model", "status": 503],
                     ["provider": "Other", "model": "vendor/model", "status": 200],
                 ]
             )
             #expect(
-                try metadataJSON(metadata, OpenRouterMetadataKey.routingEndpoints) == [
+                try metadataJSON(metadata, "openRouter.routingEndpoints") == [
                     ["provider": "Vendor", "model": "vendor/model", "selected": false],
                     ["provider": "Other", "model": "vendor/model", "selected": true],
                 ]
             )
             #expect(
-                try metadataJSON(metadata, OpenRouterMetadataKey.routingPipeline) == [
+                try metadataJSON(metadata, "openRouter.routingPipeline") == [
                     ["type": "guardrail", "name": "content-filter", "summary": "PII redacted"],
                     ["type": "a_future_stage", "name": "new-plugin", "summary": .null],
                 ]
             )
-            #expect(metadataString(metadata, OpenRouterMetadataKey.region) == "iad")
-            #expect(metadataNumber(metadata, OpenRouterMetadataKey.generationTime) == 2.016)
-            #expect(response.usage.metadata[OpenRouterMetadataKey.routingStrategy] == nil)
+            #expect(metadataString(metadata, "openRouter.region") == "iad")
+            #expect(metadataNumber(metadata, "openRouter.generationTime") == 2.016)
+            #expect(response.usage.metadata["openRouter.routingStrategy"] == nil)
         }
 
         @Test func `a report with fields left out or unknown still ends the answer, with only the fields it has`() async throws {
@@ -105,7 +105,7 @@ extension OpenRouterMetadataTests {
 
             #expect(response.content == "Hi")
             let metadata = try lastResponse(of: response).metadata
-            #expect(metadataString(metadata, OpenRouterMetadataKey.routingStrategy) == "direct")
+            #expect(metadataString(metadata, "openRouter.routingStrategy") == "direct")
             #expect(routingKeys.dropFirst().allSatisfy { metadata[$0] == nil })
         }
     }

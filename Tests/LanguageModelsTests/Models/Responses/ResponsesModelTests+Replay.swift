@@ -50,10 +50,10 @@ extension ResponsesModelTests {
                 "type": "reasoning", "id": "rs_1", "summary": [["type": "summary_text", "text": "Think."]], "encrypted_content": "blob",
             ]
             let own = Transcript.Reasoning(
-                metadata: [ReasoningOrigin.metadataKey: "test-responses"], segments: [text("Think.")],
+                metadata: ["reasoningOrigin": "test-responses"], segments: [text("Think.")],
                 signature: JSONValue.array([reasoningItem]).data)
             let other = Transcript.Reasoning(
-                metadata: [ReasoningOrigin.metadataKey: "openrouter"], segments: [text("Other.")],
+                metadata: ["reasoningOrigin": "openrouter"], segments: [text("Other.")],
                 signature: JSONValue.array([["type": "reasoning", "id": "rs_0"]]).data)
             let entries: [Transcript.Entry] = [
                 prompt(text("Hi")), .reasoning(other), .reasoning(own),
@@ -103,7 +103,7 @@ extension ResponsesModelTests {
 
         @Test func `an answer with neither text nor tool calls sends no reasoning back, since nothing follows it`() throws {
             let reasoning = Transcript.Reasoning(
-                metadata: [ReasoningOrigin.metadataKey: "test-responses"], segments: [],
+                metadata: ["reasoningOrigin": "test-responses"], segments: [],
                 signature: JSONValue.array([["type": "reasoning", "id": "rs_1", "summary": [], "encrypted_content": "blob"]]).data)
             let entries: [Transcript.Entry] = [
                 prompt(text("Hi")), .reasoning(reasoning), .response(Transcript.Response(assetIDs: [], segments: [])),
@@ -119,7 +119,7 @@ extension ResponsesModelTests {
             let encrypted: JSONValue = ["type": "reasoning", "id": "rs_1", "summary": [], "encrypted_content": "blob"]
             let stored: JSONValue = ["type": "reasoning", "id": "rs_2", "summary": []]
             let reasoning = Transcript.Reasoning(
-                metadata: [ReasoningOrigin.metadataKey: "test-responses"], segments: [],
+                metadata: ["reasoningOrigin": "test-responses"], segments: [],
                 signature: JSONValue.array([encrypted, stored]).data)
             let entries: [Transcript.Entry] = [
                 prompt(text("Hi")), .reasoning(reasoning), .response(Transcript.Response(assetIDs: [], segments: [text("Hello.")])),

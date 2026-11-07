@@ -86,9 +86,6 @@ extension Transcript {
 /// value, since each sends reasoning back in another shape. Saved transcripts keep the tag, so its key and each
 /// value never change.
 struct ReasoningOrigin: RawRepresentable, Hashable, Sendable {
-    /// The metadata key under which a reasoning entry names the provider that wrote it.
-    static let metadataKey = "reasoningOrigin"
-
     /// The provider's name, as the metadata spells it.
     let rawValue: String
 
@@ -101,7 +98,7 @@ struct ReasoningOrigin: RawRepresentable, Hashable, Sendable {
     ///
     /// - Parameter reasoning: The entry whose metadata is read.
     init?(of reasoning: Transcript.Reasoning) {
-        guard case .string(let name)? = reasoning.metadata[Self.metadataKey]?.kind else { return nil }
+        guard case .string(let name)? = reasoning.metadata[ReasoningKey.origin]?.kind else { return nil }
         self.init(rawValue: name)
     }
 }
@@ -115,7 +112,7 @@ extension Transcript.Reasoning {
 
     /// The model that wrote the entry, as its answer named it, or `nil` when the entry doesn't say.
     package var writer: String? {
-        MetadataValues(metadata).string(LanguageModelMetadataKey.model)
+        MetadataValues(metadata).string(ReasoningKey.model)
     }
 }
 
@@ -129,21 +126,29 @@ extension ReasoningOrigin {
     ///   - taggedBlock: The block that opened the answer's text, such as `<think>…</think>`, which goes back there.
     /// - Returns: The metadata.
     func metadata(model: String?, taggedBlock: String?) -> [String: any ConvertibleToGeneratedContent] {
-        var metadata: [String: any ConvertibleToGeneratedContent] = [Self.metadataKey: rawValue]
-        metadata[LanguageModelMetadataKey.model] = model
-        metadata[TaggedReasoning.metadataKey] = taggedBlock
+        var metadata: [String: any ConvertibleToGeneratedContent] = [ReasoningKey.origin: rawValue]
+        metadata[ReasoningKey.model] = model
+        metadata[ReasoningKey.taggedBlock] = taggedBlock
         return metadata
     }
 }
 
 extension TaggedReasoning {
-    /// The metadata key under which a reasoning entry keeps the block as the model wrote it, so it goes back where the
-    /// model put it.
-    static let metadataKey = "taggedReasoning"
-
     /// The block to send back at the start of an answer's text, as its reasoning entry keeps it, or `nil` when the
     /// entry keeps none.
     static func block(of reasoning: Transcript.Reasoning) -> String? {
-        if case .string(let block)? = reasoning.metadata[metadataKey]?.kind { block } else { nil }
+        if case .string(let block)? = reasoning.metadata[ReasoningKey.taggedBlock]?.kind { block } else { nil }
     }
+}
+
+/// The keys of a reasoning entry's metadata. Saved transcripts keep them, so they never change.
+private enum ReasoningKey {
+    /// Names the provider that wrote the entry.
+    static let origin = "reasoningOrigin"
+
+    /// Names the model that wrote the entry.
+    static let model = "model"
+
+    /// Keeps the block as the model wrote it, so it goes back where the model put it.
+    static let taggedBlock = "taggedReasoning"
 }

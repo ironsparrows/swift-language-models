@@ -34,9 +34,7 @@ struct ChatCompletionsTestExchange: ChatCompletions.Exchange {
     }
 
     func additions(header: (String) -> String?) -> AnswerAdditions {
-        var metadata: [String: any ConvertibleToGeneratedContent] = [:]
-        metadata[LanguageModelMetadataKey.provider] = host
-        return AnswerAdditions(host: host, metadata: metadata)
+        AnswerAdditions(host: host)
     }
 
     func error(for failure: RequestFailure<APIErrorBody>) -> any Error {
