@@ -1,3 +1,6 @@
+/// OpenAI's Chat Completions format.
+package enum ChatCompletions {}
+
 /// What a chunk's provider members add to the answer, as a dialect's ``ChatCompletionsDialect/observe(_:into:)``
 /// returns it.
 package struct ChunkOutput {
@@ -13,4 +16,12 @@ package struct ChunkOutput {
         self.reasoning = reasoning
         self.generatedData = generatedData
     }
+}
+
+/// No members: what a provider adds to a request, or reads from a response, when it adds or reads nothing beyond the
+/// format's own.
+///
+/// It encodes as an empty object, which adds no member, and decodes from any object.
+package struct NoMembers: Codable, Sendable, Hashable {
+    package init() {}
 }

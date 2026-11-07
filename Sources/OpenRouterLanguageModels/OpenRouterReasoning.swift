@@ -2,6 +2,8 @@ import Foundation
 import FoundationModels
 import LanguageModels
 
+// MARK: - Details
+
 /// OpenRouter's `reasoning_details`: the reasoning a model produced, in the form OpenRouter needs back on later
 /// turns.
 ///
@@ -121,5 +123,89 @@ extension JSONValue {
     /// The kind of a reasoning detail.
     fileprivate var reasoningKind: ReasoningDetails.Kind? {
         self["type"]?.stringValue.map(ReasoningDetails.Kind.init(rawValue:))
+    }
+}
+
+extension ReasoningOrigin {
+    /// Reasoning that a model wrote through OpenRouter's Chat Completions API, which goes back as the text and
+    /// `reasoning_details` of an assistant message.
+    ///
+    /// Saved transcripts keep this value, so it stays `openrouter`, although it names the format too. Reasoning that
+    /// OpenRouter returns in another format gets an origin of its own, so it isn't sent back in this shape.
+    static let openRouter = Self(rawValue: "openrouter")
+}
+
+// MARK: - What goes back
+
+extension OpenRouterChatCompletions {
+    /// The assistant message's `reasoning` and `reasoning_details` for the reasoning it sends back.
+    ///
+    /// The details go back as OpenRouter sent them, and the text of the reasoning that came with them, since text
+    /// without them would reach the host unsigned. Reasoning that came as text alone goes back as text, as OpenRouter
+    /// takes it from models that return only raw reasoning. A block the model wrote in its answer's text already goes
+    /// back there, so its text isn't sent again. Some models send an empty list of details when they didn't reason,
+    /// and expect it back.
+    func replayMembers(_ reasoning: [ReplayedReasoning]) -> OpenRouterReplayMembers {
+        var signedText = ""
+        var plainText = ""
+        var details: [JSONValue]?
+        for replayed in reasoning {
+            if let sent = ReasoningDetails.replayed(from: replayed.entry) {
+                details = (details ?? []) + sent
+                if !sent.isEmpty { signedText += replayed.text }
+            }
+            if ReasoningDetails.isTextAlone(replayed.entry) { plainText += replayed.text }
+        }
+        let text = ((details ?? []).isEmpty ? "" : signedText) + plainText
+        return OpenRouterReplayMembers(reasoning: text.isEmpty ? nil : text, reasoningDetails: details)
+    }
+}
+
+/// The members an assistant message carries for the reasoning OpenRouter sends back.
+struct OpenRouterReplayMembers: Encodable {
+    /// The reasoning's text, or `nil` when there's none to send.
+    let reasoning: String?
+
+    /// The `reasoning_details` as OpenRouter sent them, which go back unchanged, so each stays the JSON it was.
+    let reasoningDetails: [JSONValue]?
+
+    func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: JSONKey.self)
+        try container.encodeIfPresent(reasoning, forKey: "reasoning")
+        try container.encodeIfPresent(reasoningDetails, forKey: "reasoning_details")
+    }
+}
+
+// MARK: - Which model wrote it
+
+extension OpenRouterLanguageModel {
+    /// Whether reasoning goes back in a request, since each request tries the model first and reasoning suits only
+    /// the model that wrote it.
+    ///
+    /// - Parameter writer: The model that wrote the reasoning, as its answer named it, or `nil` when that isn't known.
+    /// - Returns: `false` when a fallback, rather than the model, wrote the reasoning; otherwise `true`, also for a
+    ///   writer that none of them names, such as the model a router picked.
+    func replaysReasoning(writtenBy writer: String?) -> Bool {
+        guard let writer else { return true }
+        let model = details.specificity(naming: writer) ?? 0
+        return fallbacks.allSatisfy { ($0.specificity(naming: writer) ?? 0) <= model }
+    }
+}
+
+extension OpenRouterModel {
+    /// How specifically an answer's `model` names this model: the length of the id it matches, or `nil` when it
+    /// names another model.
+    ///
+    /// An answer names a model by its id, or by the id an alias points to, without a variant suffix such as `:free`,
+    /// and often with a dated version after it, such as `openai/gpt-4.1-nano-2025-04-14`. A longer match is the more
+    /// specific one, so `vendor/model-mini-2026-10-01` names `vendor/model-mini` rather than `vendor/model`.
+    fileprivate func specificity(naming answerModel: String) -> Int? {
+        let named = answerModel.prefix { $0 != ":" }
+        return [id, aliasTarget].compactMap { id in
+            guard let slug = id?.rawValue.prefix(while: { $0 != ":" }), named == slug || named.hasPrefix(slug + "-") else {
+                return nil
+            }
+            return slug.count
+        }.max()
     }
 }

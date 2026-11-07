@@ -1,4 +1,5 @@
-import LanguageModels
+public import Foundation
+public import LanguageModels
 
 /// Request settings that only OpenRouter has, beyond Foundation Models' generation options.
 ///
@@ -130,5 +131,214 @@ extension OpenRouterOptions {
         /// The model asks for at most one tool per answer.
         case disallowed
 
+    }
+}
+
+extension OpenRouterOptions {
+    /// How OpenRouter's Auto Router picks the model that answers a request to `openrouter/auto` or
+    /// `openrouter/auto-beta`.
+    ///
+    /// The router sorts each prompt into a kind of task, and picks from the models people spend the most on for that
+    /// kind of task. The two routers read the same settings, each under its own plugin id, so a request sends them
+    /// under the id of the router it goes to, and a request to any other model leaves them out. Every setting left
+    /// `nil` keeps the router's default, or the one saved for the account.
+    public struct AutoRouter: Sendable, Hashable {
+        /// A band of the models people use for a kind of task, by their cost.
+        ///
+        /// Each tier holds a fifth of the models, from `low`, the cheapest, to `max`, the most capable at any price. A
+        /// tier isn't a ceiling: it leaves out models cheaper than its band as well as dearer ones.
+        public struct CostTier: ProviderVocabulary {
+            /// The cheapest capable models, near what the router picks when no tier is set.
+            public static let low: Self = "low"
+
+            /// The second band by cost.
+            public static let medium: Self = "medium"
+
+            /// The middle band by cost.
+            public static let high: Self = "high"
+
+            /// The fourth band by cost.
+            public static let xhigh: Self = "xhigh"
+
+            /// The most capable models, whatever their price.
+            public static let max: Self = "max"
+
+            /// The tier's name in OpenRouter's API.
+            public let rawValue: String
+
+            /// Creates a tier from its name in OpenRouter's API.
+            ///
+            /// - Parameter rawValue: The name, such as `"medium"`.
+            public init(rawValue: String) {
+                self.rawValue = rawValue
+            }
+        }
+
+        /// A model the router may pick or must skip: by id, such as `anthropic/claude-sonnet-4.6`, or by a pattern in
+        /// which `*` stands for any text, such as `anthropic/*` or `openai/gpt-5*`.
+        public struct ModelPattern: ProviderVocabulary {
+            /// The id or pattern, as OpenRouter's API spells it.
+            public let rawValue: String
+
+            /// Creates a pattern from an id or a pattern.
+            ///
+            /// - Parameter rawValue: The id or pattern, such as `"anthropic/*"`.
+            public init(rawValue: String) {
+                self.rawValue = rawValue
+            }
+
+            /// The pattern that matches exactly one model.
+            ///
+            /// - Parameter model: The model, usually from the catalog, such as `.anthropicClaudeSonnet4_6`.
+            /// - Returns: The pattern of the model's id.
+            public static func model<Effort: ModelEffort>(_ model: OpenRouterModel<Effort>) -> Self {
+                Self(rawValue: model.id.rawValue)
+            }
+        }
+
+        /// The models the router may pick from, such as `.model(.anthropicClaudeSonnet4_6)` or `"openai/gpt-5*"`.
+        public var allowedModels: [ModelPattern]?
+
+        /// The models the router never picks, even when `allowedModels` matches them. A request whose lists leave no
+        /// model fails.
+        public var excludedModels: [ModelPattern]?
+
+        /// The band of models by cost to pick from.
+        public var costTier: CostTier?
+
+        /// Creates Auto Router settings.
+        ///
+        /// - Parameters:
+        ///   - allowedModels: The models the router may pick from, by id or pattern.
+        ///   - excludedModels: The models the router never picks, by id or pattern.
+        ///   - costTier: The band of models by cost to pick from.
+        public init(allowedModels: [ModelPattern]? = nil, excludedModels: [ModelPattern]? = nil, costTier: CostTier? = nil) {
+            self.allowedModels = allowedModels
+            self.excludedModels = excludedModels
+            self.costTier = costTier
+        }
+    }
+}
+
+extension OpenRouterOptions {
+    /// The engine that reads PDF attachments for a request.
+    ///
+    /// Without one, OpenRouter passes a PDF to a model that reads PDFs itself, and has `mistral-ocr` read it for any
+    /// other model. `mistral-ocr` reads scanned pages and images, and costs extra per page, from the account's
+    /// OpenRouter credits, also with the account's own provider keys. `cloudflare-ai` turns the PDF into text for free.
+    /// `native` passes the PDF to the model, billed as input tokens, and only models that read PDFs themselves take it.
+    ///
+    /// An engine other than `native` reads the PDF before the model sees it, also for a model that could read it
+    /// itself, and the service it uses keeps what it's sent under its own policy.
+    ///
+    /// Engines are an open vocabulary: any engine OpenRouter lists is valid, with or without a static member.
+    public struct PDFEngine: ProviderVocabulary {
+        /// Free text extraction through Cloudflare Workers AI, as Markdown.
+        public static let cloudflareAI: Self = "cloudflare-ai"
+
+        /// Mistral's OCR, for scanned documents and pages with images, at a price per page.
+        public static let mistralOCR: Self = "mistral-ocr"
+
+        /// The model's own PDF reading, for models that list file input.
+        public static let native: Self = "native"
+
+        /// The engine's name in OpenRouter's API.
+        public let rawValue: String
+
+        /// Creates an engine from its name in OpenRouter's API.
+        ///
+        /// - Parameter rawValue: The name, such as `"cloudflare-ai"`.
+        public init(rawValue: String) {
+            self.rawValue = rawValue
+        }
+    }
+}
+
+extension OpenRouterOptions {
+    /// How OpenRouter's Pareto router picks the coding model that answers a request to `openrouter/pareto-code`.
+    ///
+    /// The router picks from the top coding models: by quality tier, the cheapest available model of the tier, or its
+    /// fastest with the ``OpenRouterRouting/Variant/nitro`` variant; or by price, the best-scoring model at or below
+    /// ``maximumPromptPrice``. A request to any other model leaves the settings out. Every setting left `nil` keeps the
+    /// router's default.
+    public struct ParetoRouter: Sendable, Hashable {
+        /// The price the router compares against ``OpenRouterOptions/ParetoRouter/maximumPromptPrice``.
+        public struct PriceSource: ProviderVocabulary {
+            /// Each model's listed prompt price. The router's default.
+            public static let prompt: Self = "prompt"
+
+            /// Each model's prompt price weighted by its traffic, or its listed price when it has none.
+            public static let weightedAverage: Self = "weighted_avg"
+
+            /// The source's name in OpenRouter's API.
+            public let rawValue: String
+
+            /// Creates a source from its name in OpenRouter's API.
+            ///
+            /// - Parameter rawValue: The name, such as `"weighted_avg"`.
+            public init(rawValue: String) {
+                self.rawValue = rawValue
+            }
+        }
+
+        /// The lowest coding score, from 0 to 1, of the models to pick from.
+        ///
+        /// The score picks a tier: 0.66 and up is the top coding models, 0.33 and up strong recent flagships, and below
+        /// that capable coders above the median. When `nil`, the router picks from the top tier. ``maximumPromptPrice``
+        /// takes over when it's set.
+        public var minimumCodingScore: Double?
+
+        /// The most a picked model's prompt may cost, in US dollars per million tokens.
+        ///
+        /// The router then picks the best-scoring model at or below it, and a request that no model fits fails.
+        public var maximumPromptPrice: Decimal?
+
+        /// The price ``maximumPromptPrice`` is compared against.
+        public var priceSource: PriceSource?
+
+        /// Creates Pareto router settings.
+        ///
+        /// - Parameters:
+        ///   - minimumCodingScore: The lowest coding score, from 0 to 1, of the models to pick from.
+        ///   - maximumPromptPrice: The most a picked model's prompt may cost, in US dollars per million tokens.
+        ///   - priceSource: The price `maximumPromptPrice` is compared against.
+        public init(minimumCodingScore: Double? = nil, maximumPromptPrice: Decimal? = nil, priceSource: PriceSource? = nil) {
+            self.minimumCodingScore = minimumCodingScore
+            self.maximumPromptPrice = maximumPromptPrice
+            self.priceSource = priceSource
+        }
+    }
+}
+
+extension OpenRouterOptions {
+    /// How long and detailed a model's answers are, from `low` to `max`.
+    ///
+    /// Lower levels give shorter answers, and higher levels fuller ones. For Anthropic models, OpenRouter sends the
+    /// level as the model's effort setting.
+    public struct Verbosity: ProviderVocabulary {
+        /// Short, concise answers.
+        public static let low: Self = "low"
+
+        /// Answers of the usual length, the model's default.
+        public static let medium: Self = "medium"
+
+        /// Longer, more detailed answers.
+        public static let high: Self = "high"
+
+        /// More detail than `high`, for models that take it, such as Claude Opus 4.7 and later.
+        public static let xhigh: Self = "xhigh"
+
+        /// The most detail, for models that take it, such as Claude Opus 4.6 and later.
+        public static let max: Self = "max"
+
+        /// The level's name in OpenRouter's API.
+        public let rawValue: String
+
+        /// Creates a level from its name in OpenRouter's API.
+        ///
+        /// - Parameter rawValue: The name, such as `"low"`.
+        public init(rawValue: String) {
+            self.rawValue = rawValue
+        }
     }
 }

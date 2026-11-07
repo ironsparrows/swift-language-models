@@ -3,6 +3,8 @@ public import FoundationModels
 public import LanguageModels
 public import UniformTypeIdentifiers
 
+// MARK: - Model
+
 /// What OpenRouter reports about one of its models.
 ///
 /// Each model in the catalog is a static member whose effort type lists exactly the levels that model accepts. A
@@ -174,5 +176,75 @@ extension OpenRouterModel where Effort == ContextOptions.ReasoningLevel {
             defaultReasoningEffort: typed.defaultReasoningEffort?.reasoningLevel,
             cachesOnlyMarkedPrompts: typed.cachesOnlyMarkedPrompts
         )
+    }
+}
+
+extension OpenRouterModel where Effort == ContextOptions.ReasoningLevel {
+    /// The details narrowed to what another model also supports: the parameters, input and output kinds and efforts
+    /// both take, the smaller limits, reasoning only when both reason, and caching only marked prompts only when both
+    /// do. The id, name and dates stay these.
+    func sharing(_ other: Self) -> Self {
+        Self(
+            id: id,
+            displayName: displayName,
+            releaseDate: releaseDate,
+            aliasTarget: aliasTarget,
+            knowledgeCutoff: knowledgeCutoff,
+            expirationDate: expirationDate,
+            contextSize: contextSize.smallerLimit(other.contextSize),
+            inputModalities: inputModalities.intersection(other.inputModalities),
+            outputModalities: outputModalities.intersection(other.outputModalities),
+            supportedParameters: supportedParameters.intersection(other.supportedParameters),
+            reasoning: reasoning.sharing(other.reasoning),
+            reasoningEfforts: reasoningEfforts.filter { other.reasoningEfforts.contains($0) },
+            defaultReasoningEffort: defaultReasoningEffort == other.defaultReasoningEffort ? defaultReasoningEffort : nil,
+            cachesOnlyMarkedPrompts: cachesOnlyMarkedPrompts && other.cachesOnlyMarkedPrompts
+        )
+    }
+}
+
+// MARK: - Model id
+
+/// An OpenRouter model id, such as `typesafe/jev-router`.
+///
+/// A distinct type, so text that isn't an OpenRouter id, such as a display name or another provider's id, can't be
+/// passed by mistake.
+///
+/// To make ids from strings, name the initializer in full, since a bare `OpenRouterModelID.init` could also mean the
+/// string-literal one:
+///
+/// ```swift
+/// let ids = savedIDs.map(OpenRouterModelID.init(rawValue:))
+/// ```
+public struct OpenRouterModelID: ProviderVocabulary {
+    /// The id as OpenRouter's API spells it.
+    public let rawValue: String
+
+    /// Creates an id from OpenRouter's spelling of it.
+    ///
+    /// - Parameter rawValue: The id, such as `"typesafe/jev-router"`.
+    public init(rawValue: String) {
+        self.rawValue = rawValue
+    }
+}
+
+extension OpenRouterModelID {
+    /// Anthropic's vendor name in a model id.
+    private static let anthropic: Substring = "anthropic"
+
+    /// Whether the id names an Anthropic model, or an alias of one, such as `~anthropic/claude-haiku-latest`.
+    var isAnthropic: Bool { vendor == Self.anthropic }
+
+    /// The vendors whose structured outputs, by their own documentation, reject schema constraints such as `minimum`
+    /// and `maxItems`, so a request that may reach one of their models sends the portable schema from the start.
+    private static let vendorsRejectingSchemaConstraints: Set<Substring> = [anthropic]
+
+    /// Whether the id names a model whose structured outputs reject schema constraints, or an alias of one.
+    var rejectsSchemaConstraints: Bool { Self.vendorsRejectingSchemaConstraints.contains(vendor) }
+
+    /// The vendor the id starts with, such as `anthropic` for `anthropic/claude-haiku-5.5` and for its alias
+    /// `~anthropic/claude-haiku-latest`.
+    private var vendor: Substring {
+        rawValue.drop { $0 == "~" }.prefix { $0 != "/" }
     }
 }
