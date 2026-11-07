@@ -34,10 +34,10 @@ package struct Connection: Sendable {
     ///   - authentication: The headers that authenticate a request, read for every request.
     ///   - idleTimeout: How long to wait for the next data, or `nil` for the session's own timeout.
     ///   - retries: How a request that fails is sent again, as the app set it.
-    ///   - statuses: Whether a response's status is retried when its `x-should-retry` doesn't say.
+    ///   - statuses: The statuses of a failed response that are retried when its `x-should-retry` doesn't say.
     package init(
         session: URLSession, authentication: Authentication, idleTimeout: Duration?,
-        retries: RequestRetries, retrying statuses: @escaping @Sendable (Int) -> Bool
+        retries: RequestRetries, retrying statuses: RetriedStatuses
     ) {
         self.session = session
         self.authentication = authentication
@@ -54,8 +54,7 @@ package struct Connection: Sendable {
     /// standard retries of transient failures.
     static var unauthenticated: Self {
         Connection(
-            session: .shared, authentication: .unauthenticated, idleTimeout: nil, retries: .standard,
-            retrying: RetriedStatuses.transient.contains)
+            session: .shared, authentication: .unauthenticated, idleTimeout: nil, retries: .standard, retrying: .transient)
     }
 
     /// The same connection with a cache of its own, which no other connection reads, such as a test's.
@@ -181,8 +180,8 @@ private enum SchemaConstraint {
     ///   - status: The response's HTTP status.
     ///   - message: The response's error, such as its body's text.
     /// - Returns: Whether the request may go again with the portable schema.
-    static func isRejected(status: Int, message: String) -> Bool {
-        guard status == 400 else { return false }
+    static func isRejected(status: HTTPStatus, message: String) -> Bool {
+        guard status == .badRequest else { return false }
         let constraint =
             #/
             \b(minItems | maxItems | uniqueItems | minimum | maximum | exclusiveMinimum | exclusiveMaximum | multipleOf

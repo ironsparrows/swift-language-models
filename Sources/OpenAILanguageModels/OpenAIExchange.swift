@@ -15,14 +15,12 @@ extension OpenAILanguageModel {
         let exchange = OpenAIExchange(model: OpenAILanguageModel<ContextOptions.ReasoningLevel>(self))
         var model = Responses.Model(
             name: details.id.rawValue, url: try API.baseURL(configuration.baseURL), connection: connection(configuration.settings),
-            providerName: API.name, capabilities: capabilities, reaching: [details] + fallbacks, exchange: exchange)
+            providerName: API.name, images: configuration.settings.images, reasoningOrigin: API.reasoningOrigin,
+            phasesKey: OpenAIResponseMetadata.phasesKey, capabilities: capabilities, reaching: [details] + fallbacks, exchange: exchange)
         model.unsupportedMembers = OpenAIExchange.listedMembers.filter { !exchange.lists($0) }
         // `developer` for a model that reasons, and `system` for one that doesn't, as models before reasoning models take
         // instructions.
         model.instructionsRole = details.reasoning.isSupported ? .developer : .system
-        model.images = configuration.settings.images
-        model.reasoningOrigin = API.reasoningOrigin
-        model.phasesKey = OpenAIResponseMetadata.phasesKey
         return model
     }
 }

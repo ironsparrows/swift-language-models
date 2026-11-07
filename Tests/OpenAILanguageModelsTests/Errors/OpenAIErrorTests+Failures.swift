@@ -21,6 +21,25 @@ extension OpenAIErrorTests {
             var testDescription: String { "\(self)" }
         }
 
+        @Test(arguments: [
+            (400, "unmapped", false), (401, "authentication", false), (402, "unmapped", false), (403, "permission_denied", false),
+            (404, "not_found", false), (408, "unmapped", true), (409, "conflict", false), (412, "unmapped", false),
+            (413, "unmapped", false), (418, "unmapped", false), (422, "unprocessable", false), (429, "unmapped", true),
+            (500, "server", false), (501, "server", false), (502, "server", false), (503, "server", false), (504, "server", true),
+            (524, "server", false), (529, "server", false), (600, "server", false),
+        ])
+        func `a status stands for its kind when the body names none`(status: Int, code: String, isLanguageModelError: Bool) async {
+            let stub = HTTPStub(.json(#"{"error":{"message":"Failed."}}"#, status: status))
+            var limited = reasoningModel(stub)
+            limited.configuration.retries = .disabled
+
+            let error = await #expect(throws: (any Error).self) { try await LanguageModelSession(model: limited).respond(to: "Hi") }
+
+            let languageModelError = error as? LanguageModelError
+            #expect((languageModelError != nil) == isLanguageModelError)
+            #expect((languageModelError?.providerMetadata.code ?? (error as? OpenAIError)?.code.rawValue) == code)
+        }
+
         @Test(
             arguments: [
                 (

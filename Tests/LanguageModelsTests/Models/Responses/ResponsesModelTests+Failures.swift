@@ -74,7 +74,7 @@ extension ResponsesModelTests {
                 Issue.record("The answer ended with \(String(describing: failure))")
                 return
             }
-            #expect(rejection.status == 401)
+            #expect(rejection.status == .unauthorized)
             #expect(rejection.body?.message == "Bad key.")
         }
 

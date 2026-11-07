@@ -13,8 +13,8 @@ extension ChatCompletions {
     /// The model owns the whole exchange: it builds the body from Foundation Models' request, authenticates and sends it,
     /// retries a brief failure as its connection allows and once with the portable schema when a host rejects a
     /// constraint, streams the answer into Foundation Models' channel, maps a failed connection and logs. Its stored
-    /// properties say what's true for every request, where a provider differs from the plain format they default to it,
-    /// and its ``exchange`` is the provider's part in each one.
+    /// properties say what's true for every request: a provider states the ones the initializer takes, and the rest
+    /// default to the plain format. Its ``exchange`` is the provider's part in each one.
     package struct Model<Exchange: ChatCompletions.Exchange>: LanguageModel {
         // MARK: Where requests go
 
@@ -52,11 +52,11 @@ extension ChatCompletions {
         package var media: [MediaPart] = []
 
         /// How the request's image attachments are encoded.
-        package var images = ImageEncoding.standard
+        let images: ImageEncoding
 
         /// The origin the reasoning entries of the provider's answers carry, so that only its own reasoning goes back.
-        /// Saved transcripts keep it, so a provider never changes it. The default is the provider's name in lowercase.
-        package var reasoningOrigin: String
+        /// Saved transcripts keep it, so a provider never changes it.
+        let reasoningOrigin: String
 
         // MARK: The provider's part in each request
 
@@ -70,21 +70,24 @@ extension ChatCompletions {
         ///   - url: The provider's base URL.
         ///   - connection: How requests reach the provider.
         ///   - providerName: The provider's name, as the log's category and error messages name it.
+        ///   - images: How the request's image attachments are encoded.
+        ///   - reasoningOrigin: The origin the reasoning entries of the provider's answers carry.
         ///   - capabilities: What the model can do.
         ///   - models: The models a request may reach, in the order the provider tries them, so each request reports
         ///     the ones their provider stopped listing.
         ///   - exchange: What the provider does in each exchange.
         package init(
-            name: String, url: URL, connection: Connection, providerName: String, capabilities: LanguageModelCapabilities,
-            reaching models: [any ModelDetails], exchange: Exchange
+            name: String, url: URL, connection: Connection, providerName: String, images: ImageEncoding, reasoningOrigin: String,
+            capabilities: LanguageModelCapabilities, reaching models: [any ModelDetails], exchange: Exchange
         ) {
             self.name = name
             self.url = url
             self.connection = connection
             self.providerName = providerName
+            self.images = images
+            self.reasoningOrigin = reasoningOrigin
             self.capabilities = capabilities
             reachableModels = models
-            reasoningOrigin = providerName.lowercased()
             self.exchange = exchange
         }
     }
@@ -266,7 +269,9 @@ extension ChatCompletions {
         /// - Returns: What the provider adds.
         func additions(header: (String) -> String?) -> AnswerAdditions
 
-        /// What a failure becomes: Foundation Models' error when it has a case for it, otherwise the provider's own.
+        /// What a failure becomes: Foundation Models' error when it has a case for it, otherwise the provider's own. What each
+        /// status stands for reads best as a `switch` over ``HTTPStatus`` with no `default`, so a status named later has to
+        /// be decided.
         ///
         /// - Parameter failure: The failure.
         /// - Returns: The error a session throws.
@@ -316,8 +321,10 @@ extension ChatCompletions.Model where Exchange == ChatCompletions.PlainExchange 
     ///   - name: The model's id, sent as `model`.
     ///   - url: The server's base URL.
     package init(name: String, url: URL) {
+        let providerName = url.host() ?? name
         self.init(
-            name: name, url: url, connection: .unauthenticated, providerName: url.host() ?? name,
+            name: name, url: url, connection: .unauthenticated, providerName: providerName, images: .standard,
+            reasoningOrigin: providerName.lowercased(),
             capabilities: LanguageModelCapabilities([.toolCalling, .guidedGeneration, .reasoning, .vision]), reaching: [],
             exchange: ChatCompletions.PlainExchange())
     }

@@ -32,8 +32,9 @@ extension Responses.Model<ResponsesTestExchange> {
             name: "vendor/model", url: url,
             connection: Connection(
                 session: session, authentication: Connection.Authentication(baseURL: nil) { [:] }, idleTimeout: nil, retries: .disabled,
-                retrying: { _ in false }),
-            providerName: "Test", capabilities: LanguageModelCapabilities([.guidedGeneration, .toolCalling, .reasoning]),
+                retrying: .serverErrors),
+            providerName: "Test", images: .standard, reasoningOrigin: "test-responses", phasesKey: "test.phases",
+            capabilities: LanguageModelCapabilities([.guidedGeneration, .toolCalling, .reasoning]),
             reaching: models, exchange: ResponsesTestExchange())
     }
 }
@@ -93,7 +94,7 @@ extension ResponsesModelTests {
     static func plainModel(_ stub: HTTPStub) -> Responses.Model<Responses.PlainExchange> {
         var model = Responses.Model(name: "vendor/model", url: stub.baseURL)
         model.connection = Connection(
-            session: stub.session, authentication: .unauthenticated, idleTimeout: nil, retries: .disabled, retrying: { _ in false })
+            session: stub.session, authentication: .unauthenticated, idleTimeout: nil, retries: .disabled, retrying: .serverErrors)
         return model
     }
 

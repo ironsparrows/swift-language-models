@@ -43,16 +43,35 @@ extension OpenRouterErrorTests {
         ) {
             let body = OpenRouterErrorResponse(message: failure.message, metadata: failure.metadata)
 
-            let error = OpenRouterFailure(status: failure.status, body: body, retryAfter: nil).error(contextSize: nil)
+            let error = OpenRouterFailure(status: HTTPStatus(code: failure.status), body: body, retryAfter: nil).error(contextSize: nil)
 
             #expect(kind(of: error) == failure.kind)
+        }
+
+        @Test(arguments: [
+            (400, "invalid_request", "OpenRouterError"), (401, "authentication", "OpenRouterError"),
+            (402, "payment_required", "OpenRouterError"), (403, "permission_denied", "OpenRouterError"),
+            (404, "not_found", "OpenRouterError"), (408, "timeout", "LanguageModelError.timeout"),
+            (409, "unmapped", "OpenRouterError"), (412, "precondition_failed", "OpenRouterError"),
+            (413, "payload_too_large", "OpenRouterError"), (418, "unmapped", "OpenRouterError"),
+            (422, "unprocessable", "OpenRouterError"), (429, "rate_limit_exceeded", "LanguageModelError.rateLimited"),
+            (500, "server", "OpenRouterError"), (501, "unmapped", "OpenRouterError"),
+            (502, "provider_unavailable", "OpenRouterError"), (503, "provider_unavailable", "OpenRouterError"),
+            (504, "timeout", "LanguageModelError.timeout"), (524, "timeout", "LanguageModelError.timeout"),
+            (529, "provider_overloaded", "OpenRouterError"), (600, "unmapped", "OpenRouterError"),
+        ])
+        func `a status stands for its code when the body names none`(status: Int, code: String, kind expected: String) {
+            let failure = OpenRouterFailure(status: HTTPStatus(code: status), body: nil, retryAfter: nil)
+
+            #expect(failure.code.rawValue == code)
+            #expect(kind(of: failure.error(contextSize: nil)) == expected)
         }
 
         @Test func `an oversized prompt's error keeps its status and code in its metadata`() throws {
             let body = OpenRouterErrorResponse(message: "This model's maximum context length is 16384 tokens.", metadata: nil)
 
             let error = try #require(
-                OpenRouterFailure(status: 400, body: body, retryAfter: nil).error(contextSize: nil) as? LanguageModelError)
+                OpenRouterFailure(status: .badRequest, body: body, retryAfter: nil).error(contextSize: nil) as? LanguageModelError)
 
             guard case .contextSizeExceeded(let info) = error else {
                 Issue.record("Expected the context size to be exceeded, got \(error)")
@@ -67,7 +86,7 @@ extension OpenRouterErrorTests {
             let body = OpenRouterErrorResponse(message: "Budget spent.", metadata: metadata)
 
             let error = try #require(
-                OpenRouterFailure(status: 403, body: body, retryAfter: nil).error(contextSize: nil) as? LanguageModelError)
+                OpenRouterFailure(status: .forbidden, body: body, retryAfter: nil).error(contextSize: nil) as? LanguageModelError)
 
             guard case .rateLimited(let info) = error else {
                 Issue.record("Expected a rate limit, got \(error)")
@@ -85,7 +104,7 @@ extension OpenRouterErrorTests {
             let body = OpenRouterErrorResponse(message: "Budget spent.", metadata: ["limit_source": "api_key"])
 
             let error = try #require(
-                OpenRouterFailure(status: 403, body: body, retryAfter: nil).error(contextSize: nil) as? OpenRouterError)
+                OpenRouterFailure(status: .forbidden, body: body, retryAfter: nil).error(contextSize: nil) as? OpenRouterError)
 
             #expect(error.code == .budgetExceeded)
             #expect(error.isQuotaExhausted)
@@ -100,7 +119,7 @@ extension OpenRouterErrorTests {
 
         @Test func `a rate limit's reset date is the wait after the moment of the failure`() throws {
             let now = Date(timeIntervalSince1970: 1_793_000_000)
-            let failure = OpenRouterFailure(status: 429, body: nil, retryAfter: .seconds(30))
+            let failure = OpenRouterFailure(status: .tooManyRequests, body: nil, retryAfter: .seconds(30))
 
             let error = try #require(failure.error(contextSize: nil, now: now) as? LanguageModelError)
 

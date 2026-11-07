@@ -171,7 +171,7 @@ sequenceDiagram
 ## What a provider states
 
 A provider says how it differs from the plain format in three places. A provider that takes the format as it is states
-none of them, apart from where requests go and what a failure becomes.
+none of them, apart from the required values on the model and what a failure becomes.
 
 **On the model,** once, in `chatCompletions(_:)` or `responses(_:)`, what's true for every request:
 
@@ -181,10 +181,10 @@ none of them, apart from where requests go and what a failure becomes.
 | `memberOrder` | Chat Completions | the member order hosts cache on | |
 | `unsupportedMembers` | both | the listed members the model's details don't list | the same |
 | `media` | Chat Completions | AIFF, M4A, AAC, FLAC and OGG audio, and video | |
-| `images` | both | the configuration's `ImageEncoding` | the same |
-| `reasoningOrigin` | both | `openrouter` | `openai-responses` |
+| `images` | both, required | the configuration's `ImageEncoding` | the same |
+| `reasoningOrigin` | both, required | `openrouter` | `openai-responses` |
 | `instructionsRole` | Responses | | `developer` for a model that reasons, `system` otherwise |
-| `phasesKey` | Responses | | `openAI.phases` |
+| `phasesKey` | Responses, required | | `openAI.phases` |
 
 **On the exchange,** the methods of `ChatCompletions.Exchange` or `Responses.Exchange`, in the order a request calls them.
 The model holds one exchange value, and each request works on a copy, so what one answer reported never reaches the
@@ -245,7 +245,8 @@ flowchart LR
 
 - A provider is handed one value, a `RequestFailure`, and reads its `kind`, `status`, `body`, `rawBody`, `retryAfter`,
   `message` and `imageEntries`, and any response header through `header(_:)`, whether the response was rejected or failed
-  while it streamed.
+  while it streamed. `status` is an `HTTPStatus`, named when a provider or the transport decides something for it, and
+  each provider's table switches over it with no `default`.
 - Failures Foundation Models has a case for become `LanguageModelError`: a rate limit, an oversized context, a
   guardrail, a refusal, a timeout or an image the host can't use. The rest become the provider's own error, such as a
   rejected key, or credits or a quota that ran out. A `URLError` is rethrown as a failed connection's.

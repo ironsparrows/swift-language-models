@@ -6,7 +6,7 @@ import Testing
 @testable import LanguageModels
 
 extension ConnectionTests {
-    /// A connection to a stub that retries any status from 500 up, without waiting.
+    /// A connection to a stub that retries any status from 500 to 599, without waiting.
     static func connection(
         _ stub: HTTPStub,
         authentication: Connection.Authentication = .unauthenticated,
@@ -15,7 +15,7 @@ extension ConnectionTests {
     ) -> Connection {
         Connection(
             session: stub.session, authentication: authentication, idleTimeout: idleTimeout,
-            retries: RequestRetries(limit: retryLimit, initialDelay: .zero), retrying: { $0 >= 500 })
+            retries: RequestRetries(limit: retryLimit, initialDelay: .zero), retrying: .serverErrors)
     }
 
     /// A plain model sending through a connection to a stub.
@@ -85,7 +85,7 @@ extension ConnectionTests {
             let headers = [HTTPHeaderName.retryAfterMilliseconds.rawValue: "1500", HTTPHeaderName.retryAfter.rawValue: "60"]
             let url = try #require(URL(string: "https://example.com/chat"))
             let response = HTTPURLResponse(url: url, statusCode: 503, httpVersion: nil, headerFields: headers)
-            let retry = backoff().retry(1, status: 503, response: response)
+            let retry = backoff().retry(1, status: .serviceUnavailable, response: response)
 
             #expect(retry?.wait == .milliseconds(1_500))
         }
@@ -111,7 +111,7 @@ extension ConnectionTests {
 
             _ = try await http(stub, backoff()).data(for: request(stub)) { retries.append($0) }
 
-            #expect(retries.map(\.status) == [status, status])
+            #expect(retries.map(\.cause.status) == [HTTPStatus(code: status), HTTPStatus(code: status)])
             #expect(retries.map(\.number) == [1, 2])
             #expect(retries.allSatisfy { $0.limit == 2 })
             #expect(stub.requests.count == 3)
@@ -125,7 +125,7 @@ extension ConnectionTests {
                 try await http(stub, backoff()).data(for: request(stub))
             }
 
-            #expect(rejected.status == 503)
+            #expect(rejected.status == .serviceUnavailable)
             #expect(stub.requests.count == 3)
         }
 
@@ -201,8 +201,7 @@ extension ConnectionTests {
 
             _ = try await http(stub, backoff()).stream(for: request(stub)) { retries.append($0) }
 
-            #expect(retries.map(\.error?.code) == [code, code])
-            #expect(retries.allSatisfy { $0.status == nil })
+            #expect(retries.map(\.cause.errorCode) == [code, code])
             #expect(stub.requests.count == 3)
         }
 
@@ -234,38 +233,38 @@ extension ConnectionTests {
         }
 
         @Test func `the policy retries up to the limit, then fails`() throws {
-            let policy = RequestRetries(limit: 1, initialDelay: .zero).policy(statuses: { $0 == 503 })
+            let policy = RequestRetries(limit: 1, initialDelay: .zero).policy(statuses: .serverErrors)
 
-            #expect(policy.retry(1, status: 503, response: nil)?.wait == .zero)
-            #expect(policy.retry(2, status: 503, response: nil)?.wait == nil)
-            #expect(policy.retry(1, status: 400, response: nil)?.wait == nil)
+            #expect(policy.retry(1, status: .serviceUnavailable, response: nil)?.wait == .zero)
+            #expect(policy.retry(2, status: .serviceUnavailable, response: nil)?.wait == nil)
+            #expect(policy.retry(1, status: .badRequest, response: nil)?.wait == nil)
         }
 
         @Test func `the policy's first wait is the initial delay, cut by up to a quarter, and doubles after it`() throws {
-            let policy = RequestRetries(limit: 3, initialDelay: .seconds(1)).policy(statuses: { _ in true })
+            let policy = RequestRetries(limit: 3, initialDelay: .seconds(1)).policy(statuses: .serverErrors)
 
-            let first = try #require(policy.retry(1, status: 503, response: nil)).wait
-            let second = try #require(policy.retry(2, status: 503, response: nil)).wait
+            let first = try #require(policy.retry(1, status: .serviceUnavailable, response: nil)).wait
+            let second = try #require(policy.retry(2, status: .serviceUnavailable, response: nil)).wait
             #expect(first >= .milliseconds(750) && first <= .seconds(1))
             #expect(second >= .milliseconds(1_500) && second <= .seconds(2))
         }
 
         @Test func `a server wait past the longest one fails at once, and a shorter one is waited`() throws {
-            let policy = RequestRetries(longestServerWait: .seconds(5)).policy(statuses: { _ in true })
+            let policy = RequestRetries(longestServerWait: .seconds(5)).policy(statuses: .serverErrors)
             let url = try #require(URL(string: "https://example.com"))
 
             let long = HTTPURLResponse(url: url, statusCode: 503, httpVersion: nil, headerFields: ["Retry-After": "6"])
             let short = HTTPURLResponse(url: url, statusCode: 503, httpVersion: nil, headerFields: ["Retry-After": "5"])
-            #expect(policy.retry(1, status: 503, response: long)?.wait == nil)
-            #expect(policy.retry(1, status: 503, response: short)?.wait == .seconds(5))
+            #expect(policy.retry(1, status: .serviceUnavailable, response: long)?.wait == nil)
+            #expect(policy.retry(1, status: .serviceUnavailable, response: short)?.wait == .seconds(5))
         }
 
         @Test func `negative retry settings count as zero`() throws {
             let policy = RequestRetries(limit: -3, initialDelay: .seconds(-1), longestServerWait: .seconds(-1))
-                .policy(statuses: { _ in true })
+                .policy(statuses: .serverErrors)
 
             #expect(policy.retries == 0)
-            #expect(policy.retry(1, status: 503, response: nil)?.wait == nil)
+            #expect(policy.retry(1, status: .serviceUnavailable, response: nil)?.wait == nil)
         }
 
         @Test func `a session's request goes out again after a failed connection, until it's answered`() async throws {
@@ -368,5 +367,15 @@ extension ConnectionTests {
 
             #expect(outcome.matches(error), "Got \(String(describing: error))")
         }
+    }
+}
+
+extension HTTPClient.Retry.Cause {
+    fileprivate var status: HTTPStatus? {
+        if case .response(let status) = self { status } else { nil }
+    }
+
+    fileprivate var errorCode: URLError.Code? {
+        if case .connection(let error) = self { error.code } else { nil }
     }
 }

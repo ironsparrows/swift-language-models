@@ -573,6 +573,6 @@ extension Connection {
     init(auth: OpenRouterAuthentication?, session: URLSession, configuration: OpenRouterConfiguration) {
         self.init(
             session: session, authentication: auth?.requestAuthentication ?? .unauthenticated, idleTimeout: configuration.idleTimeout,
-            retries: configuration.retries, retrying: RetriedStatuses.serverErrors.contains)
+            retries: configuration.retries, retrying: .serverErrors)
     }
 }

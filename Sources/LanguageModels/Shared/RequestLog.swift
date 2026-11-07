@@ -53,7 +53,11 @@ struct RequestLog {
     /// it is after how long a wait.
     func retrying(_ retry: HTTPClient.Retry) {
         guard let logger = logger(.info) else { return }
-        let failure = retry.status.map { " got HTTP \($0)" } ?? "'s connection failed with URLError \(retry.error?.code.rawValue ?? 0)"
+        let failure =
+            switch retry.cause {
+            case .response(let status): " got HTTP \(status.code)"
+            case .connection(let error): "'s connection failed with URLError \(error.code.rawValue)"
+            }
         logger.info(
             """
             \(label, privacy: .public)\(failure, privacy: .public); sending it again (retry \(retry.number) of \

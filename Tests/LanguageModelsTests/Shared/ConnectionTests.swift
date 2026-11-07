@@ -17,7 +17,7 @@ struct ConnectionTests {
         delay: Duration = .zero, longestDelay: Duration = .zero, retries: Int = 2
     ) -> HTTPClient.RetryPolicy {
         .exponentialBackoff(
-            retries: retries, statuses: { [408, 409, 429].contains($0) || $0 >= 500 }, delay: delay, longestDelay: longestDelay,
+            retries: retries, statuses: .transient, delay: delay, longestDelay: longestDelay,
             longestRetryAfter: .seconds(120))
     }
 

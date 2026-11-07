@@ -14,7 +14,7 @@ func connection(_ stub: HTTPStub) -> Connection {
     let authentication = Connection.Authentication(baseURL: stub.baseURL) { [:] }
     let connection = Connection(
         session: stub.session, authentication: authentication, idleTimeout: nil, retries: .immediate(),
-        retrying: RetriedStatuses.serverErrors.contains)
+        retrying: .serverErrors)
     return connection.isolatingCache()
 }
 

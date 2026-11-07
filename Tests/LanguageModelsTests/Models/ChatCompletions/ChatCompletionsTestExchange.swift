@@ -67,8 +67,9 @@ extension ChatCompletions.Model<ChatCompletionsTestExchange> {
             name: "vendor/model", url: url,
             connection: Connection(
                 session: session, authentication: Connection.Authentication(baseURL: nil) { [:] }, idleTimeout: nil, retries: .disabled,
-                retrying: { _ in false }),
-            providerName: "Test", capabilities: LanguageModelCapabilities([.guidedGeneration, .toolCalling, .reasoning]),
+                retrying: .serverErrors),
+            providerName: "Test", images: .standard, reasoningOrigin: "test",
+            capabilities: LanguageModelCapabilities([.guidedGeneration, .toolCalling, .reasoning]),
             reaching: models, exchange: ChatCompletionsTestExchange())
         // The fallbacks a test adds go after the model, as a provider may order its members.
         model.memberOrder = [.model, "models", .messages]
@@ -161,7 +162,7 @@ extension ChatCompletionsModelTests {
     static func plainModel(_ stub: HTTPStub) -> ChatCompletions.Model<ChatCompletions.PlainExchange> {
         var model = ChatCompletions.Model(name: "vendor/model", url: stub.baseURL)
         model.connection = Connection(
-            session: stub.session, authentication: .unauthenticated, idleTimeout: nil, retries: .disabled, retrying: { _ in false })
+            session: stub.session, authentication: .unauthenticated, idleTimeout: nil, retries: .disabled, retrying: .serverErrors)
         return model
     }
 

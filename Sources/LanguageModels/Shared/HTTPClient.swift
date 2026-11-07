@@ -35,8 +35,8 @@ struct HTTPClient: Sendable {
 
     /// A response whose status isn't a success, with the start of its body and the delay it asks to wait.
     struct Failure: Error {
-        /// The HTTP status, or 0 for a response that isn't HTTP.
-        let status: Int
+        /// The response's status: ``HTTPStatus/other(_:)`` with 0 for a response that isn't HTTP.
+        let status: HTTPStatus
         let body: Data
         let response: HTTPURLResponse?
 
@@ -148,8 +148,8 @@ struct HTTPClient: Sendable {
                 continue
             }
             let http = response as? HTTPURLResponse
-            let status = http?.statusCode ?? 0
-            if (200..<300).contains(status) { return (content, http) }
+            let status = HTTPStatus(code: http?.statusCode ?? 0)
+            if status.isSuccess { return (content, http) }
             guard let retry = retryPolicy.retry(retried + 1, status: status, response: http) else {
                 throw Failure(status: status, body: try await errorBody(content), response: http)
             }
@@ -209,7 +209,7 @@ extension HTTPClient {
         let retries: Int
 
         /// Whether a response is retried, from its status and its `x-should-retry` header, if any.
-        private let retriesResponse: @Sendable (_ status: Int, _ shouldRetry: String?) -> Bool
+        private let retriesResponse: @Sendable (_ status: HTTPStatus, _ shouldRetry: String?) -> Bool
 
         /// The wait before a retry, from how many retries came before it and the wait the response asks for, if
         /// any, or `nil` to fail at once.
@@ -225,7 +225,7 @@ extension HTTPClient {
         ///     if any, or `nil` to fail at once.
         private init(
             retries: Int,
-            retriesResponse: @escaping @Sendable (_ status: Int, _ shouldRetry: String?) -> Bool,
+            retriesResponse: @escaping @Sendable (_ status: HTTPStatus, _ shouldRetry: String?) -> Bool,
             wait: @escaping @Sendable (_ retried: Int, _ asked: Duration?) -> Duration?
         ) {
             self.retries = retries
@@ -241,12 +241,12 @@ extension HTTPClient {
         ///   - response: The response, whose `x-should-retry`, `retry-after-ms` and `Retry-After` headers count.
         /// - Returns: The retry, or `nil` when the request has made its retries, the status isn't retried, or the
         ///   response asks for a longer wait than the policy allows.
-        func retry(_ number: Int, status: Int, response: HTTPURLResponse?) -> Retry? {
+        func retry(_ number: Int, status: HTTPStatus, response: HTTPURLResponse?) -> Retry? {
             guard number <= retries,
                 retriesResponse(status, response?.value(forHTTPHeaderField: HTTPHeaderName.shouldRetry.rawValue)),
                 let wait = wait(number - 1, HTTPClient.retryAfter(of: response))
             else { return nil }
-            return Retry(status: status, error: nil, wait: wait, number: number, limit: retries)
+            return Retry(cause: .response(status), wait: wait, number: number, limit: retries)
         }
 
         /// The retry of a request whose connection failed, or `nil` when the request fails at once.
@@ -258,17 +258,19 @@ extension HTTPClient {
         func retry(_ number: Int, after error: URLError) -> Retry? {
             guard number <= retries, Self.connectionErrors.contains(error.code), let wait = wait(number - 1, nil)
             else { return nil }
-            return Retry(status: nil, error: error, wait: wait, number: number, limit: retries)
+            return Retry(cause: .connection(error), wait: wait, number: number, limit: retries)
         }
     }
 
     /// A request that's sent again: what failed, and how long it waits first.
     struct Retry: Sendable {
-        /// The failed response's status, or `nil` when the connection failed.
-        let status: Int?
+        /// What failed: a response, with its status, or the connection, with its error.
+        enum Cause: Sendable {
+            case response(HTTPStatus)
+            case connection(URLError)
+        }
 
-        /// The failed connection's error, or `nil` when a response failed.
-        let error: URLError?
+        let cause: Cause
 
         /// The wait before the request is sent again.
         let wait: Duration
@@ -298,14 +300,14 @@ extension HTTPClient.RetryPolicy {
     ///
     /// - Parameters:
     ///   - retries: The most times a request is sent again.
-    ///   - statuses: Whether a status is retried, when `x-should-retry` doesn't say.
+    ///   - statuses: The statuses that are retried, when `x-should-retry` doesn't say.
     ///   - delay: The wait before the first retry, before it's cut.
     ///   - longestDelay: The longest wait that doubling reaches.
     ///   - longestRetryAfter: The longest wait a response can ask for and still be retried, after that wait.
     /// - Returns: The policy.
     static func exponentialBackoff(
         retries: Int,
-        statuses: @escaping @Sendable (Int) -> Bool,
+        statuses: RetriedStatuses,
         delay: Duration,
         longestDelay: Duration,
         longestRetryAfter: Duration
@@ -316,7 +318,7 @@ extension HTTPClient.RetryPolicy {
                 switch shouldRetry {
                 case "true": true
                 case "false": false
-                default: statuses(status)
+                default: statuses.contains(status)
                 }
             },
             wait: { retried, asked in
@@ -330,8 +332,8 @@ extension HTTPClient.RetryPolicy {
     }
 }
 
-/// The statuses of a failed response that a request retries. A response's `x-should-retry` wins over its status either
-/// way.
+/// The statuses of a failed response that a request retries, as a provider picks them. A response's `x-should-retry`
+/// wins over its status either way.
 package enum RetriedStatuses: Sendable {
     /// A 408, 409 or 429, or any status from 500 up: failures that may clear on another try.
     case transient
@@ -343,11 +345,10 @@ package enum RetriedStatuses: Sendable {
     ///
     /// - Parameter status: The response's status.
     /// - Returns: Whether it's retried, when the response's `x-should-retry` doesn't say.
-    @Sendable
-    package func contains(_ status: Int) -> Bool {
+    func contains(_ status: HTTPStatus) -> Bool {
         switch self {
-        case .transient: [408, 409, 429].contains(status) || status >= 500
-        case .serverErrors: (500..<600).contains(status)
+        case .transient: [.requestTimeout, .conflict, .tooManyRequests].contains(status) || status.code >= 500
+        case .serverErrors: status.isServerError
         }
     }
 }
@@ -355,9 +356,9 @@ package enum RetriedStatuses: Sendable {
 extension RequestRetries {
     /// The retry policy these settings make, for a provider that retries a response whose status `statuses` retries.
     ///
-    /// - Parameter statuses: Whether a response's status is retried when its `x-should-retry` doesn't say.
+    /// - Parameter statuses: The statuses that are retried, when a response's `x-should-retry` doesn't say.
     /// - Returns: The policy.
-    func policy(statuses: @escaping @Sendable (Int) -> Bool) -> HTTPClient.RetryPolicy {
+    func policy(statuses: RetriedStatuses) -> HTTPClient.RetryPolicy {
         let delay = max(initialDelay, .zero)
         return .exponentialBackoff(
             retries: max(limit, 0), statuses: statuses, delay: delay, longestDelay: delay * 16,
@@ -521,6 +522,102 @@ enum UserAgent {
         #else
         return "unknown/\(number)"
         #endif
+    }
+}
+
+// MARK: - Statuses
+
+/// The status of a response: by name when a provider or the transport decides something for it, and otherwise by its
+/// number, since a host can send any.
+///
+/// A provider's table of what each status stands for switches over it with no `default`, so naming another status here
+/// stops every provider's build until it decides. The name also needs its row in ``init(code:)``, which no compiler
+/// checks, since any other number has to end in ``other(_:)``.
+package enum HTTPStatus: Hashable, Sendable {
+    case badRequest
+    case unauthorized
+    case paymentRequired
+    case forbidden
+    case notFound
+    case requestTimeout
+    case conflict
+    case preconditionFailed
+    case contentTooLarge
+    case unprocessableContent
+    case tooManyRequests
+    case internalServerError
+    case badGateway
+    case serviceUnavailable
+    case gatewayTimeout
+
+    /// 524: a gateway's timeout waiting for the host behind it, as Cloudflare sends it.
+    case originTimeout
+
+    /// 529: an overloaded host.
+    case overloaded
+
+    /// Any other status, or 0 for a response that isn't HTTP. ``init(code:)`` makes it, since `.other(404)` isn't
+    /// ``notFound``.
+    case other(Int)
+
+    package init(code: Int) {
+        self =
+            switch code {
+            case 400: .badRequest
+            case 401: .unauthorized
+            case 402: .paymentRequired
+            case 403: .forbidden
+            case 404: .notFound
+            case 408: .requestTimeout
+            case 409: .conflict
+            case 412: .preconditionFailed
+            case 413: .contentTooLarge
+            case 422: .unprocessableContent
+            case 429: .tooManyRequests
+            case 500: .internalServerError
+            case 502: .badGateway
+            case 503: .serviceUnavailable
+            case 504: .gatewayTimeout
+            case 524: .originTimeout
+            case 529: .overloaded
+            default: .other(code)
+            }
+    }
+
+    package var code: Int {
+        switch self {
+        case .badRequest: 400
+        case .unauthorized: 401
+        case .paymentRequired: 402
+        case .forbidden: 403
+        case .notFound: 404
+        case .requestTimeout: 408
+        case .conflict: 409
+        case .preconditionFailed: 412
+        case .contentTooLarge: 413
+        case .unprocessableContent: 422
+        case .tooManyRequests: 429
+        case .internalServerError: 500
+        case .badGateway: 502
+        case .serviceUnavailable: 503
+        case .gatewayTimeout: 504
+        case .originTimeout: 524
+        case .overloaded: 529
+        case .other(let code): code
+        }
+    }
+
+    fileprivate var isSuccess: Bool {
+        (200..<300).contains(code)
+    }
+
+    fileprivate var isServerError: Bool {
+        (500..<600).contains(code)
+    }
+
+    /// The status's own text, such as `not found`, for a failure that has no message.
+    package var text: String {
+        HTTPURLResponse.localizedString(forStatusCode: code)
     }
 }
 

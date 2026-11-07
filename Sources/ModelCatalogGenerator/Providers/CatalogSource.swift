@@ -45,18 +45,25 @@ enum CatalogSource: String, Codable, CaseIterable, Sendable {
     /// sends. They stay current when the source stops listing them, since a deprecated member would fail the module's
     /// build, which treats warnings as errors.
     func wordsNamedByModule(in vocabulary: CatalogVocabulary) -> Set<String> {
-        switch (self, vocabulary) {
-        case (.openrouter, .parameters):
-            [
-                "frequency_penalty", "logit_bias", "max_completion_tokens", "max_tokens", "min_p", "parallel_tool_calls",
-                "presence_penalty", "repetition_penalty", "seed", "stop", "structured_outputs", "temperature", "tool_choice",
-                "tools", "top_a", "top_k", "top_p", "verbosity",
-            ]
-        case (.openrouter, .inputModalities): ["audio", "file", "image", "text", "video"]
-        case (.openrouter, .outputModalities): ["image", "text"]
-        case (.openai, .parameters): OpenAIModelList.everyParameter
-        case (.openai, .inputModalities): ["image", "pdf", "text"]
-        default: []
+        switch self {
+        case .openrouter:
+            switch vocabulary {
+            case .parameters:
+                [
+                    "frequency_penalty", "logit_bias", "max_completion_tokens", "max_tokens", "min_p", "parallel_tool_calls",
+                    "presence_penalty", "repetition_penalty", "seed", "stop", "structured_outputs", "temperature", "tool_choice",
+                    "tools", "top_a", "top_k", "top_p", "verbosity",
+                ]
+            case .inputModalities: ["audio", "file", "image", "text", "video"]
+            case .outputModalities: ["image", "text"]
+            case .searchContextSizes, .webFetchEngines, .webSearchEngines, .webSearchModes: []
+            }
+        case .openai:
+            switch vocabulary {
+            case .parameters: OpenAIModelList.everyParameter
+            case .inputModalities: ["image", "pdf", "text"]
+            case .outputModalities, .searchContextSizes, .webFetchEngines, .webSearchEngines, .webSearchModes: []
+            }
         }
     }
 
@@ -192,7 +199,11 @@ enum CatalogSource: String, Codable, CaseIterable, Sendable {
     func schema(of documents: CatalogSource.Documents) throws(GeneratorError) -> CatalogSchema {
         let modelList = try reading(.modelList, "isn't JSON") {
             // models.dev keys OpenAI's models by id, so the shape reads them as a list, which doesn't name each id.
-            let shape = self == .openai ? try ModelsDevCatalog.shapeDocument(of: documents.modelList) : documents.modelList
+            let shape =
+                switch self {
+                case .openrouter: documents.modelList
+                case .openai: try ModelsDevCatalog.shapeDocument(of: documents.modelList)
+                }
             return try CatalogSchema(json: shape, vocabularyFields: vocabularyFields(in: .modelList))
         }
         let apiDescription = try reading(.apiDescription, "isn't JSON") {

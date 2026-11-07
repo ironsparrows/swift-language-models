@@ -18,13 +18,11 @@ extension OpenRouterLanguageModel {
             model: OpenRouterLanguageModel<ContextOptions.ReasoningLevel>(self), details: sharedDetails, app: configuration.app)
         var model = ChatCompletions.Model(
             name: routing.modelID(for: details.id).rawValue, url: try API.baseURL(configuration.baseURL),
-            connection: connection(configuration.settings), providerName: API.name, capabilities: capabilities,
-            reaching: [details] + fallbacks, exchange: exchange)
+            connection: connection(configuration.settings), providerName: API.name, images: configuration.settings.images,
+            reasoningOrigin: API.reasoningOrigin, capabilities: capabilities, reaching: [details] + fallbacks, exchange: exchange)
         model.memberOrder = OpenRouterExchange.memberOrder
         model.unsupportedMembers = OpenRouterExchange.listedMembers.filter { !exchange.lists($0) }
         model.media = OpenRouterInputModality.media
-        model.images = configuration.settings.images
-        model.reasoningOrigin = API.reasoningOrigin
         return model
     }
 }

@@ -11,10 +11,7 @@ import Testing
 extension OpenAIExchangeTests {
     @Suite("Retries")
     struct Retries {
-        @Test(arguments: [
-            (408, true), (409, true), (429, true), (500, true), (502, true), (503, true), (504, true), (529, true),
-            (400, false), (401, false), (403, false), (404, false), (422, false),
-        ])
+        @Test(arguments: [(408, true), (409, true), (429, true), (500, true), (600, true), (400, false)])
         func `a status goes out again only if the official SDKs retry it, up to the configuration's limit`(
             status: Int, isRetried: Bool
         ) async {

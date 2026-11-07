@@ -97,17 +97,26 @@ public struct ModelReasoning: Sendable, Hashable {
 
     /// Whether the model reasons at all.
     public var isSupported: Bool {
-        mode != .unsupported
+        switch mode {
+        case .unsupported: false
+        case .offByDefault, .onByDefault, .mandatory: true
+        }
     }
 
     /// Whether the model reasons when a request doesn't set a reasoning level.
     public var isEnabledByDefault: Bool {
-        mode == .onByDefault || mode == .mandatory
+        switch mode {
+        case .unsupported, .offByDefault: false
+        case .onByDefault, .mandatory: true
+        }
     }
 
     /// Whether a request can turn the model's reasoning off.
     public var canBeTurnedOff: Bool {
-        mode == .offByDefault || mode == .onByDefault
+        switch mode {
+        case .unsupported, .mandatory: false
+        case .offByDefault, .onByDefault: true
+        }
     }
 }
 

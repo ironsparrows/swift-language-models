@@ -16,7 +16,7 @@ extension ConnectionTests {
                 try await http(stub).data(for: request(stub))
             }
 
-            #expect(failure.status == 307)
+            #expect(failure.status == .other(307))
             #expect(other.requests.isEmpty)
         }
 

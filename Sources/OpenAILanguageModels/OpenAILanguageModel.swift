@@ -347,6 +347,6 @@ extension OpenAILanguageModel {
     func connection(_ configuration: OpenAIConfiguration) -> Connection {
         Connection(
             session: session, authentication: auth.requestAuthentication, idleTimeout: configuration.idleTimeout,
-            retries: configuration.retries, retrying: RetriedStatuses.transient.contains)
+            retries: configuration.retries, retrying: .transient)
     }
 }

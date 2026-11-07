@@ -31,8 +31,9 @@ package struct RequestFailure<ErrorBody: Decodable & Sendable>: Error {
     /// What failed.
     package let kind: Kind
 
-    /// The HTTP status of a rejected response, or 0 for a response that isn't HTTP; `nil` for a failure in the stream.
-    package let status: Int?
+    /// The status of a rejected response, which is ``HTTPStatus/other(_:)`` with 0 for a response that isn't HTTP; `nil` for
+    /// a failure in the stream.
+    package let status: HTTPStatus?
 
     /// The `error` object, or `nil` when the failure carries none, or none in the provider's type, such as a gateway's
     /// HTML page.
@@ -74,7 +75,7 @@ extension RequestFailure {
         body = try? HTTPClient.decoder.decode(Envelope.self, from: failure.body).error
         rawBody = failure.body
         retryAfter = failure.retryAfter
-        message = HTTPURLResponse.localizedString(forStatusCode: failure.status)
+        message = failure.status.text
         self.imageEntries = imageEntries
         headers = ResponseHeaders(failure.response)
     }
@@ -109,7 +110,11 @@ extension RequestFailure {
     ///   - headers: The headers of the response whose stream failed.
     ///   - imageEntries: The request's entries that carry an image.
     init(_ problem: StreamProblem, provider: String, headers: ResponseHeaders, imageEntries: [Transcript.Entry]) {
-        let kind: Kind = if case .unreadableEvent = problem { .unreadableEvent } else { .unusableAnswer }
+        let kind: Kind =
+            switch problem {
+            case .unreadableEvent: .unreadableEvent
+            case .cutOff, .toolCallWithoutName, .incompleteToolArguments, .tokenLimitInToolCall: .unusableAnswer
+            }
         self.init(kind, body: nil, message: problem.message(provider: provider), headers: headers, imageEntries: imageEntries)
     }
 

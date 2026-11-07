@@ -251,7 +251,7 @@ extension OpenRouterFailure {
 struct OpenRouterFailure: Sendable {
     /// The HTTP status, or for an error in a stream, which arrives with HTTP 200, the status its code names, if the
     /// code is a number.
-    let status: Int?
+    let status: HTTPStatus?
     /// The `error` object, or one with the status's own text when the response had none, such as a gateway's HTML
     /// page.
     let body: OpenRouterErrorResponse
@@ -273,9 +273,9 @@ struct OpenRouterFailure: Sendable {
     ///   - retryAfter: How long the response asks to wait.
     ///   - routerReport: The router's report beside the error.
     init(
-        status: Int, body: OpenRouterErrorResponse?, retryAfter: Duration?, routerReport: OpenRouterChunkExtras.RouterMetadata? = nil
+        status: HTTPStatus, body: OpenRouterErrorResponse?, retryAfter: Duration?, routerReport: OpenRouterChunkExtras.RouterMetadata? = nil
     ) {
-        let body = body ?? OpenRouterErrorResponse(message: HTTPURLResponse.localizedString(forStatusCode: status))
+        let body = body ?? OpenRouterErrorResponse(message: status.text)
         self.status = status
         self.body = body
         self.retryAfter = retryAfter
@@ -287,7 +287,7 @@ struct OpenRouterFailure: Sendable {
     /// A failed response, with the delay its `Retry-After` or `X-RateLimit-Reset` header asks for.
     init(_ rejected: RequestFailure<OpenRouterErrorResponse>) {
         self.init(
-            status: rejected.status ?? 0,
+            status: rejected.status ?? .other(0),
             body: rejected.body,
             retryAfter: rejected.retryAfter ?? Duration(rateLimitReset: rejected.header(API.Header.rateLimitReset)),
             routerReport: (try? JSONDecoder().decode(ResponseExtras.self, from: rejected.rawBody))?.routerMetadata
@@ -303,10 +303,11 @@ struct OpenRouterFailure: Sendable {
     ///   - body: The event's error.
     ///   - provider: The host the event's chunk names.
     init(streamError body: OpenRouterErrorResponse, provider: OpenRouterProviderName?) {
-        status = body.status
+        let status = body.status.map(HTTPStatus.init(code:))
+        self.status = status
         self.body = body
         retryAfter = nil
-        code = Self.code(of: body, status: body.status) ?? .server
+        code = Self.code(of: body, status: status) ?? .server
         self.provider = body.providerName ?? provider
         isGuardrailBlock = false
     }
@@ -321,7 +322,7 @@ struct OpenRouterFailure: Sendable {
     func error(contextSize: Int?, imageEntries: [Transcript.Entry] = [], now: Date = .now) -> any Error {
         let message = body.bestMessage
         guard let failure = providerFailure(message: message, contextSize: contextSize, imageEntries: imageEntries, now: now) else {
-            return OpenRouterError(status: status, message: message, code: code, provider: provider, retryAfter: retryAfter)
+            return OpenRouterError(status: status?.code, message: message, code: code, provider: provider, retryAfter: retryAfter)
         }
         return LanguageModelError(failure, message: message, metadata: metadata)
     }
@@ -344,17 +345,17 @@ struct OpenRouterFailure: Sendable {
         // The host can't use an image, as for one the package can't send; one it can't download stays OpenRouter's.
         case (.unsupportedImageFormat, _), (.invalidImage, _), (.imageTooLarge, _), (.imageTooSmall, _): .unsupportedContent(imageEntries)
         // Too much is in flight at once; it clears as requests finish, like a rate limit.
-        case (_, 402?) where body.isInFlightBudget: rateLimited
+        case (_, .paymentRequired?) where body.isInFlightBudget: rateLimited
         // A spending budget that resets clears at its reset date, like a rate limit.
         case (.budgetExceeded, _) where body.budgetResetDate != nil: rateLimited
-        case (_, 403?) where body.isModeration || isGuardrailBlock: .guardrailViolation
+        case (_, .forbidden?) where body.isModeration || isGuardrailBlock: .guardrailViolation
         default: nil
         }
     }
 
     /// The metadata of a `LanguageModelError`: the status, the code, the host that failed and the budget it ran into.
     private var metadata: [String: any Sendable] {
-        OpenRouterErrorMetadata.metadata(status: status, code: code, provider: provider, limitSource: body.limitSource)
+        OpenRouterErrorMetadata.metadata(status: status?.code, code: code, provider: provider, limitSource: body.limitSource)
     }
 
     /// The kind of failure: the error type the body names, then the type its status stands for, then the code the body
@@ -362,34 +363,35 @@ struct OpenRouterFailure: Sendable {
     /// oversized prompt, which OpenRouter rejects itself before any host sees it.
     ///
     /// - Returns: The code, or `nil` when neither the body nor the status names one.
-    private static func code(of body: OpenRouterErrorResponse, status: Int?) -> OpenRouterError.Code? {
+    private static func code(of body: OpenRouterErrorResponse, status: HTTPStatus?) -> OpenRouterError.Code? {
         if let type = body.errorType { return type }
-        if status == 400, LanguageModelError.ProviderFailure.namesContext(body.bestMessage) { return .contextLengthExceeded }
-        if status == 403, body.limitSource != nil { return .budgetExceeded }
-        if let status, let code = codesByStatus[status] { return code }
+        if status == .badRequest, LanguageModelError.ProviderFailure.namesContext(body.bestMessage) { return .contextLengthExceeded }
+        if status == .forbidden, body.limitSource != nil { return .budgetExceeded }
+        if let code = status.flatMap(code(for:)) { return code }
         return body.textCode.map(OpenRouterError.Code.init(rawValue:))
     }
 
-    /// The error type each status stands for, for a body that doesn't name one. OpenRouter's own 502 and 503 mean no
-    /// host could serve the request, a 504 or 524 is a gateway that timed out, and a 529 is an overloaded host.
-    private static let codesByStatus: [Int: OpenRouterError.Code] = [
-        400: .invalidRequest,
-        401: .authentication,
-        402: .paymentRequired,
-        403: .permissionDenied,
-        404: .notFound,
-        408: .timeout,
-        412: .preconditionFailed,
-        413: .payloadTooLarge,
-        422: .unprocessable,
-        429: .rateLimitExceeded,
-        500: .server,
-        502: .providerUnavailable,
-        503: .providerUnavailable,
-        504: .timeout,
-        524: .timeout,
-        529: .providerOverloaded,
-    ]
+    /// The error type a status stands for, for a body that doesn't name one, or `nil` for a status that stands for none.
+    /// OpenRouter's own 502 and 503 mean no host could serve the request, a 504 or 524 is a gateway that timed out, and a
+    /// 529 is an overloaded host.
+    private static func code(for status: HTTPStatus) -> OpenRouterError.Code? {
+        switch status {
+        case .badRequest: .invalidRequest
+        case .unauthorized: .authentication
+        case .paymentRequired: .paymentRequired
+        case .forbidden: .permissionDenied
+        case .notFound: .notFound
+        case .requestTimeout, .gatewayTimeout, .originTimeout: .timeout
+        case .preconditionFailed: .preconditionFailed
+        case .contentTooLarge: .payloadTooLarge
+        case .unprocessableContent: .unprocessable
+        case .tooManyRequests: .rateLimitExceeded
+        case .internalServerError: .server
+        case .badGateway, .serviceUnavailable: .providerUnavailable
+        case .overloaded: .providerOverloaded
+        case .conflict, .other: nil
+        }
+    }
 }
 
 extension OpenRouterError.Code {

@@ -59,7 +59,7 @@ extension ChatCompletionsModelTests {
                 try await LanguageModelSession(model: plainModel(stub)).respond(to: "Rate it.", generating: Rating.self)
             }
 
-            #expect(failure?.status == 400)
+            #expect(failure?.status == .badRequest)
             #expect(stub.requests.count == 2)
         }
 
@@ -79,7 +79,7 @@ extension ChatCompletionsModelTests {
                 try await LanguageModelSession(model: plainModel(stub)).respond(to: "Rate it.", generating: Rating.self)
             }
 
-            #expect(failure?.status == status)
+            #expect(failure?.status == HTTPStatus(code: status))
             #expect(stub.requests.count == 1)
         }
 

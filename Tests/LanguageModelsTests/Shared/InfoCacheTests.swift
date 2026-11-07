@@ -73,7 +73,7 @@ struct InfoCacheTests {
         let stub = HTTPStub(.json("answer"))
         let authentication = Connection.Authentication(baseURL: stub.baseURL) { throw KeychainLocked() }
         let connection = Connection(
-            session: stub.session, authentication: authentication, idleTimeout: nil, retries: .disabled, retrying: { _ in false })
+            session: stub.session, authentication: authentication, idleTimeout: nil, retries: .disabled, retrying: .serverErrors)
 
         await #expect(throws: KeychainLocked.self) { try await call(connection, stub) }
 
@@ -121,7 +121,7 @@ struct InfoCacheTests {
     private func connection(_ stub: HTTPStub, headers: [String: String] = [:]) -> Connection {
         Connection(
             session: stub.session, authentication: Connection.Authentication(baseURL: stub.baseURL) { headers }, idleTimeout: nil,
-            retries: RequestRetries(limit: 2, initialDelay: .zero), retrying: { $0 >= 500 })
+            retries: RequestRetries(limit: 2, initialDelay: .zero), retrying: .serverErrors)
     }
 
     /// Reads a path under the stub's URL as text.

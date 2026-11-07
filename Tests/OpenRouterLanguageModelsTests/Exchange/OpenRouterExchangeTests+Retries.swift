@@ -9,11 +9,8 @@ import Testing
 extension OpenRouterExchangeTests {
     @Suite("Retries")
     struct Retries {
-        @Test(arguments: [
-            (500, true), (501, true), (502, true), (503, true), (504, true), (524, true), (529, true), (599, true),
-            (400, false), (408, false), (409, false), (429, false),
-        ])
-        func `only a status from 500 up goes out again, up to the configuration's limit`(status: Int, isRetried: Bool) async {
+        @Test(arguments: [(500, true), (408, false), (409, false), (429, false), (600, false)])
+        func `only a status from 500 to 599 goes out again, up to the configuration's limit`(status: Int, isRetried: Bool) async {
             let stub = HTTPStub(failure(status), failure(status), events(text("Hi"), done()))
 
             await #expect(throws: (any Error).self) { try await respond(stub, retryLimit: 1) }

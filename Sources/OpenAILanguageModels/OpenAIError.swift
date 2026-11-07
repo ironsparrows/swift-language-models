@@ -144,7 +144,7 @@ extension OpenAIError {
 /// model. The rest throw `OpenAIError`.
 struct OpenAIFailure: Sendable {
     /// The HTTP status, or `nil` for a failure in the stream, which arrives after the response's HTTP 200.
-    let status: Int?
+    let status: HTTPStatus?
 
     /// The `error` object, or `nil` when the response had none, such as a gateway's HTML page or a failed response
     /// without one.
@@ -190,16 +190,16 @@ struct OpenAIFailure: Sendable {
     func error(contextSize: Int?, imageEntries: [Transcript.Entry] = [], now: Date = .now) -> any Error {
         guard let failure = providerFailure(contextSize: contextSize, imageEntries: imageEntries, now: now) else {
             return OpenAIError(
-                status: status, message: message, code: code, errorType: body?.type.map(OpenAIError.Code.init(rawValue:)),
+                status: status?.code, message: message, code: code, errorType: body?.type.map(OpenAIError.Code.init(rawValue:)),
                 parameter: body?.param, requestID: requestID, retryAfter: retryAfter, isQuotaExhausted: isQuotaExhausted)
         }
-        let metadata = ProviderErrorMetadata(status: status, code: code.rawValue, requestID: requestID).contextMetadata
+        let metadata = ProviderErrorMetadata(status: status?.code, code: code.rawValue, requestID: requestID).contextMetadata
         return LanguageModelError(failure, message: message, metadata: metadata)
     }
 
     /// What went wrong: OpenAI's message, or the status's own text when there's none.
     private var message: String {
-        body?.message ?? status.map(HTTPURLResponse.localizedString(forStatusCode:)) ?? "The model's response ended in an error."
+        body?.message ?? status?.text ?? "The model's response ended in an error."
     }
 
     /// OpenAI's code, as text.
@@ -215,15 +215,21 @@ struct OpenAIFailure: Sendable {
     /// for a failure in the stream that names none.
     private var code: OpenAIError.Code {
         if let code = errorCode ?? body?.type { return OpenAIError.Code(rawValue: code) }
+        return status.map(Self.code(for:)) ?? .server
+    }
+
+    /// The kind a status stands for, for a body that names none. Any status from 500 up is OpenAI failing. A status that
+    /// becomes `LanguageModelError` is read by name in ``providerFailure(contextSize:imageEntries:now:)``.
+    private static func code(for status: HTTPStatus) -> OpenAIError.Code {
         switch status {
-        case 401?: return .authentication
-        case 403?: return .permissionDenied
-        case 404?: return .notFound
-        case 409?: return .conflict
-        case 422?: return .unprocessable
-        case let status? where status >= 500: return .server
-        case nil: return .server
-        default: return .unmapped
+        case .unauthorized: .authentication
+        case .forbidden: .permissionDenied
+        case .notFound: .notFound
+        case .conflict: .conflict
+        case .unprocessableContent: .unprocessable
+        case .internalServerError, .badGateway, .serviceUnavailable, .gatewayTimeout, .originTimeout, .overloaded: .server
+        case .badRequest, .paymentRequired, .requestTimeout, .preconditionFailed, .contentTooLarge, .tooManyRequests: .unmapped
+        case .other(let code): code >= 500 ? .server : .unmapped
         }
     }
 
@@ -237,17 +243,17 @@ struct OpenAIFailure: Sendable {
     private func providerFailure(contextSize: Int?, imageEntries: [Transcript.Entry], now: Date) -> LanguageModelError.ProviderFailure? {
         let code = errorCode
         if isQuotaExhausted { return nil }
-        if code == "context_length_exceeded" || (status == 400 && LanguageModelError.ProviderFailure.namesContext(message)) {
+        if code == "context_length_exceeded" || (status == .badRequest && LanguageModelError.ProviderFailure.namesContext(message)) {
             return .contextSizeExceeded(message: message, contextSize: contextSize)
         }
-        if status == 429 || code == "rate_limit_exceeded" {
+        if status == .tooManyRequests || code == "rate_limit_exceeded" {
             return .rateLimited(resetDate: LanguageModelError.ProviderFailure.resetDate(after: retryAfter ?? rateLimitReset, from: now))
         }
         if code.map(Self.guardrailCodes.contains) == true || (code == "invalid_prompt" && message.contains(Self.policyMessage)) {
             return .guardrailViolation
         }
         if code.map(Self.unsupportedImageCodes.contains) == true { return .unsupportedContent(imageEntries) }
-        if status == 408 || status == 504 || code == "vector_store_timeout" { return .timeout }
+        if status == .requestTimeout || status == .gatewayTimeout || code == "vector_store_timeout" { return .timeout }
         return nil
     }
 

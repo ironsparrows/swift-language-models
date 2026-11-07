@@ -9,6 +9,20 @@ import Testing
 extension OpenAIExchangeTests {
     @Suite("Requests")
     struct Requests {
+        @Test func `an image goes no larger than the configuration's encoding allows`() async throws {
+            let stub = HTTPStub(responseStream([created()], [textDelta("Hi")], [completed()]))
+            let image = try #require(TestImage.halves(width: 40, height: 20))
+            let configuration = OpenAIConfiguration(images: ImageEncoding(maximumSide: 10))
+            let model = model(stub, details(efforts: [ContextOptions.ReasoningLevel]()), configuration: configuration)
+
+            _ = try await LanguageModelSession(model: model).respond { FoundationModels.Attachment(image) }
+
+            let url = try #require(body(stub)["input"]?[0]?["content"]?[0]?["image_url"]?.stringValue)
+            let data = try #require(Data(base64Encoded: String(url.drop { $0 != "," }.dropFirst())))
+            let decoded = try #require(DecodedImage(data))
+            #expect((decoded.width, decoded.height) == (10, 5))
+        }
+
         @Test func `a model that reasons takes sampling settings only while its effort is none`() async throws {
             let options = GenerationOptions(temperature: 0.5)
             let off = try await sentBody({ reasoningModel($0) }, options: options, reasoningLevel: .off)

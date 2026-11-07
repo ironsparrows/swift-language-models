@@ -22,7 +22,7 @@ extension OpenRouterErrorTests {
 
         @Test func `a failure that becomes a language model error keeps the status, code and host the log reads`() throws {
             let body = OpenRouterErrorResponse(message: "Slow down.", metadata: ["provider_name": "Vendor"])
-            let failure = OpenRouterFailure(status: 429, body: body, retryAfter: nil)
+            let failure = OpenRouterFailure(status: .tooManyRequests, body: body, retryAfter: nil)
 
             let error = try #require(failure.error(contextSize: nil) as? LanguageModelError)
 

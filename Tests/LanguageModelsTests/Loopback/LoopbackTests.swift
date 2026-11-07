@@ -101,7 +101,7 @@ struct LoopbackTests {
         model.connection = Connection(
             session: Self.session,
             authentication: Connection.Authentication(baseURL: nil) { ["Authorization": "Bearer \(key)"] }, idleTimeout: idleTimeout,
-            retries: RequestRetries(limit: retries, initialDelay: .zero), retrying: { $0 >= 500 })
+            retries: RequestRetries(limit: retries, initialDelay: .zero), retrying: .serverErrors)
         return model
     }
 }

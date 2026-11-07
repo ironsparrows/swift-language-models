@@ -99,16 +99,20 @@ In this repository:
   [ARCHITECTURE](ARCHITECTURE.md#what-a-provider-states) lists. Pass `reaching:` every model a request may reach, in the
   order the provider tries them, so the shared model reports the removed ones.
 - A value saved transcripts hold never changes: `reasoningOrigin`, such as `openrouter` for OpenRouter's Chat Completions
-  reasoning and `openai-responses` for OpenAI's Responses reasoning, and `phasesKey`, such as `openAI.phases`. Give each
-  format its own origin, since each sends reasoning back in another shape: reasoning a model wrote in one format is then
-  skipped, not sent back in the wrong one.
+  reasoning and `openai-responses` for OpenAI's Responses reasoning, and `phasesKey`, such as `openAI.phases`. Each shared
+  model's initializer requires the ones it has, and `images`, so a provider can't forget one. Give each format its own
+  origin, since each sends reasoning back in another shape: reasoning a model wrote in one format is then skipped, not
+  sent back in the wrong one.
 - Keep what the model, the exchange and any info calls all rely on in the module's `API.swift`: the provider's name, base
   URL, paths and header names.
 - Give the model a public configuration of the module's own, such as `VendorConfiguration`, built only from the core's
   pieces the module uses, `RequestRetries` and `ImageEncoding`, and an `idleTimeout`. Never declare a retry or image
-  setting of the module's own. Make `Connection` from it, with the rule for which statuses to retry, such as
-  `RetriedStatuses.transient.contains`.
-- Throw Foundation Models' error wherever it has a case, from `error(for:)`, and the module's own for the rest. Read
+  setting of the module's own. Make `Connection` from it, with the `RetriedStatuses` rule for which statuses to retry,
+  such as `.transient`. A rule that isn't there yet is a new case of `RetriedStatuses`.
+- Throw Foundation Models' error wherever it has a case, from `error(for:)`, and the module's own for the rest. Say what
+  each status stands for in a `switch` over `HTTPStatus` with no `default`, as `OpenRouterFailure` and `OpenAIFailure` do,
+  so a status named later stops the module's build until it decides. A status without a name is `.other`. Naming one also
+  takes a row in `HTTPStatus.init(code:)` and in `HTTPStatusTests`, which no compiler checks. Read
   facts through `ProviderResponseMetadata`, `ProviderUsageMetadata` and `ProviderErrorMetadata`, and give apps a reader
   named for the provider, such as `openRouter`. Its keys are private to the module's metadata file.
 - Log through a `PackageLogger` with a category named after the module, which writes only at the levels the app's
@@ -139,7 +143,7 @@ Code lives in the narrowest place that every user of it can reach:
 | File | Owns |
 |---|---|
 | `Connection.swift` | How requests reach a provider: session, authentication, timeout, retries; opening a stream, with one more attempt in the portable schema; cached read-only calls about a model. |
-| `HTTPClient.swift` | Sending: the retry loop and policy, waits a server asks for, redirects to the same URL host only, the user agent, header and media-type names. |
+| `HTTPClient.swift` | Sending: the retry loop and policy, waits a server asks for, redirects to the same URL host only, the user agent, statuses, header and media-type names. |
 | `ServerSentEvent.swift` | Events of a byte stream, and the byte-level line splitter under them. |
 | `RequestLog.swift` | The log of one request: what it sends, retries, adjustments, how it ended, and what the log says of an error. |
 | `TranscriptTurn.swift` | The transcript as provider APIs take it: turns, a turn's segments as a format's parts, the first prompt's id, and which reasoning goes back. |
@@ -151,9 +155,25 @@ Code lives in the narrowest place that every user of it can reach:
 
 A provider hands a shared model values and an exchange, and never touches a transcript reader, a stream or the channel.
 [ARCHITECTURE](ARCHITECTURE.md#what-a-provider-states) lists all of it. Add a method to an exchange, or a value to a model
-or a request, when a provider needs one, with a default that keeps the plain format's behavior. Implement a method that
-has a default in the type that declares the conformance: only there does a misspelled one draw a warning, which CI's
-`-warnings-as-errors` turns into an error, instead of silently keeping the default.
+or a request, when a provider needs one, with a default that keeps the plain format's behavior. A value that nothing
+would show missing, or that can't be undone, has no default: it's a required argument of the model's initializer.
+Implement a method that has a default in the type that declares the conformance: only there does a misspelled one draw a
+warning, which CI's `-warnings-as-errors` turns into an error, instead of silently keeping the default.
+
+## Sets of values
+
+Inside the package, a set that a decision reads is an enum, and a `switch` over it has no `default`, so a new case is a
+compile error wherever it needs a decision. A value that only names something, and that nothing branches on, stays what
+it is. A word a host sends stays open: there `default` is the decision.
+
+A public set takes the shape that lets it grow without breaking an app:
+
+| The set | Its shape |
+|---|---|
+| Can't grow, such as on, off or automatic | A plain `enum` |
+| Hosts send it, or apps add to it | A struct over `rawValue`, a `ProviderVocabulary` |
+| Apps build it, with payloads they shouldn't see, such as authentication or server tools | A struct with static members |
+| Only the package defines it, apps read or pick it, and it can grow | A `@nonexhaustive` enum, from its first release, since adding the attribute later breaks apps |
 
 ## How a module's files are laid out
 
