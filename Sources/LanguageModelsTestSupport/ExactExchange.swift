@@ -15,21 +15,21 @@ package struct ExactExchange {
     package var bodies: [String] = []
 
     /// The headers of each request that the exchange records, sorted by name.
-    package var headers: [[String]] = []
+    var headers: [[String]] = []
 
     /// Each entry of the session's transcript once the answer ended, or once it failed.
-    package var transcript: [String] = []
+    package private(set) var transcript: [String] = []
 
     /// The answer's usage, or `nil` when it failed.
-    package var usage: String?
+    package private(set) var usage: String?
 
     /// The last snapshot a streamed answer yielded: its raw content, then its entries. Earlier snapshots aren't kept,
     /// since the framework merges the events that arrive between two reads into one, so how many there are and what
     /// each holds depends on timing.
-    package var lastSnapshot: String?
+    fileprivate var lastSnapshot: String?
 
     /// The error the answer ended in, or `nil` when it ended well.
-    package var error: String?
+    package private(set) var error: String?
 }
 
 extension ExactExchange {
@@ -84,7 +84,7 @@ extension ExactExchange {
     }
 
     /// An entry without its id: its kind, text, metadata and the parts that matter for it.
-    package static func description(of entry: Transcript.Entry) -> String {
+    private static func description(of entry: Transcript.Entry) -> String {
         switch entry {
         case .instructions(let instructions):
             return "instructions \(description(of: instructions.segments)) tools: \(instructions.toolDefinitions.map(\.name))"
@@ -114,7 +114,7 @@ extension ExactExchange {
     }
 
     /// Usage as its token counts and metadata.
-    package static func description(of usage: LanguageModelSession.Usage) -> String {
+    private static func description(of usage: LanguageModelSession.Usage) -> String {
         """
         input \(usage.input.totalTokenCount) cached \(usage.input.cachedTokenCount), output \(usage.output.totalTokenCount) \
         reasoning \(usage.output.reasoningTokenCount), metadata: \(description(of: usage.metadata))

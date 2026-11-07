@@ -6,7 +6,7 @@ import Foundation
 ///
 /// Days decode into their type, so a fetch fails on one that isn't real instead of storing it.
 struct OpenRouterModelsResponse: Decodable {
-    struct Model: Decodable {
+    private struct Model: Decodable {
         struct AliasTarget: Decodable {
             let slug: String
         }
@@ -72,7 +72,7 @@ struct OpenRouterModelsResponse: Decodable {
         let pricing: Pricing?
     }
 
-    let data: [Model]
+    private let data: [Model]
 
     static func decoded(from data: Data) throws -> OpenRouterModelsResponse {
         let decoder = JSONDecoder()
@@ -164,10 +164,10 @@ extension OpenRouterModelsResponse {
 struct OpenRouterAPIDescription: OpenAPIDescription {
     /// A schema, reduced to its description, its string values and its properties.
     struct Schema: OpenAPIWordSchema {
-        let description: String?
+        fileprivate let description: String?
         /// The schema's string `enum` values, in order, each once.
         let values: [String]
-        let properties: [String: Property]
+        fileprivate let properties: [String: Property]
 
         private enum CodingKeys: String, CodingKey {
             case description
@@ -184,7 +184,7 @@ struct OpenRouterAPIDescription: OpenAPIDescription {
     }
 
     /// A property of a schema: its own description, or a reference to the schema that describes it.
-    struct Property: Decodable {
+    fileprivate struct Property: Decodable {
         let description: String?
         let reference: String?
 
@@ -202,7 +202,7 @@ struct OpenRouterAPIDescription: OpenAPIDescription {
     let components: OpenAPIComponents<Schema>
 
     /// The schema that lists a vocabulary's words.
-    static func schemaName(of vocabulary: CatalogVocabulary) -> String {
+    private static func schemaName(of vocabulary: CatalogVocabulary) -> String {
         switch vocabulary {
         case .inputModalities: "InputModality"
         case .outputModalities: "OutputModality"

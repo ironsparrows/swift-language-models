@@ -6,13 +6,13 @@ import LanguageModelsCore
 
 /// Foundation Models' sampling options as the settings a provider sends.
 package struct Sampling {
-    var temperature: Double?
-    var topP: Double?
-    package var topK: Int?
-    var seed: UInt64?
+    private(set) var temperature: Double?
+    private(set) var topP: Double?
+    package private(set) var topK: Int?
+    private(set) var seed: UInt64?
     /// Whether the options ask for greedy sampling, which a provider may also send as `top_k` 1 where it rules out no
     /// host.
-    package var isGreedy = false
+    package private(set) var isGreedy = false
 
     /// Greedy sampling becomes temperature 0. Temperatures are clamped to the provider's range, and probability
     /// thresholds to 0 to 1.

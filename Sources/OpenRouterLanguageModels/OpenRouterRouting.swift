@@ -65,7 +65,7 @@ public struct OpenRouterRouting: Sendable, Hashable {
         case disallowed
 
         /// The setting's value in the request, or `nil` to leave it out.
-        var value: Bool? {
+        fileprivate var value: Bool? {
             switch self {
             case .automatic: nil
             case .allowed: true
@@ -86,7 +86,7 @@ public struct OpenRouterRouting: Sendable, Hashable {
         case notRequired
 
         /// The setting's value in the request, or `nil` to leave it out.
-        var value: Bool? {
+        fileprivate var value: Bool? {
             switch self {
             case .automatic: nil
             case .required: true
@@ -353,10 +353,10 @@ extension OpenRouterRouting {
     /// The `provider` object of OpenRouter's request: each setting that doesn't keep OpenRouter's default, in the
     /// order OpenRouter's requests have always sent them.
     struct Member: Encodable {
-        let routing: OpenRouterRouting
+        fileprivate let routing: OpenRouterRouting
 
         /// Whether hosts must take every parameter the request sends, after the request's own needs.
-        let parameterSupport: Requirement
+        fileprivate let parameterSupport: Requirement
 
         private var sort: SortMember? { SortMember(sort: routing.sort, partition: routing.sortPartition) }
         private var maximumPrice: Prices? { routing.maximumPrice.flatMap(Prices.init) }

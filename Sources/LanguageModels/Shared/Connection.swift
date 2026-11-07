@@ -114,7 +114,7 @@ extension Connection {
         }
 
         /// Reads the headers, and throws a `URLError` that reading them throws the way a failed connection's is thrown.
-        func requestHeaders() async throws -> [HTTPHeaderName: String] {
+        fileprivate func requestHeaders() async throws -> [HTTPHeaderName: String] {
             do {
                 let read = try await headers()
                 return Dictionary(read.map { (HTTPHeaderName(rawValue: $0.key), $0.value) }, uniquingKeysWith: { $1 })
@@ -291,7 +291,7 @@ private struct CallLog {
 /// since some answers depend on the account. Failures aren't kept.
 final class InfoCache: Sendable {
     /// The cache that every call shares.
-    static let shared = InfoCache()
+    fileprivate static let shared = InfoCache()
 
     /// What an answer is kept by.
     struct Key: Hashable, Sendable {

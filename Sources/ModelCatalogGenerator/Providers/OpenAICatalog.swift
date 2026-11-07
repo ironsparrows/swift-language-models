@@ -5,7 +5,7 @@ import Foundation
 /// OpenAI's list of the models a key may use, `GET /v1/models`: the only list of the models OpenAI still serves, with
 /// the day each shuts down.
 struct OpenAIModelList: Decodable {
-    struct Model: Decodable {
+    private struct Model: Decodable {
         let id: String
         /// Seconds since 1970.
         let created: Int
@@ -19,7 +19,7 @@ struct OpenAIModelList: Decodable {
         }
     }
 
-    let data: [Model]
+    private let data: [Model]
 
     static func decoded(from data: Data) throws -> OpenAIModelList {
         try JSONDecoder().decode(OpenAIModelList.self, from: data)
@@ -199,7 +199,7 @@ struct OpenAIAPIDescription: OpenAPIDescription {
     /// A schema, reduced to the string `enum` values of its `anyOf` choices, and the default of the choice that has
     /// one.
     struct Schema: OpenAPIWordSchema {
-        let choices: [Choice]
+        fileprivate let choices: [Choice]
 
         private enum CodingKeys: String, CodingKey {
             case choices = "anyOf"
@@ -217,7 +217,7 @@ struct OpenAIAPIDescription: OpenAPIDescription {
     }
 
     /// One choice of a schema's `anyOf`: its string values and its default.
-    struct Choice: Decodable {
+    fileprivate struct Choice: Decodable {
         let values: [String]
         let defaultValue: String?
 
@@ -267,7 +267,7 @@ struct OpenAIAPIDescription: OpenAPIDescription {
 /// does, which OpenAI's own model list doesn't say.
 struct ModelsDevCatalog: Decodable {
     /// One of OpenAI's models.
-    struct Model: Decodable {
+    fileprivate struct Model: Decodable {
         struct Modalities: Decodable {
             let input: [String]
             let output: [String]
@@ -287,7 +287,7 @@ struct ModelsDevCatalog: Decodable {
         /// The kind of model, such as `image` or `embedding`, or `nil` for a model that generates text.
         let type: String?
         let reasoning: Bool?
-        let reasoningOptions: [ReasoningOption]?
+        private let reasoningOptions: [ReasoningOption]?
         let toolCall: Bool?
         let structuredOutput: Bool?
         let temperature: Bool?
@@ -327,10 +327,10 @@ struct ModelsDevCatalog: Decodable {
     private static let effortOption = "effort"
 
     /// The provider's key in the catalog.
-    static let providerKey = "openai"
+    private static let providerKey = "openai"
 
     /// OpenAI's models, by id, without those whose entries don't decode.
-    let models: [String: Model]
+    fileprivate let models: [String: Model]
 
     /// The ids of the models whose entries don't decode, sorted.
     let undecodedIDs: [String]

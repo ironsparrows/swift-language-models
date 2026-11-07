@@ -35,10 +35,10 @@ public struct OpenAILanguageModel<Effort: ModelEffort>: DetailedLanguageModel {
     public var options: OpenAIOptions
 
     /// The URL session that sends requests: `.shared` unless the model was created with another.
-    let session: URLSession
+    private let session: URLSession
 
     /// How requests authenticate, and where they go.
-    let auth: OpenAIAuthentication
+    private let auth: OpenAIAuthentication
 
     /// How requests are sent: how long they wait, how they retry, and how their images are encoded. A change applies
     /// to the next request.
@@ -126,14 +126,14 @@ public struct OpenAIAuthentication: Sendable {
 
     /// The headers that authenticate a request, read for every request, and where it goes, as a request's connection
     /// holds them.
-    let requestAuthentication: Connection.Authentication
+    fileprivate let requestAuthentication: Connection.Authentication
 
     private init(_ requestAuthentication: Connection.Authentication) {
         self.requestAuthentication = requestAuthentication
     }
 
     /// Authentication with these headers, sent to a base URL, such as a test server's.
-    init(baseURL: URL?, headers: @escaping @Sendable () async throws -> [String: String]) {
+    private init(baseURL: URL?, headers: @escaping @Sendable () async throws -> [String: String]) {
         self.init(Connection.Authentication(baseURL: baseURL, headers: headers))
     }
 

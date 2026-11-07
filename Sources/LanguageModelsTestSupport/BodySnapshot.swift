@@ -6,17 +6,17 @@ import Testing
 ///
 /// Only whitespace outside strings is added, so removing it gives the bytes back: member order, escapes and number
 /// spellings are the body's own.
-package enum BodySnapshot {
+enum BodySnapshot {
     /// A body that isn't compact JSON: it has whitespace outside its strings, which removing the added whitespace wouldn't
     /// give back, or a bracket that closes nothing.
-    package struct NotCompact: Error {}
+    struct NotCompact: Error {}
 
     /// The text of a compact JSON body, one member per line.
     ///
     /// - Parameter body: A JSON body without whitespace outside its strings.
     /// - Returns: The body's bytes with whitespace added outside its strings.
     /// - Throws: ``NotCompact`` when the body has whitespace outside its strings, or a bracket that closes nothing.
-    package static func text(of body: Data) throws -> String {
+    static func text(of body: Data) throws -> String {
         let bytes = Array(body)
         var output: [UInt8] = []
         var depth = 0
@@ -66,7 +66,7 @@ package enum BodySnapshot {
     ///
     /// - Parameter text: A body's text from ``text(of:)``.
     /// - Returns: The text without the whitespace outside its strings.
-    package static func bytes(of text: String) -> Data {
+    static func bytes(of text: String) -> Data {
         var output = Data()
         var strings = StringTracker()
         for byte in text.utf8 {
@@ -79,7 +79,7 @@ package enum BodySnapshot {
 
     /// A body's text for a snapshot. A body whose text can't stand for its bytes fails the test, so it can't be
     /// recorded as if it were right.
-    package static func snapshotText(of body: Data) -> String {
+    static func snapshotText(of body: Data) -> String {
         guard let text = try? text(of: body), bytes(of: text) == body else {
             let message = "The body isn't compact JSON, so its bytes can't be shown one member per line."
             Issue.record(Comment(rawValue: message))
@@ -113,7 +113,7 @@ package enum BodySnapshot {
 
 extension Snapshotting where Value == Data, Format == String {
     /// A request body as its own bytes, one member per line.
-    package static var memberLines: Snapshotting {
+    package static var memberLines: Snapshotting<Data, String> {
         Snapshotting<String, String>.lines.pullback(BodySnapshot.snapshotText(of:))
     }
 }

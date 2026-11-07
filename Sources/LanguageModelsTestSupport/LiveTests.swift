@@ -17,7 +17,7 @@ package struct WeatherTool: Tool {
     @Generable
     package struct Arguments {
         @Guide(description: "The city's name.")
-        package var city: String
+        fileprivate var city: String
     }
 
     package func call(arguments: Arguments) async throws -> String {
@@ -30,30 +30,30 @@ package struct WeatherTool: Tool {
 @Generable
 package struct Trip {
     @Guide(description: "The city to visit.")
-    package var city: String
+    private var city: String
 
-    package var season: Season
+    private var season: Season
 
     @Guide(description: "Three things to do.", .count(3))
-    package var activities: [Activity]
+    package private(set) var activities: [Activity]
 
     @Guide(description: "How many days to stay.", .range(1...14))
-    package var days: Int
+    package private(set) var days: Int
 
-    package var note: String?
+    private var note: String?
 }
 
 @Generable
-package enum Season {
+private enum Season {
     case spring, summer, autumn, winter
 }
 
 @Generable
 package struct Activity {
-    package var name: String
+    private var name: String
 
     @Guide(description: "How many hours it takes.", .range(1...12))
-    package var hours: Int
+    package private(set) var hours: Int
 }
 
 extension Transcript {
@@ -96,7 +96,7 @@ package struct InterruptingWeatherTool: Tool {
     @Generable
     package struct Arguments {
         @Guide(description: "The city's name.")
-        package var city: String
+        private var city: String
     }
 
     package func call(arguments: Arguments) async throws -> String {
@@ -105,9 +105,7 @@ package struct InterruptingWeatherTool: Tool {
 }
 
 /// The error that ``InterruptingWeatherTool`` throws.
-package struct ToolCallInterruption: Error {
-    package init() {}
-}
+private struct ToolCallInterruption: Error {}
 
 /// Sends a prompt and stops at the first call of an ``InterruptingWeatherTool``, since a required tool choice stays on
 /// for every round, and a model that honors it never stops calling tools.
@@ -141,7 +139,7 @@ package struct APIKeyTrait: TestTrait, SuiteTrait, TestScoping {
     @TaskLocal package static var current: String?
 
     /// The environment variable that holds the key, such as `OPENROUTER_API_KEY`.
-    let variable: String
+    fileprivate let variable: String
 
     package var isRecursive: Bool { true }
 

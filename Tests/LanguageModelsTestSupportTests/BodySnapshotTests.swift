@@ -1,7 +1,7 @@
 import Foundation
 import InlineSnapshotTesting
-import LanguageModelsTestSupport
 import Testing
+@testable import LanguageModelsTestSupport
 
 @Suite("Body snapshot")
 struct BodySnapshotTests {

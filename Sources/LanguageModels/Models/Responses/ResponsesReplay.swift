@@ -87,11 +87,11 @@ extension Responses {
     /// phase. A message whose text is held out of the answer's text, such as a guided answer's `commentary`, keeps the text
     /// itself instead.
     package struct MessagePhase: Equatable {
-        package var phase: String?
-        package var length = 0
+        package private(set) var phase: String?
+        package private(set) var length = 0
 
         /// The message's text when it's held out of the answer's text, or `nil` when the answer's text holds it.
-        package var heldText: String?
+        package private(set) var heldText: String?
 
         init(phase: String? = nil, length: Int = 0) {
             self.phase = phase

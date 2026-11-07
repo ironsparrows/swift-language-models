@@ -13,7 +13,7 @@ enum API {
     static let reasoningOrigin = "openai-responses"
 
     /// Where OpenAI's API lives. `URL(string:)` makes it optional, although it never fails.
-    static let defaultBaseURL = URL(string: "https://api.openai.com/v1/")
+    private static let defaultBaseURL = URL(string: "https://api.openai.com/v1/")
 
     /// Where a request goes: the authentication's base URL, or OpenAI's.
     ///

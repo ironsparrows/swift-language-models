@@ -131,7 +131,7 @@ enum ReasoningLevelTemplate {
     private static let globalFunctionNames: Set<String> = ["max", "min"]
 
     /// The doc summary of an effort word's member.
-    static func summary(of word: String) -> String {
+    fileprivate static func summary(of word: String) -> String {
         word == EffortRanking.offWord ? "The `\(word)` effort, which turns reasoning off." : "The `\(word)` effort."
     }
 

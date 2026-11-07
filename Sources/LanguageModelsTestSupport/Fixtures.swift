@@ -47,7 +47,7 @@ package func prompt(_ segments: Transcript.Segment...) -> Transcript.Entry {
 @Generable
 package struct Rating {
     @Guide(.range(1...5))
-    package var stars: Int
+    package private(set) var stars: Int
 }
 
 /// A tool that looks up a word, and answers with the word.
@@ -57,7 +57,7 @@ package struct LookUpTool: Tool {
 
     @Generable
     package struct Arguments {
-        package var word: String
+        package private(set) var word: String
     }
 
     package init() {}

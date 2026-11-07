@@ -75,7 +75,7 @@ public struct OpenRouterCacheControl: Sendable, Hashable {
 
     /// The `cache_control` directive: an ephemeral cache, with its lifetime unless it's OpenRouter's default.
     struct Directive: Encodable, Sendable {
-        let timeToLive: TimeToLive?
+        fileprivate let timeToLive: TimeToLive?
 
         func encode(to encoder: any Encoder) throws {
             var container = encoder.container(keyedBy: Key.self)
@@ -172,7 +172,7 @@ public struct OpenRouterResponseCache: Sendable, Hashable {
     }
 
     /// A time to live in whole seconds from 1 second to 24 hours, as OpenRouter takes it.
-    static func timeToLive(clamping requested: Duration) -> Duration {
+    private static func timeToLive(clamping requested: Duration) -> Duration {
         .seconds(min(max(requested.components.seconds, 1), 86_400))
     }
 

@@ -203,14 +203,14 @@ public struct OpenRouterAuthentication: Sendable {
 
     /// The headers that authenticate a request, read for every request, and where it goes, as a request's connection
     /// holds them.
-    let requestAuthentication: Connection.Authentication
+    fileprivate let requestAuthentication: Connection.Authentication
 
     private init(_ requestAuthentication: Connection.Authentication) {
         self.requestAuthentication = requestAuthentication
     }
 
     /// Authentication with these headers, sent to a base URL, such as a test server's.
-    init(baseURL: URL?, headers: @escaping @Sendable () async throws -> [String: String]) {
+    private init(baseURL: URL?, headers: @escaping @Sendable () async throws -> [String: String]) {
         self.init(Connection.Authentication(baseURL: baseURL, headers: headers))
     }
 
@@ -506,7 +506,7 @@ extension OpenRouterLanguageModel {
             let app: OpenRouterApp
             let settings: OpenRouterConfiguration
 
-            init(baseURL: URL?, app: OpenRouterApp = OpenRouterApp(), settings: OpenRouterConfiguration) {
+            fileprivate init(baseURL: URL?, app: OpenRouterApp = OpenRouterApp(), settings: OpenRouterConfiguration) {
                 self.baseURL = baseURL
                 self.app = app
                 self.settings = settings

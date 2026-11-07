@@ -176,7 +176,7 @@ extension JSONValue: Decodable {
 package struct JSONObject: Sendable, Hashable {
     package struct Member: Sendable, Hashable {
         package let key: String
-        package var value: JSONValue
+        package fileprivate(set) var value: JSONValue
 
         package init(key: String, value: JSONValue) {
             self.key = key
@@ -242,7 +242,7 @@ extension JSONObject: ExpressibleByDictionaryLiteral {
         self.init(optionalMembers: elements)
     }
 
-    init(optionalMembers elements: [(String, JSONValue?)]) {
+    fileprivate init(optionalMembers elements: [(String, JSONValue?)]) {
         self.init(elements.compactMap { key, value in value.map { Member(key: key, value: $0) } })
     }
 }

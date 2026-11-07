@@ -39,7 +39,7 @@ public enum LanguageModelsLogging {
     }
 
     /// The subsystem of every message the package logs.
-    static let subsystem = "com.ironsparrows.swift-language-models"
+    fileprivate static let subsystem = "com.ironsparrows.swift-language-models"
 
     private static let storedMinimumLevel = Atomic(OSLogType.debug.rawValue)
 
@@ -52,7 +52,7 @@ public enum LanguageModelsLogging {
 extension OSLogType {
     /// The level's place by severity, from `.debug`, the least severe, to `.fault`. The levels' raw values don't
     /// follow it: `.default` is 0 and `.debug` is 2.
-    var severity: Int {
+    fileprivate var severity: Int {
         switch self {
         case .debug: 0
         case .info: 1

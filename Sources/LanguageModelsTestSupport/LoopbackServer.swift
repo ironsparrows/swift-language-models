@@ -18,7 +18,7 @@ package final class LoopbackServer: Sendable {
     package let baseURL: URL
 
     /// An element for each reply the server has written, so a test can act while a reply kept open is in flight.
-    package let sentReplies: AsyncStream<Void>
+    private let sentReplies: AsyncStream<Void>
 
     /// An element each time a client closes a connection that a reply kept open.
     package let closedConnections: AsyncStream<Void>

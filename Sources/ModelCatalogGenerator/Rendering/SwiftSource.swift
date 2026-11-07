@@ -206,7 +206,7 @@ enum SwiftExpression {
         let value: SwiftExpression
 
         /// The text before the value: the label and a colon, or nothing for an unlabeled argument.
-        var prefix: String {
+        fileprivate var prefix: String {
             label.isEmpty ? "" : "\(label): "
         }
     }
@@ -224,7 +224,7 @@ enum SwiftExpression {
     }
 
     /// The expression on one line.
-    var line: String {
+    private var line: String {
         switch self {
         case .atom(let text): text
         case .array(let elements): "[\(elements.map(\.line).joined(separator: ", "))]"
@@ -268,7 +268,7 @@ extension Unicode.Scalar {
     /// unassigned or private.
     ///
     /// Format characters include the ones that reorder text, so source can't display differently from what it does.
-    var isPrintable: Bool {
+    fileprivate var isPrintable: Bool {
         switch properties.generalCategory {
         case .control, .format, .lineSeparator, .paragraphSeparator, .surrogate, .privateUse, .unassigned: false
         default: true

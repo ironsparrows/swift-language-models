@@ -1,6 +1,6 @@
 import Foundation
-import LanguageModelsCore
 import Testing
+@testable import LanguageModelsCore
 
 @Suite("Guide violations")
 struct GuideViolationTests {

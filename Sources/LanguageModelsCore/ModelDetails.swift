@@ -187,7 +187,7 @@ extension ModelRemovals {
         /// Logs the model at the error level, and shows a runtime warning in a debug build.
         ///
         /// - Parameter request: The start of the request's id, which names the request in the log.
-        func report(request: String) {
+        fileprivate func report(request: String) {
             PackageLogger.languageModels(.error)?.error("Request \(request, privacy: .public): \(message, privacy: .public)")
             // The issue is filed under `LanguageModels`, the module apps import, and the module in `fileID` is its category.
             runtimeWarning(message, fileID: "LanguageModels/ModelDetails.swift")

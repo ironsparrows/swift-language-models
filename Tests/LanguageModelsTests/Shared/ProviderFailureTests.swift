@@ -1,6 +1,6 @@
 import FoundationModels
-import LanguageModels
 import Testing
+@testable import LanguageModels
 
 @Suite("Provider failure", .timeLimit(.minutes(1)))
 struct ProviderFailureTests {

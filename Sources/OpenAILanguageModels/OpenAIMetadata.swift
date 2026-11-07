@@ -141,7 +141,7 @@ public struct OpenAIUsageMetadata: Sendable, Hashable {
     public let cacheWriteTokenCount: Int?
 
     /// The facts in a usage's metadata.
-    init(_ metadata: [String: GeneratedContent]) {
+    fileprivate init(_ metadata: [String: GeneratedContent]) {
         cacheWriteTokenCount = ProviderUsageMetadata(metadata).cacheWriteTokenCount
     }
 }
@@ -176,7 +176,7 @@ public struct OpenAIErrorMetadata: Sendable, Hashable {
     public let requestID: String?
 
     /// The facts in an error's metadata.
-    init(_ metadata: [String: any Sendable]) {
+    fileprivate init(_ metadata: [String: any Sendable]) {
         let shared = ProviderErrorMetadata(metadata)
         status = shared.status
         code = shared.code.map(OpenAIError.Code.init(rawValue:))

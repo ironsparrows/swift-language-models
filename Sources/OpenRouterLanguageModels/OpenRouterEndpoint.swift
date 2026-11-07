@@ -248,7 +248,7 @@ extension OpenRouterEndpoint {
 }
 
 extension OpenRouterEndpoint.Payload.Percentiles {
-    fileprivate func percentiles<Value>(_ value: (Double) -> Value) -> OpenRouterRouting.Percentiles<Value> {
+    func percentiles<Value>(_ value: (Double) -> Value) -> OpenRouterRouting.Percentiles<Value> {
         OpenRouterRouting.Percentiles(p50: p50.map(value), p75: p75.map(value), p90: p90.map(value), p99: p99.map(value))
     }
 }

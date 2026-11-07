@@ -274,7 +274,7 @@ extension OpenRouterPricing {
     /// A `pricing` object in OpenRouter's model and endpoint lists, with each price as decimal text in US dollars.
     struct Payload: Decodable, Sendable {
         /// Prices that replace the base prices while their conditions hold.
-        struct Override: Decodable, Sendable {
+        fileprivate struct Override: Decodable, Sendable {
             let minPromptTokens: Double?
             let utcDays: [String]?
             /// The start of a daily window in UTC, as an `HHMM` clock number such as `130` for 01:30.
@@ -300,19 +300,19 @@ extension OpenRouterPricing {
             }
         }
 
-        let prompt: String?
-        let completion: String?
-        let inputCacheRead: String?
-        let inputCacheWrite: String?
-        let inputCacheWriteOneHour: String?
-        let internalReasoning: String?
-        let audio: String?
-        let image: String?
-        let request: String?
-        let webSearch: String?
+        fileprivate let prompt: String?
+        fileprivate let completion: String?
+        fileprivate let inputCacheRead: String?
+        fileprivate let inputCacheWrite: String?
+        fileprivate let inputCacheWriteOneHour: String?
+        fileprivate let internalReasoning: String?
+        fileprivate let audio: String?
+        fileprivate let image: String?
+        fileprivate let request: String?
+        fileprivate let webSearch: String?
         /// The fraction taken off the endpoint's prices, from 0 to 1.
-        let discount: Double?
-        let overrides: [Override]?
+        fileprivate let discount: Double?
+        fileprivate let overrides: [Override]?
 
         private enum CodingKeys: String, CodingKey {
             case prompt, completion, audio, image, request, discount, overrides
@@ -349,7 +349,7 @@ extension OpenRouterPricing {
     }
 
     /// A price from OpenRouter's decimal text, or `nil` for a negative one or text that isn't a number.
-    static func price(_ text: String?) -> Decimal? {
+    private static func price(_ text: String?) -> Decimal? {
         guard let text, let price = Decimal(string: text, locale: Locale(identifier: "en_US_POSIX")), price >= 0 else {
             return nil
         }

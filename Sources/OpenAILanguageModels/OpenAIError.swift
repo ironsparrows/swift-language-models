@@ -144,20 +144,20 @@ extension OpenAIError {
 /// model. The rest throw `OpenAIError`.
 struct OpenAIFailure: Sendable {
     /// The HTTP status, or `nil` for a failure in the stream, which arrives after the response's HTTP 200.
-    let status: HTTPStatus?
+    private let status: HTTPStatus?
 
     /// The `error` object, or `nil` when the response had none, such as a gateway's HTML page or a failed response
     /// without one.
-    let body: APIErrorBody?
+    private let body: APIErrorBody?
 
     /// OpenAI's id for the request.
-    let requestID: String?
+    private let requestID: String?
 
     /// How long OpenAI asks to wait, from the `retry-after-ms` or `Retry-After` header.
-    let retryAfter: Duration?
+    private let retryAfter: Duration?
 
     /// The time until the rate limits reset, which a rate limit's reset date falls back to.
-    let rateLimitReset: Duration?
+    private let rateLimitReset: Duration?
 
     /// A failed response.
     init(_ rejected: RequestFailure<APIErrorBody>) {

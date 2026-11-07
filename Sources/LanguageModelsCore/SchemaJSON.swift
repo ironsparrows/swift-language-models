@@ -90,7 +90,7 @@ extension JSONValue {
 
 extension GeneratedContent {
     /// A JSON value as generated content, with an object's members in their order.
-    package init(_ value: JSONValue) {
+    init(_ value: JSONValue) {
         switch value {
         case .null: self.init(kind: .null)
         case .bool(let value): self.init(kind: .bool(value))

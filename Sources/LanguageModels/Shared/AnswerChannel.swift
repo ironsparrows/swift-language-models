@@ -488,8 +488,8 @@ struct TaggedReasoning {
 extension TaggedReasoning {
     /// What a delta of the answer's text holds: the reasoning, which comes first, and the answer text after it.
     struct Split: Equatable {
-        var reasoning = ""
-        var text = ""
+        fileprivate(set) var reasoning = ""
+        fileprivate(set) var text = ""
     }
 
     private enum State {
@@ -639,22 +639,22 @@ struct AnswerUsage {
 /// and its reasoning signature.
 package struct AnswerAdditions {
     /// The company whose servers ran the model, once known.
-    var host: String?
+    private(set) var host: String?
 
     /// The provider's id for the request that got the answer.
-    var requestID: String?
+    fileprivate var requestID: String?
 
     /// What the answer cost, in US dollars.
-    var cost: Decimal?
+    fileprivate var cost: Decimal?
 
     /// The web searches the provider ran for the answer.
-    var webSearchCount: Int?
+    fileprivate var webSearchCount: Int?
 
     /// The provider's own facts, as its typed value writes them, for the metadata of the entry that ends the answer.
     var metadata: [String: any ConvertibleToGeneratedContent]
 
     /// The provider's own facts, as its typed value writes them, for the metadata of the answer's usage.
-    var usageMetadata: [String: any ConvertibleToGeneratedContent]
+    fileprivate var usageMetadata: [String: any ConvertibleToGeneratedContent]
 
     /// The signature of the answer's reasoning entry, such as reasoning in the provider's form that goes back on later
     /// turns, or `nil` when there's none.

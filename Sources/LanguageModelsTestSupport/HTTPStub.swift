@@ -70,7 +70,7 @@ package struct RecordedRequest: Sendable {
 /// A canned HTTP response that an ``HTTPStub`` serves.
 package struct StubResponse: Sendable {
     /// How a request ends.
-    enum Ending: Sendable {
+    fileprivate enum Ending: Sendable {
         /// The body ends after its last chunk.
         case finished
 
@@ -98,7 +98,7 @@ package struct StubResponse: Sendable {
     package let chunks: [Data]
 
     /// How the request ends.
-    let ending: Ending
+    fileprivate let ending: Ending
 
     /// Creates a response that delivers its body in the given chunks.
     ///
@@ -194,7 +194,7 @@ package struct StubResponse: Sendable {
 // MARK: - URL protocol
 
 /// Serves the responses an ``HTTPStub`` registered for a request's host, and records each request.
-final class StubURLProtocol: URLProtocol {
+private final class StubURLProtocol: URLProtocol {
     private struct Host {
         var responses: [StubResponse]
         var requests: [RecordedRequest] = []

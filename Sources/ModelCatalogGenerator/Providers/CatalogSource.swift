@@ -24,7 +24,7 @@ enum CatalogSource: String, Codable, CaseIterable, Sendable {
     }
 
     /// The environment variable that holds the API key the provider's model list needs, or `nil` when it needs none.
-    var apiKeyVariable: String? {
+    private var apiKeyVariable: String? {
         switch self {
         case .openrouter: nil
         case .openai: "OPENAI_API_KEY"
@@ -83,7 +83,7 @@ enum CatalogSource: String, Codable, CaseIterable, Sendable {
     var schemaPath: String { "Catalogs/\(rawValue).schema.json" }
 
     /// The fields of a document whose words form a vocabulary, so new words get reported.
-    func vocabularyFields(in document: CatalogSource.Documents.Kind) -> Set<String> {
+    private func vocabularyFields(in document: CatalogSource.Documents.Kind) -> Set<String> {
         switch (self, document) {
         case (.openrouter, .modelList):
             [
@@ -324,6 +324,6 @@ extension CatalogSource {
         let modelList: Data
         let apiDescription: Data
         /// The served models, for a source that has a list of them.
-        var servedModels: Data?
+        private(set) var servedModels: Data?
     }
 }

@@ -3,8 +3,8 @@
 /// One event of a server-sent event stream: its name, when it has one, and its data, with the lines of a multi-line
 /// `data` field joined by line breaks.
 struct ServerSentEvent: Equatable, Sendable {
-    var name: String?
-    var data: String
+    private(set) var name: String?
+    private(set) var data: String
 }
 
 extension ServerSentEvent {

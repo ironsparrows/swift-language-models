@@ -11,7 +11,7 @@ struct Command: Equatable {
         case clearRemoved = "clear-removed"
 
         /// What the subcommand does, for the usage text.
-        var summary: String {
+        fileprivate var summary: String {
             switch self {
             case .fetch: "Download the providers' model lists into Catalogs/."
             case .render: "Turn the catalogs into Swift sources."

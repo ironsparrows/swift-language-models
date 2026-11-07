@@ -163,9 +163,9 @@ extension OpenRouterError {
 /// The `error` object OpenRouter sends in a failed response's body, or in a stream event with HTTP 200.
 struct OpenRouterErrorResponse: Decodable, Sendable {
     /// The HTTP status as a number, or a provider's code as text.
-    var code: JSONValue? = nil
+    private(set) var code: JSONValue? = nil
     let message: String
-    var metadata: JSONValue? = nil
+    private(set) var metadata: JSONValue? = nil
 
     /// OpenRouter's kind of error, such as `context_length_exceeded`, or `nil` when the body doesn't name one.
     fileprivate var errorType: OpenRouterError.Code? { metadata?["error_type"]?.stringValue.map(OpenRouterError.Code.init(rawValue:)) }
@@ -251,18 +251,18 @@ extension OpenRouterFailure {
 struct OpenRouterFailure: Sendable {
     /// The HTTP status, or for an error in a stream, which arrives with HTTP 200, the status its code names, if the
     /// code is a number.
-    let status: HTTPStatus?
+    private let status: HTTPStatus?
     /// The `error` object, or one with the status's own text when the response had none, such as a gateway's HTML
     /// page.
-    let body: OpenRouterErrorResponse
+    private let body: OpenRouterErrorResponse
     /// How long OpenRouter asks to wait, from the `Retry-After` or `X-RateLimit-Reset` header.
-    let retryAfter: Duration?
+    private let retryAfter: Duration?
     /// The kind of failure.
     let code: OpenRouterError.Code
     /// The host that failed: the one the body names, or for an error in a stream, the one its chunk names.
-    let provider: OpenRouterProviderName?
+    private let provider: OpenRouterProviderName?
     /// Whether the router's report says a guardrail blocked the request.
-    let isGuardrailBlock: Bool
+    private let isGuardrailBlock: Bool
 
     /// A failed response.
     ///

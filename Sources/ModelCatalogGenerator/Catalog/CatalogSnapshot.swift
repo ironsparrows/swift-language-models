@@ -252,13 +252,13 @@ struct FetchedCatalog: Sendable {
     /// Every effort word that the source's API description lists, highest first.
     let efforts: [String]
     /// The ids of the model list's entries that don't decode, which the fetch skipped, sorted.
-    var skippedEntryIDs: [String] = []
+    private(set) var skippedEntryIDs: [String] = []
     /// The ids of the models the source serves that the fetch left out because their entries don't decode, so it
     /// can't tell whether the catalog lists them.
-    var undescribedModelIDs: Set<String> = []
+    private(set) var undescribedModelIDs: Set<String> = []
 
     /// The ids of the models.
-    var modelIDs: Set<String> {
+    fileprivate var modelIDs: Set<String> {
         Set(models.map(\.id))
     }
 }
@@ -279,7 +279,7 @@ enum CatalogVocabulary: String, Codable, CodingKeyRepresentable, Sendable {
     case webSearchModes
 
     /// The vocabulary's words that a model uses, which are none for a vocabulary of request settings.
-    func words(of model: CatalogModel) -> [String] {
+    fileprivate func words(of model: CatalogModel) -> [String] {
         switch self {
         case .inputModalities: model.inputModalities
         case .outputModalities: model.outputModalities

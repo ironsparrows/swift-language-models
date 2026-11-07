@@ -90,7 +90,7 @@ enum Generator {
         let bump: CatalogChanges.Bump
         let sources: [CatalogChanges]
 
-        init(_ changes: [CatalogChanges]) {
+        fileprivate init(_ changes: [CatalogChanges]) {
             bump = changes.bump
             sources = changes
         }
@@ -297,7 +297,7 @@ enum Generator {
 
 extension Generator {
     /// The package's files as a git commit has them.
-    struct GitRevision {
+    private struct GitRevision {
         let ref: String
         let packageDirectory: URL
 

@@ -39,7 +39,7 @@ public struct GuideViolation: Sendable, Equatable, CustomStringConvertible {
     /// What's wrong with the value, such as `is 0, below the minimum of 1`.
     private let problem: String
 
-    package init(path: String, keyword: Keyword, value: GeneratedContent, limit: GeneratedContent, problem: String) {
+    fileprivate init(path: String, keyword: Keyword, value: GeneratedContent, limit: GeneratedContent, problem: String) {
         self.path = path
         self.keyword = keyword
         self.value = value
@@ -107,7 +107,7 @@ public struct GuideViolations: Error, Sendable, Equatable, CustomStringConvertib
     /// Each value that breaks a guide, in the order of the answer.
     public let violations: [GuideViolation]
 
-    package init(_ violations: [GuideViolation]) {
+    private init(_ violations: [GuideViolation]) {
         self.violations = violations
     }
 
@@ -162,7 +162,7 @@ extension JSONValue {
     ///
     /// - Parameter schema: The schema, whose `$ref`s point into its own `$defs`.
     /// - Returns: Each broken constraint, in the order of the value; none when the value meets them all.
-    package func violations(of schema: JSONValue) -> [GuideViolation] {
+    func violations(of schema: JSONValue) -> [GuideViolation] {
         SchemaChecker(root: schema).violations(of: self, against: schema, at: "", depth: 0)
     }
 }
@@ -318,7 +318,7 @@ extension JSONValue {
 
 extension JSONValue {
     /// The value as a number, for any of the number cases.
-    fileprivate var numberValue: Double? {
+    private var numberValue: Double? {
         switch self {
         case .integer(let value): Double(value)
         case .largeInteger(let value): NSDecimalNumber(decimal: value).doubleValue
@@ -328,7 +328,7 @@ extension JSONValue {
     }
 
     /// Whether the value is of a JSON Schema type, where a whole number is an `integer` too.
-    fileprivate func isOfType(_ type: String) -> Bool {
+    private func isOfType(_ type: String) -> Bool {
         switch (type, self) {
         case (SchemaType.null, .null), (SchemaType.boolean, .bool), (SchemaType.string, .string),
             (SchemaType.array, .array), (SchemaType.object, .object):
@@ -341,7 +341,7 @@ extension JSONValue {
     }
 
     /// Whether two values are the same JSON value, where numbers compare by value.
-    fileprivate func isSame(as other: JSONValue) -> Bool {
+    private func isSame(as other: JSONValue) -> Bool {
         if let order = Self.order(of: self, to: other) { return order == .orderedSame }
         return self == other
     }
@@ -350,7 +350,7 @@ extension JSONValue {
     ///
     /// Whole numbers compare exactly, also past the 2^53 that a `Double` holds exactly; a number with a fraction
     /// compares as a `Double`.
-    fileprivate static func order(of value: JSONValue, to other: JSONValue) -> ComparisonResult? {
+    private static func order(of value: JSONValue, to other: JSONValue) -> ComparisonResult? {
         switch (value, other) {
         case (.integer(let value), .integer(let other)):
             return order(value, other)
@@ -377,7 +377,7 @@ extension JSONValue {
     }
 
     /// The value as JSON text, cut short after 60 characters.
-    fileprivate var shortText: String {
+    private var shortText: String {
         let text = self.text
         return text.count > 60 ? "\(text.prefix(60))…" : text
     }
@@ -387,11 +387,11 @@ extension JSONValue {
     /// The words of JSON Schema's `type` keyword.
     enum SchemaType {
         static let null = "null"
-        static let boolean = "boolean"
-        static let integer = "integer"
-        static let number = "number"
-        static let string = "string"
-        static let array = "array"
-        static let object = "object"
+        fileprivate static let boolean = "boolean"
+        fileprivate static let integer = "integer"
+        fileprivate static let number = "number"
+        fileprivate static let string = "string"
+        fileprivate static let array = "array"
+        fileprivate static let object = "object"
     }
 }

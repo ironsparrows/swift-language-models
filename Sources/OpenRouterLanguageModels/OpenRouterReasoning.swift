@@ -105,7 +105,7 @@ extension ReasoningDetails {
     }
 
     /// Whose reasoning a detail is, from its `format`.
-    fileprivate struct Format: ProviderVocabulary {
+    private struct Format: ProviderVocabulary {
         /// Anthropic's.
         static let anthropic: Self = "anthropic-claude-v1"
 

@@ -223,7 +223,7 @@ extension ContextOptions.ReasoningLevel {
     ///   - supported: The words the model accepts.
     ///   - ranking: Every known effort word, highest first.
     /// - Returns: The word to send, or `nil` to leave it out of the request.
-    package static func nearest(to word: String, among supported: [String], ranking: [String]) -> String? {
+    static func nearest(to word: String, among supported: [String], ranking: [String]) -> String? {
         guard !supported.contains(word) else { return word }
         guard let position = ranking.firstIndex(of: word) else { return nil }
 

@@ -19,19 +19,19 @@ extension ChatCompletions {
         // MARK: Where requests go
 
         /// The model's id, sent as `model`.
-        var name: String
+        private(set) var name: String
 
         /// The provider's base URL, which `chat/completions` goes under.
-        var url: URL
+        private var url: URL
 
         /// How requests reach the provider: the URL session, authentication, idle timeout and retries.
         var connection: Connection
 
         /// The provider's name, as the log's category and error messages name it.
-        var providerName: String
+        private(set) var providerName: String
 
         /// What the model can do, which Foundation Models checks before a request.
-        package var capabilities: LanguageModelCapabilities
+        package private(set) var capabilities: LanguageModelCapabilities
 
         /// The models a request may reach, in the order the provider tries them, which each request looks through for one
         /// its provider stopped listing.
@@ -286,7 +286,7 @@ extension ChatCompletions {
 
         /// The images the model generated, as data URLs such as `data:image/png;base64,…`, each sent as a data entry of
         /// its own after the chunk's other output. One that isn't inline data, such as a web address, is left out.
-        var imageURLs: [String]
+        private(set) var imageURLs: [String]
 
         package init(reasoning: String? = nil, imageURLs: [String] = []) {
             self.reasoning = reasoning
@@ -305,8 +305,8 @@ package struct NoMembers: Decodable, Sendable {}
 extension ChatCompletions {
     /// An exchange that adds nothing, for a provider that takes the format as it is. Its errors are the failures
     /// themselves.
-    package struct PlainExchange: Exchange {
-        package func error(for failure: RequestFailure<APIErrorBody>) -> any Error {
+    struct PlainExchange: Exchange {
+        func error(for failure: RequestFailure<APIErrorBody>) -> any Error {
             failure
         }
     }
@@ -320,7 +320,7 @@ extension ChatCompletions.Model where Exchange == ChatCompletions.PlainExchange 
     /// - Parameters:
     ///   - name: The model's id, sent as `model`.
     ///   - url: The server's base URL.
-    package init(name: String, url: URL) {
+    init(name: String, url: URL) {
         let providerName = url.host() ?? name
         self.init(
             name: name, url: url, connection: .unauthenticated, providerName: providerName, images: .standard,

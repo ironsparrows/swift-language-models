@@ -1,6 +1,6 @@
 import FoundationModels
-import LanguageModelsCore
 import Testing
+@testable import LanguageModelsCore
 
 @Suite("Provider effort")
 struct ProviderEffortTests {

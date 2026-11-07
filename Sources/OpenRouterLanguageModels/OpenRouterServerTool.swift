@@ -266,14 +266,14 @@ extension OpenRouterServerTool {
 
     /// The parameters of a web search.
     struct WebSearch: Encodable, Sendable, Hashable {
-        let engine: OpenRouterWebSearchEngine?
-        let mode: OpenRouterWebSearchMode?
-        let maximumResults: Int?
-        let maximumTotalResults: Int?
-        let maximumSearches: Int?
-        let searchContextSize: OpenRouterSearchContextSize?
-        let allowedDomains: [String]?
-        let excludedDomains: [String]?
+        fileprivate let engine: OpenRouterWebSearchEngine?
+        fileprivate let mode: OpenRouterWebSearchMode?
+        fileprivate let maximumResults: Int?
+        fileprivate let maximumTotalResults: Int?
+        fileprivate let maximumSearches: Int?
+        fileprivate let searchContextSize: OpenRouterSearchContextSize?
+        fileprivate let allowedDomains: [String]?
+        fileprivate let excludedDomains: [String]?
 
         private enum CodingKeys: String, CodingKey {
             case engine
@@ -289,11 +289,11 @@ extension OpenRouterServerTool {
 
     /// The parameters of a web fetch.
     struct WebFetch: Encodable, Sendable, Hashable {
-        let engine: OpenRouterWebFetchEngine?
-        let maximumFetches: Int?
-        let maximumContentTokens: Int?
-        let allowedDomains: [String]?
-        let excludedDomains: [String]?
+        fileprivate let engine: OpenRouterWebFetchEngine?
+        fileprivate let maximumFetches: Int?
+        fileprivate let maximumContentTokens: Int?
+        fileprivate let allowedDomains: [String]?
+        fileprivate let excludedDomains: [String]?
 
         private enum CodingKeys: String, CodingKey {
             case engine
@@ -306,15 +306,15 @@ extension OpenRouterServerTool {
 
     /// The parameters of a call to another model, which an advisor and a subagent share.
     struct ModelCall: Encodable, Sendable, Hashable {
-        let name: String?
-        let model: OpenRouterModelID?
-        let instructions: String?
-        let maximumResponseTokens: Int?
-        let reasoning: Reasoning?
-        let temperature: Double?
+        private let name: String?
+        private let model: OpenRouterModelID?
+        private let instructions: String?
+        private let maximumResponseTokens: Int?
+        private let reasoning: Reasoning?
+        private let temperature: Double?
 
         /// The call's reasoning: the nearest effort OpenRouter names, and a token budget.
-        struct Reasoning: Encodable, Sendable, Hashable {
+        private struct Reasoning: Encodable, Sendable, Hashable {
             let effort: String?
             let maximumTokens: Int?
 
@@ -324,7 +324,7 @@ extension OpenRouterServerTool {
             }
         }
 
-        init(
+        fileprivate init(
             model: OpenRouterModelID?,
             name: String?,
             instructions: String?,

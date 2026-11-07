@@ -200,9 +200,11 @@ else needs:
   declaration goes in `Internal/`, so a reader sees first what they can use. The rest of those modules is flat.
   `LanguageModels` has no `Internal/`: all of it is `package` or internal, and `Shared/` does that job.
 - **Access is the narrowest that compiles.** `public` for what apps use, `package` for what another target writes today,
-  nothing written for the rest of a target, and `private` for what one file uses. `internal` is never written. A helper
-  with unit tests of its own stays internal, since `@testable` tests can't reach a `private` type. Wire types have no such
-  tests and are `private`.
+  another target's tests included, nothing written for the rest of a target, and `private` for what one file uses, or
+  `fileprivate` when a sibling in that file reads it. `internal` is never written. A module's own tests use `@testable`.
+  The defaults of an `Exchange` protocol stay `package`, so a provider can leave those methods out. A helper with unit
+  tests of its own stays internal, since `@testable` tests can't reach a `private` type. Wire types have no such tests and
+  are `private`.
 - **Initializers of a generic public type stay in the struct.** In an unconstrained extension, DocC adds "Available when"
   to each page.
 

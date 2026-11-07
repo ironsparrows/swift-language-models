@@ -255,7 +255,7 @@ extension HTTPClient {
         ///   - number: The retry's number, from 1.
         ///   - error: The connection's error.
         /// - Returns: The retry, or `nil` when the request has made its retries or the error isn't retried.
-        func retry(_ number: Int, after error: URLError) -> Retry? {
+        fileprivate func retry(_ number: Int, after error: URLError) -> Retry? {
             guard number <= retries, Self.connectionErrors.contains(error.code), let wait = wait(number - 1, nil)
             else { return nil }
             return Retry(cause: .connection(error), wait: wait, number: number, limit: retries)
@@ -390,7 +390,7 @@ extension Duration {
     }
 
     /// The delay in a `retry-after-ms` header, in milliseconds.
-    init?(retryAfterMilliseconds header: String?) {
+    fileprivate init?(retryAfterMilliseconds header: String?) {
         guard let header, let milliseconds = Double(header.trimmingCharacters(in: .whitespaces)), milliseconds.isFinite else {
             return nil
         }

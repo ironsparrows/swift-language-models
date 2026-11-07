@@ -375,7 +375,7 @@ public struct OpenRouterUsageMetadata: Sendable, Hashable {
     public let webSearchCount: Int?
 
     /// The facts in a usage's metadata.
-    init(_ metadata: [String: GeneratedContent]) {
+    fileprivate init(_ metadata: [String: GeneratedContent]) {
         let shared = ProviderUsageMetadata(metadata)
         let values = MetadataValues(metadata)
         cost = shared.cost

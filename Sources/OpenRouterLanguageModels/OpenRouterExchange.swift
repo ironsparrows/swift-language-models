@@ -428,7 +428,7 @@ struct OpenRouterChunkExtras: Decodable {
         struct ServerToolUseDetails: Decodable {
             let toolCallsRequested: Int?
             let toolCallsExecuted: Int?
-            let webSearchRequests: Int?
+            fileprivate let webSearchRequests: Int?
 
             private enum CodingKeys: String, CodingKey {
                 case toolCallsRequested = "tool_calls_requested"
@@ -437,7 +437,7 @@ struct OpenRouterChunkExtras: Decodable {
             }
         }
 
-        let cost: Double?
+        fileprivate let cost: Double?
         let costDetails: CostDetails?
         let isBYOK: Bool?
         let serverToolUseDetails: ServerToolUseDetails?
@@ -475,10 +475,10 @@ struct OpenRouterChunkExtras: Decodable {
             let name: String?
             let summary: String?
             /// The plugin's own details, which are free-form.
-            let data: JSONValue?
+            private let data: JSONValue?
 
             /// Whether the stage is a guardrail that blocked the request.
-            var isGuardrailBlock: Bool { type == "guardrail" && data?["action"]?.stringValue == "blocked" }
+            fileprivate var isGuardrailBlock: Bool { type == "guardrail" && data?["action"]?.stringValue == "blocked" }
         }
 
         let strategy: String?

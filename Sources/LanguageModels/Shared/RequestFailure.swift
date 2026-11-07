@@ -139,16 +139,16 @@ extension RequestFailure {
 /// otherwise, since hosts vary them.
 package struct APIErrorBody: Decodable, Sendable {
     /// What went wrong.
-    package var message: String
+    package private(set) var message: String
 
     /// The kind of error, such as `invalid_request_error`.
     package var type: String?
 
     /// The error's code, a number or a word depending on the host.
-    package var code: JSONValue?
+    package private(set) var code: JSONValue?
 
     /// The request parameter the error concerns.
-    package var param: String?
+    package private(set) var param: String?
 
     package init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
@@ -191,7 +191,7 @@ enum StreamProblem: Error, Equatable {
     ///
     /// - Parameter provider: The provider's name, such as `OpenRouter`.
     /// - Returns: A sentence for the error's message.
-    func message(provider: String) -> String {
+    fileprivate func message(provider: String) -> String {
         switch self {
         case .unreadableEvent(let reason): "\(provider) sent an event that couldn't be read: \(reason)"
         case .cutOff: "The response ended before it was complete."
@@ -278,7 +278,7 @@ extension LanguageModelError.ProviderFailure {
     ///
     /// - Parameter message: The error's message.
     /// - Returns: The context size and the tokens the request needs.
-    package static func contextSizes(in message: String) -> (limit: Int?, requested: Int?) {
+    static func contextSizes(in message: String) -> (limit: Int?, requested: Int?) {
         let limit = message.firstMatch(of: /(?:maximum context length is|context window of) (\d+)/).flatMap { Int($0.1) }
         let requested = message.firstMatch(of: /(?:requested (?:about )?|resulted in )(\d+)/).flatMap { Int($0.1) }
         return (limit, requested)
@@ -301,7 +301,7 @@ extension LanguageModelError {
 
 extension RequestFailure {
     /// The body of a failed response, `{"error": {…}}`.
-    fileprivate struct Envelope: Decodable {
+    private struct Envelope: Decodable {
         let error: ErrorBody
     }
 }
