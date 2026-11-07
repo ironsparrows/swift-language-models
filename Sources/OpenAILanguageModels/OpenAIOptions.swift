@@ -1,4 +1,4 @@
-import LanguageModels
+public import LanguageModels
 
 /// Request settings that only OpenAI has, beyond Foundation Models' generation options.
 ///
@@ -88,5 +88,77 @@ extension OpenAIOptions {
 
         /// OpenAI doesn't keep the response.
         case notStored
+    }
+}
+
+extension OpenAIOptions {
+    /// The key that groups requests whose prompts start the same, so OpenAI's prompt cache serves their shared start
+    /// more often. It goes out as `prompt_cache_key`.
+    public struct CacheKey: Sendable, Hashable {
+        /// Each session's own key: the id of its first prompt, which stays the same for the whole session.
+        public static let session = Self(kind: .session)
+
+        /// A key of the app's own, such as one for every session that shares the same long instructions.
+        ///
+        /// - Parameter key: The key.
+        /// - Returns: The cache key.
+        public static func named(_ key: String) -> Self {
+            Self(kind: .named(key))
+        }
+
+        enum Kind: Sendable, Hashable {
+            case session
+            case named(String)
+        }
+
+        let kind: Kind
+    }
+}
+
+extension OpenAIOptions {
+    /// How much of its reasoning a model summarizes for the answer's reasoning entry.
+    public struct ReasoningSummary: ProviderVocabulary {
+        /// The most detailed summary the model writes.
+        public static let auto: Self = "auto"
+
+        /// A short summary.
+        public static let concise: Self = "concise"
+
+        /// A detailed summary.
+        public static let detailed: Self = "detailed"
+
+        /// The summary's name in OpenAI's API.
+        public let rawValue: String
+
+        /// Creates a summary from its name in OpenAI's API.
+        ///
+        /// - Parameter rawValue: The name, such as `"auto"`.
+        public init(rawValue: String) {
+            self.rawValue = rawValue
+        }
+    }
+}
+
+extension OpenAIOptions {
+    /// How long and detailed a model's answers are, from `low` to `high`.
+    public struct Verbosity: ProviderVocabulary {
+        /// Short, concise answers.
+        public static let low: Self = "low"
+
+        /// Answers of the usual length, the model's default.
+        public static let medium: Self = "medium"
+
+        /// Longer, more detailed answers.
+        public static let high: Self = "high"
+
+        /// The level's name in OpenAI's API.
+        public let rawValue: String
+
+        /// Creates a level from its name in OpenAI's API.
+        ///
+        /// - Parameter rawValue: The name, such as `"low"`.
+        public init(rawValue: String) {
+            self.rawValue = rawValue
+        }
     }
 }

@@ -1,5 +1,8 @@
 package import LanguageModelsCore
 
+/// OpenAI's Responses format.
+package enum Responses {}
+
 /// The role of the input message the instructions go in, as a dialect's ``ResponsesDialect/instructionsRole`` picks
 /// it.
 package struct InstructionsRole: ProviderVocabulary {

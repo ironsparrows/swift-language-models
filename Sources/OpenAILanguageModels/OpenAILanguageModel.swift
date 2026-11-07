@@ -1,6 +1,13 @@
 public import Foundation
 public import FoundationModels
-public import LanguageModels
+// Re-exports `LanguageModels`, and through it the core every provider shares, so `import OpenAILanguageModels` is all an
+// app needs: typed reasoning efforts, `FileAttachment`, the model details and logging come with it.
+@_exported public import LanguageModels
+#if canImport(FoundationModels, _version: 2.1.14)
+public import UniformTypeIdentifiers
+#endif
+
+// MARK: - Model
 
 /// One of OpenAI's models, for Foundation Models sessions, through OpenAI's Responses API.
 ///
@@ -102,7 +109,7 @@ public struct OpenAILanguageModel<Effort: ModelEffort>: DetailedLanguageModel {
     }
 }
 
-extension OpenAILanguageModel: ConfigurableLanguageModel {}
+// MARK: - Creating a model
 
 extension OpenAILanguageModel where Effort == ContextOptions.ReasoningLevel {
     /// The same model with its efforts in their open form, so models with different effort types fit in one list.
@@ -116,5 +123,268 @@ extension OpenAILanguageModel where Effort == ContextOptions.ReasoningLevel {
             auth: typed.auth,
             configuration: typed.configuration
         )
+    }
+}
+
+/// How a model's requests authenticate, and where they go: to OpenAI with an API key, with a key to another server that
+/// speaks OpenAI's API, or to a server of your own that adds the key and forwards them.
+///
+/// ```swift
+/// // An API key, for development, or a key the person brings, kept in the Keychain:
+/// OpenAILanguageModel(.gpt6Luna, auth: .apiKey { try await keyStore.openAIKey() })
+///
+/// // Your own server, which adds the key and forwards each request to OpenAI, so the app ships no key:
+/// OpenAILanguageModel(
+///     .gpt6Luna,
+///     auth: .proxied(baseURL: proxyURL, headers: { ["X-App-Token": try await account.appToken()] })
+/// )
+/// ```
+///
+/// A key inside an app can be extracted from it, so an app that ships uses ``proxied(baseURL:headers:)``, or a key each
+/// person brings.
+public struct OpenAIAuthentication: Sendable {
+    /// The server that stands in for OpenAI's API, from ``apiKey(baseURL:organization:project:_:)`` or
+    /// ``proxied(baseURL:headers:)``, or `nil` for OpenAI's API itself.
+    public var baseURL: URL? { requestAuthentication.baseURL }
+
+    /// The headers that authenticate a request, read for every request, and where it goes, as a request's connection
+    /// holds them.
+    let requestAuthentication: RequestAuthentication
+
+    private init(_ requestAuthentication: RequestAuthentication) {
+        self.requestAuthentication = requestAuthentication
+    }
+
+    /// Authentication with these headers, sent to a base URL, such as a test server's.
+    init(baseURL: URL?, headers: @escaping @Sendable () async throws -> [String: String]) {
+        self.init(RequestAuthentication(baseURL: baseURL, headers: headers))
+    }
+
+    /// Reads the headers, and throws a `URLError` that reading them throws the way a failed connection's is thrown.
+    func requestHeaders() async throws -> [HTTPHeaderName: String] {
+        try await requestAuthentication.requestHeaders()
+    }
+
+    /// An OpenAI API key, sent to OpenAI as a bearer token.
+    ///
+    /// - Parameters:
+    ///   - organization: The organization the requests count toward, sent as `OpenAI-Organization`, or `nil` for the
+    ///     key's default.
+    ///   - project: The project the requests count toward, sent as `OpenAI-Project`, or `nil` for the key's default.
+    ///   - key: Returns the key. It's called for every request and never stored. An empty key sends no
+    ///     `Authorization` header.
+    /// - Returns: The authentication.
+    public static func apiKey(
+        organization: String? = nil,
+        project: String? = nil,
+        _ key: @escaping @Sendable () async throws -> String
+    ) -> Self {
+        Self(apiKey: key, baseURL: nil, organization: organization, project: project)
+    }
+
+    /// An OpenAI API key, sent as a bearer token to another server that speaks OpenAI's API, such as a gateway of your
+    /// company's or a test server.
+    ///
+    /// Requests go to the same paths under `baseURL` as under OpenAI's API, such as `responses`, and follow redirects
+    /// only to the same host. To keep the key out of the app, use ``proxied(baseURL:headers:)`` instead.
+    ///
+    /// - Parameters:
+    ///   - baseURL: The server's URL, which stands in for `https://api.openai.com/v1/`.
+    ///   - organization: The organization the requests count toward, sent as `OpenAI-Organization`, or `nil` for the
+    ///     key's default.
+    ///   - project: The project the requests count toward, sent as `OpenAI-Project`, or `nil` for the key's default.
+    ///   - key: Returns the key. It's called for every request and never stored. An empty key sends no
+    ///     `Authorization` header.
+    /// - Returns: The authentication.
+    public static func apiKey(
+        baseURL: URL,
+        organization: String? = nil,
+        project: String? = nil,
+        _ key: @escaping @Sendable () async throws -> String
+    ) -> Self {
+        Self(apiKey: key, baseURL: baseURL, organization: organization, project: project)
+    }
+
+    /// A server of your own that stands in for OpenAI's API: it adds the API key and forwards each request, so the app
+    /// ships no key.
+    ///
+    /// Requests go to the same paths under `baseURL` as under OpenAI's API, such as `responses`, and follow redirects
+    /// only to the same host.
+    ///
+    /// - Parameters:
+    ///   - baseURL: The server's URL, which stands in for `https://api.openai.com/v1/`.
+    ///   - headers: Returns the headers that let the server authorize the caller, such as a token of your app's own.
+    ///     It's called for every request, so a token can refresh. Return `[:]` when the server needs none.
+    /// - Returns: The authentication.
+    public static func proxied(
+        baseURL: URL,
+        headers: @escaping @Sendable () async throws -> [String: String] = { [:] }
+    ) -> Self {
+        Self(baseURL: baseURL, headers: headers)
+    }
+
+    /// An API key sent as a bearer token to OpenAI's API, or to the base URL that stands in for it, with the
+    /// organization and project when set.
+    private init(apiKey key: @escaping @Sendable () async throws -> String, baseURL: URL?, organization: String?, project: String?) {
+        self.init(
+            .apiKey(key, baseURL: baseURL) { key in
+                var headers: [HTTPHeaderName: String] = [.authorization: "Bearer \(key)"]
+                headers[API.Header.organization] = organization
+                headers[API.Header.project] = project
+                return headers
+            })
+    }
+}
+
+// MARK: - Details and capabilities
+
+// FoundationModels 2.1.14 comes with Xcode 27.2, the first SDK with data attachments and data entries.
+#if canImport(FoundationModels, _version: 2.1.14)
+@available(iOS 27.2, macOS 27.2, visionOS 27.2, watchOS 27.2, *)
+extension OpenAILanguageModel {
+    /// Whether the model accepts the kind of data as a prompt attachment.
+    ///
+    /// - Parameter type: The kind of data, such as `UTType.pdf`.
+    /// - Returns: Whether the kind conforms to an attachment kind the model accepts.
+    /// - Throws: Nothing; the method throws only because Foundation Models declares it so.
+    public func supportsDataAttachmentType(_ type: UTType) async throws -> Bool {
+        details.supportsDataAttachmentType(type)
+    }
+
+    /// Whether the model generates the kind of data: never, since the catalog lists only models that answer in text.
+    ///
+    /// - Parameter type: The kind of data, such as `UTType.png`.
+    /// - Returns: Whether the model generates the kind.
+    /// - Throws: Nothing; the method throws only because Foundation Models declares it so.
+    public func supportsDataEntryType(_ type: UTType) async throws -> Bool {
+        details.supportsDataEntryType(type)
+    }
+}
+#endif
+
+// MARK: - Settings
+
+extension OpenAILanguageModel: ConfigurableLanguageModel {}
+
+/// How an OpenAI model's requests are sent: how long they wait, how they retry, and how their images are encoded.
+///
+/// Options, such as ``OpenAIOptions``, are what a request asks OpenAI for. The configuration is how the package sends
+/// the request, so OpenAI never sees it. Set it when creating the model, or change it later:
+///
+/// ```swift
+/// // Fail fast on an interactive screen.
+/// let model = OpenAILanguageModel(
+///     .gpt6Luna,
+///     configuration: OpenAIConfiguration(idleTimeout: .seconds(60), retries: RequestRetries(limit: 1)),
+///     auth: .apiKey { try await keyStore.openAIKey() }
+/// )
+///
+/// // Smaller images, for fewer input tokens.
+/// var batch = model
+/// batch.configuration.images.maximumSide = 1_024
+/// ```
+public struct OpenAIConfiguration: Sendable, Hashable, RetryingConfiguration, ImageEncodingConfiguration {
+    /// The longest time to wait for the next data, from sending the request to the end of the answer, or `nil` for
+    /// the URL session's own timeout.
+    public var idleTimeout: Duration?
+
+    /// How a request that fails before any data arrives is sent again: after a failed connection, a 408, 409 or 429,
+    /// or any status from 500 up, as OpenAI's own SDKs retry it, or whatever status when `x-should-retry` is `true`,
+    /// but never when it's `false`.
+    public var retries: RequestRetries
+
+    /// How image attachments are encoded before they're sent.
+    public var images: ImageEncoding
+
+    /// Creates a configuration.
+    ///
+    /// - Parameters:
+    ///   - idleTimeout: The longest time to wait for the next data, or `nil` for the URL session's own timeout. The
+    ///     default is 10 minutes, as in OpenAI's own SDKs, since a model that reasons hard may send nothing for a
+    ///     while.
+    ///   - retries: How a failed request is sent again. The default retries up to twice, as OpenAI's own SDKs do.
+    ///   - images: How image attachments are encoded.
+    public init(idleTimeout: Duration? = .seconds(600), retries: RequestRetries = .standard, images: ImageEncoding = .standard) {
+        self.idleTimeout = idleTimeout
+        self.retries = retries
+        self.images = images
+    }
+}
+
+// MARK: - Executor
+
+extension OpenAILanguageModel {
+    /// Sends a model's requests to OpenAI and streams each answer into Foundation Models.
+    ///
+    /// The model's executor, a `DetailedLanguageModelExecutor` of this request executor, creates it and calls it for
+    /// each answer. It keeps no state between answers.
+    public struct RequestExecutor: DetailedLanguageModelRequestExecutor {
+        /// The model the request executor sends requests for.
+        public typealias Model = OpenAILanguageModel
+
+        /// Where the request executor sends requests, with the model's ``OpenAIConfiguration``. It holds no secrets.
+        ///
+        /// The model makes it from its authentication's base URL and its configuration, so an app sets
+        /// ``OpenAILanguageModel/configuration`` rather than this.
+        public struct Configuration: Sendable, Hashable {
+            let baseURL: URL?
+            let settings: OpenAIConfiguration
+
+            init(baseURL: URL?, settings: OpenAIConfiguration) {
+                self.baseURL = baseURL
+                self.settings = settings
+            }
+
+            /// The same configuration for a model with another effort type.
+            init(_ other: OpenAILanguageModel<some ModelEffort>.RequestExecutor.Configuration) {
+                self.init(baseURL: other.baseURL, settings: other.settings)
+            }
+        }
+
+        /// Where requests go and how long they wait, which OpenAI's dialect reads.
+        let configuration: Configuration
+
+        /// Creates a request executor.
+        ///
+        /// - Parameter configuration: Where to send requests.
+        public init(configuration: Configuration) {
+            self.configuration = configuration
+        }
+    }
+}
+
+extension OpenAILanguageModel.RequestExecutor {
+    /// Sends one request and streams its answer.
+    ///
+    /// A failed request is retried up to twice, only before any data arrives, as the official SDKs retry it: after a
+    /// failed connection, a 408, 409 or 429, any status from 500 up, or any status whose `x-should-retry` is `true`,
+    /// unless its `x-should-retry` is `false` or its `retry-after-ms` or `Retry-After` asks for more than 2 minutes. A
+    /// request whose schema has a constraint OpenAI rejects is sent once more with the portable schema, which carries
+    /// its constraints in descriptions.
+    ///
+    /// - Parameters:
+    ///   - request: The transcript, tools, schema and options to send.
+    ///   - model: The model to answer with.
+    ///   - channel: Where the answer's events go.
+    /// - Returns: The answer's response text, which the model's executor checks against the request's schema.
+    /// - Throws: `LanguageModelError` for failures Foundation Models has a case for, `OpenAIError` for the rest, and
+    ///   `CancellationError` when the task is cancelled. An error that the model's authentication throws passes through
+    ///   as it is, unless it's a `URLError`, which maps as a failed connection's does.
+    public func execute(
+        _ request: LanguageModelExecutorGenerationRequest,
+        model: OpenAILanguageModel,
+        streamingInto channel: LanguageModelExecutorGenerationChannel
+    ) async throws -> DetailedLanguageModelAnswer {
+        try await respond(to: request, model: model, streamingInto: channel, as: OpenAIResponses<Effort>.self)
+    }
+}
+
+extension OpenAILanguageModel {
+    /// How the model's requests reach OpenAI: its session and authentication, with the timeout and retries of its
+    /// configuration, retrying the statuses the official SDKs retry.
+    func connection(_ configuration: OpenAIConfiguration) -> ProviderConnection {
+        ProviderConnection(
+            session: session, authentication: auth.requestAuthentication, idleTimeout: configuration.idleTimeout,
+            retryPolicy: configuration.retries.policy(statuses: API.retriesStatus))
     }
 }

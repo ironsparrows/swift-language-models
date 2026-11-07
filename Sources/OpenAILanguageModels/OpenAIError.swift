@@ -1,5 +1,8 @@
 public import Foundation
+import FoundationModels
 public import LanguageModels
+
+// MARK: - Error
 
 /// A failure of an OpenAI request that Foundation Models has no error for, such as a rejected API key or no quota left.
 ///
@@ -97,6 +100,8 @@ public struct OpenAIError: Error, Sendable, Equatable, LocalizedError {
     }
 }
 
+// MARK: - Codes
+
 extension OpenAIError {
     /// A kind of failure: one of OpenAI's codes or error types, or one the package reports itself.
     public struct Code: ProviderVocabulary {
@@ -152,5 +157,200 @@ extension OpenAIError {
         public init(rawValue: String) {
             self.rawValue = rawValue
         }
+    }
+}
+
+// MARK: - What a failure becomes
+
+/// A failure OpenAI reported, before it becomes the error a session throws.
+///
+/// Failures Foundation Models has a case for throw `LanguageModelError`, so apps handle them the same way for every
+/// model. The rest throw `OpenAIError`.
+struct OpenAIFailure: Sendable {
+    /// The HTTP status, or `nil` for a failure in the stream, which arrives after the response's HTTP 200.
+    let status: Int?
+
+    /// The `error` object, or `nil` when the response had none, such as a gateway's HTML page or a failed response
+    /// without one.
+    let body: APIErrorBody?
+
+    /// OpenAI's id for the request.
+    let requestID: String?
+
+    /// How long OpenAI asks to wait, from the `retry-after-ms` or `Retry-After` header.
+    let retryAfter: Duration?
+
+    /// The time until the rate limits reset, which a rate limit's reset date falls back to.
+    let rateLimitReset: Duration?
+
+    /// A failed response.
+    init(_ rejection: HTTPRejection<APIErrorBody>) {
+        status = rejection.status
+        body = rejection.body
+        requestID = rejection.headers.value(for: .requestID)
+        retryAfter = rejection.retryAfter
+        rateLimitReset = Self.rateLimitReset(rejection.headers)
+    }
+
+    /// A failure in the stream: an `error` event, or a failed response with its `error` object if it has one.
+    init(streamError body: APIErrorBody?, requestID: String?) {
+        status = nil
+        var body = body
+        // An `error` event that carries the error in its own members has the event's `type`, which isn't an error type.
+        if body?.type == Self.errorEventType { body?.type = nil }
+        self.body = body
+        self.requestID = requestID
+        retryAfter = nil
+        rateLimitReset = nil
+    }
+
+    /// The error to throw.
+    ///
+    /// - Parameters:
+    ///   - contextSize: The model's context size, for an oversized prompt whose message doesn't name it.
+    ///   - imageEntries: The request's entries that carry an image, which an error for an image OpenAI rejects names.
+    ///   - now: The time a rate limit's reset date counts from.
+    /// - Returns: `LanguageModelError` when Foundation Models has a case for the failure, otherwise `OpenAIError`.
+    func error(contextSize: Int?, imageEntries: [Transcript.Entry] = [], now: Date = .now) -> MappedError<OpenAIError> {
+        let failure: LanguageModelError.ProviderFailure
+        switch kind {
+        case .contextSizeExceeded:
+            let sizes = LanguageModelError.ProviderFailure.contextSizes(in: message)
+            failure = .contextSizeExceeded(contextSize: sizes.limit ?? contextSize ?? 0, tokenCount: sizes.requested ?? 0)
+        case .rateLimited:
+            failure = .rateLimited(resetDate: (retryAfter ?? rateLimitReset).map { now.addingTimeInterval($0 / .seconds(1)) })
+        case .guardrailViolation:
+            failure = .guardrailViolation
+        case .timeout:
+            failure = .timeout
+        case .unsupportedImage:
+            failure = .unsupportedContent(imageEntries)
+        case .openAIError:
+            return .provider(
+                OpenAIError(
+                    status: status, message: message, code: code, errorType: body?.type.map(OpenAIError.Code.init(rawValue:)),
+                    parameter: body?.param, requestID: requestID, retryAfter: retryAfter, isQuotaExhausted: isQuotaExhausted))
+        }
+        var metadata = LanguageModelError.failureMetadata(status: status, code: code.rawValue, provider: nil)
+        metadata[LanguageModelMetadataKey.requestID] = requestID
+        return .languageModel(LanguageModelError(failure, message: message, metadata: metadata))
+    }
+
+    /// What went wrong: OpenAI's message, or the status's own text when there's none.
+    private var message: String {
+        body?.message ?? status.map(HTTPURLResponse.localizedString(forStatusCode:)) ?? "The model's response ended in an error."
+    }
+
+    /// OpenAI's code, as text.
+    private var errorCode: String? {
+        switch body?.code {
+        case .string(let code)?: code
+        case .integer(let code)?: String(code)
+        default: nil
+        }
+    }
+
+    /// The kind of failure: OpenAI's code, then its error type, then the kind the HTTP status stands for, and `server`
+    /// for a failure in the stream that names none.
+    private var code: OpenAIError.Code {
+        if let code = errorCode ?? body?.type { return OpenAIError.Code(rawValue: code) }
+        switch status {
+        case 401?: return .authentication
+        case 403?: return .permissionDenied
+        case 404?: return .notFound
+        case 409?: return .conflict
+        case 422?: return .unprocessable
+        case let status? where status >= 500: return .server
+        case nil: return .server
+        default: return .unmapped
+        }
+    }
+
+    /// Whether the failure is a quota, credit or spending limit that ran out, by OpenAI's error type or code.
+    private var isQuotaExhausted: Bool {
+        body?.type == Self.insufficientQuota || errorCode.map(Self.quotaCodes.contains) == true
+    }
+
+    /// What the failure becomes. A quota that ran out stays OpenAI's, since waiting doesn't clear it, although it
+    /// arrives as a 429.
+    private var kind: Kind {
+        let code = errorCode
+        if isQuotaExhausted { return .openAIError }
+        if code == "context_length_exceeded" || (status == 400 && message.contains(Self.contextMessage)) { return .contextSizeExceeded }
+        if status == 429 || code == "rate_limit_exceeded" { return .rateLimited }
+        if code.map(Self.guardrailCodes.contains) == true || (code == "invalid_prompt" && message.contains(Self.policyMessage)) {
+            return .guardrailViolation
+        }
+        if code.map(Self.unsupportedImageCodes.contains) == true { return .unsupportedImage }
+        if status == 408 || status == 504 || code == "vector_store_timeout" { return .timeout }
+        return .openAIError
+    }
+
+    /// The time until the rate limits reset that a 429's headers name, the later of the requests' and the tokens'.
+    private static func rateLimitReset(_ headers: ResponseHeaders) -> Duration? {
+        [API.Header.rateLimitResetRequests, API.Header.rateLimitResetTokens]
+            .compactMap { headers.value(for: $0).flatMap(Duration.init(resetInterval:)) }.max()
+    }
+
+    /// The `type` of an `error` event.
+    private static let errorEventType = "error"
+
+    /// The error type of a quota or credit that ran out.
+    private static let insufficientQuota = "insufficient_quota"
+
+    /// The codes of a quota, credit or spending limit that ran out.
+    private static let quotaCodes: Set<String> = [
+        insufficientQuota, "credit_balance_exhausted", "organization_spend_limit_exceeded", "project_spend_limit_exceeded",
+        "organization_usage_limit_exceeded",
+    ]
+
+    /// The codes of a request or answer a safety system stopped.
+    private static let guardrailCodes: Set<String> = [
+        "content_policy_violation", "bio_policy", "misalignment_policy_violation", "image_content_policy_violation",
+    ]
+
+    /// The codes of an image OpenAI can't use. One it couldn't download stays OpenAI's error.
+    private static let unsupportedImageCodes: Set<String> = [
+        "invalid_image", "invalid_image_format", "invalid_base64_image", "invalid_image_url", "image_too_large", "image_too_small",
+        "image_parse_error", "invalid_image_mode", "image_file_too_large", "unsupported_image_media_type", "empty_image_file",
+    ]
+
+    /// The message of a prompt longer than the model's context.
+    private static var contextMessage: Regex<Substring> { /(?i)context (?:length|window)/ }
+
+    /// The message of a prompt flagged for the usage policies.
+    private static var policyMessage: Regex<Substring> { /(?i)usage polic|flagged/ }
+}
+
+extension OpenAIFailure {
+    /// What a failure becomes: the `LanguageModelError` case of the same name, or an `OpenAIError`.
+    private enum Kind {
+        case contextSizeExceeded
+        case rateLimited
+        case guardrailViolation
+        case timeout
+        case unsupportedImage
+        case openAIError
+    }
+}
+
+extension Duration {
+    /// The time in a rate limit's reset header, such as `1s`, `6m0s` or `20ms`.
+    init?(resetInterval text: String) {
+        let parts = text.matches(of: /(\d+(?:\.\d+)?)(ms|s|m|h)/)
+        guard !parts.isEmpty, parts.map({ String($0.0) }).joined() == text else { return nil }
+        let seconds = parts.reduce(0.0) { total, part in
+            let value = Double(part.1) ?? 0
+            return total + value * (part.2 == "ms" ? 0.001 : part.2 == "m" ? 60 : part.2 == "h" ? 3_600 : 1)
+        }
+        self = .milliseconds(Int64((seconds * 1_000).rounded()))
+    }
+}
+
+// MARK: - Logging
+
+extension OpenAIError: LoggableError {
+    package var loggedError: LoggedError {
+        LoggedError(kind: "OpenAIError", status: status, code: code.rawValue, host: nil)
     }
 }

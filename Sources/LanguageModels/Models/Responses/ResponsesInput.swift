@@ -1,6 +1,9 @@
 import Foundation
 import FoundationModels
 import LanguageModelsCore
+import UniformTypeIdentifiers
+
+// MARK: - Turns
 
 extension ResponsesRequest {
     /// A transcript as the format's `input` items.
@@ -175,5 +178,180 @@ extension ResponsesRequest {
                 throw LanguageModelError.unsupported(entry, "\(provider) can't take this kind of segment yet.")
             }
         }
+    }
+}
+
+// MARK: - Attachments
+
+extension ResponsesRequest {
+    /// Prompt and tool-output attachments as the format's input parts.
+    ///
+    /// A label goes first, as a text part of its own, so the model can name the attachment, as an `ImageReference`
+    /// does. Images go as JPEG data URLs in `input_image` parts, or as their web address when they have one. Data
+    /// attachments go by kind: text as text, images as images, and PDFs as `input_file` parts. The format has no part
+    /// for other kinds, such as audio or video. The dialect first checks that its models take the attachment. The same
+    /// attachment gives the same bytes every time.
+    struct AttachmentParts {
+        /// The provider's name, for the errors.
+        private let provider: String
+
+        private let reader: AttachmentReader
+
+        /// Checks that every model takes an attachment.
+        private let check: (AttachmentKind, Transcript.Entry) throws(LanguageModelError) -> Void
+
+        init<Dialect: ResponsesDialect>(dialect: Dialect) {
+            provider = Dialect.name
+            reader = AttachmentReader(provider: provider, encoding: dialect.imageEncoding)
+            check = { (attachment, entry) throws(LanguageModelError) in try dialect.check(attachment, in: entry) }
+        }
+
+        /// The parts for one attachment: its label, when it has one, then the attachment.
+        ///
+        /// - Throws: The dialect's errors for an attachment a model doesn't take, and
+        ///   `LanguageModelError.unsupportedTranscriptContent` for one that can't be read or that the format has no
+        ///   part for.
+        func parts(for segment: Transcript.AttachmentSegment, in entry: Transcript.Entry) throws -> [Part] {
+            let content = try reader.content(of: segment, in: entry) { (kind) throws(LanguageModelError) in try check(kind, entry) }
+            return (segment.givenLabel.map { [.text($0)] } ?? []) + [try part(for: content, in: entry)]
+        }
+
+        /// The input part for an attachment's content: text, an `input_image` or a PDF `input_file`.
+        private func part(for content: AttachmentReader.Content, in entry: Transcript.Entry) throws -> Part {
+            switch content {
+            case .text(let text):
+                return .text(text)
+            case .jpeg(let data):
+                return .image(url: DataURL(mediaType: MediaType.jpeg, data: data).text)
+            case .imageURL(let url):
+                return .image(url: url.absoluteString)
+            case .pdf(let data, let fileName):
+                return .file(name: fileName, data: DataURL(mediaType: MediaType.pdf, data: data).text)
+            case .data(_, let type):
+                throw LanguageModelError.unsupported(entry, "\(provider) takes no attachments of type \(type.identifier).")
+            }
+        }
+    }
+}
+
+// MARK: - Wire
+
+extension ResponsesRequest {
+    /// One item of a request's `input`.
+    enum Item: Encodable, Equatable {
+        /// A message: the instructions, a prompt, or an answer's text, with the `phase` the answer's message had.
+        case message(role: MessageRole, content: Content, phase: String?)
+
+        /// One of an answer's function calls, matched to its output by `call_id`.
+        case functionCall(callID: String, name: String, arguments: String)
+
+        /// A tool's output for a function call.
+        case functionCallOutput(callID: String, output: Content)
+
+        /// One of an answer's `reasoning` items, as the provider sent it.
+        case reasoning(ReasoningItem)
+
+        func encode(to encoder: any Encoder) throws {
+            switch self {
+            case .message(let role, let content, let phase):
+                var container = encoder.container(keyedBy: JSONKey.self)
+                try container.encode(role, forKey: "role")
+                try container.encode(content, forKey: "content")
+                try container.encodeIfPresent(phase, forKey: "phase")
+            case .functionCall(let callID, let name, let arguments):
+                var container = encoder.container(keyedBy: JSONKey.self)
+                try container.encode(ItemType.functionCall, forKey: "type")
+                try container.encode(callID, forKey: "call_id")
+                try container.encode(name, forKey: "name")
+                try container.encode(arguments, forKey: "arguments")
+            case .functionCallOutput(let callID, let output):
+                var container = encoder.container(keyedBy: JSONKey.self)
+                try container.encode(ItemType.functionCallOutput, forKey: "type")
+                try container.encode(callID, forKey: "call_id")
+                try container.encode(output, forKey: "output")
+            case .reasoning(let item):
+                try item.encode(to: encoder)
+            }
+        }
+    }
+
+    /// A message's content or a tool's output: text alone, or a list of input parts.
+    enum Content: Encodable, Equatable {
+        case text(String)
+        case parts([Part])
+
+        /// One text part as its text, and anything else as parts.
+        init(_ parts: [Part]) {
+            if parts.count == 1, case .text(let text) = parts[0] {
+                self = .text(text)
+            } else {
+                self = .parts(parts)
+            }
+        }
+
+        func encode(to encoder: any Encoder) throws {
+            var container = encoder.singleValueContainer()
+            switch self {
+            case .text(let text): try container.encode(text)
+            case .parts(let parts): try container.encode(parts)
+            }
+        }
+    }
+
+    /// One part of a message's content.
+    enum Part: Encodable, Equatable {
+        /// An `input_text` part.
+        case text(String)
+
+        /// An `input_image` part, at a web address or as a data URL, which the model sees at the detail it picks.
+        case image(url: String)
+
+        /// An `input_file` part, holding the file as a data URL.
+        case file(name: String, data: String)
+
+        var type: PartType {
+            switch self {
+            case .text: .text
+            case .image: .image
+            case .file: .file
+            }
+        }
+
+        /// Whether the part is a PDF file.
+        var isPDF: Bool {
+            if case .file(_, let data) = self { data.hasPrefix("data:\(MediaType.pdf);") } else { false }
+        }
+
+        func encode(to encoder: any Encoder) throws {
+            var container = encoder.container(keyedBy: JSONKey.self)
+            try container.encode(type, forKey: "type")
+            switch self {
+            case .text(let text):
+                try container.encode(text, forKey: "text")
+            case .image(let url):
+                try container.encode(url, forKey: "image_url")
+                try container.encode("auto", forKey: "detail")
+            case .file(let name, let data):
+                try container.encode(name, forKey: "filename")
+                try container.encode(data, forKey: "file_data")
+            }
+        }
+    }
+
+    /// The role of a message: the person's, the model's, or the instructions' role that the dialect picks.
+    struct MessageRole: ProviderVocabulary {
+        static let user: Self = "user"
+        static let assistant: Self = "assistant"
+
+        let rawValue: String
+    }
+
+    /// The `type` of a content part.
+    struct PartType: ProviderVocabulary {
+        static let text: Self = "input_text"
+        static let image: Self = "input_image"
+        static let file: Self = "input_file"
+
+        let rawValue: String
     }
 }

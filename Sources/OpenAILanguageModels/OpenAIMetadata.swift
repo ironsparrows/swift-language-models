@@ -1,6 +1,8 @@
 public import FoundationModels
 public import LanguageModels
 
+// MARK: - Response
+
 /// What OpenAI reported about an answer, read from the metadata of its response entry, or about a request that ended
 /// in tool calls, read from its first call.
 ///
@@ -125,6 +127,72 @@ extension OpenAIResponseMetadata {
     }
 }
 
+// MARK: - Usage
+
+/// What OpenAI reported about an answer's counts beyond Foundation Models' own, read from its usage's metadata.
+///
+/// `LanguageModelSession.Usage.openAI` reads it. The usage's own input, cached, output and reasoning token counts hold
+/// the rest, and the package keeps no prices, so it reports no cost. A fact OpenAI didn't report is `nil`:
+///
+/// ```swift
+/// let response = try await session.respond(to: "Plan dinner.")
+/// if let written = response.usage.openAI.cacheWriteTokenCount {
+///     print("\(written) prompt tokens went into OpenAI's cache.")
+/// }
+/// ```
+///
+/// The facts are those of one request. A response whose tool calls ran has the last request's, and a session's own
+/// `usage` keeps no metadata, so its facts are all `nil`. Each request's facts are also on the transcript entry that
+/// ends it, which ``OpenAIResponseMetadata/usage`` reads.
+public struct OpenAIUsageMetadata: Sendable, Hashable {
+    /// The prompt tokens written to OpenAI's prompt cache.
+    public let cacheWriteTokenCount: Int?
+
+    /// The facts in a usage's metadata.
+    init(_ metadata: [String: GeneratedContent]) {
+        cacheWriteTokenCount = MetadataValues(metadata).integer(LanguageModelMetadataKey.cacheWriteTokenCount)
+    }
+}
+
+// MARK: - Error
+
+/// What OpenAI reported about a failure that throws Foundation Models' `LanguageModelError`, in OpenAI's own words,
+/// read from the error's metadata.
+///
+/// `LanguageModelError.openAI` reads it. A fact OpenAI didn't report is `nil`:
+///
+/// ```swift
+/// do {
+///     let response = try await session.respond(to: "Plan dinner.")
+///     print(response.content)
+/// } catch let error as LanguageModelError {
+///     print("Code \(error.openAI.errorCode?.rawValue ?? "none"), request id \(error.openAI.requestID ?? "none")")
+/// }
+/// ```
+///
+/// Its facts are the shared ones that `providerMetadata` also reads, with the code as an ``OpenAIError/Code``.
+public struct OpenAIErrorMetadata: Sendable, Hashable {
+    /// The HTTP status of the response that failed, such as 429 for a rate limit, or `nil` for a failure in the stream,
+    /// which arrives after the response's HTTP 200.
+    public let status: Int?
+
+    /// The code the failure would have as an ``OpenAIError``: OpenAI's code or error type, or the package's code for
+    /// the HTTP status, such as ``OpenAIError/Code/unmapped`` for a 429 without one.
+    public let errorCode: OpenAIError.Code?
+
+    /// OpenAI's id for the request that failed, which its support asks for.
+    public let requestID: String?
+
+    /// The facts in an error's metadata.
+    init(_ metadata: [String: any Sendable]) {
+        status = metadata[LanguageModelMetadataKey.status] as? Int
+        errorCode = (metadata[LanguageModelMetadataKey.errorCode] as? String).map(OpenAIError.Code.init(rawValue:))
+        requestID = metadata[LanguageModelMetadataKey.requestID] as? String
+    }
+}
+
+// MARK: - Reading
+
 extension Transcript.Response {
     /// What OpenAI reported about the answer, such as the model that answered, OpenAI's id for the request and why
     /// the answer ended.
@@ -142,4 +210,34 @@ extension Transcript.ToolCalls {
     public var openAI: OpenAIResponseMetadata {
         OpenAIResponseMetadata(first?.metadata ?? [:])
     }
+}
+
+extension LanguageModelSession.Usage {
+    /// What OpenAI reported about the answer's counts, such as the prompt tokens written to its cache.
+    public var openAI: OpenAIUsageMetadata {
+        OpenAIUsageMetadata(metadata)
+    }
+}
+
+extension LanguageModelError {
+    /// What OpenAI reported about the failure, such as its code and OpenAI's id for the request.
+    public var openAI: OpenAIErrorMetadata {
+        OpenAIErrorMetadata(contextMetadata)
+    }
+}
+
+// MARK: - Keys
+
+/// The keys of the metadata facts that only OpenAI's models report about an answer, which start with `openAI.`, so they
+/// never collide with another provider's keys.
+///
+/// The facts every provider reports, such as the model, the response id and the request id, use the bare keys of
+/// `LanguageModelMetadataKey`. Saved transcripts keep the keys, so their spellings never change.
+public enum OpenAIMetadataKey {
+    /// The `phase` of each of an answer's messages, such as `commentary` or `final_answer`, on the entry that ends the
+    /// answer: a list of structures with a `phase` and the `length` of the message's text, in characters. A guided
+    /// answer's message that doesn't decode, such as a `commentary` preamble, stays out of the answer's text, so its
+    /// structure keeps the text itself under `heldText`, with a `length` of 0. Each message goes back with its phase
+    /// on later turns. ``OpenAIResponseMetadata/messages`` reads them.
+    public static let phases = "openAI.phases"
 }
