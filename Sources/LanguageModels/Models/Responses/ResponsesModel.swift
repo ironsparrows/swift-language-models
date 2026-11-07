@@ -125,9 +125,7 @@ extension Responses.Model {
     ) async throws {
         [ModelRemovals.Report](reaching: reachableModels).report(for: generation)
         let text = try await run(generation, streamingInto: channel)
-        if let schema = generation.schema {
-            try GuideViolations.check(text, against: schema, request: generation.id)
-        }
+        try GuideViolations.check(text, of: generation)
     }
 
     /// Runs one exchange: reads the request, sends it and streams its answer.
@@ -177,23 +175,19 @@ extension Responses.Model {
             log.finished(stream.report, host: stream.host)
             return stream.responseText
         } catch {
-            let thrown = (error as? URLError)?.thrownError ?? error
-            log.failed(thrown)
-            throw thrown
+            throw log.recordFailure(error)
         }
     }
 
     /// Sends a request's body, and turns a rejected response into what the exchange makes of it.
     private func open(
-        _ body: Responses.Request.Body,
+        _ body: RequestBody,
         imageEntries: [Transcript.Entry],
         exchange: Exchange,
         log: RequestLog
     ) async throws -> (URLSession.AsyncBytes, ResponseHeaders) {
         do {
-            return try await connection.openEventStream(
-                body: body.json, portableSchemaBody: body.portableJSON, headers: [:], url: url.appending(path: "responses"),
-                log: log)
+            return try await connection.openEventStream(body, headers: [:], url: url.appending(path: "responses"), log: log)
         } catch let rejected as HTTPClient.Failure {
             throw exchange.error(for: RequestFailure(rejected: rejected, imageEntries: imageEntries))
         }
@@ -288,7 +282,7 @@ extension Responses {
 
 extension Responses.Model where Exchange == Responses.PlainExchange {
     /// Creates a model that speaks the plain format: to a server that needs no credentials, with no idle timeout of its
-    /// own, retrying the statuses OpenAI's SDKs retry, with every capability Foundation Models names. The URL's host stands
+    /// own, retrying transient failures, with every capability Foundation Models names. The URL's host stands
     /// for the provider's name, which the log, error messages, and the tags on its answers' reasoning and messages use.
     ///
     /// - Parameters:
@@ -296,11 +290,7 @@ extension Responses.Model where Exchange == Responses.PlainExchange {
     ///   - url: The server's base URL.
     package init(name: String, url: URL) {
         self.init(
-            name: name, url: url,
-            connection: Connection(
-                session: .shared, authentication: .unauthenticated, idleTimeout: nil, retries: .standard,
-                retrying: { [408, 409, 429].contains($0) || $0 >= 500 }),
-            providerName: url.host() ?? name,
+            name: name, url: url, connection: .unauthenticated, providerName: url.host() ?? name,
             capabilities: LanguageModelCapabilities([.toolCalling, .guidedGeneration, .reasoning, .vision]), reaching: [],
             exchange: Responses.PlainExchange())
     }

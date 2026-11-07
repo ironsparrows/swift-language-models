@@ -184,25 +184,11 @@ extension ChatCompletions.Request {
 // MARK: - Body
 
 extension ChatCompletions.Request {
-    /// What a request sends, and what it changed from what the app asked for.
-    struct Body {
-        /// The body of a Chat Completions `POST`.
-        let json: JSONValue
-
-        /// The same body with its response schema in portable form, to send instead when a host rejects a constraint of
-        /// the full schema, or `nil` when the request has no schema or already sends the portable one.
-        let portableJSON: JSONValue?
-
-        /// What the request leaves out or changes from what the app asked for, so that its models and the provider take
-        /// it, in the log's order: settings the models don't list, then metadata past the limits, then a moved reasoning
-        /// effort.
-        let adjustments: [RequestAdjustment]
-    }
-
-    /// The request's body, with the exchange's members and choices.
+    /// The request's body, with the exchange's members and choices. Its adjustments are, in the log's order, settings
+    /// the models don't list, then metadata past the limits, then a moved reasoning effort.
     ///
     /// - Throws: An error when a member can't be encoded.
-    func body() throws -> Body {
+    func body() throws -> RequestBody {
         let options = generation.generationOptions
         let sendsTools = sendsSessionTools && hasSessionTools
         let tools = try (sendsTools ? sessionTools.map(JSONValueEncoder.encode) : []) + serverTools
@@ -221,10 +207,7 @@ extension ChatCompletions.Request {
             tokenLimitMember.rawValue: options.maximumResponseTokens.map(JSONValue.integer),
             ChatCompletions.Member.metadata.rawValue: metadata.json,
         ]
-        for member in members.members {
-            assert(body[member.key] == nil, "\(providerName) adds \(member.key), which the format writes.")
-            if body[member.key] == nil { body[member.key] = member.value }
-        }
+        body.add(members, from: providerName)
         body = body.ordered(by: memberOrder.map(\.rawValue))
 
         var adjustments: [RequestAdjustment] = metadata.droppedKeys.isEmpty ? [] : [.droppedMetadata(keys: metadata.droppedKeys)]
@@ -243,7 +226,7 @@ extension ChatCompletions.Request {
             members[ChatCompletions.Member.responseFormat.rawValue] = try JSONValueEncoder.encode(format)
             portable = .object(members)
         }
-        return Body(json: .object(body), portableJSON: portable, adjustments: RequestAdjustment.inLogOrder(adjustments))
+        return RequestBody(json: .object(body), portableJSON: portable, adjustments: RequestAdjustment.inLogOrder(adjustments))
     }
 }
 

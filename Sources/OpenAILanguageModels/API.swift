@@ -12,13 +12,6 @@ enum API {
     /// Saved transcripts keep this value, so it never changes.
     static let reasoningOrigin = "openai-responses"
 
-    /// Whether a failed response's status is retried, as the official SDKs retry it: a 408, 409 or 429, or any status
-    /// from 500 up. A response's `x-should-retry` wins over its status either way.
-    @Sendable
-    static func retriesStatus(_ status: Int) -> Bool {
-        [408, 409, 429].contains(status) || status >= 500
-    }
-
     /// Where OpenAI's API lives. `URL(string:)` makes it optional, although it never fails.
     static let defaultBaseURL = URL(string: "https://api.openai.com/v1/")
 
@@ -36,7 +29,6 @@ enum API {
 
     /// The names of the HTTP headers OpenAI's API reads and sends.
     enum Header {
-        static let authorization = "Authorization"
         static let organization = "OpenAI-Organization"
         static let project = "OpenAI-Project"
         static let rateLimitResetRequests = "x-ratelimit-reset-requests"

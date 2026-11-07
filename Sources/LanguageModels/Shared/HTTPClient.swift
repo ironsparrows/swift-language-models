@@ -203,13 +203,10 @@ extension HTTPClient {
     /// When a provider's request that fails is sent again, and how long it waits first.
     ///
     /// A connection makes its policy from the app's ``RequestRetries`` with
-    /// ``RequestRetries/policy(statuses:retriedErrors:)``, giving only the statuses the provider retries.
+    /// ``RequestRetries/policy(statuses:)``, giving only the statuses the provider retries.
     struct RetryPolicy: Sendable {
         /// The most times a request is sent again.
         let retries: Int
-
-        /// The errors of a failed connection after which a request is sent again, such as a timeout.
-        private let retriedErrors: Set<URLError.Code>
 
         /// Whether a response is retried, from its status and its `x-should-retry` header, if any.
         private let retriesResponse: @Sendable (_ status: Int, _ shouldRetry: String?) -> Bool
@@ -222,19 +219,16 @@ extension HTTPClient {
         ///
         /// - Parameters:
         ///   - retries: The most times a request is sent again.
-        ///   - retriedErrors: The errors of a failed connection after which a request is sent again.
         ///   - retriesResponse: Whether a response is retried, from its status and its `x-should-retry` header, if
         ///     any.
         ///   - wait: The wait before a retry, from how many retries came before it and the wait the response asks for,
         ///     if any, or `nil` to fail at once.
         private init(
             retries: Int,
-            retriedErrors: Set<URLError.Code>,
             retriesResponse: @escaping @Sendable (_ status: Int, _ shouldRetry: String?) -> Bool,
             wait: @escaping @Sendable (_ retried: Int, _ asked: Duration?) -> Duration?
         ) {
             self.retries = retries
-            self.retriedErrors = retriedErrors
             self.retriesResponse = retriesResponse
             self.wait = wait
         }
@@ -262,7 +256,7 @@ extension HTTPClient {
         ///   - error: The connection's error.
         /// - Returns: The retry, or `nil` when the request has made its retries or the error isn't retried.
         func retry(_ number: Int, after error: URLError) -> Retry? {
-            guard number <= retries, retriedErrors.contains(error.code), let wait = wait(number - 1, nil)
+            guard number <= retries, Self.connectionErrors.contains(error.code), let wait = wait(number - 1, nil)
             else { return nil }
             return Retry(status: nil, error: error, wait: wait, number: number, limit: retries)
         }
@@ -288,9 +282,9 @@ extension HTTPClient {
 }
 
 extension HTTPClient.RetryPolicy {
-    /// The errors of a connection that couldn't be made, timed out or was lost, or that brought back a response that
-    /// isn't HTTP.
-    fileprivate static let connectionErrors: Set<URLError.Code> = [
+    /// The errors of a failed connection after which a request is sent again: a connection that couldn't be made, timed
+    /// out or was lost, or that brought back a response that isn't HTTP.
+    private static let connectionErrors: Set<URLError.Code> = [
         .timedOut, .cannotFindHost, .dnsLookupFailed, .cannotConnectToHost, .notConnectedToInternet, .networkConnectionLost,
         .secureConnectionFailed, .badServerResponse,
     ]
@@ -308,18 +302,16 @@ extension HTTPClient.RetryPolicy {
     ///   - delay: The wait before the first retry, before it's cut.
     ///   - longestDelay: The longest wait that doubling reaches.
     ///   - longestRetryAfter: The longest wait a response can ask for and still be retried, after that wait.
-    ///   - retriedErrors: The errors of a failed connection after which a request is sent again.
     /// - Returns: The policy.
     static func exponentialBackoff(
         retries: Int,
         statuses: @escaping @Sendable (Int) -> Bool,
         delay: Duration,
         longestDelay: Duration,
-        longestRetryAfter: Duration,
-        retriedErrors: Set<URLError.Code> = connectionErrors
+        longestRetryAfter: Duration
     ) -> Self {
         Self(
-            retries: retries, retriedErrors: retriedErrors,
+            retries: retries,
             retriesResponse: { status, shouldRetry in
                 switch shouldRetry {
                 case "true": true
@@ -338,22 +330,38 @@ extension HTTPClient.RetryPolicy {
     }
 }
 
-extension RequestRetries {
-    /// The retry policy these settings make, for a provider that retries a response whose status `statuses` retries,
-    /// after any of `retriedErrors`.
+/// The statuses of a failed response that a request retries. A response's `x-should-retry` wins over its status either
+/// way.
+package enum RetriedStatuses: Sendable {
+    /// A 408, 409 or 429, or any status from 500 up: failures that may clear on another try.
+    case transient
+
+    /// Any status from 500 to 599: a server that's failing or overloaded.
+    case serverErrors
+
+    /// Whether a failed response's status is retried.
     ///
-    /// - Parameters:
-    ///   - statuses: Whether a response's status is retried when its `x-should-retry` doesn't say.
-    ///   - retriedErrors: The errors of a failed connection after which a request is sent again.
+    /// - Parameter status: The response's status.
+    /// - Returns: Whether it's retried, when the response's `x-should-retry` doesn't say.
+    @Sendable
+    package func contains(_ status: Int) -> Bool {
+        switch self {
+        case .transient: [408, 409, 429].contains(status) || status >= 500
+        case .serverErrors: (500..<600).contains(status)
+        }
+    }
+}
+
+extension RequestRetries {
+    /// The retry policy these settings make, for a provider that retries a response whose status `statuses` retries.
+    ///
+    /// - Parameter statuses: Whether a response's status is retried when its `x-should-retry` doesn't say.
     /// - Returns: The policy.
-    func policy(
-        statuses: @escaping @Sendable (Int) -> Bool,
-        retriedErrors: Set<URLError.Code> = HTTPClient.RetryPolicy.connectionErrors
-    ) -> HTTPClient.RetryPolicy {
+    func policy(statuses: @escaping @Sendable (Int) -> Bool) -> HTTPClient.RetryPolicy {
         let delay = max(initialDelay, .zero)
         return .exponentialBackoff(
             retries: max(limit, 0), statuses: statuses, delay: delay, longestDelay: delay * 16,
-            longestRetryAfter: max(longestServerWait, .zero), retriedErrors: retriedErrors)
+            longestRetryAfter: max(longestServerWait, .zero))
     }
 }
 

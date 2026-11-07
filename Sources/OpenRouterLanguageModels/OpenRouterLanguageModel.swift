@@ -259,7 +259,7 @@ public struct OpenRouterAuthentication: Sendable {
 
     /// An API key sent as a bearer token to OpenRouter's API, or to the base URL that stands in for it.
     private init(apiKey key: @escaping @Sendable () async throws -> String, baseURL: URL?) {
-        self.init(.apiKey(key, baseURL: baseURL) { ["Authorization": "Bearer \($0)"] })
+        self.init(.apiKey(key, baseURL: baseURL, header: Connection.Authentication.bearerHeader))
     }
 }
 
@@ -557,8 +557,22 @@ extension OpenRouterLanguageModel {
     /// How the model's requests reach OpenRouter: its session and authentication, with the timeout and retries of its
     /// configuration. Chat requests and info calls both go through it.
     func connection(_ configuration: OpenRouterConfiguration) -> Connection {
-        Connection(
-            session: session, authentication: auth.requestAuthentication, idleTimeout: configuration.idleTimeout,
-            retries: configuration.retries, retrying: API.retriesStatus)
+        Connection(auth: auth, session: session, configuration: configuration)
+    }
+}
+
+extension Connection {
+    /// A connection to OpenRouter, which a model's requests and a catalog model's calls, which aren't tied to a language
+    /// model, both go through. It retries any status from 500 to 599, which OpenRouter or a host returns while it's
+    /// failing or overloaded.
+    ///
+    /// - Parameters:
+    ///   - auth: How requests authenticate, and where they go, or `nil` to call OpenRouter without a key.
+    ///   - session: The URL session that sends the requests.
+    ///   - configuration: How long requests wait, and how they retry.
+    init(auth: OpenRouterAuthentication?, session: URLSession, configuration: OpenRouterConfiguration) {
+        self.init(
+            session: session, authentication: auth?.requestAuthentication ?? .unauthenticated, idleTimeout: configuration.idleTimeout,
+            retries: configuration.retries, retrying: RetriedStatuses.serverErrors.contains)
     }
 }

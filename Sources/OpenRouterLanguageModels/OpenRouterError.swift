@@ -320,46 +320,35 @@ struct OpenRouterFailure: Sendable {
     /// - Returns: `LanguageModelError` when Foundation Models has a case for the failure, otherwise `OpenRouterError`.
     func error(contextSize: Int?, imageEntries: [Transcript.Entry] = [], now: Date = .now) -> any Error {
         let message = body.bestMessage
-        let metadata = self.metadata
-        let failure: LanguageModelError.ProviderFailure
-        switch kind {
-        case .contextSizeExceeded:
-            let sizes = LanguageModelError.ProviderFailure.contextSizes(in: message)
-            failure = .contextSizeExceeded(contextSize: sizes.limit ?? contextSize ?? 0, tokenCount: sizes.requested ?? 0)
-        case .rateLimited:
-            failure = .rateLimited(resetDate: body.budgetResetDate ?? retryAfter.map { now.addingTimeInterval($0 / .seconds(1)) })
-        case .guardrailViolation:
-            failure = .guardrailViolation
-        case .refusal:
-            failure = .refusal
-        case .timeout:
-            failure = .timeout
-        case .unsupportedImage:
-            failure = .unsupportedContent(imageEntries)
-        case .openRouterError:
+        guard let failure = providerFailure(message: message, contextSize: contextSize, imageEntries: imageEntries, now: now) else {
             return OpenRouterError(status: status, message: message, code: code, provider: provider, retryAfter: retryAfter)
         }
         return LanguageModelError(failure, message: message, metadata: metadata)
     }
 
-    /// What the failure becomes: the `LanguageModelError` case for its code, or for a 402 or 403 that the response shows
-    /// to be a rate limit, a moderation flag or a guardrail's block, otherwise an `OpenRouterError`. A status that stands
-    /// for one of these cases already gave the failure its code.
-    private var kind: Kind {
-        switch (code, status) {
-        case (.contextLengthExceeded, _): .contextSizeExceeded
-        case (.rateLimitExceeded, _): .rateLimited
+    /// The `LanguageModelError` case the failure becomes: the one for its code, or for a 402 or 403 that the response
+    /// shows to be a rate limit, a moderation flag or a guardrail's block, or `nil` when it becomes an `OpenRouterError`.
+    /// A status that stands for one of these cases already gave the failure its code.
+    private func providerFailure(
+        message: String, contextSize: Int?, imageEntries: [Transcript.Entry], now: Date
+    ) -> LanguageModelError.ProviderFailure? {
+        var rateLimited: LanguageModelError.ProviderFailure {
+            .rateLimited(resetDate: body.budgetResetDate ?? LanguageModelError.ProviderFailure.resetDate(after: retryAfter, from: now))
+        }
+        return switch (code, status) {
+        case (.contextLengthExceeded, _): .contextSizeExceeded(message: message, contextSize: contextSize)
+        case (.rateLimitExceeded, _): rateLimited
         case (.contentPolicyViolation, _): .guardrailViolation
         case (.refusal, _): .refusal
         case (.timeout, _): .timeout
         // The host can't use an image, as for one the package can't send; one it can't download stays OpenRouter's.
-        case (.unsupportedImageFormat, _), (.invalidImage, _), (.imageTooLarge, _), (.imageTooSmall, _): .unsupportedImage
+        case (.unsupportedImageFormat, _), (.invalidImage, _), (.imageTooLarge, _), (.imageTooSmall, _): .unsupportedContent(imageEntries)
         // Too much is in flight at once; it clears as requests finish, like a rate limit.
-        case (_, 402?) where body.isInFlightBudget: .rateLimited
+        case (_, 402?) where body.isInFlightBudget: rateLimited
         // A spending budget that resets clears at its reset date, like a rate limit.
-        case (.budgetExceeded, _) where body.budgetResetDate != nil: .rateLimited
+        case (.budgetExceeded, _) where body.budgetResetDate != nil: rateLimited
         case (_, 403?) where body.isModeration || isGuardrailBlock: .guardrailViolation
-        default: .openRouterError
+        default: nil
         }
     }
 
@@ -375,7 +364,7 @@ struct OpenRouterFailure: Sendable {
     /// - Returns: The code, or `nil` when neither the body nor the status names one.
     private static func code(of body: OpenRouterErrorResponse, status: Int?) -> OpenRouterError.Code? {
         if let type = body.errorType { return type }
-        if status == 400, body.bestMessage.contains(/(?i)context (length|window)/) { return .contextLengthExceeded }
+        if status == 400, LanguageModelError.ProviderFailure.namesContext(body.bestMessage) { return .contextLengthExceeded }
         if status == 403, body.limitSource != nil { return .budgetExceeded }
         if let status, let code = codesByStatus[status] { return code }
         return body.textCode.map(OpenRouterError.Code.init(rawValue:))
@@ -410,19 +399,6 @@ extension OpenRouterError.Code {
     fileprivate static let contentPolicyViolation: Self = "content_policy_violation"
     fileprivate static let refusal: Self = "refusal"
     fileprivate static let timeout: Self = "timeout"
-}
-
-extension OpenRouterFailure {
-    /// What a failure becomes: the `LanguageModelError` case of the same name, or an `OpenRouterError`.
-    private enum Kind {
-        case contextSizeExceeded
-        case rateLimited
-        case guardrailViolation
-        case refusal
-        case timeout
-        case unsupportedImage
-        case openRouterError
-    }
 }
 
 // MARK: - Logging

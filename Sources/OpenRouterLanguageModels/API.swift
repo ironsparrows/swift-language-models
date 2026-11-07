@@ -13,13 +13,6 @@ enum API {
     /// OpenRouter returns in another format gets an origin of its own, so it isn't sent back in this shape.
     static let reasoningOrigin = "openrouter"
 
-    /// Whether a failed response's status is retried: any status from 500 up, which OpenRouter or a host returns while
-    /// it's failing or overloaded. A response's `x-should-retry` wins over its status either way.
-    @Sendable
-    static func retriesStatus(_ status: Int) -> Bool {
-        (500..<600).contains(status)
-    }
-
     /// Where OpenRouter's API lives. `URL(string:)` makes it optional, although it never fails.
     static let defaultBaseURL = URL(string: "https://openrouter.ai/api/v1/")
 

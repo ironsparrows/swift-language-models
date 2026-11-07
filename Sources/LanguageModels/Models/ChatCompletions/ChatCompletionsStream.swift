@@ -189,13 +189,12 @@ extension ChatCompletions.Stream {
         let failedAnswer =
             report.finishReason == .error
             ? exchange.error(for: RequestFailure(failedAnswer: nil, headers: headers, imageEntries: imageEntries)) : nil
-        let ending = await output.finish(
-            report: report, facts: additions, refusal: refusal, requiresCompleteAnswer: requiresCompleteAnswer,
-            failedAnswer: failedAnswer)
-        switch ending {
-        case .unusable(let problem)?: throw failure(problem)
-        case .failed(let error)?: throw error
-        case nil: break
+        do {
+            try await output.finish(
+                report: report, facts: additions, refusal: refusal, requiresCompleteAnswer: requiresCompleteAnswer,
+                failedAnswer: failedAnswer)
+        } catch let problem as StreamProblem {
+            throw failure(problem)
         }
     }
 

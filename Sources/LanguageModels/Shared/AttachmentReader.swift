@@ -47,14 +47,6 @@ struct AttachmentReader {
         self.cache = cache
     }
 
-    /// - Parameters:
-    ///   - provider: The provider's name, as the errors name it.
-    ///   - maximumImageSide: The longest side, in pixels, of an image sent as data.
-    ///   - cache: Where encoded images are kept, by default the cache that every request shares.
-    init(provider: String, maximumImageSide: Int, cache: EncodedImageCache = .shared) {
-        self.init(provider: provider, encoding: ImageEncoding(maximumSide: maximumImageSide), cache: cache)
-    }
-
     /// The JPEG quality of an image sent as data.
     private var quality: Double { encoding.encodedQuality }
 

@@ -50,6 +50,14 @@ package struct Connection: Sendable {
         HTTPClient(session: session, retryPolicy: retryPolicy)
     }
 
+    /// A connection to a server that needs no credentials: the shared session, no idle timeout of its own, and the
+    /// standard retries of transient failures.
+    static var unauthenticated: Self {
+        Connection(
+            session: .shared, authentication: .unauthenticated, idleTimeout: nil, retries: .standard,
+            retrying: RetriedStatuses.transient.contains)
+    }
+
     /// The same connection with a cache of its own, which no other connection reads, such as a test's.
     package func isolatingCache() -> Self {
         var connection = self
@@ -101,6 +109,11 @@ extension Connection {
             }
         }
 
+        /// The header of a key sent as a bearer token.
+        package static func bearerHeader(_ key: String) -> [String: String] {
+            [HTTPHeaderName.authorization.rawValue: "Bearer \(key)"]
+        }
+
         /// Reads the headers, and throws a `URLError` that reading them throws the way a failed connection's is thrown.
         func requestHeaders() async throws -> [HTTPHeaderName: String] {
             do {
@@ -121,8 +134,7 @@ extension Connection {
     /// one.
     ///
     /// - Parameters:
-    ///   - body: The request's body.
-    ///   - portableSchemaBody: The body with its response schema in portable form, or `nil` when there's none to try.
+    ///   - body: The request's body, and the one to try with its response schema in portable form, if any.
     ///   - headers: The provider's headers, which take precedence over the authentication's.
     ///   - url: Where the request goes.
     ///   - log: The request's log.
@@ -130,18 +142,17 @@ extension Connection {
     /// - Throws: ``HTTPClient/Failure`` for a response whose status isn't a success, after the retries, which the
     ///   model turns into the provider's error; what the authentication throws; and a failed connection's error.
     func openEventStream(
-        body: JSONValue,
-        portableSchemaBody: JSONValue?,
+        _ body: RequestBody,
         headers: [String: String],
         url: URL,
         log: RequestLog
     ) async throws -> (URLSession.AsyncBytes, ResponseHeaders) {
         let authHeaders = try await authentication.requestHeaders()
         var request = HTTPClient.request(
-            url: url, method: HTTPMethod.post, body: body.data, accept: MediaType.eventStream, authHeaders: authHeaders,
+            url: url, method: HTTPMethod.post, body: body.json.data, accept: MediaType.eventStream, authHeaders: authHeaders,
             headers: Dictionary(uniqueKeysWithValues: headers.map { (HTTPHeaderName(rawValue: $0.key), $0.value) }),
             idleTimeout: idleTimeout)
-        var portableSchemaBody = portableSchemaBody
+        var portableSchemaBody = body.portableJSON
         while true {
             let rejected: HTTPClient.Failure
             do {
@@ -152,7 +163,7 @@ extension Connection {
             guard let body = portableSchemaBody,
                 SchemaConstraint.isRejected(status: rejected.status, message: String(decoding: rejected.body, as: UTF8.self))
             else { throw rejected }
-            log.retryingWithPortableSchema(host: nil)
+            log.retryingWithPortableSchema()
             request.httpBody = body.data
             portableSchemaBody = nil
         }

@@ -20,13 +20,7 @@ extension Responses {
     struct Input {
         private var items: [Item] = []
 
-        /// The transcript entries whose items carry an image, which a host's rejection of an image names.
-        private(set) var imageEntries: [Transcript.Entry] = []
-
-        private let attachments: AttachmentParts
-
-        /// The provider's name, for the errors.
-        private let provider: String
+        private var reader: SegmentReader<Part>
 
         /// The role of the instructions' messages.
         private let instructionsRole: MessageRole
@@ -39,9 +33,6 @@ extension Responses {
 
         /// The items for a transcript.
         ///
-        /// A prompt that recorded a response schema, which Foundation Models does when the schema belongs in the
-        /// prompt, carries the schema as text after its own, so every request writes it the same way.
-        ///
         /// - Throws: `LanguageModelError.unsupportedTranscriptContent` for content the format or a model can't take,
         ///   and the exchange's errors for an attachment a model doesn't take.
         init<Exchange: Responses.Exchange>(
@@ -49,13 +40,21 @@ extension Responses {
             model: Responses.Model<Exchange>,
             exchange: Exchange
         ) throws {
-            attachments = AttachmentParts(model: model, exchange: exchange)
-            provider = model.providerName
+            let provider = model.providerName
+            reader = SegmentReader(
+                provider: provider, encoding: model.images, instructions: "instructions",
+                check: { (attachment, entry) throws(LanguageModelError) in try exchange.checkAttachment(attachment, in: entry) },
+                makePart: { content, entry in try Self.part(for: content, in: entry, provider: provider) })
             instructionsRole = MessageRole(rawValue: model.instructionsRole.rawValue)
             phasesKey = model.phasesKey
             let origin = model.reasoningOrigin
             replays = { $0.origin == origin && exchange.replays($0) }
             for turn in try TranscriptTurn.turns(of: transcript, provider: provider) { try append(turn) }
+        }
+
+        /// The transcript entries whose items carry an image, which a host's rejection of an image names.
+        var imageEntries: [Transcript.Entry] {
+            reader.imageEntries
         }
 
         /// The `input` member: the items a request with this storage sends.
@@ -79,20 +78,17 @@ extension Responses {
             switch turn {
             case .instructions(let instructions, let entry):
                 // A session without instructions still has an empty instructions entry, which hosts reject.
-                let parts = try textParts(instructions.segments, of: entry)
+                let parts = try reader.textParts(instructions.segments, of: entry)
                 guard !parts.isEmpty else { return }
                 items.append(.message(role: instructionsRole, content: Content(parts), phase: nil))
             case .prompt(let prompt, let entry):
-                var parts = try parts(prompt.segments, of: entry)
-                if case .schema(let schema)? = prompt.responseFormat?.kind {
-                    parts.append(.text(try schema.promptInstructions()))
-                }
+                let parts = try reader.parts(of: prompt, in: entry)
                 guard !parts.isEmpty else { return }
                 items.append(.message(role: .user, content: Content(parts), phase: nil))
             case .answer(let entries):
                 try appendAnswer(entries)
             case .toolOutput(let output, let entry):
-                let parts = try parts(output.segments, of: entry)
+                let parts = try reader.parts(output.segments, of: entry)
                 let texts = parts.compactMap { part -> String? in
                     if case .text(let text) = part { text } else { nil }
                 }
@@ -154,92 +150,36 @@ extension Responses {
             items += messages
             items += rest
         }
-
-        /// Text, structure and attachment segments as input parts, in their order.
-        ///
-        /// - Throws: The attachments' errors, and `LanguageModelError.unsupportedTranscriptContent` for a kind of
-        ///   segment the format can't take.
-        private mutating func parts(_ segments: [Transcript.Segment], of entry: Transcript.Entry) throws -> [Part] {
-            var parts: [Part] = []
-            for segment in segments {
-                guard case .attachment(let attachment) = segment else {
-                    parts += try textParts([segment], of: entry)
-                    continue
-                }
-                let attachmentParts = try attachments.parts(for: attachment, in: entry)
-                if attachmentParts.contains(where: { $0.type == .image }), !imageEntries.contains(where: { $0.id == entry.id }) {
-                    imageEntries.append(entry)
-                }
-                parts += attachmentParts
-            }
-            return parts
-        }
-
-        /// Text and structure segments as text parts.
-        ///
-        /// - Throws: `LanguageModelError.unsupportedTranscriptContent` for attachments, which instructions don't take,
-        ///   and for a kind of segment the format can't take.
-        private func textParts(_ segments: [Transcript.Segment], of entry: Transcript.Entry) throws -> [Part] {
-            try segments.map { segment in
-                if let text = segment.text { return .text(text) }
-                if case .attachment = segment {
-                    throw LanguageModelError.unsupported(entry, "\(provider)'s instructions take only text, not attachments.")
-                }
-                throw LanguageModelError.unsupported(entry, "\(provider) can't take this kind of segment yet.")
-            }
-        }
     }
 }
 
 // MARK: - Attachments
 
 extension Responses.Input {
-    /// Prompt and tool-output attachments as the format's input parts.
+    /// The input part for a piece of content: text, an `input_image` or a PDF `input_file`.
     ///
-    /// A label goes first, as a text part of its own, so the model can name the attachment, as an `ImageReference`
-    /// does. Images go as JPEG data URLs in `input_image` parts, or as their web address when they have one. Data
-    /// attachments go by kind: text as text, images as images, and PDFs as `input_file` parts. The format has no part
-    /// for other kinds, such as audio or video. The exchange first checks that its models take the attachment. The same
-    /// attachment gives the same bytes every time.
-    private struct AttachmentParts {
-        /// The provider's name, for the errors.
-        private let provider: String
-
-        private let reader: AttachmentReader
-
-        /// Checks that every model takes an attachment.
-        private let check: (AttachmentKind, Transcript.Entry) throws(LanguageModelError) -> Void
-
-        init<Exchange: Responses.Exchange>(model: Responses.Model<Exchange>, exchange: Exchange) {
-            provider = model.providerName
-            reader = AttachmentReader(provider: provider, encoding: model.images)
-            check = { (attachment, entry) throws(LanguageModelError) in try exchange.checkAttachment(attachment, in: entry) }
-        }
-
-        /// The parts for one attachment: its label, when it has one, then the attachment.
-        ///
-        /// - Throws: The exchange's errors for an attachment a model doesn't take, and
-        ///   `LanguageModelError.unsupportedTranscriptContent` for one that can't be read or that the format has no
-        ///   part for.
-        func parts(for segment: Transcript.AttachmentSegment, in entry: Transcript.Entry) throws -> [Part] {
-            let content = try reader.content(of: segment, in: entry) { (kind) throws(LanguageModelError) in try check(kind, entry) }
-            return (segment.givenLabel.map { [.text($0)] } ?? []) + [try part(for: content, in: entry)]
-        }
-
-        /// The input part for an attachment's content: text, an `input_image` or a PDF `input_file`.
-        private func part(for content: AttachmentReader.Content, in entry: Transcript.Entry) throws -> Part {
-            switch content {
-            case .text(let text):
-                return .text(text)
-            case .jpeg(let data):
-                return .image(url: DataURL(mediaType: MediaType.jpeg, data: data).text)
-            case .imageURL(let url):
-                return .image(url: url.absoluteString)
-            case .pdf(let data, let fileName):
-                return .file(name: fileName, data: DataURL(mediaType: MediaType.pdf, data: data).text)
-            case .data(_, let type):
-                throw LanguageModelError.unsupported(entry, "\(provider) takes no attachments of type \(type.identifier).")
-            }
+    /// Images go as JPEG data URLs, or as their web address when they have one. Data attachments go by kind: text as
+    /// text, images as images, and PDFs as `input_file` parts. The format has no part for other kinds, such as audio or
+    /// video. The same attachment gives the same bytes every time.
+    ///
+    /// - Parameters:
+    ///   - content: The content.
+    ///   - entry: The entry that carries it, which the error names.
+    ///   - provider: The provider's name, for the error.
+    /// - Returns: The part.
+    /// - Throws: `LanguageModelError.unsupportedTranscriptContent` for data the format has no part for.
+    private static func part(for content: AttachmentReader.Content, in entry: Transcript.Entry, provider: String) throws -> Part {
+        switch content {
+        case .text(let text):
+            return .text(text)
+        case .jpeg(let data):
+            return .image(url: DataURL(mediaType: MediaType.jpeg, data: data).text)
+        case .imageURL(let url):
+            return .image(url: url.absoluteString)
+        case .pdf(let data, let fileName):
+            return .file(name: fileName, data: DataURL(mediaType: MediaType.pdf, data: data).text)
+        case .data(_, let type):
+            throw LanguageModelError.unsupported(entry, "\(provider) takes no attachments of type \(type.identifier).")
         }
     }
 }

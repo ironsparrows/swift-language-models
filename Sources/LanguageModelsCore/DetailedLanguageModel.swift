@@ -94,8 +94,6 @@ extension DetailedLanguageModel {
     /// - Throws: `GeneratedContent.ParsingError` when a value breaks a guide, as Foundation Models throws for an answer
     ///   that doesn't decode, or when an object or array answer isn't complete JSON.
     public func checkGuides(ofResponseText text: String, for request: LanguageModelExecutorGenerationRequest) throws {
-        if let schema = request.schema {
-            try GuideViolations.check(text, against: schema, request: request.id)
-        }
+        try GuideViolations.check(text, of: request)
     }
 }

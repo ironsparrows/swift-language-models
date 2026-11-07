@@ -159,11 +159,6 @@ func input(_ body: JSONValue) -> [JSONValue] {
     if case .array(let items)? = body["input"] { items } else { [] }
 }
 
-/// The keys of an object, in order.
-func keys(_ value: JSONValue?) -> [String] {
-    if case .object(let object)? = value { object.members.map(\.key) } else { [] }
-}
-
 /// A text segment.
 func text(_ content: String) -> Transcript.Segment {
     .text(.init(content: content))

@@ -17,16 +17,7 @@ extension ChatCompletions {
     struct Messages {
         private var messages: [Message] = []
 
-        /// Whether a message carries a PDF.
-        private(set) var carriesPDF = false
-
-        /// The transcript entries whose messages carry an image, which a host's rejection of an image names.
-        private(set) var imageEntries: [Transcript.Entry] = []
-
-        private let attachments: AttachmentParts
-
-        /// The provider's name, for the errors.
-        private let provider: String
+        private var reader: SegmentReader<Part>
 
         /// Whether a reasoning entry goes back: one of the provider's own that its exchange sends back.
         private let replays: (Transcript.Reasoning) -> Bool
@@ -36,9 +27,6 @@ extension ChatCompletions {
 
         /// The messages for a transcript.
         ///
-        /// A prompt that recorded a response schema, which Foundation Models does when the schema belongs in the
-        /// prompt, carries the schema as text after its own, so every request writes it the same way.
-        ///
         /// - Throws: `LanguageModelError.unsupportedTranscriptContent` for content the format or a model can't take,
         ///   and the exchange's errors for an attachment a model doesn't take.
         init<Exchange: ChatCompletions.Exchange>(
@@ -46,12 +34,26 @@ extension ChatCompletions {
             model: ChatCompletions.Model<Exchange>,
             exchange: Exchange
         ) throws {
-            attachments = AttachmentParts(model: model, exchange: exchange)
-            provider = model.providerName
+            let provider = model.providerName
+            let media = Self.formatMedia + model.media
+            reader = SegmentReader(
+                provider: provider, encoding: model.images, instructions: "system messages",
+                check: { (attachment, entry) throws(LanguageModelError) in try exchange.checkAttachment(attachment, in: entry) },
+                makePart: { content, entry in try Self.part(for: content, in: entry, media: media, provider: provider) })
             let origin = model.reasoningOrigin
             replays = { $0.origin == origin && exchange.replays($0) }
             replayMembers = { exchange.replayMembers(for: $0) }
             for turn in try TranscriptTurn.turns(of: transcript, provider: provider) { try append(turn) }
+        }
+
+        /// Whether a message carries a PDF.
+        var carriesPDF: Bool {
+            reader.carriesPDF
+        }
+
+        /// The transcript entries whose messages carry an image, which a host's rejection of an image names.
+        var imageEntries: [Transcript.Entry] {
+            reader.imageEntries
         }
 
         /// The `messages` member.
@@ -77,14 +79,11 @@ extension ChatCompletions {
             switch turn {
             case .instructions(let instructions, let entry):
                 // A session without instructions still has an empty instructions entry, which hosts reject.
-                let parts = try textParts(instructions.segments, of: entry)
+                let parts = try reader.textParts(instructions.segments, of: entry)
                 guard !parts.isEmpty else { return }
                 messages.append(.system(Content(parts)))
             case .prompt(let prompt, let entry):
-                var parts = try parts(prompt.segments, of: entry)
-                if case .schema(let schema)? = prompt.responseFormat?.kind {
-                    parts.append(.text(try schema.promptInstructions()))
-                }
+                let parts = try reader.parts(of: prompt, in: entry)
                 guard !parts.isEmpty else { return }
                 messages.append(.user(Content(parts)))
             case .answer(let entries):
@@ -92,7 +91,7 @@ extension ChatCompletions {
                 for entry in entries { append(entry, to: &answer) }
                 appendAssistantMessage(answer)
             case .toolOutput(let output, let entry):
-                let parts = try parts(output.segments, of: entry)
+                let parts = try reader.parts(output.segments, of: entry)
                 let texts = parts.compactMap { part -> String? in
                     if case .text(let text, let marks) = part, marks.members.isEmpty { text } else { nil }
                 }
@@ -140,41 +139,6 @@ extension ChatCompletions {
         private static func replayedText(of reasoning: Transcript.Reasoning) -> String {
             TaggedReasoning.block(of: reasoning) == nil ? reasoning.segments.compactMap(\.text).joined() : ""
         }
-
-        /// Text, structure and attachment segments as content parts, in their order.
-        ///
-        /// - Throws: The attachments' errors, and `LanguageModelError.unsupportedTranscriptContent` for a kind of
-        ///   segment the format can't take.
-        private mutating func parts(_ segments: [Transcript.Segment], of entry: Transcript.Entry) throws -> [Part] {
-            var parts: [Part] = []
-            for segment in segments {
-                guard case .attachment(let attachment) = segment else {
-                    parts += try textParts([segment], of: entry)
-                    continue
-                }
-                let attachmentParts = try attachments.parts(for: attachment, in: entry)
-                carriesPDF = carriesPDF || attachmentParts.contains { $0.type == .file }
-                if attachmentParts.contains(where: { $0.type == .image }), !imageEntries.contains(where: { $0.id == entry.id }) {
-                    imageEntries.append(entry)
-                }
-                parts += attachmentParts
-            }
-            return parts
-        }
-
-        /// Text and structure segments as text parts.
-        ///
-        /// - Throws: `LanguageModelError.unsupportedTranscriptContent` for attachments, which `system` messages don't
-        ///   take, and for a kind of segment the format can't take.
-        private func textParts(_ segments: [Transcript.Segment], of entry: Transcript.Entry) throws -> [Part] {
-            try segments.map { segment in
-                if let text = segment.text { return .text(text) }
-                if case .attachment = segment {
-                    throw LanguageModelError.unsupported(entry, "\(provider)'s system messages take only text, not attachments.")
-                }
-                throw LanguageModelError.unsupported(entry, "\(provider) can't take this kind of segment yet.")
-            }
-        }
     }
 }
 
@@ -203,67 +167,45 @@ extension JSONValue {
 // MARK: - Attachments
 
 extension ChatCompletions.Messages {
-    /// Prompt and tool-output attachments as the format's content parts.
+    /// The kinds of audio `input_audio` takes in the format, WAV and MP3, each with its name.
+    private static let formatMedia: [ChatCompletions.MediaPart] = [.audio(.wav, format: "wav"), .audio(.mp3, format: "mp3")]
+
+    /// The content part for a piece of content: text, an `image_url`, a PDF `file`, or the part of the first kind of audio
+    /// or movie it conforms to.
     ///
-    /// A label goes first, as a text part of its own, so the model can name the attachment, as an `ImageReference`
-    /// does. Images go as JPEG data URLs in `image_url` parts, or as their web address when they have one. Data
-    /// attachments go by kind: text as text, images as images, PDFs as `file` parts, WAV and MP3 audio as
-    /// `input_audio` with its format, and the kinds of audio and movies the model adds as their parts. The exchange
-    /// first checks that its models take the attachment. The same attachment gives the same bytes every time.
-    private struct AttachmentParts {
-        /// The provider's name, for the errors.
-        private let provider: String
-
-        private let reader: AttachmentReader
-
-        /// Checks that every model takes an attachment.
-        private let check: (AttachmentKind, Transcript.Entry) throws(LanguageModelError) -> Void
-
-        /// The kinds of audio and movies the format takes, then the ones the model adds, in the order they're
-        /// matched.
-        private let media: [ChatCompletions.MediaPart]
-
-        init<Exchange: ChatCompletions.Exchange>(model: ChatCompletions.Model<Exchange>, exchange: Exchange) {
-            provider = model.providerName
-            reader = AttachmentReader(provider: provider, encoding: model.images)
-            check = { (attachment, entry) throws(LanguageModelError) in try exchange.checkAttachment(attachment, in: entry) }
-            media = Self.formatMedia + model.media
-        }
-
-        /// The kinds of audio `input_audio` takes in the format, WAV and MP3, each with its name.
-        private static let formatMedia: [ChatCompletions.MediaPart] = [.audio(.wav, format: "wav"), .audio(.mp3, format: "mp3")]
-
-        /// The parts for one attachment: its label, when it has one, then the attachment.
-        ///
-        /// - Throws: The exchange's errors for an attachment a model doesn't take, and
-        ///   `LanguageModelError.unsupportedTranscriptContent` for one that can't be read or that neither the format
-        ///   nor the model has a part for.
-        func parts(for segment: Transcript.AttachmentSegment, in entry: Transcript.Entry) throws -> [Part] {
-            let content = try reader.content(of: segment, in: entry) { (kind) throws(LanguageModelError) in try check(kind, entry) }
-            return (segment.givenLabel.map { [.text($0)] } ?? []) + [try part(for: content, in: entry)]
-        }
-
-        /// The content part for an attachment's content: text, an `image_url`, a PDF `file`, or the part of the first
-        /// kind of audio or movie it conforms to.
-        private func part(for content: AttachmentReader.Content, in entry: Transcript.Entry) throws -> Part {
-            switch content {
-            case .text(let text):
-                return .text(text)
-            case .jpeg(let data):
-                return .image(url: DataURL(mediaType: MediaType.jpeg, data: data).text)
-            case .imageURL(let url):
-                return .image(url: url.absoluteString)
-            case .pdf(let data, let fileName):
-                return .file(name: fileName, data: DataURL(mediaType: MediaType.pdf, data: data).text)
-            case .data(let data, let type):
-                switch media.first(where: { type.conforms(to: $0.contentType) })?.part {
-                case .audio(let format)?:
-                    return .audio(data: data.base64EncodedString(), format: format)
-                case .video(let mediaType)?:
-                    return .video(url: DataURL(mediaType: mediaType, data: data).text)
-                case nil:
-                    throw LanguageModelError.unsupported(entry, "\(provider) takes no attachments of type \(type.identifier).")
-                }
+    /// Images go as JPEG data URLs, or as their web address when they have one. Data attachments go by kind: text as
+    /// text, images as images, PDFs as `file` parts, WAV and MP3 audio as `input_audio` with its format, and the kinds of
+    /// audio and movies the model adds as their parts. The same attachment gives the same bytes every time.
+    ///
+    /// - Parameters:
+    ///   - content: The content.
+    ///   - entry: The entry that carries it, which the error names.
+    ///   - media: The kinds of audio and movies the format takes, then the ones the model adds, in the order they're
+    ///     matched.
+    ///   - provider: The provider's name, for the error.
+    /// - Returns: The part.
+    /// - Throws: `LanguageModelError.unsupportedTranscriptContent` for data that neither the format nor the model has a
+    ///   part for.
+    private static func part(
+        for content: AttachmentReader.Content, in entry: Transcript.Entry, media: [ChatCompletions.MediaPart], provider: String
+    ) throws -> Part {
+        switch content {
+        case .text(let text):
+            return .text(text)
+        case .jpeg(let data):
+            return .image(url: DataURL(mediaType: MediaType.jpeg, data: data).text)
+        case .imageURL(let url):
+            return .image(url: url.absoluteString)
+        case .pdf(let data, let fileName):
+            return .file(name: fileName, data: DataURL(mediaType: MediaType.pdf, data: data).text)
+        case .data(let data, let type):
+            switch media.first(where: { type.conforms(to: $0.contentType) })?.part {
+            case .audio(let format)?:
+                return .audio(data: data.base64EncodedString(), format: format)
+            case .video(let mediaType)?:
+                return .video(url: DataURL(mediaType: mediaType, data: data).text)
+            case nil:
+                throw LanguageModelError.unsupported(entry, "\(provider) takes no attachments of type \(type.identifier).")
             }
         }
     }

@@ -1,4 +1,4 @@
-package import Foundation
+import Foundation
 public import FoundationModels
 import os
 
@@ -122,18 +122,17 @@ public struct GuideViolations: Error, Sendable, Equatable, CustomStringConvertib
 extension GuideViolations {
     /// Checks an answer's text against the guides of the request's schema.
     ///
-    /// A schema that can't be encoded passes, and so does a response that isn't JSON when the schema's root isn't an
-    /// object or an array, such as a string Foundation Models decodes from plain text.
+    /// A request without a schema passes, as does a schema that can't be encoded, and a response that isn't JSON when the
+    /// schema's root isn't an object or an array, such as a string Foundation Models decodes from plain text.
     ///
     /// - Parameters:
     ///   - responseText: The text of the answer's response entry, or empty when the answer ended in tool calls.
-    ///   - schema: The request's schema.
-    ///   - id: The request's id, whose start names the request in the log.
+    ///   - generation: The request, with its schema, and its id, whose start names the request in the log.
     /// - Throws: `GeneratedContent.ParsingError`, naming each value that breaks a guide, with the ``GuideViolations``
     ///   as its `underlyingError`, when one does, or when an object or array answer isn't complete JSON, since
     ///   decoding would fill in what's missing.
-    package static func check(_ responseText: String, against schema: GenerationSchema, request id: UUID) throws {
-        guard !responseText.isEmpty, let json = try? JSONValue(schema, strict: true) else { return }
+    package static func check(_ responseText: String, of generation: LanguageModelExecutorGenerationRequest) throws {
+        guard let schema = generation.schema, !responseText.isEmpty, let json = try? JSONValue(schema, strict: true) else { return }
         guard let answer = try? JSONValue(json: Data(responseText.utf8)) else {
             guard let root = json["type"]?.stringValue, [JSONValue.SchemaType.object, JSONValue.SchemaType.array].contains(root)
             else { return }
@@ -143,7 +142,7 @@ extension GuideViolations {
         guard !violations.isEmpty else { return }
         // The log names where each value is and the guide it breaks, never the value, which is part of the answer.
         let places = violations.map { "\($0.path.isEmpty ? "the answer" : $0.path) (\($0.keyword))" }.joined(separator: ", ")
-        let request = LanguageModelsLogging.requestName(id)
+        let request = LanguageModelsLogging.requestName(generation.id)
         PackageLogger.languageModels(.error)?.error(
             "Request \(request, privacy: .public): the answer breaks its schema's guides at \(places, privacy: .public).")
         throw GeneratedContent.ParsingError(

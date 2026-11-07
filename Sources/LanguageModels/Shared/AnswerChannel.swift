@@ -151,27 +151,23 @@ struct AnswerChannel {
     ///   - refusal: The refusal text the model sent, empty for none.
     ///   - requiresCompleteAnswer: Whether the answer must be whole, as a guided answer must.
     ///   - failedAnswer: The format's error for an answer the host says failed, or `nil` when it doesn't say so.
-    /// - Returns: Why the answer fails, or `nil` when it ended.
+    /// - Throws: ``StreamProblem`` for a problem the format reports as a failure of its own, such as the token limit
+    ///   reached inside a tool call, and otherwise the error the answer ends in, such as Foundation Models' refusal.
     mutating func finish(
         report: AnswerReport,
         facts: AnswerAdditions,
         refusal: String,
         requiresCompleteAnswer: Bool,
         failedAnswer: (any Error)? = nil
-    ) async -> AnswerFailure? {
+    ) async throws {
         await finishText(model: report.model)
         let ending = AnswerEnding(
             refusal: refusal, finishReason: report.finishReason, hasToolCalls: hasToolCalls,
             requiresCompleteAnswer: requiresCompleteAnswer)
-        if ending == .tokenLimitInToolCall { return .unusable(.tokenLimitInToolCall) }
-        if let error = ending?.error(responseText: responseText, host: facts.host) ?? failedAnswer { return .failed(error) }
-        do {
-            try await finishToolCalls()
-        } catch {
-            return .unusable(error)
-        }
+        if ending == .tokenLimitInToolCall { throw StreamProblem.tokenLimitInToolCall }
+        if let error = ending?.error(responseText: responseText, host: facts.host) ?? failedAnswer { throw error }
+        try await finishToolCalls()
         await end(report: report, facts: facts)
-        return nil
     }
 
     /// Ends the answer: the reasoning entry with the provider's signature, then the answer's facts and usage on the
@@ -589,16 +585,6 @@ private enum AnswerEnding: Equatable {
                 rawContent: responseText, debugDescription: "The answer reached its token limit before it was complete.")
         }
     }
-}
-
-/// Why an answer whose stream ended fails anyway, as
-/// ``AnswerChannel/finish(report:facts:refusal:requiresCompleteAnswer:failedAnswer:)`` says.
-enum AnswerFailure {
-    /// A problem the format reports as a failure of its own, such as the token limit reached inside a tool call.
-    case unusable(StreamProblem)
-
-    /// The error the answer ends in, such as Foundation Models' refusal.
-    case failed(any Error)
 }
 
 extension FinishReason {

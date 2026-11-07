@@ -76,6 +76,112 @@ extension Transcript {
     }
 }
 
+// MARK: - Segments
+
+/// A transcript's segments as a format's content parts, which the format makes from each piece of content.
+///
+/// Text goes as text. An attachment's label goes first, as a text part of its own, so the model can name the attachment,
+/// as an `ImageReference` does. The exchange first checks that its models take the attachment.
+struct SegmentReader<Part> {
+    /// The transcript entries whose parts carry an image, which a host's rejection of an image names.
+    private(set) var imageEntries: [Transcript.Entry] = []
+
+    /// Whether a part carries a PDF.
+    private(set) var carriesPDF = false
+
+    /// The provider's name, for the errors.
+    private let provider: String
+
+    /// What the format calls where instructions go, for the errors.
+    private let instructions: String
+
+    private let reader: AttachmentReader
+
+    /// Checks that every model takes an attachment.
+    private let check: (AttachmentKind, Transcript.Entry) throws(LanguageModelError) -> Void
+
+    /// Makes the format's part for a piece of content of an entry.
+    private let makePart: (AttachmentReader.Content, Transcript.Entry) throws -> Part
+
+    /// - Parameters:
+    ///   - provider: The provider's name, as the errors name it.
+    ///   - encoding: How images sent as data are encoded.
+    ///   - instructions: What the format calls where instructions go, as the errors name it.
+    ///   - check: Checks that every model takes an attachment.
+    ///   - makePart: Makes the format's part for a piece of content of an entry.
+    init(
+        provider: String,
+        encoding: ImageEncoding,
+        instructions: String,
+        check: @escaping (AttachmentKind, Transcript.Entry) throws(LanguageModelError) -> Void,
+        makePart: @escaping (AttachmentReader.Content, Transcript.Entry) throws -> Part
+    ) {
+        self.provider = provider
+        self.instructions = instructions
+        reader = AttachmentReader(provider: provider, encoding: encoding)
+        self.check = check
+        self.makePart = makePart
+    }
+
+    /// A prompt's parts: its segments, then, as text, the response schema it recorded, which Foundation Models does when
+    /// the schema belongs in the prompt, so every request writes it the same way.
+    ///
+    /// - Throws: What ``parts(_:of:)`` throws, and `LanguageModelError` for a schema that can't be written.
+    mutating func parts(of prompt: Transcript.Prompt, in entry: Transcript.Entry) throws -> [Part] {
+        var parts = try parts(prompt.segments, of: entry)
+        if case .schema(let schema)? = prompt.responseFormat?.kind {
+            parts.append(try makePart(.text(try schema.promptInstructions()), entry))
+        }
+        return parts
+    }
+
+    /// Text, structure and attachment segments as parts, in their order.
+    ///
+    /// - Throws: The exchange's errors for an attachment a model doesn't take, what the format throws for content it has
+    ///   no part for, and `LanguageModelError.unsupportedTranscriptContent` for an attachment that can't be read or a kind
+    ///   of segment the format can't take.
+    mutating func parts(_ segments: [Transcript.Segment], of entry: Transcript.Entry) throws -> [Part] {
+        var parts: [Part] = []
+        for segment in segments {
+            guard case .attachment(let attachment) = segment else {
+                parts += try textParts([segment], of: entry)
+                continue
+            }
+            let content = try reader.content(of: attachment, in: entry) { (kind) throws(LanguageModelError) in try check(kind, entry) }
+            if let label = attachment.givenLabel { parts.append(try makePart(.text(label), entry)) }
+            parts.append(try makePart(content, entry))
+            record(content, of: entry)
+        }
+        return parts
+    }
+
+    /// Text and structure segments as text parts.
+    ///
+    /// - Throws: `LanguageModelError.unsupportedTranscriptContent` for attachments, which instructions don't take, and for
+    ///   a kind of segment the format can't take.
+    func textParts(_ segments: [Transcript.Segment], of entry: Transcript.Entry) throws -> [Part] {
+        try segments.map { segment in
+            if let text = segment.text { return try makePart(.text(text), entry) }
+            if case .attachment = segment {
+                throw LanguageModelError.unsupported(entry, "\(provider)'s \(instructions) take only text, not attachments.")
+            }
+            throw LanguageModelError.unsupported(entry, "\(provider) can't take this kind of segment yet.")
+        }
+    }
+
+    /// Notes which entries carry an image, and whether any part carries a PDF.
+    private mutating func record(_ content: AttachmentReader.Content, of entry: Transcript.Entry) {
+        switch content {
+        case .jpeg, .imageURL:
+            if !imageEntries.contains(where: { $0.id == entry.id }) { imageEntries.append(entry) }
+        case .pdf:
+            carriesPDF = true
+        case .text, .data:
+            break
+        }
+    }
+}
+
 // MARK: - Reasoning entries
 
 /// The provider and API format that wrote a reasoning entry, as the entry's metadata names it.

@@ -54,7 +54,7 @@ struct AttachmentReaderTests {
     @Test(arguments: Source.allCases)
     func `an image is encoded once and gives the same bytes every time`(source: Source) throws {
         let cache = EncodedImageCache()
-        let reader = AttachmentReader(provider: "Test", maximumImageSide: 64, cache: cache)
+        let reader = AttachmentReader(provider: "Test", encoding: ImageEncoding(maximumSide: 64), cache: cache)
         let image = try #require(TestImage.seven(size: 128))
         let file = try #require(TestImage.file(of: image, as: .png))
         let url = try temporaryFile(file)
@@ -214,8 +214,8 @@ struct AttachmentReaderTests {
     @Test func `an image read with another longest side or orientation is encoded on its own`() throws {
         let cache = EncodedImageCache()
         let image = try #require(TestImage.halves(width: 128, height: 64))
-        let large = AttachmentReader(provider: "Test", maximumImageSide: 64, cache: cache)
-        let small = AttachmentReader(provider: "Test", maximumImageSide: 32, cache: cache)
+        let large = AttachmentReader(provider: "Test", encoding: ImageEncoding(maximumSide: 64), cache: cache)
+        let small = AttachmentReader(provider: "Test", encoding: ImageEncoding(maximumSide: 32), cache: cache)
 
         let sizes = try [
             (large, Transcript.ImageAttachment(image, orientation: .up)),

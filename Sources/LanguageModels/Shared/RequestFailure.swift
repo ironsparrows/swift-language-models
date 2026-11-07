@@ -240,6 +240,33 @@ extension LanguageModelError {
 }
 
 extension LanguageModelError.ProviderFailure {
+    /// An oversized prompt, with the sizes its error's message names, the model's own context size when it names none,
+    /// and 0 for one that isn't known.
+    ///
+    /// - Parameters:
+    ///   - message: The error's message.
+    ///   - contextSize: The model's context size, if known.
+    /// - Returns: The failure.
+    package static func contextSizeExceeded(message: String, contextSize: Int?) -> Self {
+        let sizes = contextSizes(in: message)
+        return .contextSizeExceeded(contextSize: sizes.limit ?? contextSize ?? 0, tokenCount: sizes.requested ?? 0)
+    }
+
+    /// When a rate limit resets, from the wait a response names.
+    ///
+    /// - Parameters:
+    ///   - wait: How long the limit lasts, if known.
+    ///   - now: The time the wait counts from.
+    /// - Returns: The date, or `nil` when there's no wait.
+    package static func resetDate(after wait: Duration?, from now: Date) -> Date? {
+        wait.map { now.addingTimeInterval($0 / .seconds(1)) }
+    }
+
+    /// Whether an error's message names the context's length or window, as a 400 for an oversized prompt does.
+    package static func namesContext(_ message: String) -> Bool {
+        message.contains(/(?i)context (?:length|window)/)
+    }
+
     /// The sizes the message of an oversized prompt's error names, each when it names it: the model's context size,
     /// as in "maximum context length is 8192" or "context window of 8192", and the tokens the request needs, as in
     /// "requested about 9000" or "resulted in 9000".

@@ -340,12 +340,11 @@ extension Responses.Stream {
         guard report.finishReason != nil else {
             throw failure(.cutOff)
         }
-        let ending = await output.finish(
-            report: report, facts: answerAdditions, refusal: refusal, requiresCompleteAnswer: requiresCompleteAnswer)
-        switch ending {
-        case .unusable(let problem)?: throw failure(problem)
-        case .failed(let error)?: throw error
-        case nil: break
+        do {
+            try await output.finish(
+                report: report, facts: answerAdditions, refusal: refusal, requiresCompleteAnswer: requiresCompleteAnswer)
+        } catch let problem as StreamProblem {
+            throw failure(problem)
         }
     }
 

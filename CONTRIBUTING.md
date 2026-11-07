@@ -106,7 +106,8 @@ In this repository:
   URL, paths and header names.
 - Give the model a public configuration of the module's own, such as `VendorConfiguration`, built only from the core's
   pieces the module uses, `RequestRetries` and `ImageEncoding`, and an `idleTimeout`. Never declare a retry or image
-  setting of the module's own. Make `Connection` from it, with the provider's rule for which statuses to retry.
+  setting of the module's own. Make `Connection` from it, with the rule for which statuses to retry, such as
+  `RetriedStatuses.transient.contains`.
 - Throw Foundation Models' error wherever it has a case, from `error(for:)`, and the module's own for the rest. Read
   facts through `ProviderResponseMetadata`, `ProviderUsageMetadata` and `ProviderErrorMetadata`, and give apps a reader
   named for the provider, such as `openRouter`. Its keys are private to the module's metadata file.
@@ -141,10 +142,10 @@ Code lives in the narrowest place that every user of it can reach:
 | `HTTPClient.swift` | Sending: the retry loop and policy, waits a server asks for, redirects to the same URL host only, the user agent, header and media-type names. |
 | `ServerSentEvent.swift` | Events of a byte stream, and the byte-level line splitter under them. |
 | `RequestLog.swift` | The log of one request: what it sends, retries, adjustments, how it ended, and what the log says of an error. |
-| `TranscriptTurn.swift` | The transcript as provider APIs take it: turns, the first prompt's id, and which reasoning goes back. |
+| `TranscriptTurn.swift` | The transcript as provider APIs take it: turns, a turn's segments as a format's parts, the first prompt's id, and which reasoning goes back. |
 | `AttachmentReader.swift` | An attachment as content to send: kinds, text, PDFs, data URLs. |
 | `EncodedImage.swift` | An image as JPEG no larger than a size, and the bounded cache of encoded images. |
-| `RequestSettings.swift` | What a request sends of the app's settings: sampling, tool choice, metadata within its limits, and what it leaves out or changes. |
+| `RequestSettings.swift` | What a request sends of the app's settings: sampling, tool choice, metadata within its limits, the body with the provider's members, and what it leaves out or changes. |
 | `AnswerChannel.swift` | Writing one answer to Foundation Models' channel: text, reasoning, reasoning tagged inside the text, tool calls assembled from fragments, data, citations, how an answer ends, facts and usage. |
 | `RequestFailure.swift` | A failure before a provider maps it, and the helpers that map it. |
 

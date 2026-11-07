@@ -194,18 +194,6 @@ public struct OpenRouterCurrentDetails: Sendable, Hashable {
 // MARK: - Connection
 
 extension Connection {
-    /// The connection of a catalog model's calls, which aren't tied to a language model.
-    ///
-    /// - Parameters:
-    ///   - auth: How the calls authenticate, and where they go, or `nil` to call OpenRouter without a key.
-    ///   - session: The URL session that sends the requests.
-    ///   - configuration: How the calls retry.
-    fileprivate init(auth: OpenRouterAuthentication?, session: URLSession, configuration: OpenRouterConfiguration) {
-        self.init(
-            session: session, authentication: auth?.requestAuthentication ?? .unauthenticated, idleTimeout: configuration.idleTimeout,
-            retries: configuration.retries, retrying: API.retriesStatus)
-    }
-
     /// One model's current details.
     ///
     /// - Parameters:

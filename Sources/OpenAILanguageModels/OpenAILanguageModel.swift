@@ -200,7 +200,7 @@ public struct OpenAIAuthentication: Sendable {
     private init(apiKey key: @escaping @Sendable () async throws -> String, baseURL: URL?, organization: String?, project: String?) {
         self.init(
             .apiKey(key, baseURL: baseURL) { key in
-                var headers = [API.Header.authorization: "Bearer \(key)"]
+                var headers = Connection.Authentication.bearerHeader(key)
                 headers[API.Header.organization] = organization
                 headers[API.Header.project] = project
                 return headers
@@ -347,6 +347,6 @@ extension OpenAILanguageModel {
     func connection(_ configuration: OpenAIConfiguration) -> Connection {
         Connection(
             session: session, authentication: auth.requestAuthentication, idleTimeout: configuration.idleTimeout,
-            retries: configuration.retries, retrying: API.retriesStatus)
+            retries: configuration.retries, retrying: RetriedStatuses.transient.contains)
     }
 }

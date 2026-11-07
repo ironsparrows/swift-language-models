@@ -79,6 +79,14 @@ struct RequestLog {
         )
     }
 
+    /// Logs a failed exchange, and returns the error it throws: a failed connection's as `URLError` maps it, and any other
+    /// as it is.
+    func recordFailure(_ error: any Error) -> any Error {
+        let thrown = (error as? URLError)?.thrownError ?? error
+        failed(thrown)
+        return thrown
+    }
+
     /// A duration in whole milliseconds.
     private static func milliseconds(_ duration: Duration) -> Int {
         Int(duration / .milliseconds(1))
@@ -109,13 +117,11 @@ extension RequestLog {
     }
 
     /// Logs the retry of a request whose host rejected a constraint of its response schema.
-    ///
-    /// - Parameter host: The company whose servers rejected it, when the provider names one.
-    func retryingWithPortableSchema(host: String?) {
+    func retryingWithPortableSchema() {
         logger(.info)?.info(
             """
-            \(label, privacy: .public): \(host ?? "the host", privacy: .public) rejected a constraint of the response \
-            schema; retrying with the portable schema.
+            \(label, privacy: .public): the host rejected a constraint of the response schema; retrying with the portable \
+            schema.
             """
         )
     }

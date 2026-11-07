@@ -86,7 +86,7 @@ private struct ToolChoice: ProviderVocabulary {
 /// Request metadata as OpenAI's formats take it.
 enum RequestMetadata {
     /// The limits that OpenAI's formats, and the hosts that follow them, put on request metadata.
-    private enum MetadataLimit {
+    fileprivate enum MetadataLimit {
         static let pairs = 16
         static let keyLength = 64
         static let valueLength = 512
@@ -106,6 +106,36 @@ enum RequestMetadata {
         let keptKeys = Set(limited.map(\.key))
         let droppedKeys = metadata.keys.filter { !keptKeys.contains($0) }.sorted()
         return (limited.isEmpty ? nil : .object(JSONObject(Array(limited))), droppedKeys)
+    }
+}
+
+// MARK: - Body
+
+/// What a request sends, and what it changed from what the app asked for.
+struct RequestBody {
+    /// The body of the request's `POST`.
+    let json: JSONValue
+
+    /// The same body with its response schema in portable form, to send instead when a host rejects a constraint of the
+    /// full schema, or `nil` when there's no other schema to try.
+    let portableJSON: JSONValue?
+
+    /// What the request leaves out or changes from what the app asked for, so that its models and the provider take it,
+    /// in the log's order.
+    let adjustments: [RequestAdjustment]
+}
+
+extension JSONObject {
+    /// Adds a provider's members to a body the format wrote. A member the format wrote stays as it is.
+    ///
+    /// - Parameters:
+    ///   - members: The provider's members.
+    ///   - provider: The provider's name, which a debug build's assertion names.
+    mutating func add(_ members: JSONObject, from provider: String) {
+        for member in members.members {
+            assert(self[member.key] == nil, "\(provider) adds \(member.key), which the format writes.")
+            if self[member.key] == nil { self[member.key] = member.value }
+        }
     }
 }
 
@@ -171,9 +201,11 @@ extension RequestAdjustment {
                 request has one, doesn't list.
                 """
         case .droppedMetadata:
+            let limit = RequestMetadata.MetadataLimit.self
             return """
                 The request to \(model) leaves out metadata that \(provider) doesn't take: values that aren't strings, and \
-                pairs past its limits of 16 pairs, keys up to 64 characters and values up to 512.
+                pairs past its limits of \(limit.pairs) pairs, keys up to \(limit.keyLength) characters and values up to \
+                \(limit.valueLength).
                 """
         case .movedEffort(let requested, let sent?):
             return "The request to \(model) sends the reasoning level \(requested) as \(sent), the nearest effort its models accept."

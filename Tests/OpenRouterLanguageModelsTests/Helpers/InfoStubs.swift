@@ -13,7 +13,8 @@ func fixtureResponse(_ name: String, status: Int = 200) throws -> StubResponse {
 func connection(_ stub: HTTPStub) -> Connection {
     let authentication = Connection.Authentication(baseURL: stub.baseURL) { [:] }
     let connection = Connection(
-        session: stub.session, authentication: authentication, idleTimeout: nil, retries: .immediate(), retrying: API.retriesStatus)
+        session: stub.session, authentication: authentication, idleTimeout: nil, retries: .immediate(),
+        retrying: RetriedStatuses.serverErrors.contains)
     return connection.isolatingCache()
 }
 

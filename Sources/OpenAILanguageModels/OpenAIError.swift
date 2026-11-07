@@ -188,20 +188,7 @@ struct OpenAIFailure: Sendable {
     ///   - now: The time a rate limit's reset date counts from.
     /// - Returns: `LanguageModelError` when Foundation Models has a case for the failure, otherwise `OpenAIError`.
     func error(contextSize: Int?, imageEntries: [Transcript.Entry] = [], now: Date = .now) -> any Error {
-        let failure: LanguageModelError.ProviderFailure
-        switch kind {
-        case .contextSizeExceeded:
-            let sizes = LanguageModelError.ProviderFailure.contextSizes(in: message)
-            failure = .contextSizeExceeded(contextSize: sizes.limit ?? contextSize ?? 0, tokenCount: sizes.requested ?? 0)
-        case .rateLimited:
-            failure = .rateLimited(resetDate: (retryAfter ?? rateLimitReset).map { now.addingTimeInterval($0 / .seconds(1)) })
-        case .guardrailViolation:
-            failure = .guardrailViolation
-        case .timeout:
-            failure = .timeout
-        case .unsupportedImage:
-            failure = .unsupportedContent(imageEntries)
-        case .openAIError:
+        guard let failure = providerFailure(contextSize: contextSize, imageEntries: imageEntries, now: now) else {
             return OpenAIError(
                 status: status, message: message, code: code, errorType: body?.type.map(OpenAIError.Code.init(rawValue:)),
                 parameter: body?.param, requestID: requestID, retryAfter: retryAfter, isQuotaExhausted: isQuotaExhausted)
@@ -245,19 +232,23 @@ struct OpenAIFailure: Sendable {
         body?.type == Self.insufficientQuota || errorCode.map(Self.quotaCodes.contains) == true
     }
 
-    /// What the failure becomes. A quota that ran out stays OpenAI's, since waiting doesn't clear it, although it
-    /// arrives as a 429.
-    private var kind: Kind {
+    /// The `LanguageModelError` case the failure becomes, or `nil` when it becomes an `OpenAIError`. A quota that ran out
+    /// stays OpenAI's, since waiting doesn't clear it, although it arrives as a 429.
+    private func providerFailure(contextSize: Int?, imageEntries: [Transcript.Entry], now: Date) -> LanguageModelError.ProviderFailure? {
         let code = errorCode
-        if isQuotaExhausted { return .openAIError }
-        if code == "context_length_exceeded" || (status == 400 && message.contains(Self.contextMessage)) { return .contextSizeExceeded }
-        if status == 429 || code == "rate_limit_exceeded" { return .rateLimited }
+        if isQuotaExhausted { return nil }
+        if code == "context_length_exceeded" || (status == 400 && LanguageModelError.ProviderFailure.namesContext(message)) {
+            return .contextSizeExceeded(message: message, contextSize: contextSize)
+        }
+        if status == 429 || code == "rate_limit_exceeded" {
+            return .rateLimited(resetDate: LanguageModelError.ProviderFailure.resetDate(after: retryAfter ?? rateLimitReset, from: now))
+        }
         if code.map(Self.guardrailCodes.contains) == true || (code == "invalid_prompt" && message.contains(Self.policyMessage)) {
             return .guardrailViolation
         }
-        if code.map(Self.unsupportedImageCodes.contains) == true { return .unsupportedImage }
+        if code.map(Self.unsupportedImageCodes.contains) == true { return .unsupportedContent(imageEntries) }
         if status == 408 || status == 504 || code == "vector_store_timeout" { return .timeout }
-        return .openAIError
+        return nil
     }
 
     /// The time until the rate limits reset that a 429's headers name, the later of the requests' and the tokens'.
@@ -270,7 +261,7 @@ struct OpenAIFailure: Sendable {
     private static let errorEventType = "error"
 
     /// The error type of a quota or credit that ran out.
-    private static let insufficientQuota = "insufficient_quota"
+    private static let insufficientQuota = OpenAIError.Code.insufficientQuota.rawValue
 
     /// The codes of a quota, credit or spending limit that ran out.
     private static let quotaCodes: Set<String> = [
@@ -289,23 +280,8 @@ struct OpenAIFailure: Sendable {
         "image_parse_error", "invalid_image_mode", "image_file_too_large", "unsupported_image_media_type", "empty_image_file",
     ]
 
-    /// The message of a prompt longer than the model's context.
-    private static var contextMessage: Regex<Substring> { /(?i)context (?:length|window)/ }
-
     /// The message of a prompt flagged for the usage policies.
     private static var policyMessage: Regex<Substring> { /(?i)usage polic|flagged/ }
-}
-
-extension OpenAIFailure {
-    /// What a failure becomes: the `LanguageModelError` case of the same name, or an `OpenAIError`.
-    private enum Kind {
-        case contextSizeExceeded
-        case rateLimited
-        case guardrailViolation
-        case timeout
-        case unsupportedImage
-        case openAIError
-    }
 }
 
 extension Duration {
