@@ -212,7 +212,7 @@ extension OpenRouterPricing {
             }
 
             /// Whether the condition holds for a request.
-            func holds(promptTokens: Int, at moment: Moment) -> Bool {
+            fileprivate func holds(promptTokens: Int, at moment: Moment) -> Bool {
                 if let promptTokensAbove, promptTokens <= promptTokensAbove { return false }
                 if let weekdays, !weekdays.contains(moment.weekday) { return false }
                 if let hours, !hours.contains(moment.timeOfDay) { return false }
@@ -251,11 +251,9 @@ extension OpenRouterPricing {
     }
 }
 
-// MARK: - Wire
-
 extension OpenRouterPricing {
     /// A request's send time, as the UTC weekday and time of day an override's condition reads.
-    struct Moment {
+    fileprivate struct Moment {
         private static let weekdays: [Locale.Weekday] = [.sunday, .monday, .tuesday, .wednesday, .thursday, .friday, .saturday]
 
         let weekday: Locale.Weekday
@@ -269,6 +267,8 @@ extension OpenRouterPricing {
         }
     }
 }
+
+// MARK: - Wire
 
 extension OpenRouterPricing {
     /// A `pricing` object in OpenRouter's model and endpoint lists, with each price as decimal text in US dollars.

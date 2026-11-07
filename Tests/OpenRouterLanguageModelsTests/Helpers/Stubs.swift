@@ -53,7 +53,7 @@ func model<Effort: ModelEffort>(
         session: stub.session,
         // The stub stands in for OpenRouter, so the authentication's headers go to the stub's URL.
         auth: OpenRouterAuthentication(baseURL: stub.baseURL) {
-            Dictionary(uniqueKeysWithValues: try await auth.requestHeaders().map { ($0.key.rawValue, $0.value) })
+            Dictionary(uniqueKeysWithValues: try await auth.requestAuthentication.requestHeaders().map { ($0.key.rawValue, $0.value) })
         },
         configuration: configuration ?? OpenRouterConfiguration(retries: .immediate(limit: retryLimit))
     )

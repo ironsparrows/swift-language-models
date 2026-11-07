@@ -181,7 +181,7 @@ public struct OpenRouterResponseCache: Sendable, Hashable {
     ///
     /// - Parameter sessionID: The id that keeps a session's requests on one host, or `nil` when there's none.
     /// - Returns: The headers by name.
-    func headers(sessionID: String?) -> [HTTPHeaderName: String] {
+    func headers(sessionID: String?) -> [String: String] {
         var headers = [API.Header.cache: "true", API.Header.cacheTimeToLive: String(timeToLive.components.seconds)]
         headers[API.Header.cacheClear] = refreshes ? "true" : nil
         headers[API.Header.sessionID] = sessionID
@@ -225,7 +225,7 @@ extension OpenRouterResponseCache {
         /// The report that a response's headers hold, or `nil` when they hold none, as when the cache is off.
         ///
         /// - Parameter header: The value of one of the response's headers, or `nil` when it has none.
-        init?(header: (HTTPHeaderName) -> String?) {
+        init?(header: (String) -> String?) {
             guard let status = header(API.Header.cacheStatus), !status.isEmpty else { return nil }
             self.status = Status(rawValue: status.uppercased())
             age = header(API.Header.cacheAge).flatMap { Int($0) }

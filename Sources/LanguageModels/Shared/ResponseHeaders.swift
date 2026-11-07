@@ -14,9 +14,4 @@ package struct ResponseHeaders: Sendable {
     func value(named name: String) -> String? {
         response?.value(forHTTPHeaderField: name)
     }
-
-    /// The value of one of the headers, or `nil` when the response has none.
-    package func value(for header: HTTPHeaderName) -> String? {
-        response?.value(forHTTPHeaderField: header.rawValue)
-    }
 }

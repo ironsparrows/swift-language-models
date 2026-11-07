@@ -60,6 +60,19 @@ struct ExecutorImageAttachmentTests {
         #expect(decoded.isRed(x: 5, y: 10))
     }
 
+    @Test func `an image goes no larger than the configuration's encoding allows`() async throws {
+        let stub = HTTPStub(events(text("Seven."), done()))
+        let image = try #require(TestImage.halves(width: 40, height: 20))
+        let configuration = OpenRouterConfiguration(images: ImageEncoding(maximumSide: 10))
+        let model: OpenRouterLanguageModel<Efforts.Unsupported> = model(stub, inputs: [.text, .image], configuration: configuration)
+        let session = LanguageModelSession(model: model)
+
+        _ = try await session.respond { FoundationModels.Attachment(image) }
+
+        let decoded = try sentImage(stub)
+        #expect((decoded.width, decoded.height) == (10, 5))
+    }
+
     @Test(arguments: ["unsupported_image_format", "invalid_image", "image_too_large", "image_too_small"])
     func `an image the host rejects throws unsupported transcript content, naming the entries with images`(type: String)
         async throws

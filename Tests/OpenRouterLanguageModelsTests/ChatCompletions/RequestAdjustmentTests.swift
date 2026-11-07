@@ -70,6 +70,5 @@ private func adjustments(
         id: UUID(), transcript: Transcript(entries: [.prompt(Transcript.Prompt(segments: [.text(.init(content: "Hi"))]))]),
         enabledTools: [], generationOptions: options, contextOptions: ContextOptions(reasoningLevel: reasoningLevel),
         metadata: metadata)
-    let dialect = OpenRouterChatCompletions(model: model, executor: .init(configuration: model.executorConfiguration))
-    return try ChatCompletionRequest(request, dialect: dialect).adjustments
+    return try sentRequest(request, model: model).adjustments
 }

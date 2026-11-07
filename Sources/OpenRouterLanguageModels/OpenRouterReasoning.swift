@@ -7,11 +7,11 @@ import LanguageModels
 /// OpenRouter's `reasoning_details`: the reasoning a model produced, in the form OpenRouter needs back on later
 /// turns.
 ///
-/// The details are stored in a reasoning entry's signature, and the entry's metadata names OpenRouter as its
-/// `ReasoningOrigin`, so only reasoning that OpenRouter wrote is sent back. The metadata also names the model that
+/// The details are stored in a reasoning entry's signature, and the entry's metadata names OpenRouter as its origin, so
+/// only reasoning that OpenRouter wrote is sent back. The metadata also names the model that
 /// wrote it, under `LanguageModelMetadataKey.model`, so reasoning a fallback wrote isn't sent to another model.
 struct ReasoningDetails: Sendable, Equatable {
-    private(set) var details: [JSONValue] = []
+    private var details: [JSONValue] = []
 
     /// Adds the details of one stream delta.
     ///
@@ -71,7 +71,7 @@ struct ReasoningDetails: Sendable, Equatable {
     }
 
     /// Whether a reasoning entry's reasoning came as text alone: without details, or with an empty list of them.
-    static func isTextAlone(_ reasoning: Transcript.Reasoning) -> Bool {
+    private static func isTextAlone(_ reasoning: Transcript.Reasoning) -> Bool {
         guard let signature = reasoning.signature else { return true }
         return (try? JSONValue(json: signature)) == .array([])
     }
@@ -80,8 +80,8 @@ struct ReasoningDetails: Sendable, Equatable {
     ///
     /// Anthropic and Gemini reject reasoning text without its signature, so unsigned text details in their formats are
     /// dropped. A detail without a format counts as Anthropic's, as OpenRouter treats it.
-    static func replayed(from reasoning: Transcript.Reasoning) -> [JSONValue]? {
-        guard ReasoningOrigin(of: reasoning) == .openRouter, let signature = reasoning.signature,
+    private static func replayed(from reasoning: Transcript.Reasoning) -> [JSONValue]? {
+        guard reasoning.origin == API.reasoningOrigin, let signature = reasoning.signature,
             case .array(let details)? = try? JSONValue(json: signature)
         else { return nil }
         return details.filter { detail in
@@ -126,18 +126,9 @@ extension JSONValue {
     }
 }
 
-extension ReasoningOrigin {
-    /// Reasoning that a model wrote through OpenRouter's Chat Completions API, which goes back as the text and
-    /// `reasoning_details` of an assistant message.
-    ///
-    /// Saved transcripts keep this value, so it stays `openrouter`, although it names the format too. Reasoning that
-    /// OpenRouter returns in another format gets an origin of its own, so it isn't sent back in this shape.
-    static let openRouter = Self(rawValue: "openrouter")
-}
-
 // MARK: - What goes back
 
-extension OpenRouterChatCompletions {
+extension ReasoningDetails {
     /// The assistant message's `reasoning` and `reasoning_details` for the reasoning it sends back.
     ///
     /// The details go back as OpenRouter sent them, and the text of the reasoning that came with them, since text
@@ -145,34 +136,19 @@ extension OpenRouterChatCompletions {
     /// takes it from models that return only raw reasoning. A block the model wrote in its answer's text already goes
     /// back there, so its text isn't sent again. Some models send an empty list of details when they didn't reason,
     /// and expect it back.
-    func replayMembers(_ reasoning: [ReplayedReasoning]) -> OpenRouterReplayMembers {
+    static func replayMembers(for reasoning: [(entry: Transcript.Reasoning, text: String)]) -> JSONObject {
         var signedText = ""
         var plainText = ""
         var details: [JSONValue]?
         for replayed in reasoning {
-            if let sent = ReasoningDetails.replayed(from: replayed.entry) {
+            if let sent = Self.replayed(from: replayed.entry) {
                 details = (details ?? []) + sent
                 if !sent.isEmpty { signedText += replayed.text }
             }
-            if ReasoningDetails.isTextAlone(replayed.entry) { plainText += replayed.text }
+            if isTextAlone(replayed.entry) { plainText += replayed.text }
         }
         let text = ((details ?? []).isEmpty ? "" : signedText) + plainText
-        return OpenRouterReplayMembers(reasoning: text.isEmpty ? nil : text, reasoningDetails: details)
-    }
-}
-
-/// The members an assistant message carries for the reasoning OpenRouter sends back.
-struct OpenRouterReplayMembers: Encodable {
-    /// The reasoning's text, or `nil` when there's none to send.
-    let reasoning: String?
-
-    /// The `reasoning_details` as OpenRouter sent them, which go back unchanged, so each stays the JSON it was.
-    let reasoningDetails: [JSONValue]?
-
-    func encode(to encoder: any Encoder) throws {
-        var container = encoder.container(keyedBy: JSONKey.self)
-        try container.encodeIfPresent(reasoning, forKey: "reasoning")
-        try container.encodeIfPresent(reasoningDetails, forKey: "reasoning_details")
+        return ["reasoning": text.isEmpty ? nil : .string(text), "reasoning_details": details.map(JSONValue.array)]
     }
 }
 

@@ -6,8 +6,8 @@ import UniformTypeIdentifiers
 
 @testable import LanguageModels
 
-@Suite("Messages")
-struct MessagesTests {
+@Suite("Chat Completions transcript")
+struct ChatCompletionsTranscriptTests {
     @Test func `instructions, prompts, answers and tool outputs become system, user, assistant and tool messages`() throws {
         let call = Transcript.ToolCall(id: "call_1", toolName: "lookUp", arguments: GeneratedContent(properties: ["word": "egg"]))
         let entries: [Transcript.Entry] = [
@@ -18,7 +18,7 @@ struct MessagesTests {
             .toolOutput(Transcript.ToolOutput(id: "call_1", toolName: "lookUp", segments: [text("egg:"), text("an oval")])),
         ]
 
-        let sent = messages(try ChatCompletionRequest(generationRequest(entries), dialect: ChatCompletionsTestDialect()).body)
+        let sent = messages(try ChatCompletionsSentRequest(generationRequest(entries)).body)
 
         #expect(
             sent == [
@@ -33,8 +33,8 @@ struct MessagesTests {
     }
 
     @Test func `the provider's own reasoning goes back after the content, and another provider's doesn't`() throws {
-        var setup = ChatCompletionsTestModel.Setup()
-        setup.reasoningMember = "reasoning"
+        var model = ChatCompletions.Model<ChatCompletionsTestExchange>.test()
+        model.exchange.reasoningMember = "reasoning"
         let own = Transcript.Reasoning(metadata: [ReasoningOrigin.metadataKey: "test"], segments: [text("Think.")])
         let other = Transcript.Reasoning(metadata: [ReasoningOrigin.metadataKey: "other"], segments: [text("Other.")])
         let entries: [Transcript.Entry] = [
@@ -42,8 +42,7 @@ struct MessagesTests {
             .response(Transcript.Response(assetIDs: [], segments: [text("Hello.")])),
         ]
 
-        let assistant = messages(try ChatCompletionRequest(generationRequest(entries), dialect: ChatCompletionsTestDialect(setup)).body)
-            .last
+        let assistant = messages(try ChatCompletionsSentRequest(generationRequest(entries), model: model).body).last
 
         #expect(keys(assistant) == ["role", "content", "reasoning"])
         #expect(assistant?["reasoning"] == "Think.")
@@ -57,7 +56,7 @@ struct MessagesTests {
             prompt(text("Hi")), .reasoning(reasoning), .response(Transcript.Response(assetIDs: [], segments: [text("Seven.")])),
         ]
 
-        let assistant = messages(try ChatCompletionRequest(generationRequest(entries), dialect: ChatCompletionsTestDialect()).body).last
+        let assistant = messages(try ChatCompletionsSentRequest(generationRequest(entries)).body).last
 
         #expect(assistant?["content"] == "<think>Count.</think>\nSeven.")
     }
@@ -65,7 +64,7 @@ struct MessagesTests {
     @Test func `an answer with nothing to send back has no message`() throws {
         let entries: [Transcript.Entry] = [prompt(text("Hi")), .response(Transcript.Response(assetIDs: [], segments: []))]
 
-        let sent = messages(try ChatCompletionRequest(generationRequest(entries), dialect: ChatCompletionsTestDialect()).body)
+        let sent = messages(try ChatCompletionsSentRequest(generationRequest(entries)).body)
 
         #expect(sent.count == 1)
     }
@@ -77,8 +76,7 @@ struct MessagesTests {
         let audio = Transcript.DataAttachment(contentType: .wav, content: Data("RIFF".utf8))
         let entry = prompt(.attachment(.init(content: .data(pdf), label: "Menu")), .attachment(.init(content: .data(audio))))
 
-        let parts = messages(try ChatCompletionRequest(generationRequest([entry]), dialect: ChatCompletionsTestDialect()).body).first?[
-            "content"]
+        let parts = messages(try ChatCompletionsSentRequest(generationRequest([entry])).body).first?["content"]
 
         #expect(
             parts == [
@@ -93,8 +91,7 @@ struct MessagesTests {
         let movie = Transcript.DataAttachment(contentType: .mpeg4Movie, content: Data([1, 2]))
 
         #expect(throws: LanguageModelError.self) {
-            try ChatCompletionRequest(
-                generationRequest([prompt(.attachment(.init(content: .data(movie))))]), dialect: ChatCompletionsTestDialect())
+            try ChatCompletionsSentRequest(generationRequest([prompt(.attachment(.init(content: .data(movie))))]))
         }
     }
     #endif
@@ -106,7 +103,7 @@ struct MessagesTests {
         ]
 
         #expect(throws: LanguageModelError.self) {
-            try ChatCompletionRequest(generationRequest(entries), dialect: ChatCompletionsTestDialect())
+            try ChatCompletionsSentRequest(generationRequest(entries))
         }
     }
 }

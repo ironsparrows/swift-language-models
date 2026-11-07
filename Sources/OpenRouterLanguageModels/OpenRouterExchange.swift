@@ -3,101 +3,134 @@ import FoundationModels
 import LanguageModels
 import UniformTypeIdentifiers
 
-// MARK: - Exchange
+// MARK: - As a Chat Completions model
 
-/// OpenRouter's dialect of the Chat Completions format: the fallback models, routing, plugins, server tools, session
-/// id and cache marks its requests add, the parameters its models list, the headers that name the app, and the
-/// reasoning, images, costs and errors its chunks carry.
-///
-/// The format's executor creates one for each request, from the model and its request executor, and does the rest.
-///
-/// Every hook with a default is in the extension that declares the conformance, so a misspelled one draws a warning
-/// instead of silently keeping the default; the hooks of OpenRouter's own types have no default to fall back to.
-struct OpenRouterChatCompletions<Effort: ModelEffort> {
-    /// The model and its fallbacks.
-    let model: OpenRouterLanguageModel<ContextOptions.ReasoningLevel>
-
-    /// The model's details narrowed to what each fallback also supports.
-    let details: OpenRouterModel<ContextOptions.ReasoningLevel>
-
-    /// Where requests go and how they name the app.
-    let configuration: OpenRouterLanguageModel<ContextOptions.ReasoningLevel>.RequestExecutor.Configuration
-
-    init(model: OpenRouterLanguageModel<Effort>, executor: OpenRouterLanguageModel<Effort>.RequestExecutor) {
-        self.model = OpenRouterLanguageModel(model)
-        details = model.sharedDetails
-        configuration = .init(executor.configuration)
+extension OpenRouterLanguageModel {
+    /// This model as a Chat Completions model: what is true for every request, and OpenRouter's part in each.
+    ///
+    /// - Parameter configuration: Where requests go, how they name the app and how they're sent.
+    /// - Returns: The model.
+    /// - Throws: `OpenRouterError` with `invalidRequest` when there's no valid base URL.
+    func chatCompletions(_ configuration: RequestExecutor.Configuration) throws(OpenRouterError)
+        -> ChatCompletions.Model<OpenRouterExchange>
+    {
+        let exchange = OpenRouterExchange(
+            model: OpenRouterLanguageModel<ContextOptions.ReasoningLevel>(self), details: sharedDetails, app: configuration.app)
+        var model = ChatCompletions.Model(
+            name: routing.modelID(for: details.id).rawValue, url: try API.baseURL(configuration.baseURL),
+            connection: connection(configuration.settings), providerName: API.name, capabilities: capabilities,
+            reaching: [details] + fallbacks, exchange: exchange)
+        model.memberOrder = OpenRouterExchange.memberOrder
+        model.unsupportedMembers = OpenRouterExchange.listedMembers.filter { !exchange.lists($0) }
+        model.media = OpenRouterInputModality.media
+        model.images = configuration.settings.images
+        model.reasoningOrigin = API.reasoningOrigin
+        return model
     }
 }
 
-extension OpenRouterChatCompletions: ChatCompletionsDialect {
-    typealias Model = OpenRouterLanguageModel<Effort>
-    typealias ErrorBody = OpenRouterErrorResponse
-    typealias ProviderError = OpenRouterError
-    typealias BodyExtras = OpenRouterBodyExtras
-    typealias ReplayMembers = OpenRouterReplayMembers
-    typealias ChunkExtras = OpenRouterChunkExtras
-    typealias StreamState = OpenRouterStreamState
+// MARK: - Exchange
 
-    static var name: String { API.name }
+/// OpenRouter's part in one exchange: the fallback models, routing, plugins, server tools, session id and cache marks its
+/// requests add, the parameters its models list, the headers that name the app, and the reasoning, images, costs and
+/// errors its chunks carry.
+///
+/// Every method with a default is here, in the type that declares the conformance, so a misspelled one draws a warning
+/// instead of silently keeping the default.
+struct OpenRouterExchange: ChatCompletions.Exchange {
+    /// The model and its fallbacks.
+    private let model: OpenRouterLanguageModel<ContextOptions.ReasoningLevel>
 
-    static var reasoningOrigin: ReasoningOrigin { .openRouter }
+    /// The model's details narrowed to what each fallback also supports.
+    private let details: OpenRouterModel<ContextOptions.ReasoningLevel>
 
-    var modelID: OpenRouterModelID { model.routing.modelID(for: model.details.id) }
+    /// How requests name the app.
+    private let app: OpenRouterApp
 
-    var baseURL: URL {
-        get throws(OpenRouterError) { try API.baseURL(configuration.baseURL) }
-    }
+    /// The host that served the answer.
+    ///
+    /// This and the three values after it are what OpenRouter's chunks report about one answer beyond the format's facts.
+    /// Chunks repeat some facts and leave out others, so a fact that a chunk reports replaces the earlier one, and one it
+    /// leaves out keeps its earlier value.
+    private var host: OpenRouterProviderName?
 
-    var connection: Connection { model.connection(configuration.settings) }
+    /// What OpenRouter added to the usage the last chunk with usage reported.
+    private var usage: OpenRouterChunkExtras.Usage?
 
-    var imageEncoding: ImageEncoding { configuration.settings.images }
+    /// How OpenRouter routed the request, when the options include it.
+    private var routerReport: OpenRouterChunkExtras.RouterMetadata?
 
-    static var memberOrder: [ChatCompletions.Member] { ChatCompletions.Member.openRouterOrder }
+    /// The `reasoning_details` the model sent, or `nil` when it sent none. Some models send an empty list, and
+    /// expect it back.
+    private var reasoningDetails: ReasoningDetails?
 
-    static var listedMembers: Set<ChatCompletions.Member> { ChatCompletions.Member.openRouterListed }
+    /// The order OpenRouter's requests have always sent their members in, which a host's prompt cache and OpenRouter's
+    /// response cache depend on.
+    fileprivate static let memberOrder: [ChatCompletions.Member] = [
+        .model, .models, .messages, .modalities, .stream, .tools, .toolChoice, .parallelToolCalls, .responseFormat, .reasoning,
+        .temperature, .topP, .topK, .seed, .maxCompletionTokens, .maxTokens, .frequencyPenalty, .presencePenalty, .repetitionPenalty,
+        .minP, .topA, .stop, .logitBias, .verbosity, .serviceTier, .user, .provider, .plugins, .sessionID, .metadata, .cacheControl,
+    ]
 
-    /// The response cache's settings, the session id while the cache is on, the request for router metadata, which every
-    /// request sends because only the router's report says a guardrail blocked it, and the app's name, address,
-    /// categories and visibility.
-    func headers(_ context: HeaderContext) -> [HTTPHeaderName: String] {
-        var headers = model.responseCache?.headers(sessionID: Self.sessionID(context.firstPromptID)) ?? [:]
-        headers[API.Header.routerMetadata] = "enabled"
-        let app = configuration.app
-        let categories = app.categories.prefix(OpenRouterApp.categoryLimit).map(\.rawValue)
-        headers[API.Header.referer] = app.url?.absoluteString
-        headers[API.Header.appTitle] = app.name
-        headers[API.Header.appCategories] = categories.isEmpty ? nil : categories.joined(separator: ",")
-        headers[API.Header.appVisibility] = app.isHidden ? "hidden" : nil
-        return headers
+    /// The members that go out only when the model and each fallback list them.
+    fileprivate static let listedMembers: Set<ChatCompletions.Member> = [
+        .toolChoice, .parallelToolCalls, .temperature, .topP, .topK, .seed, .maxTokens, .frequencyPenalty, .presencePenalty,
+        .repetitionPenalty, .minP, .topA, .stop, .logitBias, .verbosity,
+    ]
+
+    fileprivate init(
+        model: OpenRouterLanguageModel<ContextOptions.ReasoningLevel>,
+        details: OpenRouterModel<ContextOptions.ReasoningLevel>,
+        app: OpenRouterApp
+    ) {
+        self.model = model
+        self.details = details
+        self.app = app
     }
 
     /// Whether the model and each fallback list a parameter, which OpenRouter names as the body does.
-    func lists(_ member: ChatCompletions.Member) -> Bool {
+    fileprivate func lists(_ member: ChatCompletions.Member) -> Bool {
         details.supportedParameters.contains(OpenRouterParameter(rawValue: member.rawValue))
     }
 
-    /// Checks that every model takes an attachment, as Foundation Models does before a request.
+    // MARK: While the request is read
+
+    /// Checks that every model takes an attachment, as Foundation Models does before a request: images, and data of the
+    /// input kinds they all take.
     ///
     /// - Throws: `LanguageModelError.unsupportedCapability` with `.vision` for an image attachment when a model doesn't
     ///   take images, and `LanguageModelError.unsupportedTranscriptContent` for a data attachment a model doesn't take,
     ///   images included, as `supportsDataAttachmentType` refuses it.
-    func check(_ attachment: AttachmentKind, in entry: Transcript.Entry) throws(LanguageModelError) {
-        try checkAttachment(attachment, in: entry)
+    func checkAttachment(_ kind: AttachmentKind, in entry: Transcript.Entry) throws(LanguageModelError) {
+        switch kind {
+        case .image:
+            guard model.attachmentInputs.contains(.image) else {
+                throw LanguageModelError.unsupported(.vision, "The model or one of its fallbacks doesn't take images.")
+            }
+        case .data(let type):
+            guard let input = OpenRouterInputModality(carrying: type) else {
+                throw LanguageModelError.unsupported(entry, "\(API.name) takes no attachments of type \(type.identifier).")
+            }
+            guard model.attachmentInputs.contains(input) else {
+                throw LanguageModelError.unsupported(
+                    entry, "The model or one of its fallbacks doesn't take \(input) attachments, such as \(type.identifier).")
+            }
+        }
     }
-
-    /// Audio in the formats only OpenRouter takes, as `input_audio` with its format, then movies, as `video_url` data
-    /// URLs, each in the order OpenRouter's kinds are matched.
-    static var extraMedia: [MediaPart] { openRouterMedia }
 
     /// Whether OpenRouter's reasoning goes back: only to the model that wrote it.
     func replays(_ reasoning: Transcript.Reasoning) -> Bool {
         model.replaysReasoning(writtenBy: reasoning.writer)
     }
-}
 
-extension OpenRouterChatCompletions {
-    /// OpenRouter's members, and each setting that the model or a fallback doesn't list left out.
+    /// The assistant message's `reasoning` and `reasoning_details` for the reasoning it sends back.
+    func replayMembers(for reasoning: [(entry: Transcript.Reasoning, text: String)]) -> JSONObject {
+        ReasoningDetails.replayMembers(for: reasoning)
+    }
+
+    // MARK: Before it is sent
+
+    /// OpenRouter's headers and members, and each setting that the model or a fallback doesn't list left out.
     ///
     /// A model's list holds every parameter any of its hosts takes, so with tools or a schema, when the request asks
     /// for hosts that take all it sends, each setting sent also narrows its hosts.
@@ -105,65 +138,83 @@ extension OpenRouterChatCompletions {
     /// - Throws: `LanguageModelError.unsupportedCapability` when tool calls are required and a model doesn't take
     ///   `tool_choice`, when there are server tools and a model doesn't take tools, and for a schema when a model
     ///   doesn't take structured outputs.
-    func body(_ context: BodyContext) throws(LanguageModelError) -> ChatCompletionsBodyPlan<BodyExtras> {
+    func prepare(_ request: inout ChatCompletions.Request) throws {
         let options = model.options
+        let toolCallingMode = request.generation.generationOptions.toolCallingMode
+        let hasSchema = request.generation.schema != nil
         // A model that doesn't take tools gets none of the session's, and requiring a call needs `tool_choice`, the
         // only way to require one.
-        let sendsSessionTools = context.hasSessionTools && lists(.tools)
-        if sendsSessionTools, context.toolCallingMode?.kind == .required, !lists(.toolChoice) {
+        let sendsSessionTools = request.hasSessionTools && lists(.tools)
+        if sendsSessionTools, toolCallingMode?.kind == .required, !lists(.toolChoice) {
             let description = "The model or one of its fallbacks doesn't take tool_choice, so it can't be made to call a tool."
             throw LanguageModelError.unsupported(.toolCalling, description)
         }
-        let serverTools = try serverTools(toolCallingMode: context.toolCallingMode)
-        if context.hasSchema, !details.supportedParameters.contains(.structuredOutputs) {
+        let serverTools = try serverTools(toolCallingMode: toolCallingMode)
+        if hasSchema, !details.supportedParameters.contains(.structuredOutputs) {
             let description = "The model or one of its fallbacks doesn't take structured outputs, so it can't hold its answer to a schema."
             throw LanguageModelError.unsupported(.guidedGeneration, description)
         }
-        let needsParameters = sendsSessionTools || !serverTools.isEmpty || context.hasSchema
-        let sampling = context.sampling
+        let needsParameters = sendsSessionTools || !serverTools.isEmpty || hasSchema
+        let sampling = request.sampling
         // A request with tools or a schema needs hosts that take every parameter it sends, so greedy sampling's `top_k`
         // 1 goes only with requests that have neither, to models that list it.
         let greedyTopK = sampling.isGreedy && !needsParameters && lists(.topK) ? 1 : nil
-        let reasoning = Self.reasoning(context.reasoningLevel, details: details)
+        let reasoning = Self.reasoning(request.generation.contextOptions.reasoningLevel, details: details)
         let fallbackIDs = model.fallbacks.map { model.routing.modelID(for: $0.id) }
-        let extras = BodyExtras(
-            models: fallbackIDs.isEmpty ? nil : fallbackIDs,
-            modalities: Self.modalities(details.outputModalities, hasSchema: context.hasSchema),
-            // The parallel calls concern only the session's tools.
-            parallelToolCalls: sendsSessionTools ? options.parallelToolCalls.value : nil,
-            reasoning: reasoning.setting,
-            topK: sampling.topK ?? greedyTopK,
-            frequencyPenalty: options.frequencyPenalty,
-            presencePenalty: options.presencePenalty,
-            repetitionPenalty: options.repetitionPenalty,
-            minP: options.minP,
-            topA: options.topA,
-            stop: options.stopSequences,
-            logitBias: options.logitBias.map(BodyExtras.LogitBias.init),
-            verbosity: options.verbosity,
-            serviceTier: options.serviceTier,
-            user: options.endUserID,
-            provider: model.routing.member(needsParameters: needsParameters),
-            plugins: Self.plugins(for: model.modelIDs, options: options, carriesPDF: context.carriesPDF),
-            // The response cache compares the whole body, and the session id differs for every session, so it goes in a
-            // header while the cache is on, and new sessions can repeat an earlier request.
-            sessionID: model.responseCache == nil ? Self.sessionID(context.firstPromptID) : nil,
-            cacheControl: model.requestCacheControl?.directive
-        )
-        var plan = ChatCompletionsBodyPlan(extras: extras)
-        plan.sessionTools = sendsSessionTools ? .sent : .leftOut
-        plan.serverTools = serverTools
+        request.headers = headers(firstPromptID: request.firstPromptID)
+        request.members = try JSONValueEncoder.members(
+            of: Members(
+                models: fallbackIDs.isEmpty ? nil : fallbackIDs,
+                modalities: Self.modalities(details.outputModalities, hasSchema: hasSchema),
+                // The parallel calls concern only the session's tools.
+                parallelToolCalls: sendsSessionTools ? options.parallelToolCalls.value : nil,
+                reasoning: reasoning.setting,
+                topK: sampling.topK ?? greedyTopK,
+                frequencyPenalty: options.frequencyPenalty,
+                presencePenalty: options.presencePenalty,
+                repetitionPenalty: options.repetitionPenalty,
+                minP: options.minP,
+                topA: options.topA,
+                stop: options.stopSequences,
+                logitBias: options.logitBias.map(Members.LogitBias.init),
+                verbosity: options.verbosity,
+                serviceTier: options.serviceTier,
+                user: options.endUserID,
+                provider: model.routing.member(needsParameters: needsParameters),
+                plugins: Self.plugins(for: model.modelIDs, options: options, carriesPDF: request.carriesPDF),
+                // The response cache compares the whole body, and the session id differs for every session, so it goes in a
+                // header while the cache is on, and new sessions can repeat an earlier request.
+                sessionID: model.responseCache == nil ? Self.sessionID(request.firstPromptID) : nil,
+                cacheControl: model.requestCacheControl?.directive
+            ))
+        request.sendsSessionTools = sendsSessionTools
+        request.serverTools = try serverTools.map { try JSONValueEncoder.encode($0) }
         // The token limit goes as `max_tokens` to models that don't list `max_completion_tokens`.
-        plan.tokenLimit = lists(.maxCompletionTokens) ? .maxCompletionTokens : .maxTokens
-        plan.movedEffort = reasoning.movedEffort
+        request.tokenLimitMember = lists(.maxCompletionTokens) ? .maxCompletionTokens : .maxTokens
+        request.movedEffort = reasoning.movedEffort
         // A request that may reach a model whose structured outputs reject constraints sends the portable schema from
         // the start. Other hosts get the full schema, and the portable one only if they reject it. Either way, the
         // model's executor checks the answer against the full schema.
-        plan.schema = model.modelIDs.contains(where: \.rejectsSchemaConstraints) ? .portable : .full
+        request.usesPortableSchema = model.modelIDs.contains(where: \.rejectsSchemaConstraints)
         // The cache mark on the last instructions caches the tools and instructions before it on the host, for the
         // session's later requests and for another session's that reach the same host.
-        plan.instructionsMark = model.requestCacheControl.map { InstructionsMark(cacheControl: $0.directive) }
-        return plan
+        request.instructionsMark = try model.requestCacheControl.map {
+            try JSONValueEncoder.members(of: InstructionsMark(cacheControl: $0.directive))
+        }
+    }
+
+    /// The response cache's settings, the session id while the cache is on, the request for router metadata, which every
+    /// request sends because only the router's report says a guardrail blocked it, and the app's name, address,
+    /// categories and visibility.
+    private func headers(firstPromptID: String?) -> [String: String] {
+        var headers = model.responseCache?.headers(sessionID: Self.sessionID(firstPromptID)) ?? [:]
+        headers[API.Header.routerMetadata] = "enabled"
+        let categories = app.categories.prefix(OpenRouterApp.categoryLimit).map(\.rawValue)
+        headers[API.Header.referer] = app.url?.absoluteString
+        headers[API.Header.appTitle] = app.name
+        headers[API.Header.appCategories] = categories.isEmpty ? nil : categories.joined(separator: ",")
+        headers[API.Header.appVisibility] = app.isHidden ? "hidden" : nil
+        return headers
     }
 
     /// The server tools' entries, or none when tool calls are disallowed.
@@ -198,7 +249,7 @@ extension OpenRouterChatCompletions {
     private static func reasoning(
         _ level: ContextOptions.ReasoningLevel?,
         details: OpenRouterModel<some ModelEffort>
-    ) -> (setting: BodyExtras.Reasoning?, movedEffort: MovedEffort?) {
+    ) -> (setting: Members.Reasoning?, movedEffort: MovedEffort?) {
         guard let level, details.reasoning.isSupported else { return (nil, nil) }
         let turnsOff = level == .off
         if details.reasoningEfforts.isEmpty {
@@ -208,7 +259,7 @@ extension OpenRouterChatCompletions {
             return (.enabled(false), nil)
         }
         let (effort, moved) = level.sentEffort(supporting: details.reasoningEfforts)
-        return (effort.map(BodyExtras.Reasoning.effort), moved)
+        return (effort.map(Members.Reasoning.effort), moved)
     }
 
     /// The output kinds to ask for: images and text when every model generates images and the request has no schema,
@@ -234,8 +285,8 @@ extension OpenRouterChatCompletions {
     /// throws `LanguageModelError.contextSizeExceeded`. Otherwise OpenRouter turns it on for hosts with 8,192 tokens of
     /// context or less, which a model listing more can still use, and for accounts that enable it, and it silently
     /// drops the middle of the transcript.
-    private static func plugins(for ids: [OpenRouterModelID], options: OpenRouterOptions, carriesPDF: Bool) -> [BodyExtras.Plugin] {
-        var plugins: [BodyExtras.Plugin] = [.contextCompression]
+    private static func plugins(for ids: [OpenRouterModelID], options: OpenRouterOptions, carriesPDF: Bool) -> [Members.Plugin] {
+        var plugins: [Members.Plugin] = [.contextCompression]
         if carriesPDF, let engine = options.pdfEngine {
             plugins.append(.fileParser(engine))
         }
@@ -249,191 +300,85 @@ extension OpenRouterChatCompletions {
     ///
     /// Routers are matched by id rather than by catalog entry, so a catalog update that retires one doesn't break
     /// the build.
-    private static func router(_ id: OpenRouterModelID, options: OpenRouterOptions) -> BodyExtras.Plugin? {
+    private static func router(_ id: OpenRouterModelID, options: OpenRouterOptions) -> Members.Plugin? {
         switch id {
         case .autoRouter: options.autoRouter.map { .autoRouter($0, plugin: .autoRouter) }
         case .autoBetaRouter: options.autoRouter.map { .autoRouter($0, plugin: .autoBetaRouter) }
-        case .paretoCodeRouter: options.paretoRouter.map(BodyExtras.Plugin.paretoRouter)
+        case .paretoCodeRouter: options.paretoRouter.map(Members.Plugin.paretoRouter)
         default: nil
         }
     }
-}
 
-extension OpenRouterChatCompletions {
-    /// The cache mark on the last content part of the last instructions.
-    private struct InstructionsMark: Encodable, Sendable {
-        let cacheControl: OpenRouterCacheControl.Directive
-
-        private enum CodingKeys: String, CodingKey {
-            case cacheControl = "cache_control"
-        }
-    }
-}
-
-extension OpenRouterModelID {
-    /// The router models that take settings.
-    fileprivate static let autoRouter: Self = "openrouter/auto"
-    fileprivate static let autoBetaRouter: Self = "openrouter/auto-beta"
-    fileprivate static let paretoCodeRouter: Self = "openrouter/pareto-code"
-}
-
-extension OpenRouterOptions.ParallelToolCalls {
-    /// The `parallel_tool_calls` value, or `nil` to leave the choice to the host.
-    fileprivate var value: Bool? {
-        switch self {
-        case .automatic: nil
-        case .allowed: true
-        case .disallowed: false
-        }
-    }
-}
-
-/// What OpenRouter's chunks report about one answer beyond the format's facts: the host that served it, its cost, the
-/// router's report, the response cache's status, and the reasoning details that go back on later turns.
-///
-/// Chunks repeat some facts and leave out others, so a fact that a chunk reports replaces the earlier one, and one it
-/// leaves out keeps its earlier value.
-struct OpenRouterStreamState: Sendable {
-    /// What the response cache reported in the response's headers, or `nil` when the cache is off.
-    let responseCache: OpenRouterResponseCache.Report?
-
-    /// The host that served the answer.
-    fileprivate(set) var provider: OpenRouterProviderName?
-
-    /// What OpenRouter added to the usage the last chunk with usage reported.
-    fileprivate(set) var usage: OpenRouterChunkExtras.Usage?
-
-    /// How OpenRouter routed the request, when the options include it.
-    fileprivate(set) var routerReport: OpenRouterChunkExtras.RouterMetadata?
-
-    /// The `reasoning_details` the model sent, or `nil` when it sent none. Some models send an empty list, and
-    /// expect it back.
-    fileprivate(set) var reasoningDetails: ReasoningDetails?
-}
-
-extension OpenRouterChatCompletions {
-    func streamState(_ headers: ResponseHeaders) -> OpenRouterStreamState {
-        OpenRouterStreamState(responseCache: OpenRouterResponseCache.Report(header: headers.value(for:)))
-    }
+    // MARK: While the answer streams
 
     /// Takes a chunk's facts, then the reasoning and images in its delta.
     ///
     /// The reasoning to show is the readable text of the delta's details, or its plain reasoning when it has no
     /// details, since an empty list carries no text; an empty list alone starts the reasoning entry.
-    func observe(_ extras: OpenRouterChunkExtras, into stream: inout OpenRouterStreamState) -> ChunkOutput {
+    mutating func read(_ extras: OpenRouterChunkExtras) -> ChatCompletions.ChunkAdditions {
         if let provider = extras.provider {
-            stream.provider = OpenRouterProviderName(rawValue: provider)
+            host = OpenRouterProviderName(rawValue: provider)
         }
-        stream.usage = extras.usage ?? stream.usage
-        if model.options.includesRouterMetadata { stream.routerReport = extras.routerMetadata ?? stream.routerReport }
-        guard let delta = extras.choices?.first?.delta else { return ChunkOutput() }
+        usage = extras.usage ?? usage
+        if model.options.includesRouterMetadata { routerReport = extras.routerMetadata ?? routerReport }
+        guard let delta = extras.choices?.first?.delta else { return ChatCompletions.ChunkAdditions() }
         if let details = delta.reasoningDetails {
-            if stream.reasoningDetails == nil { stream.reasoningDetails = ReasoningDetails() }
-            for detail in details { stream.reasoningDetails?.append(detail) }
+            if reasoningDetails == nil { reasoningDetails = ReasoningDetails() }
+            for detail in details { reasoningDetails?.append(detail) }
         }
-        var output = ChunkOutput(generatedData: (delta.images ?? []).compactMap(Self.data(of:)))
+        var additions = ChatCompletions.ChunkAdditions(imageURLs: (delta.images ?? []).compactMap(\.imageURL?.url))
         if let details = delta.reasoningDetails, !details.isEmpty {
-            output.reasoning = ReasoningDetails.readableText(in: details)
+            additions.reasoning = ReasoningDetails.readableText(in: details)
         } else if let reasoning = delta.reasoning, !reasoning.isEmpty {
-            output.reasoning = reasoning
+            additions.reasoning = reasoning
         } else if delta.reasoningDetails != nil {
-            output.reasoning = ""
+            additions.reasoning = ""
         }
-        return output
+        return additions
     }
+
+    // MARK: When it ends, or fails
 
     /// The host, the response cache's report and the router's; the cost, its parts, whether the account's own key paid
     /// and the server tools' counts; and the reasoning details as the reasoning entry's signature.
-    func facts(of stream: OpenRouterStreamState) -> AnswerAdditions {
+    func additions(header: (String) -> String?) -> AnswerAdditions {
         var metadata: [String: any ConvertibleToGeneratedContent] = [:]
-        metadata[LanguageModelMetadataKey.provider] = stream.provider?.rawValue
-        metadata.merge(stream.responseCache?.metadata ?? [:]) { $1 }
-        metadata.merge(stream.routerReport?.metadata ?? [:]) { $1 }
+        metadata[LanguageModelMetadataKey.provider] = host?.rawValue
+        metadata.merge(OpenRouterResponseCache.Report(header: header)?.metadata ?? [:]) { $1 }
+        metadata.merge(routerReport?.metadata ?? [:]) { $1 }
         var usage: [String: any ConvertibleToGeneratedContent] = [:]
-        usage[LanguageModelMetadataKey.cost] = stream.usage?.cost
-        usage[OpenRouterMetadataKey.isBYOK] = stream.usage?.isBYOK
-        let costs = stream.usage?.costDetails
+        usage[LanguageModelMetadataKey.cost] = self.usage?.cost
+        usage[OpenRouterMetadataKey.isBYOK] = self.usage?.isBYOK
+        let costs = self.usage?.costDetails
         usage[OpenRouterMetadataKey.upstreamInferenceCost] = costs?.upstreamInferenceCost
         usage[OpenRouterMetadataKey.upstreamInferencePromptCost] = costs?.upstreamInferencePromptCost
         usage[OpenRouterMetadataKey.upstreamInferenceCompletionCost] = costs?.upstreamInferenceCompletionsCost
         usage[OpenRouterMetadataKey.serverToolCost] = costs?.serverToolCost
-        let serverTools = stream.usage?.serverToolUseDetails
+        let serverTools = self.usage?.serverToolUseDetails
         usage[OpenRouterMetadataKey.requestedServerToolCallCount] = serverTools?.toolCallsRequested
         usage[OpenRouterMetadataKey.executedServerToolCallCount] = serverTools?.toolCallsExecuted
         usage[LanguageModelMetadataKey.webSearchCount] = serverTools?.webSearchRequests
         return AnswerAdditions(
-            host: stream.provider?.rawValue, metadata: metadata, usageMetadata: usage,
-            reasoningSignature: stream.reasoningDetails?.signature)
+            host: host?.rawValue, metadata: metadata, usageMetadata: usage, reasoningSignature: reasoningDetails?.signature)
     }
 
     /// `LanguageModelError` for a failure Foundation Models has a case for, and `OpenRouterError` for the rest: with
     /// `invalidResponse` for a response the format couldn't use, naming the host unless an event couldn't be read, and
     /// with `server` for an answer that ended in the host's failure.
-    func error(for failure: ChatCompletionsFailure<Self>) -> MappedError<OpenRouterError> {
-        let host = failure.state?.provider
+    func error(for failure: RequestFailure<OpenRouterErrorResponse>) -> any Error {
         switch failure.kind {
-        case .rejected(let rejection):
-            return OpenRouterFailure(rejection).error(contextSize: details.contextSize, imageEntries: failure.imageEntries)
-        case .errorEvent(let body):
-            let streamFailure = OpenRouterFailure(streamError: body, provider: host)
-            return streamFailure.error(contextSize: details.contextSize, imageEntries: failure.imageEntries)
-        case .unusableResponse(let problem):
-            let named = if case .unreadableEvent = problem { nil as OpenRouterProviderName? } else { host }
-            return .provider(OpenRouterError(message: failure.message, code: .invalidResponse, providerName: named))
+        case .rejected:
+            OpenRouterFailure(failure).error(contextSize: details.contextSize, imageEntries: failure.imageEntries).error
+        case .errorEvent:
+            OpenRouterFailure(streamError: failure.body ?? OpenRouterErrorResponse(message: failure.message), provider: host)
+                .error(contextSize: details.contextSize, imageEntries: failure.imageEntries).error
+        case .unreadableEvent:
+            OpenRouterError(message: failure.message, code: .invalidResponse)
+        case .unusableAnswer:
+            OpenRouterError(message: failure.message, code: .invalidResponse, providerName: host)
         case .failedAnswer:
-            return .provider(OpenRouterError(message: failure.message, code: .server, providerName: host))
+            OpenRouterError(message: failure.message, code: .server, providerName: host)
         }
-    }
-
-    /// An image as data of the kind its data URL names, or `nil` for one that isn't inline data, such as one at a web
-    /// address.
-    private static func data(of image: OpenRouterChunkExtras.GeneratedImage) -> GeneratedData? {
-        guard let url = image.imageURL?.url, let inline = DataURL(url) else { return nil }
-        let type = UTType(mimeType: inline.mediaType, conformingTo: .image) ?? .image
-        return GeneratedData(contentType: type, content: inline.data)
-    }
-}
-
-extension OpenRouterChatCompletions {
-    /// Checks that every model takes an attachment: images, and data of the input kinds they all take.
-    func checkAttachment(_ attachment: AttachmentKind, in entry: Transcript.Entry) throws(LanguageModelError) {
-        switch attachment {
-        case .image:
-            guard model.attachmentInputs.contains(.image) else {
-                throw LanguageModelError.unsupported(.vision, "The model or one of its fallbacks doesn't take images.")
-            }
-        case .data(let type):
-            guard let input = OpenRouterInputModality(carrying: type) else {
-                throw LanguageModelError.unsupported(entry, "\(Self.name) takes no attachments of type \(type.identifier).")
-            }
-            guard model.attachmentInputs.contains(input) else {
-                throw LanguageModelError.unsupported(
-                    entry, "The model or one of its fallbacks doesn't take \(input) attachments, such as \(type.identifier).")
-            }
-        }
-    }
-
-    /// The kinds of audio and movies OpenRouter takes beyond the format's, each with its part.
-    static var openRouterMedia: [MediaPart] {
-        let audio = OpenRouterInputModality.audioTypes.compactMap { type in audioNames[type].map { MediaPart.audio(type, format: $0) } }
-        let video = OpenRouterInputModality.videoTypes.compactMap { type in videoNames[type].map { MediaPart.video(type, mediaType: $0) } }
-        return audio + video
-    }
-
-    /// OpenRouter's `input_audio` format for each kind of audio it takes beyond WAV and MP3, which the format names.
-    private static var audioNames: [UTType?: String] {
-        [
-            .aiff: "aiff", .mpeg4Audio: "m4a", OpenRouterInputModality.UnnamedType.aacAudio: "aac",
-            OpenRouterInputModality.UnnamedType.flacAudio: "flac", OpenRouterInputModality.UnnamedType.oggAudio: "ogg",
-        ]
-    }
-
-    /// The media type OpenRouter names each kind of movie by in a `video_url` data URL.
-    private static var videoNames: [UTType?: String] {
-        [
-            .mpeg4Movie: "video/mp4", .mpeg: "video/mpeg", .quickTimeMovie: "video/mov",
-            OpenRouterInputModality.UnnamedType.webMMovie: "video/webm",
-        ]
     }
 }
 
@@ -446,11 +391,11 @@ extension OpenRouterChatCompletions {
 /// Keys are listed one by one instead of converted from snake case, because a conversion would also rename the keys
 /// inside `reasoning_details`, which go back to OpenRouter unchanged.
 struct OpenRouterChunkExtras: Decodable {
-    struct Choice: Decodable {
+    fileprivate struct Choice: Decodable {
         let delta: Delta?
     }
 
-    struct Delta: Decodable {
+    fileprivate struct Delta: Decodable {
         let reasoning: String?
         let reasoningDetails: [JSONValue]?
         let images: [GeneratedImage]?
@@ -463,7 +408,7 @@ struct OpenRouterChunkExtras: Decodable {
     }
 
     /// An image the model generated, whole in one delta, usually as a data URL such as `data:image/png;base64,…`.
-    struct GeneratedImage: Decodable {
+    fileprivate struct GeneratedImage: Decodable {
         struct ImageURL: Decodable {
             let url: String?
         }
@@ -477,7 +422,7 @@ struct OpenRouterChunkExtras: Decodable {
 
     /// What OpenRouter adds to the usage: the cost, its parts, whether the account's own key paid, and how often
     /// the server tools ran.
-    struct Usage: Decodable {
+    fileprivate struct Usage: Decodable {
         /// The parts of the cost, in US dollars.
         struct CostDetails: Decodable {
             let upstreamInferenceCost: Double?
@@ -573,10 +518,10 @@ struct OpenRouterChunkExtras: Decodable {
         }
     }
 
-    let provider: String?
-    let choices: [Choice]?
-    let usage: Usage?
-    let routerMetadata: RouterMetadata?
+    fileprivate let provider: String?
+    fileprivate let choices: [Choice]?
+    fileprivate let usage: Usage?
+    fileprivate let routerMetadata: RouterMetadata?
 
     private enum CodingKeys: String, CodingKey {
         case provider
@@ -588,7 +533,7 @@ struct OpenRouterChunkExtras: Decodable {
 
 /// OpenRouter's own members of a request's body: the fallback models, the output kinds, the settings only OpenRouter
 /// takes, the routing, the plugins, the session id and the cache mark.
-struct OpenRouterBodyExtras: Encodable {
+private struct Members: Encodable {
     let models: [OpenRouterModelID]?
     let modalities: [OpenRouterOutputModality]?
     let parallelToolCalls: Bool?
@@ -721,37 +666,75 @@ struct OpenRouterBodyExtras: Encodable {
 }
 
 extension ChatCompletions.Member {
-    static let models: Self = "models"
-    static let modalities: Self = "modalities"
-    static let parallelToolCalls: Self = "parallel_tool_calls"
-    static let reasoning: Self = "reasoning"
-    static let topK: Self = "top_k"
-    static let frequencyPenalty: Self = "frequency_penalty"
-    static let presencePenalty: Self = "presence_penalty"
-    static let repetitionPenalty: Self = "repetition_penalty"
-    static let minP: Self = "min_p"
-    static let topA: Self = "top_a"
-    static let stop: Self = "stop"
-    static let logitBias: Self = "logit_bias"
-    static let verbosity: Self = "verbosity"
-    static let serviceTier: Self = "service_tier"
-    static let user: Self = "user"
-    static let provider: Self = "provider"
-    static let plugins: Self = "plugins"
-    static let sessionID: Self = "session_id"
-    static let cacheControl: Self = "cache_control"
+    fileprivate static let models: Self = "models"
+    fileprivate static let modalities: Self = "modalities"
+    fileprivate static let parallelToolCalls: Self = "parallel_tool_calls"
+    fileprivate static let reasoning: Self = "reasoning"
+    fileprivate static let topK: Self = "top_k"
+    fileprivate static let frequencyPenalty: Self = "frequency_penalty"
+    fileprivate static let presencePenalty: Self = "presence_penalty"
+    fileprivate static let repetitionPenalty: Self = "repetition_penalty"
+    fileprivate static let minP: Self = "min_p"
+    fileprivate static let topA: Self = "top_a"
+    fileprivate static let stop: Self = "stop"
+    fileprivate static let logitBias: Self = "logit_bias"
+    fileprivate static let verbosity: Self = "verbosity"
+    fileprivate static let serviceTier: Self = "service_tier"
+    fileprivate static let user: Self = "user"
+    fileprivate static let provider: Self = "provider"
+    fileprivate static let plugins: Self = "plugins"
+    fileprivate static let sessionID: Self = "session_id"
+    fileprivate static let cacheControl: Self = "cache_control"
+}
 
-    /// The order OpenRouter's requests have always sent their members in, which a host's prompt cache and OpenRouter's
-    /// response cache depend on.
-    static let openRouterOrder: [ChatCompletions.Member] = [
-        model, models, messages, modalities, stream, tools, toolChoice, parallelToolCalls, responseFormat, reasoning, temperature,
-        topP, topK, seed, maxCompletionTokens, maxTokens, frequencyPenalty, presencePenalty, repetitionPenalty, minP, topA, stop,
-        logitBias, verbosity, serviceTier, user, provider, plugins, sessionID, metadata, cacheControl,
-    ]
+/// The cache mark on the last content part of the last instructions.
+private struct InstructionsMark: Encodable {
+    let cacheControl: OpenRouterCacheControl.Directive
 
-    /// The members that go out only when the model and each fallback list them.
-    static let openRouterListed: Set<ChatCompletions.Member> = [
-        toolChoice, parallelToolCalls, temperature, topP, topK, seed, maxTokens, frequencyPenalty, presencePenalty,
-        repetitionPenalty, minP, topA, stop, logitBias, verbosity,
-    ]
+    private enum CodingKeys: String, CodingKey {
+        case cacheControl = "cache_control"
+    }
+}
+
+extension OpenRouterModelID {
+    /// The router models that take settings.
+    fileprivate static let autoRouter: Self = "openrouter/auto"
+    fileprivate static let autoBetaRouter: Self = "openrouter/auto-beta"
+    fileprivate static let paretoCodeRouter: Self = "openrouter/pareto-code"
+}
+
+extension OpenRouterOptions.ParallelToolCalls {
+    /// The `parallel_tool_calls` value, or `nil` to leave the choice to the host.
+    fileprivate var value: Bool? {
+        switch self {
+        case .automatic: nil
+        case .allowed: true
+        case .disallowed: false
+        }
+    }
+}
+
+extension OpenRouterInputModality {
+    /// The kinds of audio and movies OpenRouter takes beyond the format's, each with its part: audio in the formats only
+    /// OpenRouter takes, as `input_audio` with its format, then movies, as `video_url` data URLs, each in the order
+    /// OpenRouter's kinds are matched.
+    fileprivate static var media: [ChatCompletions.MediaPart] {
+        let audio = audioTypes.compactMap { type in audioNames[type].map { ChatCompletions.MediaPart.audio(type, format: $0) } }
+        let video = videoTypes.compactMap { type in videoNames[type].map { ChatCompletions.MediaPart.video(type, mediaType: $0) } }
+        return audio + video
+    }
+
+    /// OpenRouter's `input_audio` format for each kind of audio it takes beyond WAV and MP3, which the format names.
+    private static var audioNames: [UTType?: String] {
+        [
+            .aiff: "aiff", .mpeg4Audio: "m4a", UnnamedType.aacAudio: "aac", UnnamedType.flacAudio: "flac", UnnamedType.oggAudio: "ogg",
+        ]
+    }
+
+    /// The media type OpenRouter names each kind of movie by in a `video_url` data URL.
+    private static var videoNames: [UTType?: String] {
+        [
+            .mpeg4Movie: "video/mp4", .mpeg: "video/mpeg", .quickTimeMovie: "video/mov", UnnamedType.webMMovie: "video/webm",
+        ]
+    }
 }

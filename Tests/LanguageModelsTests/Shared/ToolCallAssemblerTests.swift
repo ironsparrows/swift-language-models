@@ -112,8 +112,21 @@ struct ToolCallAssemblerTests {
 }
 
 /// A tool-call fragment as a chunk carries it.
-private func fragment(index: Int? = nil, id: String? = nil, name: String? = nil, arguments: String? = nil)
-    -> ChatCompletionChunk.ToolCall
-{
-    ChatCompletionChunk.ToolCall(index: index, id: id, function: .init(name: name, arguments: arguments))
+private struct Fragment {
+    let index: Int?
+    let id: String?
+    let name: String?
+    let arguments: String?
+}
+
+/// A tool-call fragment with the members it carries.
+private func fragment(index: Int? = nil, id: String? = nil, name: String? = nil, arguments: String? = nil) -> Fragment {
+    Fragment(index: index, id: id, name: name, arguments: arguments)
+}
+
+extension ToolCallAssembler {
+    /// Adds one of a chunk's tool-call fragments to its call, as the format's stream routes it.
+    fileprivate mutating func add(_ fragment: Fragment) -> Arguments? {
+        add(index: fragment.index, id: fragment.id, name: fragment.name, arguments: fragment.arguments)
+    }
 }

@@ -34,7 +34,7 @@ package struct InfoTransport: Sendable {
         path: String,
         headers: [HTTPHeaderName: String],
         decode: (Data) throws -> Value,
-        failure: (HTTPRejection<ErrorBody>) -> MappedError<ProviderError>
+        failure: (RequestFailure<ErrorBody>) -> MappedError<ProviderError>
     ) async throws -> Value {
         var log = InfoTransport.CallLog(path: path, logger: logger)
         let key = InfoCache.Key(url: url, headers: headers)
@@ -48,7 +48,7 @@ package struct InfoTransport: Sendable {
             do {
                 (data, response) = try await http.data(for: request) { [log] in log.retrying($0) }
             } catch let rejected as ProviderHTTP.Failure {
-                throw failure(rejected.rejection(as: ErrorBody.self)).error
+                throw failure(RequestFailure(rejected: rejected, imageEntries: [])).error
             }
             log.received(status: response?.statusCode ?? 0)
             let value = try decode(data)

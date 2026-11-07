@@ -9,8 +9,7 @@ import LanguageModelsCore
 /// with the wait on its error, so the app can retry later, and so does one that the policy doesn't retry, such as one
 /// whose `x-should-retry` is `false`.
 package struct ProviderHTTP: Sendable {
-    /// The decoder of every response body and streamed chunk, which requests share, since `JSONDecoder` is
-    /// `Sendable`.
+    /// The decoder of response bodies and streamed chunks, which requests share, since `JSONDecoder` is `Sendable`.
     package static let decoder = JSONDecoder()
 
     private let session: URLSession

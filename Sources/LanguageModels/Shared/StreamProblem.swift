@@ -1,8 +1,8 @@
 import LanguageModelsCore
 
-/// Why an API format couldn't use a provider's streamed response, as a dialect's error mapping reads it.
+/// Why a format couldn't use a provider's streamed response, which a ``RequestFailure`` puts in words.
 ///
-/// Only a format's executor reports one.
+/// Only a shared model reports one.
 package enum StreamProblem: Error, Equatable {
     /// An event's data isn't one the format can read, with the reason it couldn't be read.
     case unreadableEvent(String)

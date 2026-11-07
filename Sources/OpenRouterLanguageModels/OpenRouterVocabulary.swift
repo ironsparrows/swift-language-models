@@ -37,7 +37,7 @@ public struct OpenRouterInputModality: ProviderVocabulary {
     /// against them.
     private static let attachmentTypes: KeyValuePairs<Self, Set<UTType>> = [
         .text: [.plainText],
-        .image: EncodedImage.readableTypes,
+        .image: AttachmentKind.readableImageTypes,
         .file: [.pdf],
         .audio: Set(audioTypes),
         .video: Set(videoTypes),

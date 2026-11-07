@@ -1,85 +1,86 @@
 import Foundation
 import FoundationModels
 import LanguageModelsCore
+import UniformTypeIdentifiers
 
 // MARK: - Stream
 
-/// One answer's stream: turns the format's chunks, with the dialect's members, into the answer's output, which an
-/// ``AnswerChannel`` sends as
-/// Foundation Models channel events.
-///
-/// Reasoning arrives in the provider's members, and tool-call fragments by index, so parallel calls form one round.
-/// Each piece of data the model generates becomes a data entry of its own. The answer ends with its metadata and usage
-/// on the entry that finishes it, and with the pages it cites on its response entry.
-struct ChatCompletionsAnswerStream<Dialect: ChatCompletionsDialect>: StreamedAnswer {
-    private let dialect: Dialect
-    private let imageEntries: [Transcript.Entry]
-    private let requiresCompleteAnswer: Bool
-
-    /// What the answer's chunks reported about it so far.
-    private(set) var report = AnswerReport()
-
-    /// What the dialect tracks across the answer.
-    private(set) var state: Dialect.StreamState
-
-    private var output: AnswerChannel
-    private var refusal = ""
-
-    /// Starts the stream of an answer.
+extension ChatCompletions {
+    /// One answer's stream: turns the format's chunks, with the exchange's members, into the answer's output, which an
+    /// ``AnswerChannel`` sends as Foundation Models channel events.
     ///
-    /// - Parameters:
-    ///   - channel: Where the answer's events go.
-    ///   - dialect: The provider's dialect.
-    ///   - headers: The headers of the response whose stream carries the answer.
-    ///   - imageEntries: The request's entries that carry an image, which an error for an image the host rejects names.
-    ///   - requiresCompleteAnswer: Whether an answer cut off at its token limit is an error, as for guided generation,
-    ///     where a partial answer would decode as a wrong value.
-    init(
-        channel: LanguageModelExecutorGenerationChannel, dialect: Dialect, headers: ResponseHeaders,
-        imageEntries: [Transcript.Entry], requiresCompleteAnswer: Bool
-    ) {
-        self.dialect = dialect
-        self.imageEntries = imageEntries
-        self.requiresCompleteAnswer = requiresCompleteAnswer
-        output = AnswerChannel(channel: channel, origin: Dialect.reasoningOrigin, readsTaggedReasoning: true)
-        state = dialect.streamState(headers)
-    }
+    /// Reasoning arrives in the provider's members, and tool-call fragments by index, so parallel calls form one round.
+    /// Each piece of data the model generates becomes a data entry of its own. The answer ends with its metadata and usage
+    /// on the entry that finishes it, and with the pages it cites on its response entry.
+    struct Stream<Exchange: ChatCompletions.Exchange> {
+        private var exchange: Exchange
+        private let headers: ResponseHeaders
+        private let provider: String
+        private let imageEntries: [Transcript.Entry]
+        private let requiresCompleteAnswer: Bool
 
-    /// The text sent to the response entry, or empty when the answer ends in tool calls, since the round that answers
-    /// them comes after.
-    var responseText: String {
-        output.responseText
-    }
+        /// What the answer's chunks reported about it so far.
+        private(set) var report = AnswerReport()
 
-    /// Whether any of the answer's output has arrived: text, reasoning or a tool call.
-    var hasOutput: Bool {
-        output.hasOutput
-    }
+        private var output: AnswerChannel
+        private var refusal = ""
 
-    /// The company whose servers ran the model, when the dialect names one.
-    var host: String? {
-        dialect.facts(of: state).host
-    }
-}
+        /// Starts the stream of an answer.
+        ///
+        /// - Parameters:
+        ///   - channel: Where the answer's events go.
+        ///   - model: The model, which names the provider and how its answers' reasoning is tagged.
+        ///   - exchange: The provider's part in the exchange, which the stream owns from here.
+        ///   - headers: The headers of the response whose stream carries the answer.
+        ///   - imageEntries: The request's entries that carry an image, which an error for an image the host rejects names.
+        ///   - requiresCompleteAnswer: Whether an answer cut off at its token limit is an error, as for guided generation,
+        ///     where a partial answer would decode as a wrong value.
+        init(
+            channel: LanguageModelExecutorGenerationChannel, model: ChatCompletions.Model<Exchange>, exchange: Exchange,
+            headers: ResponseHeaders, imageEntries: [Transcript.Entry], requiresCompleteAnswer: Bool
+        ) {
+            self.exchange = exchange
+            self.headers = headers
+            provider = model.providerName
+            self.imageEntries = imageEntries
+            self.requiresCompleteAnswer = requiresCompleteAnswer
+            output = AnswerChannel(channel: channel, origin: ReasoningOrigin(rawValue: model.reasoningOrigin), readsTaggedReasoning: true)
+        }
 
-extension ChatCompletionsAnswerStream {
-    /// The event of a chunk whose `error` member is set, with the error in the dialect's type.
-    private struct ErrorEvent: Decodable {
-        let error: Dialect.ErrorBody
+        /// The text sent to the response entry, or empty when the answer ends in tool calls, since the round that answers
+        /// them comes after.
+        var responseText: String {
+            output.responseText
+        }
+
+        /// Whether any of the answer's output has arrived: text, reasoning or a tool call.
+        var hasOutput: Bool {
+            output.hasOutput
+        }
+
+        /// The company whose servers ran the model, when the exchange names one.
+        var host: String? {
+            additions.host
+        }
+
+        /// What the exchange adds to the answer.
+        private var additions: AnswerAdditions {
+            exchange.additions(header: headers.value(named:))
+        }
     }
 }
 
 // MARK: - Receiving
 
-extension ChatCompletionsAnswerStream {
+extension ChatCompletions.Stream {
     /// Sends the events for one server-sent event.
     ///
     /// - Returns: Whether the event is the `[DONE]` that ends the stream.
-    /// - Throws: The dialect's error for an event that isn't a chunk, and for an error event.
+    /// - Throws: The exchange's error for an event that isn't a chunk, and for an error event.
     mutating func receive(_ event: ServerSentEvent) async throws -> Bool {
-        let streamEvent: ChatCompletionChunk.StreamEvent<Dialect.ChunkExtras>?
+        let streamEvent: StreamEvent<Exchange.ChunkExtras>?
         do {
-            streamEvent = try ChatCompletionChunk.StreamEvent(event)
+            streamEvent = try StreamEvent(event)
         } catch {
             throw unreadable(error)
         }
@@ -94,21 +95,21 @@ extension ChatCompletionsAnswerStream {
         }
     }
 
-    private mutating func receive(_ chunk: ChatCompletionChunk, extras: Dialect.ChunkExtras, data: Data) async throws {
+    private mutating func receive(_ chunk: Chunk, extras: Exchange.ChunkExtras, data: Data) async throws {
         report.update(with: chunk)
-        let extrasOutput = dialect.observe(extras, into: &state)
+        let chunkAdditions = exchange.read(extras)
         if let error = chunk.error, error != .null {
-            let body: Dialect.ErrorBody
+            let body: Exchange.ErrorBody
             do {
                 body = try ProviderHTTP.decoder.decode(ErrorEvent.self, from: data).error
             } catch {
                 throw unreadable(error)
             }
-            throw failure(.errorEvent(body))
+            throw exchange.error(for: RequestFailure(errorEvent: body, provider: provider, headers: headers, imageEntries: imageEntries))
         }
         guard let delta = chunk.choices?.first?.delta else { return }
 
-        if let reasoning = extrasOutput.reasoning { await output.appendReasoning(reasoning, model: report.model) }
+        if let reasoning = chunkAdditions.reasoning { await output.appendReasoning(reasoning, model: report.model) }
         if let content = delta.content, !content.isEmpty {
             await output.appendText(content, model: report.model)
         }
@@ -121,15 +122,17 @@ extension ChatCompletionsAnswerStream {
             await output.addToolCall(
                 index: fragment.index, id: fragment.id, name: fragment.function?.name, arguments: fragment.function?.arguments)
         }
-        for generated in extrasOutput.generatedData {
-            await output.sendData(generated)
+        for url in chunkAdditions.imageURLs {
+            guard let image = DataURL(url) else { continue }
+            let type = UTType(mimeType: image.mediaType, conformingTo: .image) ?? .image
+            await output.sendData(GeneratedData(contentType: type, content: image.data))
         }
     }
 }
 
 extension Citation {
     /// The citation of a streamed annotation, or `nil` when it has no valid URL.
-    fileprivate init?(_ citation: ChatCompletionChunk.Annotation.URLCitation) {
+    fileprivate init?(_ citation: Chunk.Annotation.URLCitation) {
         guard let address = citation.url, let url = URL(string: address) else { return nil }
         self.init(
             url: url, title: citation.title, excerpt: citation.content, startOffset: citation.startIndex, endOffset: citation.endIndex)
@@ -138,7 +141,7 @@ extension Citation {
 
 extension AnswerReport {
     /// Takes the facts that a chunk reports.
-    mutating func update(with chunk: ChatCompletionChunk) {
+    fileprivate mutating func update(with chunk: Chunk) {
         responseID = chunk.id ?? responseID
         model = chunk.model ?? model
         serviceTier = chunk.serviceTier ?? serviceTier
@@ -151,7 +154,7 @@ extension AnswerReport {
 
 extension AnswerUsage {
     /// The usage a chunk reported.
-    init(_ usage: ChatCompletionChunk.Usage) {
+    fileprivate init(_ usage: Chunk.Usage) {
         self.init(
             inputTokens: usage.promptTokens ?? 0,
             cachedTokens: usage.promptTokensDetails?.cachedTokens ?? 0,
@@ -164,7 +167,7 @@ extension AnswerUsage {
 
 // MARK: - Finishing
 
-extension ChatCompletionsAnswerStream {
+extension ChatCompletions.Stream {
     /// Sends the events that end the answer: arguments for calls that had none, the reasoning signature, and the
     /// metadata and usage.
     ///
@@ -175,33 +178,35 @@ extension ChatCompletionsAnswerStream {
     /// - Parameter isComplete: Whether the stream ended with `[DONE]`. A stream that ends without it or a finish reason
     ///   was cut off.
     /// - Throws: `LanguageModelError.refusal` or `.guardrailViolation` when the model declined or a filter stopped it,
-    ///   `GeneratedContent.ParsingError` when a guided answer reached its token limit, and the dialect's error when the
+    ///   `GeneratedContent.ParsingError` when a guided answer reached its token limit, and the exchange's error when the
     ///   stream was cut off, ended in an error, reached its token limit inside a tool call, or had a call that never
     ///   got its name.
     mutating func finish(isComplete: Bool) async throws {
         guard isComplete || report.finishReason != nil else {
-            throw failure(.unusableResponse(.cutOff))
+            throw failure(.cutOff)
         }
         // A finish reason of `error` says the host failed while it generated.
-        let failedAnswer = report.finishReason == .error ? failure(.failedAnswer) : nil
+        let failedAnswer =
+            report.finishReason == .error
+            ? exchange.error(for: RequestFailure(failedAnswer: nil, headers: headers, imageEntries: imageEntries)) : nil
         let ending = await output.finish(
-            report: report, facts: dialect.facts(of: state), refusal: refusal, requiresCompleteAnswer: requiresCompleteAnswer,
+            report: report, facts: additions, refusal: refusal, requiresCompleteAnswer: requiresCompleteAnswer,
             failedAnswer: failedAnswer)
         switch ending {
-        case .unusable(let problem)?: throw failure(.unusableResponse(problem))
+        case .unusable(let problem)?: throw failure(problem)
         case .failed(let error)?: throw error
         case nil: break
         }
     }
 
-    /// The error the answer's failure becomes, with what the dialect tracked so far.
-    private func failure(_ kind: ChatCompletionsFailure<Dialect>.Kind) -> any Error {
-        dialect.error(for: ChatCompletionsFailure(kind, state: state, imageEntries: imageEntries)).error
+    /// The error a stream the format couldn't use becomes, with what the exchange read so far.
+    private func failure(_ problem: StreamProblem) -> any Error {
+        exchange.error(for: RequestFailure(problem, provider: provider, headers: headers, imageEntries: imageEntries))
     }
 
     /// The error for an event whose data can't be read, with the reason.
     private func unreadable(_ error: any Error) -> any Error {
-        failure(.unusableResponse(.unreadableEvent("\(error)")))
+        failure(.unreadableEvent("\(error)"))
     }
 }
 
@@ -216,7 +221,7 @@ extension FinishReason {
 ///
 /// Keys are listed one by one instead of converted from snake case, because a conversion would also rename the keys
 /// of a provider's own members, such as reasoning that goes back to the host unchanged.
-struct ChatCompletionChunk: Decodable {
+private struct Chunk: Decodable {
     struct Choice: Decodable {
         let delta: Delta?
         let finishReason: FinishReason?
@@ -333,36 +338,41 @@ struct ChatCompletionChunk: Decodable {
     }
 }
 
-extension ChatCompletionChunk {
-    /// One server-sent event of a streamed completion: a chunk with the dialect's own members, decoded together from
-    /// its JSON, which an error event is read from too, or the `[DONE]` that ends the stream.
-    enum StreamEvent<Extras: Decodable> {
-        case chunk(ChatCompletionChunk, Extras, Data)
-        case done
+/// One server-sent event of a streamed completion: a chunk with the exchange's own members, decoded together from its
+/// JSON, which an error event is read from too, or the `[DONE]` that ends the stream.
+private enum StreamEvent<Extras: Decodable> {
+    case chunk(Chunk, Extras, Data)
+    case done
 
-        /// The event a server-sent event carries, or `nil` for one without data.
-        ///
-        /// - Throws: An error that says why the data isn't a chunk with the dialect's members.
-        init?(_ event: ServerSentEvent) throws {
-            switch event.data {
-            case "": return nil
-            case "[DONE]": self = .done
-            default:
-                let data = Data(event.data.utf8)
-                let decoded = try ProviderHTTP.decoder.decode(Decoded.self, from: data)
-                self = .chunk(decoded.chunk, decoded.extras, data)
-            }
+    /// The event a server-sent event carries, or `nil` for one without data.
+    ///
+    /// - Throws: An error that says why the data isn't a chunk with the exchange's members.
+    init?(_ event: ServerSentEvent) throws {
+        switch event.data {
+        case "": return nil
+        case "[DONE]": self = .done
+        default:
+            let data = Data(event.data.utf8)
+            let decoded = try ProviderHTTP.decoder.decode(Decoded.self, from: data)
+            self = .chunk(decoded.chunk, decoded.extras, data)
         }
+    }
 
-        /// A chunk and the dialect's members, read in one pass over the JSON.
-        private struct Decoded: Decodable {
-            let chunk: ChatCompletionChunk
-            let extras: Extras
+    /// A chunk and the exchange's members, read in one pass over the JSON.
+    private struct Decoded: Decodable {
+        let chunk: Chunk
+        let extras: Extras
 
-            init(from decoder: any Decoder) throws {
-                chunk = try ChatCompletionChunk(from: decoder)
-                extras = try Extras(from: decoder)
-            }
+        init(from decoder: any Decoder) throws {
+            chunk = try Chunk(from: decoder)
+            extras = try Extras(from: decoder)
         }
+    }
+}
+
+extension ChatCompletions.Stream {
+    /// The event of a chunk whose `error` member is set, with the error in the exchange's type.
+    private struct ErrorEvent: Decodable {
+        let error: Exchange.ErrorBody
     }
 }

@@ -168,21 +168,23 @@ struct OpenRouterErrorResponse: Decodable, Sendable {
     var metadata: JSONValue? = nil
 
     /// OpenRouter's kind of error, such as `context_length_exceeded`, or `nil` when the body doesn't name one.
-    var errorType: OpenRouterError.Code? { metadata?["error_type"]?.stringValue.map(OpenRouterError.Code.init(rawValue:)) }
+    fileprivate var errorType: OpenRouterError.Code? { metadata?["error_type"]?.stringValue.map(OpenRouterError.Code.init(rawValue:)) }
 
     /// The host that failed, such as `Anthropic`.
-    var providerName: OpenRouterProviderName? { metadata?["provider_name"]?.stringValue.map(OpenRouterProviderName.init(rawValue:)) }
+    fileprivate var providerName: OpenRouterProviderName? {
+        metadata?["provider_name"]?.stringValue.map(OpenRouterProviderName.init(rawValue:))
+    }
 
     /// Whether a 402 means too many requests are in flight at once, rather than no credits.
-    var isInFlightBudget: Bool { limitSource == .inFlightBudget }
+    fileprivate var isInFlightBudget: Bool { limitSource == .inFlightBudget }
 
     /// The budget or limit the request ran into, such as a key's spending budget, when the body names one.
-    var limitSource: OpenRouterErrorMetadata.LimitSource? {
+    fileprivate var limitSource: OpenRouterErrorMetadata.LimitSource? {
         metadata?["limit_source"]?.stringValue.map(OpenRouterErrorMetadata.LimitSource.init(rawValue:))
     }
 
     /// When a spending budget's window rolls over and its spend returns to zero, or `nil` for a lifetime budget.
-    var budgetResetDate: Date? {
+    fileprivate var budgetResetDate: Date? {
         guard let text = metadata?["resets_at"]?.stringValue else { return nil }
         return (try? Date(text, strategy: .iso8601.year().month().day().time(includingFractionalSeconds: true)))
             ?? (try? Date(text, strategy: .iso8601))
@@ -190,10 +192,10 @@ struct OpenRouterErrorResponse: Decodable, Sendable {
 
     /// Whether a 403 comes from OpenRouter's moderation or a guardrail, which name what they flagged, rather than from
     /// the key's permissions.
-    var isModeration: Bool { ["reasons", "flagged_input", "patterns"].contains { metadata?[$0] != nil } }
+    fileprivate var isModeration: Bool { ["reasons", "flagged_input", "patterns"].contains { metadata?[$0] != nil } }
 
     /// The status the code names, when it's a number.
-    var status: Int? {
+    fileprivate var status: Int? {
         switch code {
         case .integer(let status)?: status
         case .string(let text)?: Int(text)
@@ -202,13 +204,13 @@ struct OpenRouterErrorResponse: Decodable, Sendable {
     }
 
     /// The code, when it's text rather than a number, such as a host's `server_error`.
-    var textCode: String? {
+    fileprivate var textCode: String? {
         guard case .string(let text)? = code, Int(text) == nil, !text.isEmpty else { return nil }
         return text
     }
 
     /// The host's own message when it gave one, since OpenRouter's is often only "Provider returned error".
-    var bestMessage: String {
+    fileprivate var bestMessage: String {
         Self.message(in: metadata?["raw"]) ?? message
     }
 
@@ -225,6 +227,17 @@ struct OpenRouterErrorResponse: Decodable, Sendable {
             return nil
         default:
             return nil
+        }
+    }
+}
+
+extension OpenRouterFailure {
+    /// What a failed response reports beside its `error` object.
+    private struct ResponseExtras: Decodable {
+        let routerMetadata: OpenRouterChunkExtras.RouterMetadata?
+
+        private enum CodingKeys: String, CodingKey {
+            case routerMetadata = "openrouter_metadata"
         }
     }
 }
@@ -272,12 +285,12 @@ struct OpenRouterFailure: Sendable {
     }
 
     /// A failed response, with the delay its `Retry-After` or `X-RateLimit-Reset` header asks for.
-    init(_ rejection: HTTPRejection<OpenRouterErrorResponse>) {
+    init(_ rejected: RequestFailure<OpenRouterErrorResponse>) {
         self.init(
-            status: rejection.status,
-            body: rejection.body,
-            retryAfter: rejection.retryAfter ?? Duration(rateLimitReset: rejection.headers.value(for: API.Header.rateLimitReset)),
-            routerReport: (try? ProviderHTTP.decoder.decode(ResponseExtras.self, from: rejection.rawBody))?.routerMetadata
+            status: rejected.status ?? 0,
+            body: rejected.body,
+            retryAfter: rejected.retryAfter ?? Duration(rateLimitReset: rejected.header(API.Header.rateLimitReset)),
+            routerReport: (try? JSONDecoder().decode(ResponseExtras.self, from: rejected.rawBody))?.routerMetadata
         )
     }
 
@@ -403,15 +416,6 @@ extension OpenRouterError.Code {
 }
 
 extension OpenRouterFailure {
-    /// What a failed response reports beside its `error` object.
-    private struct ResponseExtras: Decodable {
-        let routerMetadata: OpenRouterChunkExtras.RouterMetadata?
-
-        private enum CodingKeys: String, CodingKey {
-            case routerMetadata = "openrouter_metadata"
-        }
-    }
-
     /// What a failure becomes: the `LanguageModelError` case of the same name, or an `OpenRouterError`.
     private enum Kind {
         case contextSizeExceeded

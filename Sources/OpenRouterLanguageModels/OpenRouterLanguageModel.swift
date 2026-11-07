@@ -254,11 +254,6 @@ public struct OpenRouterAuthentication: Sendable {
         self.init(Connection.Authentication(baseURL: baseURL, headers: headers))
     }
 
-    /// Reads the headers, and throws a `URLError` that reading them throws the way a failed connection's is thrown.
-    func requestHeaders() async throws -> [HTTPHeaderName: String] {
-        try await requestAuthentication.requestHeaders()
-    }
-
     /// An OpenRouter API key, sent to OpenRouter as a bearer token.
     ///
     /// - Parameter key: Returns the key. It's called for every request and never stored. An empty key sends no
@@ -558,14 +553,10 @@ extension OpenRouterLanguageModel {
                 self.app = app
                 self.settings = settings
             }
-
-            /// The same configuration for a model with another effort type.
-            init(_ other: OpenRouterLanguageModel<some ModelEffort>.RequestExecutor.Configuration) {
-                self.init(baseURL: other.baseURL, app: other.app, settings: other.settings)
-            }
         }
 
-        /// Where requests go, how they name the app and how long they wait, which OpenRouter's dialect reads.
+        /// Where requests go, how they name the app and how long they wait, which the model reads as a Chat Completions
+        /// model.
         let configuration: Configuration
 
         /// Creates a request executor.
@@ -598,7 +589,7 @@ extension OpenRouterLanguageModel.RequestExecutor {
         model: OpenRouterLanguageModel,
         streamingInto channel: LanguageModelExecutorGenerationChannel
     ) async throws -> DetailedLanguageModelAnswer {
-        try await respond(to: request, model: model, streamingInto: channel, as: OpenRouterChatCompletions<Effort>.self)
+        DetailedLanguageModelAnswer(responseText: try await model.chatCompletions(configuration).run(request, streamingInto: channel))
     }
 }
 

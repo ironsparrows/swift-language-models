@@ -1,5 +1,7 @@
 import Foundation
 
+// MARK: - Endpoint
+
 /// One endpoint of a host that serves a model on OpenRouter, with its limits, prices and recent health.
 ///
 /// A host, such as Google Vertex or Amazon Bedrock, can serve a model at several endpoints, such as in different
@@ -158,16 +160,18 @@ extension APITransport {
     }
 }
 
+// MARK: - Wire
+
 extension OpenRouterEndpoint {
     /// The `data` of `GET /models/{author}/{slug}/endpoints`, reduced to the endpoints.
-    struct List: Decodable, Sendable {
+    fileprivate struct List: Decodable, Sendable {
         let endpoints: [OpenRouterEndpoint.Payload]
     }
 }
 
 extension OpenRouterEndpoint {
     /// An endpoint in `GET /models/{author}/{slug}/endpoints`.
-    struct Payload: Decodable, Sendable {
+    fileprivate struct Payload: Decodable, Sendable {
         struct Percentiles: Decodable, Sendable {
             let p50: Double?
             let p75: Double?
@@ -214,7 +218,7 @@ extension OpenRouterEndpoint {
 
 extension OpenRouterEndpoint {
     /// An endpoint from OpenRouter's list, with its latency read in milliseconds.
-    init(_ payload: OpenRouterEndpoint.Payload) {
+    fileprivate init(_ payload: OpenRouterEndpoint.Payload) {
         self.init(
             name: OpenRouterProviderName(rawValue: payload.providerName),
             tag: OpenRouterProviderName(rawValue: payload.tag),

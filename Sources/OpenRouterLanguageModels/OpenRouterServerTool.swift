@@ -2,6 +2,8 @@ public import Foundation
 public import FoundationModels
 import LanguageModels
 
+// MARK: - Server tool
+
 /// A tool that OpenRouter runs for the model while it answers, such as a web search or a call to another model.
 ///
 /// Server tools are a setting of the model, in ``OpenRouterLanguageModel/serverTools``, rather than Foundation Models
@@ -194,6 +196,8 @@ public struct OpenRouterServerTool: Sendable, Hashable {
         return Self(.subagent(call, tools: tools, maximumToolCalls: maximumToolCalls))
     }
 }
+
+// MARK: - Wire
 
 extension OpenRouterServerTool {
     /// A server tool's entry in a request's `tools`: its type, and its parameters when any is set, in the order a
