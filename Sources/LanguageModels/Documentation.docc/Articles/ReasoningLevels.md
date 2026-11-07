@@ -72,7 +72,7 @@ Each catalog model has an effort type of its own: ``Efforts/Of`` a type the cata
 static members are the model's levels, and `allCases` lists the levels it accepts, highest first. It's `Codable`, so
 an app can store the level a person picked.
 
-The type stays the same when the service changes the model's levels: a level the model gains adds a member, and a
+The type stays the same when the provider changes the model's levels: a level the model gains adds a member, and a
 level it stops accepting stays, marked `deprecated`. A request that names such a level moves it to the nearest one
 the model accepts.
 

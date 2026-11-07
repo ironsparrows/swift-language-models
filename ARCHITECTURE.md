@@ -1,8 +1,25 @@
 # Architecture
 
 A map of the code for contributors: which module depends on which, how one request travels from an app to a provider
-and back, and which provider hook runs at which step. [CONTRIBUTING](CONTRIBUTING.md) has the rules: where shared code
-goes and how a module's files are laid out.
+and back, and what a provider says about how it differs from a format. [CONTRIBUTING](CONTRIBUTING.md) has the rules:
+where shared code goes, how a file is laid out and how it's tested.
+
+Each word below means one thing, here, in code comments and in the docs:
+
+| Word | Means | In code |
+|---|---|---|
+| **provider** | Whose API an app's requests go to. One module of this package is for one provider. | `OpenRouterLanguageModels`; `model.providerName`, the log's category |
+| **host** | The company whose servers ran the model for one answer. With OpenAI that's OpenAI. With OpenRouter it's whoever OpenRouter routed to. A URL's host is always written "URL host". | `AnswerAdditions.host`; the log's `host …` |
+| **format** | A wire format more than one provider accepts: Chat Completions, Responses. | the namespaces `ChatCompletions`, `Responses` |
+| **shared model** | A `LanguageModel` that speaks one format with any provider. | `ChatCompletions.Model`, `Responses.Model` |
+| **provider's model** | The public `LanguageModel` an app creates. | `OpenRouterLanguageModel`, `OpenAILanguageModel` |
+| **model details** | A catalog entry: an id and what that model can do. | `OpenRouterModel`, `OpenAIModel` |
+| **exchange** | One request and its answer. A provider's part in it is a value that lives as long as the exchange. | `ChatCompletions.Exchange`, `OpenRouterExchange` |
+| **member** | One key and its value in a JSON body. | `ChatCompletions.Member`, `request.members` |
+| **facts** | What an answer reports beyond its content: model, host, cost, usage. | `AnswerAdditions`, `providerMetadata` |
+
+OpenRouter's public types say "provider" for the host, as OpenRouter's API does: `OpenRouterProviderName`,
+`OpenRouterResponseMetadata.provider`. The stored metadata key is `provider` too, and never changes.
 
 ## Modules
 
@@ -11,9 +28,8 @@ block-beta
     columns 2
     app["Your app"]:2
     openrouter["OpenRouterLanguageModels · product"] openai["OpenAILanguageModels · product"]
-    chat["ChatCompletionsAPI · package"] responses["ResponsesAPI · package"]
-    shared["APIFormat · package"]:2
-    core["LanguageModels · product, re-exported"]:2
+    models["LanguageModels · product, all package but one line"]:2
+    core["LanguageModelsCore · product, re-exported"]:2
     apple["FoundationModels · Apple"]:2
     space:2
 
@@ -21,23 +37,44 @@ block-beta
     style openrouter fill:#e8f0fe,stroke:#3b6fd8,color:#1d1d1f
     style openai fill:#e8f0fe,stroke:#3b6fd8,color:#1d1d1f
     style core fill:#e8f0fe,stroke:#3b6fd8,color:#1d1d1f
-    style chat fill:#f1ecfb,stroke:#7c5cc4,color:#1d1d1f
-    style responses fill:#f1ecfb,stroke:#7c5cc4,color:#1d1d1f
-    style shared fill:#f1ecfb,stroke:#7c5cc4,color:#1d1d1f
+    style models fill:#f1ecfb,stroke:#7c5cc4,color:#1d1d1f
     style apple fill:#f2f2f2,stroke:#6e6e73,color:#1d1d1f
 ```
 
-Each layer builds on the ones below it. Blue: products apps can import. Purple: package targets apps never see. Gray:
-Apple.
+Each layer builds on the ones below it. Blue: what apps can use. Purple: a product whose own declarations apps never
+see. Gray: Apple.
 
-- An app imports only the provider modules it uses, such as `OpenRouterLanguageModels` or `OpenAILanguageModels`. Each
-  one re-exports the core, so efforts, `DetailedLanguageModel` and logging come with it.
-- `ChatCompletionsAPI`, `ResponsesAPI` and `APIFormat` are `package` targets: apps can't see them, provider modules can.
-  A provider module names its format only in its format folder, such as `ChatCompletions/` or `Responses/`, and never
-  imports `APIFormat`.
-- OpenRouter speaks OpenAI's Chat Completions format, and OpenAI its Responses format. Each format target builds on
-  `APIFormat` and the core; `APIFormat` builds on the core alone. The generator and its plugin are build tools: they
-  write each module's `Generated/` sources and never ship.
+| Target | Holds | Access |
+|---|---|---|
+| `LanguageModelsCore` | The public contract every provider shares: `DetailedLanguageModel`, model details, efforts, configuration values, vocabulary, attachments, typed facts, guide violations, the logging switch. And the few internals those need: ordered JSON, the package logger, removed-model reports. | `public`, plus `package` for what the other targets call. |
+| `LanguageModels` | The two shared models, and what they share: sending requests, reading Foundation Models' request, writing its channel, failures before a provider maps them. One line re-exports the core. The contract's DocC catalog lives here. | `package` for what a provider writes, the rest internal. The re-export is its one `public` line, and CI checks that. |
+| `OpenRouterLanguageModels`, `OpenAILanguageModels` | What only that provider has: its public types, its exchange, its catalog and info calls. | `public`, the rest internal. |
+
+- An app imports only the provider modules it uses. Each one re-exports `LanguageModels`, so efforts,
+  `DetailedLanguageModel` and logging come with it.
+- A library that needs only the contract depends on `LanguageModelsCore` alone, and compiles no HTTP code.
+- OpenRouter speaks OpenAI's Chat Completions format, and OpenAI its Responses format. A provider depends on
+  `LanguageModels` and nothing else of this package.
+- `LanguageModelsCore` never imports `LanguageModels`. Inside `LanguageModels`, files import the core with `import` or
+  `package import`, and only `Exports.swift` says `public`.
+- The generator and its plugin are build tools: they write each module's `Generated/` sources and never ship.
+
+## The two models
+
+`ChatCompletions.Model` and `Responses.Model` are `LanguageModel`s that work alone: pointed at a server that takes the
+format as it is, a shared model answers with no provider code at all, through its `PlainExchange`. That's what the tests
+of a format run on.
+
+A shared model owns the whole exchange. Its `respond` reports removed models, calls its private `run`, and checks the
+answer against the schema's guides. `run` is one method, in six numbered steps: read the request, let the exchange
+prepare it, build the body, send it, stream the answer, end it.
+
+A provider's model is a different type. An app creates it, and its nested `Executor` is the `LanguageModelExecutor`
+Foundation Models calls. `respond` there is one line: it derives a shared model and hands the request on.
+
+```swift
+try await model.chatCompletions(configuration).respond(to: request, streamingInto: channel)
+```
 
 ## One request
 
@@ -46,164 +83,191 @@ A Chat Completions request, from OpenRouter's model:
 ```mermaid
 sequenceDiagram
     autonumber
-    participant App
-    participant Session as LanguageModelSession (Apple)
-    participant DE as DetailedLanguageModelExecutor (core)
-    participant RE as OpenRouterLanguageModel.RequestExecutor
-    participant Engine as ChatCompletionsExecutor (format, internal)
-    participant D as OpenRouterChatCompletions (dialect)
-    participant HTTP as ProviderHTTP (core)
-    participant Channel as AnswerChannel (APIFormat)
+    participant S as LanguageModelSession (Apple)
+    participant EX as OpenRouterLanguageModel.Executor
+    participant M as ChatCompletions.Model
+    participant X as OpenRouterExchange
+    participant CN as Connection
+    participant ST as ChatCompletions.Stream
+    participant CH as AnswerChannel
     participant OR as OpenRouter
 
-    App->>Session: respond(to:)
-    Session->>DE: init(configuration: model.executorConfiguration), then respond(to:model:streamingInto:)
-    DE->>DE: report retired models
-    DE->>RE: execute(_:model:streamingInto:)
-    RE->>Engine: respond(to:model:streamingInto:as: OpenRouterChatCompletions<Effort>.self)
-    Engine->>D: init(model:executor:)
-    Engine->>D: check, replays, replayMembers (while writing the messages)
-    Engine->>D: body(BodyContext) → BodyPlan
-    Engine->>Engine: merge the members, order them (memberOrder), leave out unlisted ones (lists)
-    Engine->>D: connection, headers(HeaderContext), baseURL
-    Engine->>HTTP: openEventStream POST chat/completions (APIFormat: one retry with the portable schema)
-    HTTP->>OR: request (retries of a failed connection or 5xx response, two by default, same-host redirects)
-    OR-->>HTTP: server-sent events
-    HTTP-->>Engine: bytes + ResponseHeaders
-    Engine->>D: streamState(ResponseHeaders)
-    loop each chunk
-        Engine->>Engine: decode the format's members
-        Engine->>D: observe(ChunkExtras, into: &state) → ChunkOutput
-        Engine->>Channel: text, reasoning, tool-call fragments, data, citations
-        Channel-->>Session: channel events
+    S->>EX: respond(to:model:streamingInto:)
+    EX->>EX: model.chatCompletions(configuration)
+    EX->>M: respond(to:streamingInto:)
+    M->>M: report removed models
+    M->>X: 1 read the request: checkAttachment, replays, replayMembers
+    M->>X: 2 prepare(&request)
+    M->>M: 3 request.body(): members in order, the unsupported ones left out
+    M->>CN: 4 openEventStream (one more attempt with the portable schema)
+    CN->>OR: POST chat/completions, with retries, redirects only to the same URL host
+    OR-->>CN: server-sent events
+    loop each event
+        M->>ST: 5 receive(event)
+        ST->>X: read(extras)
+        ST->>CH: text, reasoning, tool calls, data
+        CH-->>S: channel events
     end
-    Engine->>D: facts(of: state) → AnswerFacts: host, metadata, usage metadata, reasoning signature
-    Engine->>Channel: end(report:facts:) → metadata and usage on the entry that ends the answer
-    Engine-->>DE: DetailedLanguageModelAnswer
-    DE->>DE: check the answer against the schema's guides
-    Session-->>App: Response
+    M->>ST: 6 finish
+    ST->>X: additions(header:)
+    ST->>CH: finish: metadata and usage on the entry that ends the answer
+    M->>M: check the answer against the schema's guides
+    M-->>EX: returns
 ```
 
 Where each step lives:
 
 | Step | File |
 |---|---|
-| Foundation Models' executor, the checks before and after | `Sources/LanguageModels/DetailedLanguageModelExecutor.swift` |
-| OpenRouter's one call into the format | `Sources/OpenRouterLanguageModels/ChatCompletions/RequestExecutor+ChatCompletions.swift` |
-| The format's only entry, which creates the dialect | `Sources/ChatCompletionsAPI/DetailedLanguageModelRequestExecutor+ChatCompletions.swift` |
-| The engine: build, send, stream | `Sources/ChatCompletionsAPI/Internal/ChatCompletionsExecutor.swift` |
-| The body and its messages | `Sources/ChatCompletionsAPI/Internal/Request/` |
-| Chunks into the answer's output | `Sources/ChatCompletionsAPI/Internal/Stream/AnswerStream.swift` |
-| The answer's channel events, facts and usage | `Sources/APIFormat/AnswerChannel.swift` |
-| Opening the stream with the portable-schema retry, the stream loop and the log | `Sources/APIFormat/ProviderConnection+EventStream.swift`, `OperationLog+Request.swift` |
-| OpenRouter's hooks | `Sources/OpenRouterLanguageModels/ChatCompletions/` |
+| OpenRouter's entry | `Sources/OpenRouterLanguageModels/OpenRouterLanguageModel.swift`, `Executor.respond` |
+| OpenRouter as a Chat Completions provider, and all it does in a request | `Sources/OpenRouterLanguageModels/OpenRouterExchange.swift` |
+| The checks and the exchange | `Sources/LanguageModels/Models/ChatCompletions/ChatCompletionsModel.swift` |
+| 1 and 3: the request and its body | `ChatCompletionsRequest.swift`, with the transcript in `ChatCompletionsTranscript.swift` |
+| 4: sending | `Sources/LanguageModels/Shared/Connection.swift`, `HTTPClient.swift` |
+| 5 and 6: the stream | `ChatCompletionsStream.swift` |
+| Channel events, facts, usage | `Sources/LanguageModels/Shared/AnswerChannel.swift` |
+| Failures | `RequestFailure` in `Shared/RequestFailure.swift`; the mapping in `OpenRouterError.swift` |
 
 ## A Responses request
 
-OpenAI's model takes the same path through the core and `APIFormat`, with the Responses format in the middle:
+OpenAI's model takes the same path, with the other shared model in the middle:
 
 ```mermaid
 sequenceDiagram
     autonumber
-    participant RE as OpenAILanguageModel.RequestExecutor
-    participant Engine as ResponsesExecutor (format, internal)
-    participant D as OpenAIResponses (dialect)
-    participant HTTP as ProviderHTTP (core)
-    participant Channel as AnswerChannel (APIFormat)
+    participant EX as OpenAILanguageModel.Executor
+    participant M as Responses.Model
+    participant X as OpenAIExchange
+    participant CN as Connection
+    participant ST as Responses.Stream
+    participant CH as AnswerChannel
     participant OA as OpenAI
 
-    RE->>Engine: respond(to:model:streamingInto:as: OpenAIResponses<Effort>.self)
-    Engine->>D: check, instructionsRole, replays (while writing the input items)
-    Engine->>D: body(BodyContext) → BodyPlan: storage, encrypted reasoning, reasoning, text members
-    Engine->>Engine: merge, leave out unlisted and unsent members, keep only encrypted reasoning when not stored
-    Engine->>HTTP: openEventStream POST responses (retries as the official SDKs retry, two by default, then one portable-schema retry)
-    HTTP->>OA: request
-    OA-->>Engine: events + ResponseHeaders
+    EX->>M: respond(to:streamingInto:), on model.responses(configuration)
+    M->>X: 1 read the input: checkAttachment, replays
+    M->>X: 2 prepare(&request): storage, encrypted reasoning, reasoning, text members
+    M->>M: 3 request.body(): leave out unsupported and unsent members
+    M->>CN: 4 openEventStream POST responses (retries as the official SDKs retry, then one with the portable schema)
+    CN->>OA: request
+    OA-->>CN: server-sent events
     loop each event
-        Engine->>Channel: text, reasoning summaries, function calls by output index, citations
+        M->>ST: 5 receive(event)
+        ST->>CH: text, reasoning summaries, function calls by output index, citations
     end
-    Note over Engine: response.completed or response.incomplete ends the answer; error or response.failed throws
-    Engine->>D: facts(of: state) → AnswerFacts
-    Engine->>Channel: end: reasoning items in their order as the signature, message phases, metadata, usage
+    Note over ST: response.completed or response.incomplete ends the answer, error or response.failed throws
+    M->>ST: 6 finish
+    ST->>X: additions(header:)
+    ST->>CH: finish: reasoning items in their order as the signature, message phases, metadata, usage
 ```
 
 | Step | File |
 |---|---|
-| OpenAI's one call into the format | `Sources/OpenAILanguageModels/Responses/RequestExecutor+Responses.swift` |
-| The format's only entry, which creates the dialect | `Sources/ResponsesAPI/DetailedLanguageModelRequestExecutor+Responses.swift` |
-| The engine: build, send, stream | `Sources/ResponsesAPI/Internal/ResponsesExecutor.swift`, on `Sources/APIFormat/FormatExecutor.swift` |
-| The body and its input items | `Sources/ResponsesAPI/Internal/Request/` |
-| Events into the answer's output | `Sources/ResponsesAPI/Internal/Stream/AnswerStream.swift` |
-| OpenAI's hooks | `Sources/OpenAILanguageModels/Responses/` |
+| OpenAI's entry | `Sources/OpenAILanguageModels/OpenAILanguageModel.swift`, `Executor.respond` |
+| OpenAI as a Responses provider | `Sources/OpenAILanguageModels/OpenAIExchange.swift` |
+| The checks and the exchange | `Sources/LanguageModels/Models/Responses/ResponsesModel.swift` |
+| 1 and 3: the request and its body | `ResponsesRequest.swift`, over `ResponsesInput.swift` and `ResponsesReplay.swift` |
+| 5 and 6: the stream | `ResponsesStream.swift` |
 
-## Dialect hooks
+## What a provider states
 
-The engine owns the exchange; a dialect adds only what its provider does differently. Each hook receives a value only
-the engine creates, holding just what that hook needs. Both formats' dialects share the hooks of `ProviderDialect` and
-the same hook names. The Responses format has fewer, since OpenAI is its only provider, and adds two of its own.
+A provider says how it differs from the plain format in three places. A provider that takes the format as it is states
+none of them, apart from where requests go and what a failure becomes.
 
-| Hook | Required | Receives | Returns | OpenRouter (Chat Completions) | OpenAI (Responses) |
-|---|---|---|---|---|---|
-| `name`, `modelID`, `baseURL`, `connection`, `init(model:executor:)` | yes | the model and its request executor | who, where, how | `"OpenRouter"`, the variant's model id, a proxy's URL, session, auth and timeouts | `"OpenAI"`, the model's id, a proxy's URL, session, auth and timeouts |
-| `error(for:)` | yes | `ChatCompletionsFailure<Self>` or `ResponsesFailure<Self>` | `MappedError<ProviderError>` | `LanguageModelError` or `OpenRouterError` | `LanguageModelError` or `OpenAIError` |
-| `headers(_:)` | no, Chat Completions only | `HeaderContext` | `[HTTPHeaderName: String]` | the app's name, address and categories, the response cache, router metadata | |
-| `body(_:)` | when `BodyExtras` is set | `BodyContext` | `BodyPlan<BodyExtras>` | fallbacks, routing, plugins, reasoning, penalties, server tools, cache marks | the effort, summary and storage, `text.verbosity`, `parallel_tool_calls` with the session's tools, the service tier, cache key and end user, the sampling a reasoning model doesn't take |
-| `memberOrder` | no, Chat Completions only | none | an order | the member order hosts cache on | |
-| `listedMembers`, `lists(_:)` | no | a `MemberKey` | a predicate | leaving out what a model doesn't list | leaving out what a model doesn't list |
-| `check(_:in:)` | no | `AttachmentKind`, the entry | throws | which inputs the models take | which inputs the model takes |
-| `extraMedia` | no, Chat Completions only | none | `[MediaPart]` | AIFF, M4A, AAC, FLAC and OGG audio, and video | |
-| `instructionsRole` | no, Responses only | none | `InstructionsRole` | | `developer` for a model that reasons, `system` otherwise |
-| `reasoningOrigin`, `phasesKey` | no | none | an origin, a metadata key | `openrouter` | `openai-responses`, `openAI.phases` |
-| `replays(_:)` | no | a reasoning entry | whether it goes back | only to the model that wrote it, not a fallback | only to the model that wrote it, or to the model it's a dated snapshot of |
-| `replayMembers(_:)` | when `ReplayMembers` is set, Chat Completions only | `[ReplayedReasoning]` | `ReplayMembers` | `reasoning` and `reasoning_details` | the format's own: the answer's encrypted `reasoning` items, in the order they came |
-| `streamState(_:)`, `facts(of:)` | when `StreamState` is set | `ResponseHeaders` | state, `AnswerFacts` | the host, cost, router report, cache status | the request's id |
-| `observe(_:into:)` | when `ChunkExtras` is set, Chat Completions only | the extras | `ChunkOutput` | images and reasoning details | |
+**On the model,** once, in `chatCompletions(_:)` or `responses(_:)`, what's true for every request:
 
-A dialect that sets one of these types without the hook that reads it doesn't compile. Hooks with a default sit in the
-extension that declares the conformance, where a misspelled one draws a warning.
+| Value | Format | OpenRouter | OpenAI |
+|---|---|---|---|
+| `name`, `url`, `connection`, `providerName`, `capabilities`, `reaching:` | both, required | the variant's model id, a proxy's URL, session, auth and timeouts, `OpenRouter` | the model's id, a proxy's URL, session, auth and timeouts, `OpenAI` |
+| `memberOrder` | Chat Completions | the member order hosts cache on | |
+| `unsupportedMembers` | both | the listed members the model's details don't list | the same |
+| `media` | Chat Completions | AIFF, M4A, AAC, FLAC and OGG audio, and video | |
+| `images` | both | the configuration's `ImageEncoding` | the same |
+| `reasoningOrigin` | both | `openrouter` | `openai-responses` |
+| `instructionsRole` | Responses | | `developer` for a model that reasons, `system` otherwise |
+| `phasesKey` | Responses | | `openAI.phases` |
+
+**On the exchange,** the methods of `ChatCompletions.Exchange` or `Responses.Exchange`, in the order a request calls them.
+The model holds one exchange value, and each request works on a copy, so what one answer reported never reaches the
+next. Every method but `error(for:)` has a default that adds nothing:
+
+| Method | Format | OpenRouter | OpenAI |
+|---|---|---|---|
+| `checkAttachment(_:in:)` | both | which inputs the models take | which inputs the model takes |
+| `replays(_:)` | both | only to the model that wrote it, not a fallback | only to the model that wrote it, or to the model it's a dated snapshot of |
+| `replayMembers(for:)` | Chat Completions | `reasoning` and `reasoning_details` | |
+| `prepare(_:)` | both | the app's name, address and categories, the response cache, router metadata; fallbacks, routing, plugins, reasoning, penalties, server tools, cache marks | the effort, summary and storage, `text.verbosity`, `parallel_tool_calls` with the session's tools, the service tier, cache key and end user, the sampling a reasoning model doesn't take |
+| `read(_:)` | Chat Completions | images and reasoning details | |
+| `additions(header:)` | both | the host, cost, router report, cache status | the request's id |
+| `error(for:)` | both, required | `LanguageModelError` or `OpenRouterError` | `LanguageModelError` or `OpenAIError` |
+
+**On the request,** in `prepare(_:)`, what depends on the one request. Chat Completions has `headers`, `members`,
+`sendsSessionTools`, `serverTools`, `tokenLimitMember`, `usesPortableSchema`, `instructionsMark` and `movedEffort`.
+Responses has `members`, `sendsSessionTools`, `serverTools`, `reasoning`, `movedEffort`, `storage`,
+`asksForEncryptedReasoning`, `textMembers` and `leftOutMembers`. An exchange can't change the messages or the settings
+the app asked for.
+
+Implement a method that has a default in the type that declares the conformance: only there does a misspelled one draw a
+warning, which CI's `-warnings-as-errors` turns into an error, instead of silently keeping the default.
+
+## Typed facts
+
+Facts are typed in code and flat keys in storage. Foundation Models keeps an answer's facts as flat metadata, and saved
+transcripts keep those keys, so their spellings never change. One file per module knows its keys, and they're private
+there:
+
+| Module | File | Reader |
+|---|---|---|
+| `LanguageModelsCore` | `ProviderMetadata.swift` | `providerMetadata`, on `Transcript.Response`, `Transcript.ToolCalls`, `LanguageModelSession.Usage` and `LanguageModelError` |
+| `OpenRouterLanguageModels` | `OpenRouterMetadata.swift` | `openRouter`, in the same four places |
+| `OpenAILanguageModels` | `OpenAIMetadata.swift` | `openAI`, in the same four places |
+
+A shared model writes what the format knows, such as the model and the finish reason, and an exchange's
+`additions(header:)` adds the rest, as an `AnswerAdditions`. `channelMetadata` on `ProviderResponseMetadata` and
+`ProviderUsageMetadata`, and `contextMetadata` on `ProviderErrorMetadata`, write a value under its keys.
 
 ## Errors
 
 ```mermaid
 flowchart LR
-    rejected["Failed response"] --> failure
-    event["Error event"] --> failure
-    problem["Unusable stream"] --> failure
-    failure["ChatCompletionsFailure · ResponsesFailure"]:::package --> hook["dialect.error(for:)"]:::provider
-    hook --> foundation["LanguageModelError"]:::apple
-    hook --> own["OpenRouterError · OpenAIError"]:::provider
+    rejected["Failed response, after the retries"] --> failure
+    event["Error event in the stream"] --> failure
+    failed["Answer the host says failed"] --> failure
+    unreadable["Event that can't be read"] --> failure
+    unusable["Answer cut off, or a tool call that can't run"] --> failure
+    failure["RequestFailure"]:::package --> map["exchange.error(for:)"]:::provider
+    map --> foundation["LanguageModelError"]:::apple
+    map --> own["OpenRouterError · OpenAIError"]:::provider
 
     classDef package fill:#f1ecfb,stroke:#7c5cc4,color:#1d1d1f
     classDef provider fill:#e8f0fe,stroke:#3b6fd8,color:#1d1d1f
     classDef apple fill:#f2f2f2,stroke:#6e6e73,color:#1d1d1f
 ```
 
-- A failed response reaches the dialect as an `HTTPRejection` with its error body decoded, and an error event as that
-  body. A stream the format can't use arrives as a `StreamProblem`: an unreadable event, a cut-off stream or a broken
-  tool call. A Chat Completions answer whose finish reason is `error` arrives as a failed answer, and a Responses
-  `response.failed` event as a failed response, with its error object.
+- A provider is handed one value, a `RequestFailure`, and reads its `kind`, `status`, `body`, `rawBody`, `retryAfter`,
+  `message` and `imageEntries`, and any response header through `header(_:)`, whether the response was rejected or failed
+  while it streamed.
 - Failures Foundation Models has a case for become `LanguageModelError`: a rate limit, an oversized context, a
   guardrail, a refusal, a timeout or an image the host can't use. The rest become the provider's own error, such as a
   rejected key, or credits or a quota that ran out. A `URLError` is rethrown as a failed connection's.
-
-OpenRouter's info calls map their failures through the same `OpenRouterFailure`.
+- `run` logs what it throws, through `RequestLog`, whose category is the provider's name. What the log says of an error
+  is its kind, HTTP status, code and host, never its message, and a provider's error tells it through `LoggableError`.
 
 ## Info calls
 
 ```mermaid
 flowchart LR
-    calls["endpoints() · currentDetails()"]:::provider --> transport["APITransport"]:::provider
-    transport --> info["InfoTransport + InfoCache"]:::core
-    info --> http["ProviderHTTP"]:::core
+    calls["endpoints() · currentDetails() · currentPricing()"]:::provider --> connection["Connection.cachedValue"]:::shared
+    connection --> http["HTTPClient"]:::shared
     http --> api(["OpenRouter"])
 
     classDef provider fill:#e8f0fe,stroke:#3b6fd8,color:#1d1d1f
-    classDef core fill:#f2f2f2,stroke:#6e6e73,color:#1d1d1f
+    classDef shared fill:#f1ecfb,stroke:#7c5cc4,color:#1d1d1f
 ```
 
-`OpenRouterLanguageModel` and `OpenRouterModel` read a model's endpoints and current details through a
-`ProviderConnection`, like chat requests, with an answer reused for the configuration's `infoCacheLifetime`, a minute
-by default. OpenAI's model has no info calls.
+`OpenRouterLanguageModel` and `OpenRouterModel` read a model's endpoints, current details and pricing through a
+`Connection`, like chat requests, with an answer reused for the configuration's `infoCacheLifetime`, a minute by default.
+The provider decodes the body and maps a failure, which reaches it as a `RequestFailure` of kind `.rejected`. OpenAI's
+model has no info calls.
 
 ## The model catalog
 
@@ -220,7 +284,7 @@ flowchart LR
 ```
 
 `ModelCatalogGenerator fetch` downloads each source's documents into `Catalogs/`, and `render` turns them into typed
-models, efforts, vocabularies and retired models. OpenRouter's come from its model list and API description. OpenAI's
+models, efforts, vocabularies and removed models. OpenRouter's come from its model list and API description. OpenAI's
 come from three: the ids its API description names for the Responses API, the models its `/v1/models` still serves,
 which needs an API key, and what models.dev says each model takes; a model past its shutdown day is left out.
 `model-catalog.yml` runs both daily and opens a pull request whose release label `release.yml` reads.

@@ -30,7 +30,7 @@ Apple's `LanguageModelSession`, with Claude, GPT, Gemini and more in the same se
 > OpenAI's Responses API.
 
 Apps keep Apple's `LanguageModelSession`, with its transcripts, tools, `@Generable` guided generation, Dynamic Profiles
-and reasoning levels. Provider modules plug other services' models into it. Claude, GPT, Gemini, DeepSeek, Qwen, Llama
+and reasoning levels. Provider modules plug other providers' models into it. Claude, GPT, Gemini, DeepSeek, Qwen, Llama
 and Mistral then run in the same session as Apple's on-device model, and switching changes only `model:`.
 
 - **Apple's API, any model.** Sessions, streaming, tools, `@Generable` and Dynamic Profiles work unchanged.
@@ -80,7 +80,7 @@ module's product to each target that uses it:
 
 ```swift
 dependencies: [
-  .package(url: "https://github.com/ironsparrows/swift-language-models", from: "1.0.0")
+  .package(url: "https://github.com/ironsparrows/swift-language-models", from: "2.0.0")
 ]
 ```
 
@@ -89,7 +89,9 @@ dependencies: [
 .product(name: "OpenAILanguageModels", package: "swift-language-models")
 ```
 
-A provider module re-exports `LanguageModels`, the shared core, so apps import the provider module alone.
+A provider module re-exports `LanguageModels`, which carries the contract every provider shares, so apps import the
+provider module alone. A library that needs only the contract can depend on the `LanguageModelsCore` product instead, and
+reads the same pages, under `LanguageModels`.
 
 ## Usage
 
@@ -125,7 +127,7 @@ for try await snapshot in session.streamResponse(to: "Do I need a jacket in Athe
 let itinerary = try await session.respond(to: "Plan three days in Kyoto.", generating: Itinerary.self).content
 ```
 
-A guided request goes only to a model whose service enforces the schema, as Tools and guided generation describes
+A guided request goes only to a model whose provider enforces the schema, as Tools and guided generation describes
 [for OpenRouter][tools] and [for OpenAI][openai-tools]. Some hosts drop guides such as a range or a count, so each
 answer is checked against them, and one that breaks a guide throws `GeneratedContent.ParsingError`, whose
 `underlyingError` is a `GuideViolations` that lists each value, its path, keyword and limit.

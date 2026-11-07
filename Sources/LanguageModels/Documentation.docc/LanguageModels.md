@@ -110,3 +110,7 @@ The package logs each request to the unified logging system, never with API keys
 - <doc:WritingAProvider>
 - ``DetailedLanguageModel/reportRemovedModels(for:)``
 - ``DetailedLanguageModel/checkGuides(ofResponseText:for:)``
+
+### Migration guides
+
+- <doc:MigratingTo2>

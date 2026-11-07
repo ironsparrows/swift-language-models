@@ -26,7 +26,7 @@ cancellation `CancellationError`, as for a failed connection.
 
 ``OpenRouterAuthentication/apiKey(baseURL:_:)`` sends the key the same way to another server that speaks OpenRouter's
 API, such as your company's gateway or a test server. Requests go to the same paths under its URL, such as
-`chat/completions`, and follow redirects only to the same host. Model info calls go there too. The key is still in the
+`chat/completions`, and follow redirects only to the same URL host. Model info calls go there too. The key is still in the
 app, so to ship without one, send requests through your server instead.
 
 ### Let each person sign in
@@ -51,7 +51,7 @@ forwards it to OpenRouter. The headers let the server authorize the caller:
 @Snippet(path: "swift-language-models/Snippets/QuickStart", slice: "proxy")
 
 Requests go to the same paths under the server's URL, such as `chat/completions`, and follow redirects only to the
-same host, so the headers never reach another one. The headers are read for every request, so a token can refresh,
+same URL host, so the headers never reach another one. The headers are read for every request, so a token can refresh,
 and the package's own headers, such as `Content-Type`, take precedence over one of the same name. Model info calls,
 such as ``OpenRouterLanguageModel/endpoints()``, go to the server too.
 

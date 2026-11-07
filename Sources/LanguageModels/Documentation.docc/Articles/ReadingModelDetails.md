@@ -16,8 +16,8 @@ accepts.
 
 ### Identify models
 
-A model's id is the service's id, in a type of the provider module's own that conforms to ``ProviderVocabulary``, so
-one module's id can't be passed where another's belongs. Other words from a service's API, such as parameter names,
+A model's id is the provider's id, in a type of the provider module's own that conforms to ``ProviderVocabulary``, so
+one module's id can't be passed where another's belongs. Other words from a provider's API, such as parameter names,
 have types of their own too. A string literal creates any of them, and each encodes as its raw string.
 
 ### Check data kinds

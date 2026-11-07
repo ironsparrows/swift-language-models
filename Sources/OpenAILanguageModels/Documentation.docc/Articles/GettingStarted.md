@@ -41,7 +41,7 @@ request:
   the configuration's `timeoutIntervalForRequest`. It limits the wait for the next data, not the whole answer. It's 10
   minutes unless the model is created with another, since a model that reasons hard may send nothing for a while, and
   `nil` keeps the session's own timeout.
-- Redirects only to the same host, through a delegate of each request's own. A background session doesn't support a
+- Redirects only to the same URL host, through a delegate of each request's own. A background session doesn't support a
   request's own delegate, so there the session's own redirect policy applies.
 
 The model's ``OpenAILanguageModel/configuration``, an ``OpenAIConfiguration``, holds how the package sends requests,

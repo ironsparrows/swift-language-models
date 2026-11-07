@@ -48,7 +48,7 @@ request:
 - The timeout: with ``OpenRouterConfiguration/idleTimeout`` set, each request waits that long for the next data,
   instead of the configuration's `timeoutIntervalForRequest`. It limits the wait for the next data, not the whole
   answer.
-- Redirects only to the same host, through a delegate of each request's own. A background session doesn't support a
+- Redirects only to the same URL host, through a delegate of each request's own. A background session doesn't support a
   request's own delegate, so there the session's own redirect policy applies.
 
 The model's ``OpenRouterLanguageModel/configuration``, an ``OpenRouterConfiguration``, holds how the package sends
