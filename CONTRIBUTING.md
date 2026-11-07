@@ -65,7 +65,7 @@ describes the model, its request executor and what it reports. In this repositor
   format.
 - A service whose models come from a list gets a case in `ModelCatalogGenerator`'s `CatalogSource`, which names it, says
   where its API lives and lists its vocabularies, and code that reads its list into the catalog's models, as
-  `OpenRouterModelsResponse+Catalog.swift` does for OpenRouter and `OpenAIModelList+Catalog.swift` does for OpenAI. The
+  `Providers/OpenRouterCatalog.swift` does for OpenRouter and `Providers/OpenAICatalog.swift` does for OpenAI. The
   generator then keeps a snapshot of the list in `Catalogs/<provider>.json`, and turns it into a static member and an
   effort type for each model, such as `Efforts.Of<OpenRouterCatalog.AnthropicClaudeHaiku5_5>`. The Model catalog
   workflow picks the new provider up with the others. A word the module's code names, such as a parameter a request

@@ -1,3 +1,5 @@
+// MARK: - Model
+
 /// One model as a catalog snapshot stores it: only the facts the generated code uses, in a stable order.
 struct CatalogModel: Codable, Equatable, Sendable {
     let id: String
@@ -102,4 +104,76 @@ extension CatalogModel {
             try container.encode(removedReasoningEfforts, forKey: .removedReasoningEfforts)
         }
     }
+}
+
+// MARK: - Reasoning
+
+/// Whether and when a catalog model reasons, as one value, so no impossible combination of flags can reach the code.
+///
+/// A snapshot stores it as one word: `unsupported`, `offByDefault`, `onByDefault` or `mandatory`.
+enum CatalogReasoning: Equatable, Sendable, CaseIterable {
+    case unsupported
+    case optional(enabledByDefault: Bool)
+    case mandatory
+
+    static let allCases: [CatalogReasoning] = [
+        .unsupported, .optional(enabledByDefault: false), .optional(enabledByDefault: true), .mandatory,
+    ]
+
+    /// The word a snapshot stores.
+    var word: String {
+        switch self {
+        case .unsupported: "unsupported"
+        case .optional(enabledByDefault: false): "offByDefault"
+        case .optional(enabledByDefault: true): "onByDefault"
+        case .mandatory: "mandatory"
+        }
+    }
+}
+
+extension CatalogReasoning: Codable {
+    init(from decoder: any Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let word = try container.decode(String.self)
+        guard let reasoning = Self.allCases.first(where: { $0.word == word }) else {
+            throw DecodingError.dataCorruptedError(in: container, debugDescription: "'\(word)' isn't a kind of reasoning.")
+        }
+        self = reasoning
+    }
+
+    func encode(to encoder: any Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(word)
+    }
+}
+
+// MARK: - Words
+
+/// A word of an open vocabulary, as a catalog snapshot stores it.
+struct CatalogWord: Codable, Equatable, Sendable {
+    let word: String
+    /// What the word means, from the source's API description.
+    let summary: String?
+    /// The day the word disappeared from its source, or `nil` while the source uses it.
+    let removedOn: CatalogDay?
+
+    init(_ word: String, summary: String? = nil, removedOn: CatalogDay? = nil) {
+        self.word = word
+        self.summary = summary
+        self.removedOn = removedOn
+    }
+
+    /// The word as removed on the given day, unless it was removed earlier.
+    func removed(on day: CatalogDay) -> CatalogWord {
+        CatalogWord(word, summary: summary, removedOn: removedOn ?? day)
+    }
+}
+
+// MARK: - Removed models
+
+/// A model that disappeared from its source, kept so its generated member stays, marked deprecated.
+struct RemovedModel: Codable, Equatable, Sendable {
+    let model: CatalogModel
+    /// The day the model disappeared.
+    let removedOn: CatalogDay
 }

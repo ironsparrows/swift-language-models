@@ -1,3 +1,7 @@
+import Foundation
+
+// MARK: - Snapshot
+
 /// A source's models as `Catalogs/<source>.json` stores them, sorted so the file's diff reads as a changelog.
 struct CatalogSnapshot: Codable, Equatable, Sendable {
     let source: CatalogSource
@@ -208,5 +212,103 @@ extension CatalogSnapshot {
                 debugDescription: "These model ids appear more than once: \(repeated.joined(separator: ", "))."
             )
         }
+    }
+}
+
+// MARK: - Fetched catalog
+
+/// What a source's documents say, in catalog form, before it joins the snapshot in the package.
+struct FetchedCatalog: Sendable {
+    let models: [CatalogModel]
+    /// The words that the source's API description lists for each vocabulary, with their summaries.
+    let vocabularies: [CatalogVocabulary: [CatalogWord]]
+    /// Every effort word that the source's API description lists, highest first.
+    let efforts: [String]
+    /// The ids of the model list's entries that don't decode, which the fetch skipped, sorted.
+    var skippedEntryIDs: [String] = []
+    /// The ids of the models the source serves that the fetch left out because their entries don't decode, so it
+    /// can't tell whether the catalog lists them.
+    var undescribedModelIDs: Set<String> = []
+
+    /// The ids of the models.
+    var modelIDs: Set<String> {
+        Set(models.map(\.id))
+    }
+}
+
+// MARK: - Vocabularies
+
+/// An open vocabulary of a source's API whose words each get a static member, such as the request parameter names or
+/// the web search engines.
+///
+/// Each source lists the vocabularies its API has in ``CatalogSource/vocabularies``.
+enum CatalogVocabulary: String, Codable, CodingKeyRepresentable, Sendable {
+    case inputModalities
+    case outputModalities
+    case parameters
+    case searchContextSizes
+    case webFetchEngines
+    case webSearchEngines
+    case webSearchModes
+
+    /// The vocabulary's words that a model uses, which are none for a vocabulary of request settings.
+    func words(of model: CatalogModel) -> [String] {
+        switch self {
+        case .inputModalities: model.inputModalities
+        case .outputModalities: model.outputModalities
+        case .parameters: model.supportedParameters
+        case .searchContextSizes, .webFetchEngines, .webSearchEngines, .webSearchModes: []
+        }
+    }
+}
+
+// MARK: - Days
+
+/// A day in UTC, such as a model's knowledge cutoff or the day a word was removed, which catalogs write as
+/// `yyyy-MM-dd`.
+struct CatalogDay: Hashable, Sendable, CustomStringConvertible {
+    private static let format = Date.ISO8601FormatStyle().year().month().day()
+
+    /// The day as `yyyy-MM-dd`.
+    let description: String
+
+    /// Midnight UTC at the start of the day.
+    let start: Date
+
+    /// The day a text names, or `nil` unless the text is a real day written as `yyyy-MM-dd`.
+    ///
+    /// The ISO 8601 parser alone also takes text such as `2026-02-30`, which it rolls over into March, or `2026-2-3`,
+    /// and ignores whatever follows the day, so the text must also be how the parsed day is written.
+    init?(_ text: String) {
+        guard let start = try? Self.format.parse(text), start.formatted(Self.format) == text else { return nil }
+        self.description = text
+        self.start = start
+    }
+
+    /// The day in UTC that a moment falls on.
+    init(containing date: Date) {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = .gmt
+        start = calendar.startOfDay(for: date)
+        description = start.formatted(Self.format)
+    }
+}
+
+extension CatalogDay: Codable {
+    /// Decodes a day from its text.
+    ///
+    /// - Throws: `DecodingError.dataCorrupted` when the text isn't a real day written as `yyyy-MM-dd`.
+    init(from decoder: any Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let text = try container.decode(String.self)
+        guard let day = CatalogDay(text) else {
+            throw DecodingError.dataCorruptedError(in: container, debugDescription: "'\(text)' isn't a day written as yyyy-MM-dd.")
+        }
+        self = day
+    }
+
+    func encode(to encoder: any Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(description)
     }
 }

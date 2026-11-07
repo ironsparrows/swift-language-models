@@ -1,5 +1,7 @@
 import Foundation
 
+// MARK: - OpenAPI descriptions
+
 /// A provider's OpenAPI description, reduced to the schemas whose string values the catalog reads.
 protocol OpenAPIDescription: Decodable {
     associatedtype Schema: OpenAPIWordSchema
@@ -47,5 +49,15 @@ extension KeyedDecodingContainer {
     /// vocabulary uses, or a missing one, has none.
     func decodeStringValues(forKey key: Key) -> [String] {
         (try? decodeIfPresent([String?].self, forKey: key))?.compactMap(\.self) ?? []
+    }
+}
+
+// MARK: - Unique elements
+
+extension Sequence where Element: Hashable {
+    /// The elements without repeats, each where it first appears.
+    func uniqued() -> [Element] {
+        var seen: Set<Element> = []
+        return filter { seen.insert($0).inserted }
     }
 }
