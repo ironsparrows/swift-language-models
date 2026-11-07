@@ -1,3 +1,116 @@
+import Foundation
+package import FoundationModels
+package import LanguageModelsCore
+
+// MARK: - Sampling
+
+/// Foundation Models' sampling options as the settings a provider sends.
+package struct Sampling {
+    package var temperature: Double?
+    package var topP: Double?
+    package var topK: Int?
+    package var seed: UInt64?
+    /// Whether the options ask for greedy sampling, which a provider may also send as `top_k` 1 where it rules out no
+    /// host.
+    package var isGreedy = false
+
+    /// Greedy sampling becomes temperature 0. Temperatures are clamped to the provider's range, and probability
+    /// thresholds to 0 to 1.
+    ///
+    /// - Parameters:
+    ///   - options: The request's generation options.
+    ///   - temperatureRange: The temperatures the provider takes, such as 0 to 2.
+    package init(_ options: GenerationOptions, temperatureRange: ClosedRange<Double>) {
+        temperature = options.temperature.map { $0.clamped(to: temperatureRange) }
+        switch options.samplingMode?.kind {
+        case .greedy?:
+            temperature = 0
+            isGreedy = true
+        case .randomTopK(let k, let seed)?:
+            topK = k
+            self.seed = seed
+        case .randomProbabilityThreshold(let threshold, let seed)?:
+            topP = threshold.clamped(to: 0...1)
+            self.seed = seed
+        case nil:
+            break
+        @unknown default:
+            break
+        }
+    }
+}
+
+extension Sampling {
+    /// A seed as a number that hosts read as a signed 64-bit integer. A seed of 2^63 or more loses its top bit, so
+    /// every seed is sent, and each one as the same number on every platform.
+    package static func json(seed: UInt64) -> JSONValue {
+        let folded = seed & UInt64(Int64.max)
+        return Int(exactly: folded).map(JSONValue.integer) ?? .largeInteger(Decimal(folded))
+    }
+}
+
+extension Double {
+    fileprivate func clamped(to range: ClosedRange<Double>) -> Double {
+        Swift.min(Swift.max(self, range.lowerBound), range.upperBound)
+    }
+}
+
+// MARK: - Tool choice
+
+extension GenerationOptions.ToolCallingMode {
+    /// Whether the model may or must call the session's tools, as OpenAI's formats spell it in `tool_choice`, or `nil`
+    /// for a kind the formats have no word for.
+    package var toolChoice: JSONValue? {
+        let choice: ToolChoice? =
+            switch kind {
+            case .allowed: .auto
+            case .required: .required
+            case .disallowed: ToolChoice.none
+            @unknown default: nil
+            }
+        return choice?.json
+    }
+}
+
+/// Whether the model may or must call the session's tools, as `tool_choice` spells it.
+private struct ToolChoice: ProviderVocabulary {
+    static let auto: Self = "auto"
+    static let required: Self = "required"
+    static let none: Self = "none"
+
+    let rawValue: String
+}
+
+// MARK: - Metadata
+
+/// Request metadata as OpenAI's formats take it.
+package enum RequestMetadata {
+    /// The limits that OpenAI's formats, and the hosts that follow them, put on request metadata.
+    private enum MetadataLimit {
+        static let pairs = 16
+        static let keyLength = 64
+        static let valueLength = 512
+    }
+
+    /// A request's string metadata, sorted by key, within the limits of 16 pairs, keys up to 64 characters and values
+    /// up to 512. Pairs past the limits are left out, since a host rejects the whole request for them.
+    ///
+    /// - Returns: The metadata to send, or `nil` when none is left, and the keys of the pairs left out, sorted.
+    package static func limited(_ metadata: [String: GeneratedContent]) -> (json: JSONValue?, droppedKeys: [String]) {
+        let members = metadata.compactMap { key, value -> JSONObject.Member? in
+            guard key.count <= MetadataLimit.keyLength, case .string(let text) = value.kind, text.count <= MetadataLimit.valueLength
+            else { return nil }
+            return .init(key: key, value: .string(text))
+        }
+        let limited = JSONObject(members).sortedByKey().members.prefix(MetadataLimit.pairs)
+        let keptKeys = Set(limited.map(\.key))
+        let droppedKeys = metadata.keys.filter { !keptKeys.contains($0) }.sorted()
+        return (limited.isEmpty ? nil : .object(JSONObject(Array(limited))), droppedKeys)
+    }
+}
+
+// MARK: - Adjustments
+
 /// A change a request makes to what the app asked for, so that its models and the provider take it.
 ///
 /// Each one is likely a mistake in the app, so the request logs it.
@@ -41,6 +154,7 @@ package enum RequestAdjustment: Equatable, Sendable {
         }
     }
 }
+
 extension RequestAdjustment {
     /// What the request changed, for the log, without the metadata's keys, which the app may have made from personal
     /// data.

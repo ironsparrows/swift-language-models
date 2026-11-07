@@ -1,6 +1,9 @@
-import Foundation
+package import Foundation
 package import FoundationModels
 package import LanguageModelsCore
+package import UniformTypeIdentifiers
+
+// MARK: - Channel
 
 /// Where one answer's output goes: the Foundation Models channel events of its response, reasoning, tool-call and data
 /// entries, whatever format the provider streams it in.
@@ -250,5 +253,453 @@ package struct AnswerChannel {
         hasText = true
         sentText += split.text
         await channel.send(.response(entryID: responseEntryID, action: .appendText(split.text, tokenCount: 1)))
+    }
+}
+
+// MARK: - Tool calls
+
+/// An answer's tool calls, assembled from their fragments as they arrive.
+///
+/// Fragments are routed by index, so parallel calls form one round. A fragment without an index continues the last
+/// call, unless it brings a new id, which starts the next call. A call starts once it has a name, with an id made up if
+/// the model sent none or one another call already uses, so the calls keep their order and none replaces another.
+/// Argument text that arrives before the name is held until the call starts.
+package struct ToolCallAssembler {
+    private var calls: [Int: Call] = [:]
+    private var lastIndex: Int?
+
+    /// Starts an answer with no tool calls.
+    package init() {}
+
+    /// Whether no fragment has arrived.
+    package var isEmpty: Bool {
+        calls.isEmpty
+    }
+
+    /// Adds one fragment to its call.
+    ///
+    /// - Parameters:
+    ///   - index: The call's index in the answer, when the fragment names one.
+    ///   - id: The call's id, when the fragment brings one.
+    ///   - name: The tool's name, when the fragment brings it.
+    ///   - arguments: The next part of the call's argument text.
+    /// - Returns: The text to append to the call's arguments: all of it so far when the fragment starts the call, even
+    ///   none, which announces the call; otherwise the fragment's own. `nil` when the call hasn't started or the
+    ///   fragment has no text.
+    package mutating func add(index: Int?, id: String?, name: String?, arguments: String?) -> Arguments? {
+        let index = self.index(of: index, id: id)
+        lastIndex = index
+        var call = calls[index] ?? Call()
+        let wasStarted = call.id != nil && call.name != nil
+        if call.id == nil, let id, !id.isEmpty, !calls.values.contains(where: { $0.id == id }) { call.id = id }
+        if call.name == nil, let name, !name.isEmpty { call.name = name }
+        if call.name != nil, call.id == nil { call.id = "call_\(UUID().uuidString)" }
+        call.pendingArguments += arguments ?? ""
+        var arguments: Arguments?
+        if let id = call.id, let name = call.name, !wasStarted || !call.pendingArguments.isEmpty {
+            arguments = Arguments(callID: id, toolName: name, text: call.pendingArguments)
+            call.argumentText += call.pendingArguments
+            call.pendingArguments = ""
+        }
+        calls[index] = call
+        return arguments
+    }
+
+    /// The id and tool name of the first call to start, in index order, which carries the round's facts, or `nil`
+    /// before any call has started.
+    package var firstCall: (id: String, toolName: String)? {
+        for (_, call) in calls.sorted(by: { $0.key < $1.key }) {
+            if let id = call.id, let name = call.name { return (id, name) }
+        }
+        return nil
+    }
+
+    /// Ends the calls.
+    ///
+    /// Foundation Models reads arguments that stop partway, so arguments that aren't a whole JSON object are refused
+    /// here, before any tool runs with them.
+    ///
+    /// - Returns: An empty JSON object, in index order, as the arguments of each call that got none, since a call to a
+    ///   tool without arguments may send none, and Foundation Models parses them as JSON.
+    /// - Throws: ``Failure/missingName`` when a call never got its name, and ``Failure/incompleteArguments(toolName:)``
+    ///   when a call's arguments aren't a whole JSON object.
+    package func finish() throws(Failure) -> [Arguments] {
+        var arguments: [Arguments] = []
+        for (_, call) in calls.sorted(by: { $0.key < $1.key }) {
+            guard let id = call.id, let name = call.name else { throw .missingName }
+            if call.argumentText.isEmpty {
+                arguments.append(Arguments(callID: id, toolName: name, text: "{}"))
+            } else if case .object? = try? JSONValue(json: Data(call.argumentText.utf8)) {
+                continue
+            } else {
+                throw .incompleteArguments(toolName: name)
+            }
+        }
+        return arguments
+    }
+
+    /// The index of the call a fragment belongs to.
+    private func index(of index: Int?, id: String?) -> Int {
+        if let index { return index }
+        guard let last = lastIndex else { return 0 }
+        guard let id, !id.isEmpty, let lastID = calls[last]?.id, id != lastID else { return last }
+        return (calls.keys.max() ?? last) + 1
+    }
+}
+
+extension ToolCallAssembler {
+    /// Text to append to the arguments of a started call.
+    package struct Arguments: Equatable {
+        package let callID: String
+        package let toolName: String
+        package let text: String
+
+        package init(callID: String, toolName: String, text: String) {
+            self.callID = callID
+            self.toolName = toolName
+            self.text = text
+        }
+
+        /// The event that appends the text to the call in the answer's tool-calls entry.
+        package func event(in entryID: String) -> LanguageModelExecutorGenerationChannel.Event {
+            .toolCalls(
+                entryID: entryID,
+                action: .toolCall(id: callID, name: toolName, action: .appendArguments(text, tokenCount: text.isEmpty ? 0 : 1))
+            )
+        }
+    }
+
+    /// Why the calls can't end.
+    package enum Failure: Error {
+        /// A call never got its name.
+        case missingName
+
+        /// A call's arguments aren't a whole JSON object, such as ones that stop partway.
+        case incompleteArguments(toolName: String)
+    }
+
+    /// One call as its fragments arrive.
+    private struct Call {
+        var id: String?
+        var name: String?
+        /// Argument text that arrived before the call's name, held until the call can start.
+        var pendingArguments = ""
+        /// The argument text sent so far.
+        var argumentText = ""
+    }
+}
+
+// MARK: - Tagged reasoning
+
+/// Reasoning that a model writes at the start of its answer's text, between `<think>` and `</think>` or `<thinking>`
+/// and `</thinking>`, instead of sending it as reasoning.
+///
+/// The answer's text goes through ``split(_:)`` delta by delta, and comes out as the block's reasoning and the answer
+/// after it. Only a block that opens the text counts, after any whitespace, so a tag later in the answer stays text.
+/// The tags and the whitespace before and after the block leave the answer, and the whole block stays in ``block`` as
+/// the model wrote it. A tag may be split across deltas anywhere, so text that may still be one is held back until
+/// it's clear: the start of the text until it does or doesn't open a block, and the end of the reasoning while it may
+/// begin the closing tag. Text that turns out not to open a block comes out unchanged.
+///
+/// A block that the answer never closes, such as one cut off at the token limit, is reasoning to the end, as it was
+/// shown while it streamed.
+package struct TaggedReasoning {
+    /// The block that opened the text, as the model wrote it: the whitespace before it, its tags and reasoning, and
+    /// the whitespace after it. It's set once ``finish()`` ends the text, and `nil` when the text didn't open with a
+    /// block.
+    package private(set) var block: String?
+
+    private var state = State.opening(held: "")
+
+    /// The block's text so far, as the model wrote it.
+    private var written = ""
+
+    /// Starts reading an answer's text.
+    package init() {}
+
+    /// Splits the next delta of the answer's text.
+    ///
+    /// - Returns: The reasoning and the answer text the delta completes; either may be empty while text is held back.
+    package mutating func split(_ delta: String) -> Split {
+        var split = Split()
+        var rest = Substring(delta)
+        while !rest.isEmpty {
+            switch state {
+            case .opening(let held):
+                let text = held + rest
+                rest = ""
+                let start = text.drop { $0.isWhitespace }
+                if let tag = Tag.all.first(where: { start.hasPrefix($0.opening) }) {
+                    rest = start.dropFirst(tag.opening.count)
+                    written = String(text[..<rest.startIndex])
+                    state = .inside(closing: tag.closing, held: "")
+                } else if start.isEmpty || Tag.all.contains(where: { $0.opening.hasPrefix(start) }) {
+                    state = .opening(held: text)
+                } else {
+                    split.text += text
+                    state = .answer
+                }
+            case .inside(let closing, let held):
+                let text = held + rest
+                rest = ""
+                if let range = text.firstRange(of: closing) {
+                    split.reasoning += text[..<range.lowerBound]
+                    written += text[..<range.upperBound]
+                    rest = text[range.upperBound...]
+                    state = .closed
+                } else {
+                    let end = text.index(text.endIndex, offsetBy: -Self.partialLength(of: text, toward: closing))
+                    split.reasoning += text[..<end]
+                    written += text[..<end]
+                    state = .inside(closing: closing, held: String(text[end...]))
+                }
+            case .closed:
+                let answer = rest.drop { $0.isWhitespace }
+                written += rest[..<answer.startIndex]
+                rest = answer
+                if !answer.isEmpty { state = .answer }
+            case .answer:
+                split.text += rest
+                rest = ""
+            }
+        }
+        return split
+    }
+
+    /// Ends the text, giving back what was held: the start of the text as answer text, or the end of a block that
+    /// never closed as reasoning.
+    package mutating func finish() -> Split {
+        defer { state = .answer }
+        switch state {
+        case .opening(let held):
+            return Split(text: held)
+        case .inside(_, let held):
+            written += held
+            block = written
+            return Split(reasoning: held)
+        case .closed, .answer:
+            block = written.isEmpty ? nil : written
+            return Split()
+        }
+    }
+
+    /// How many characters at the end of the text begin the tag, and may be the first part of a tag split across
+    /// deltas.
+    private static func partialLength(of text: String, toward tag: String) -> Int {
+        (1..<tag.count).reversed().first { text.hasSuffix(tag.prefix($0)) } ?? 0
+    }
+}
+
+extension TaggedReasoning {
+    /// What a delta of the answer's text holds: the reasoning, which comes first, and the answer text after it.
+    package struct Split: Equatable {
+        package var reasoning = ""
+        package var text = ""
+
+        package init(reasoning: String = "", text: String = "") {
+            self.reasoning = reasoning
+            self.text = text
+        }
+    }
+
+    private enum State {
+        /// Before the text shows whether it opens a block, holding the text so far.
+        case opening(held: String)
+
+        /// Inside a block, holding the end of its text while it may begin the closing tag.
+        case inside(closing: String, held: String)
+
+        /// After the closing tag, dropping whitespace.
+        case closed
+
+        /// In the answer, where text passes through.
+        case answer
+    }
+
+    /// A pair of tags that encloses a block.
+    private struct Tag {
+        static let all = [Tag(name: "think"), Tag(name: "thinking")]
+
+        let opening: String
+        let closing: String
+
+        init(name: String) {
+            opening = "<\(name)>"
+            closing = "</\(name)>"
+        }
+    }
+}
+
+// MARK: - Generated data
+
+/// Data a model generated, of a kind, such as an image, which an answer sends as a data entry of its own.
+package struct GeneratedData {
+    package let contentType: UTType
+    package let content: Data
+
+    package init(contentType: UTType, content: Data) {
+        self.contentType = contentType
+        self.content = content
+    }
+}
+
+// MARK: - Ending
+
+/// Why an answer that arrived whole fails anyway: the model declined, a content filter stopped it, or it reached its
+/// token limit inside a tool call or a guided answer.
+package enum AnswerEnding: Equatable {
+    /// The model declined, with its explanation.
+    case refusal(String)
+
+    /// A content filter stopped the answer.
+    case contentFilter
+
+    /// The answer reached its token limit inside a tool call, so no tool may get partial arguments. Each format reports
+    /// it as a failure of its own.
+    case tokenLimitInToolCall
+
+    /// A guided answer reached its token limit, so it would decode as a wrong value.
+    case tokenLimitInGuidedAnswer
+
+    /// The way an answer fails, or `nil` when it ended well, in this order: a refusal, a content filter, then the token
+    /// limit.
+    ///
+    /// - Parameters:
+    ///   - refusal: The refusal text the model sent, empty for none.
+    ///   - finishReason: Why the answer ended.
+    ///   - hasToolCalls: Whether the answer has tool calls.
+    ///   - requiresCompleteAnswer: Whether the answer must be whole, as a guided answer must.
+    package init?(refusal: String, finishReason: FinishReason?, hasToolCalls: Bool, requiresCompleteAnswer: Bool) {
+        switch finishReason {
+        case _ where !refusal.isEmpty: self = .refusal(refusal)
+        case .contentFilter?: self = .contentFilter
+        case .length? where hasToolCalls: self = .tokenLimitInToolCall
+        case .length? where requiresCompleteAnswer: self = .tokenLimitInGuidedAnswer
+        default: return nil
+        }
+    }
+
+    /// The error the answer ends in, or `nil` for ``tokenLimitInToolCall``, which the format reports as a failure of
+    /// its own.
+    ///
+    /// - Parameters:
+    ///   - responseText: The answer's text, which a parsing error carries.
+    ///   - host: The company whose servers ran the model, when the provider names one.
+    /// - Returns: `LanguageModelError.refusal` or `.guardrailViolation`, or `GeneratedContent.ParsingError`.
+    package func error(responseText: String, host: String?) -> (any Error)? {
+        let metadata = LanguageModelError.failureMetadata(status: nil, code: nil, provider: host)
+        switch self {
+        case .refusal(let refusal):
+            return LanguageModelError(.refusal, message: refusal, metadata: metadata)
+        case .contentFilter:
+            return LanguageModelError(.guardrailViolation, message: "A content filter stopped the response.", metadata: metadata)
+        case .tokenLimitInToolCall:
+            return nil
+        case .tokenLimitInGuidedAnswer:
+            return GeneratedContent.ParsingError(
+                rawContent: responseText, debugDescription: "The answer reached its token limit before it was complete.")
+        }
+    }
+}
+
+/// Why an answer whose stream ended fails anyway, as
+/// ``AnswerChannel/finish(report:facts:refusal:requiresCompleteAnswer:failedAnswer:)`` says.
+package enum AnswerFailure {
+    /// A problem the format reports as a failure of its own, such as the token limit reached inside a tool call.
+    case unusable(StreamProblem)
+
+    /// The error the answer ends in, such as Foundation Models' refusal.
+    case failed(any Error)
+}
+
+extension FinishReason {
+    /// The reason for an answer a content filter stopped, which throws instead of ending an entry.
+    package static let contentFilter: Self = "content_filter"
+}
+
+// MARK: - Facts and usage
+
+/// What an answer's stream reports about it in a format's own members: the model that answered, the response id, the
+/// service tier, the usage and why the answer ended.
+///
+/// Each format fills it from its own events. A fact that an event reports replaces the earlier one, and one it leaves
+/// out keeps its earlier value.
+package struct AnswerReport {
+    /// The model that answered, as the answer names it.
+    package var model: String?
+
+    /// The answer's id.
+    package var responseID: String?
+
+    /// The processing tier that served the answer, in the host's word for it.
+    package var serviceTier: String?
+
+    /// The usage as Foundation Models' running totals.
+    package var usage: AnswerUsage?
+
+    /// Why the answer ended, once an event says so. A stream that ends without one was cut off.
+    package var finishReason: FinishReason?
+
+    package init() {}
+
+    /// The facts as metadata of the entry that ends the answer; the usage goes with the entry's usage instead.
+    package var metadata: [String: any ConvertibleToGeneratedContent] {
+        var metadata: [String: any ConvertibleToGeneratedContent] = [:]
+        metadata[LanguageModelMetadataKey.model] = model
+        metadata[LanguageModelMetadataKey.responseID] = responseID
+        metadata[LanguageModelMetadataKey.finishReason] = finishReason?.rawValue
+        metadata[LanguageModelMetadataKey.serviceTier] = serviceTier
+        return metadata
+    }
+}
+
+/// An answer's usage as Foundation Models' running totals, with the prompt tokens written to the host's cache in the
+/// metadata.
+package struct AnswerUsage {
+    package let input: LanguageModelExecutorGenerationChannel.Usage.Input
+    package let output: LanguageModelExecutorGenerationChannel.Usage.Output
+    package let metadata: [String: any ConvertibleToGeneratedContent]
+
+    /// - Parameters:
+    ///   - inputTokens: The prompt's tokens, cached ones included.
+    ///   - cachedTokens: The prompt's tokens read from the host's cache.
+    ///   - cacheWriteTokens: The prompt's tokens written to the host's cache, when the host reports them.
+    ///   - outputTokens: The answer's tokens, reasoning included.
+    ///   - reasoningTokens: The answer's reasoning tokens.
+    package init(inputTokens: Int, cachedTokens: Int, cacheWriteTokens: Int?, outputTokens: Int, reasoningTokens: Int) {
+        input = .init(totalTokenCount: inputTokens, cachedTokenCount: cachedTokens)
+        output = .init(totalTokenCount: outputTokens, reasoningTokenCount: reasoningTokens)
+        var metadata: [String: any ConvertibleToGeneratedContent] = [:]
+        metadata[LanguageModelMetadataKey.cacheWriteTokenCount] = cacheWriteTokens
+        self.metadata = metadata
+    }
+}
+
+/// What a provider adds to an answer once it's over: the host, the facts of the entry that ends it and of its usage, and
+/// its reasoning signature.
+package struct AnswerAdditions {
+    /// The company whose servers ran the model, as `LanguageModelMetadataKey.provider` names it, once known.
+    package var host: String?
+
+    /// The facts the provider adds to the metadata of the entry that ends the answer.
+    package var metadata: [String: any ConvertibleToGeneratedContent]
+
+    /// The facts the provider adds to the metadata of the answer's usage.
+    package var usageMetadata: [String: any ConvertibleToGeneratedContent]
+
+    /// The signature of the answer's reasoning entry, such as reasoning in the provider's form that goes back on later
+    /// turns, or `nil` when there's none.
+    package var reasoningSignature: Data?
+
+    package init(
+        host: String? = nil,
+        metadata: [String: any ConvertibleToGeneratedContent] = [:],
+        usageMetadata: [String: any ConvertibleToGeneratedContent] = [:],
+        reasoningSignature: Data? = nil
+    ) {
+        self.host = host
+        self.metadata = metadata
+        self.usageMetadata = usageMetadata
+        self.reasoningSignature = reasoningSignature
     }
 }

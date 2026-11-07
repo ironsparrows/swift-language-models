@@ -4,6 +4,8 @@ import ImageIO
 package import LanguageModelsCore
 package import UniformTypeIdentifiers
 
+// MARK: - Reader
+
 /// Reads a transcript's attachments into what a provider sends: images upright as JPEG, or at their web address, text
 /// as text, PDFs with a file name, and any other kind as its data. The same attachment gives the same bytes every time.
 ///
@@ -173,5 +175,63 @@ extension Transcript.AttachmentSegment {
     /// The attachment's label, or `nil` when it has none or an empty one.
     package var givenLabel: String? {
         label.flatMap { $0.isEmpty ? nil : $0 }
+    }
+}
+
+// MARK: - Kinds
+
+/// The kind of an attachment, which a provider reads to check that its models take it.
+package enum AttachmentKind: Sendable, Equatable {
+    /// An image attachment.
+    case image
+
+    /// A data attachment of a content type, such as a PDF or audio.
+    case data(UTType)
+}
+
+extension AttachmentKind {
+    /// The kinds of data an image attachment may hold: those the system can read as an image.
+    package static var readableImageTypes: Set<UTType> {
+        EncodedImage.readableTypes
+    }
+}
+
+// MARK: - Data URLs
+
+/// Bytes written inline as a URL, `data:<media type>;base64,<bytes>`, as chat APIs take attachments and return
+/// generated images.
+package struct DataURL: Sendable, Equatable {
+    /// The media type of the bytes, such as `image/png`, without parameters.
+    package let mediaType: String
+
+    /// The bytes.
+    package let data: Data
+
+    /// A data URL for bytes of a media type.
+    ///
+    /// - Parameters:
+    ///   - mediaType: The media type, such as `application/pdf`.
+    ///   - data: The bytes.
+    package init(mediaType: String, data: Data) {
+        self.mediaType = mediaType
+        self.data = data
+    }
+
+    /// Reads a base64 data URL, or fails for any other URL, a data URL that isn't base64, or bytes that aren't valid
+    /// base64.
+    ///
+    /// - Parameter text: The URL, such as `data:image/png;base64,iVBORw0KGgo=`.
+    package init?(_ text: String) {
+        guard text.hasPrefix("data:"), let comma = text.firstIndex(of: ",") else { return nil }
+        let header = text[text.index(text.startIndex, offsetBy: 5)..<comma].split(separator: ";", omittingEmptySubsequences: false)
+        guard header.count > 1, header.last == "base64", let data = Data(base64Encoded: String(text[text.index(after: comma)...])) else {
+            return nil
+        }
+        self.init(mediaType: String(header.first ?? ""), data: data)
+    }
+
+    /// The URL's text.
+    package var text: String {
+        "data:\(mediaType);base64,\(data.base64EncodedString())"
     }
 }
