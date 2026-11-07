@@ -3,7 +3,7 @@ import Testing
 
 @testable import LanguageModels
 
-@Suite("Reasoning origin")
+@Suite("Reasoning origin", .timeLimit(.minutes(1)))
 struct ReasoningOriginTests {
     @Test func `saved transcripts keep the origin under a key that never changes`() {
         #expect(ReasoningOrigin.metadataKey == "reasoningOrigin")

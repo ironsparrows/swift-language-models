@@ -81,20 +81,6 @@ extension OpenRouterMetadataTests {
             #expect(costs == [Decimal(string: "0.001"), Decimal(string: "0.002")])
         }
 
-        @Test(arguments: [
-            (0.000_012_345, "0.000012345"),
-            (0.000_25, "0.00025"),
-            (0.000_000_15, "0.00000015"),
-            (0.1, "0.1"),
-            (123_456_789.123, "123456789.123"),
-            (0, "0"),
-        ])
-        func `a cost reads as the decimal OpenRouter sent, without binary noise`(dollars: Double, expected: String) {
-            let usage = usage(metadata: [LanguageModelMetadataKey.cost: dollars])
-
-            #expect(usage.openRouter.cost == Decimal(string: expected))
-        }
-
         @Test func `a usage without OpenRouter's facts reads each as unknown`() {
             let metadata = usage(metadata: [:]).openRouter
 
@@ -109,20 +95,6 @@ extension OpenRouterMetadataTests {
             #expect(amounts.allSatisfy { $0 == nil })
             #expect(counts.allSatisfy { $0 == nil })
             #expect(metadata.isBYOK == nil)
-        }
-
-        @Test func `a value of another kind, a count that isn't whole or an amount that isn't finite reads as unknown`() {
-            let metadata = usage(metadata: [
-                LanguageModelMetadataKey.cost: "0.0001",
-                OpenRouterMetadataKey.isBYOK: 1,
-                LanguageModelMetadataKey.webSearchCount: 1.5,
-                OpenRouterMetadataKey.serverToolCost: GeneratedContent(kind: .number(.infinity)),
-            ]).openRouter
-
-            #expect(metadata.cost == nil)
-            #expect(metadata.isBYOK == nil)
-            #expect(metadata.webSearchCount == nil)
-            #expect(metadata.serverToolCost == nil)
         }
 
         /// A usage with no tokens and the given metadata.

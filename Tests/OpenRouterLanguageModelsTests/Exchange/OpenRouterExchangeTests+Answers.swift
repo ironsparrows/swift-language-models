@@ -1,101 +1,102 @@
 import Foundation
 import FoundationModels
+import LanguageModels
 import LanguageModelsTestSupport
 import Testing
 
-@testable import LanguageModels
 @testable import OpenRouterLanguageModels
 
 extension OpenRouterExchangeTests {
     @Suite("Answers")
     struct Answers {
-        @Test func `a fact that a chunk reports replaces the earlier one, and one it leaves out keeps its value`() throws {
-            var exchange = try exchange()
+        @Test func `a fact that a chunk reports replaces the earlier one, and one it leaves out keeps its value`() async throws {
+            let stub = HTTPStub(
+                events(
+                    [
+                        "id": "gen-1", "model": "vendor/model", "provider": "Vendor", "service_tier": "flex",
+                        "choices": [["delta": ["content": "Hi"]]],
+                    ],
+                    [
+                        "model": "vendor/model-2026-10-01",
+                        "choices": [["delta": [:], "finish_reason": "length"]],
+                        "usage": ["prompt_tokens": 12, "completion_tokens": 5, "cost": 0.000_1],
+                    ],
+                    ["choices": [["delta": [:]]]]))
 
-            _ = exchange.read(try chunk(["id": "gen-1", "model": "vendor/model", "provider": "Vendor", "service_tier": "flex"]))
-            _ = exchange.read(
-                try chunk([
-                    "model": "vendor/model-2026-10-01",
-                    "choices": [["delta": [:], "finish_reason": "length"]],
-                    "usage": ["prompt_tokens": 12, "completion_tokens": 5, "cost": 0.000_1],
-                ]))
-            _ = exchange.read(try chunk(["choices": [["delta": [:]]]]))
-            let facts = exchange.additions(header: { _ in nil })
+            let response = try await LanguageModelSession(model: model(stub)).respond(to: "Hi")
 
-            #expect(facts.host == "Vendor")
-            #expect(metadataNumber(facts.usageMetadata.mapValues(\.generatedContent), LanguageModelMetadataKey.cost) == 0.000_1)
+            let facts = try lastResponse(of: response).openRouter
+            #expect(facts.provider == "Vendor")
+            #expect(facts.model == "vendor/model-2026-10-01")
+            #expect(facts.serviceTier == .flex)
+            #expect(facts.responseID == "gen-1")
+            #expect(metadataNumber(response.usage.metadata, LanguageModelMetadataKey.cost) == 0.000_1)
         }
 
-        @Test func `the metadata names the host, with the response cache's status and the router's report`() throws {
-            var exchange = try exchange(options: OpenRouterOptions(includesRouterMetadata: true))
+        @Test func `the metadata names the host, with the response cache's status and the router's report`() async throws {
+            let stub = HTTPStub(
+                events(
+                    headers: ["X-OpenRouter-Cache-Status": "MISS"],
+                    [
+                        "id": "gen-1", "model": "vendor/model", "provider": "Vendor", "service_tier": "priority",
+                        "choices": [["delta": ["content": "Hi"], "finish_reason": "stop"]],
+                        "openrouter_metadata": ["strategy": "price", "generation_time": 1_500],
+                    ]))
+            let model = model(stub, options: OpenRouterOptions(includesRouterMetadata: true))
 
-            _ = exchange.read(
-                try chunk([
-                    "id": "gen-1", "model": "vendor/model", "provider": "Vendor", "service_tier": "priority",
-                    "choices": [["delta": [:], "finish_reason": "stop"]],
-                    "openrouter_metadata": ["strategy": "price", "generation_time": 1_500],
-                ]))
-            let additions = exchange.additions(header: { $0 == "X-OpenRouter-Cache-Status" ? "MISS" : nil })
-            let metadata = additions.metadata.mapValues(\.generatedContent)
+            let response = try await LanguageModelSession(model: model).respond(to: "Hi")
 
+            let metadata = try lastResponse(of: response).metadata
             #expect(metadataString(metadata, LanguageModelMetadataKey.provider) == "Vendor")
             #expect(metadataString(metadata, OpenRouterMetadataKey.responseCacheStatus) == "MISS")
             #expect(metadataString(metadata, OpenRouterMetadataKey.routingStrategy) == "price")
             #expect(metadataNumber(metadata, OpenRouterMetadataKey.generationTime) == 1.5)
         }
 
-        @Test func `facts that no chunk reported are left out of the metadata`() throws {
-            let facts = try exchange().additions(header: { _ in nil })
+        @Test func `facts that no chunk reported are left out of the metadata`() async throws {
+            let stub = HTTPStub(events(["choices": [["delta": ["content": "Hi"], "finish_reason": "stop"]]]))
 
-            #expect(facts.metadata.isEmpty)
-            #expect(facts.usageMetadata.isEmpty)
+            let response = try await LanguageModelSession(model: model(stub)).respond(to: "Hi")
+
+            let facts = try lastResponse(of: response).openRouter
+            #expect(facts.provider == nil)
+            #expect(facts.responseID == nil)
+            #expect(facts.serviceTier == nil)
+            #expect(response.usage.metadata[LanguageModelMetadataKey.cost] == nil)
         }
 
-        @Test func `a model that doesn't take tools gets none of the session's, nor a tool choice`() throws {
-            let model: OpenRouterLanguageModel<Efforts.Unsupported> = model(HTTPStub(), parameters: chatParameters.subtracting([.tools]))
-            let request = LanguageModelExecutorGenerationRequest(
-                id: UUID(), transcript: Transcript(entries: [.prompt(Transcript.Prompt(segments: [.text(.init(content: "Hi"))]))]),
-                enabledTools: [Transcript.ToolDefinition(tool: FoodTool())],
-                generationOptions: GenerationOptions(toolCallingMode: .required),
-                contextOptions: ContextOptions(), metadata: [:])
+        @Test func `a model that doesn't take tools gets none of the session's, nor a tool choice`() async throws {
+            let stub = HTTPStub(events(text("Hi"), done()))
+            let model: OpenRouterLanguageModel<Efforts.Unsupported> = model(stub, parameters: chatParameters.subtracting([.tools]))
+            let request = generationRequest(
+                [.prompt(Transcript.Prompt(segments: [.text(.init(content: "Hi"))]))], tools: [Transcript.ToolDefinition(tool: FoodTool())],
+                options: GenerationOptions(toolCallingMode: .required))
 
-            let body = try requestBody(request, model: model)
+            let body = try await requestBody(request, model: model, stub: stub)
 
             #expect(body["tools"] == nil)
             #expect(body["tool_choice"] == nil)
         }
 
-        @Test(arguments: [
-            (StreamProblem.toolCallWithoutName, OpenRouterProviderName?.some("Vendor")),
-            (.incompleteToolArguments(toolName: "order"), "Vendor"),
-            (.cutOff, "Vendor"),
-            (.unreadableEvent("bad JSON"), nil),
-        ])
+        @Test(
+            arguments: [
+                (events(toolCall(0, id: "call_1", arguments: "{}"), done("tool_calls")), "Vendor"),
+                (events(toolCall(0, id: "call_1", name: "lookUpFood", arguments: "{"), done("tool_calls")), "Vendor"),
+                (unfinishedEvents(text("Hi")), "Vendor"),
+                (.eventStream(Data("data: \(text("Hi").text)\n\ndata: not JSON\n\n".utf8)), nil),
+            ] as [(StubResponse, OpenRouterProviderName?)])
         func `a response the format can't use throws an invalid response, naming the host unless an event couldn't be read`(
-            problem: StreamProblem,
+            response: StubResponse,
             host: OpenRouterProviderName?
-        ) throws {
-            var exchange = try exchange()
-            _ = exchange.read(try chunk(["provider": "Vendor"]))
+        ) async throws {
+            let stub = HTTPStub(response)
+            let session = LanguageModelSession(model: model(stub), tools: [FoodTool()])
 
-            let failure = RequestFailure<OpenRouterErrorResponse>(
-                problem, provider: "OpenRouter", headers: ResponseHeaders(nil), imageEntries: [])
-            let error = try #require(exchange.error(for: failure) as? OpenRouterError)
+            let error = try await #require(throws: OpenRouterError.self) { try await session.respond(to: "Hi") }
 
             #expect(error.code == .invalidResponse)
             #expect(error.providerName == host)
-            #expect(error.message == problem.message(provider: "OpenRouter"))
+            #expect(stub.requests.count == 1)
         }
     }
-}
-
-/// OpenRouter's exchange, for a stub model.
-private func exchange(options: OpenRouterOptions = OpenRouterOptions()) throws -> OpenRouterExchange {
-    let model: OpenRouterLanguageModel<Efforts.Unsupported> = model(HTTPStub(), options: options)
-    return try model.chatCompletions(model.executorConfiguration).exchange
-}
-
-/// OpenRouter's members of a chunk with the given members.
-private func chunk(_ members: JSONValue) throws -> OpenRouterChunkExtras {
-    try HTTPClient.decoder.decode(OpenRouterChunkExtras.self, from: members.data)
 }

@@ -264,6 +264,7 @@ extension OpenRouterErrorTests {
         }
 
         @Test(
+            .bug("https://github.com/ironsparrows/swift-language-models/pull/47"),
             arguments: [
                 #"{"type":"guardrail","name":"content-filter","summary":"PII blocked via custom","data":{"flagged":true,"action":"blocked","filter_mode":"regex","engines":["custom"],"matched_entity_types":[]}}"#,
                 #"{"type":"guardrail","name":"regex_pi_detection","guardrail_id":"grd_1","data":{"action":"blocked","detected":true}}"#,
@@ -281,6 +282,7 @@ extension OpenRouterErrorTests {
         }
 
         @Test(
+            .bug("https://github.com/ironsparrows/swift-language-models/pull/47"),
             arguments: [
                 #"{"type":"guardrail","name":"content-filter","data":{"flagged":true,"action":"redacted"}}"#,
                 #"{"type":"guardrail","name":"content-filter"}"#,
@@ -308,9 +310,9 @@ extension OpenRouterErrorTests {
             #expect(error.providerName == "Vendor")
         }
 
-        @Test(arguments: [408, 524])
+        @Test(arguments: [408, 504, 524])
         func `a timeout status throws timeout`(status: Int) async throws {
-            // A 524 is retried twice, so it fails three times.
+            // A 504 or a 524 is retried twice, so it fails three times.
             let timeout = StubResponse.json(#"{"error":{"code":\#(status),"message":"Request timed out"}}"#, status: status)
             let stub = HTTPStub(timeout, timeout, timeout)
 
@@ -320,19 +322,6 @@ extension OpenRouterErrorTests {
                 Issue.record("Expected a timeout, got \(error)")
                 return
             }
-        }
-
-        @Test func `a gateway timeout that repeats after its retries throws timeout`() async throws {
-            let response = StubResponse.json(#"{"error":{"code":504,"message":"Gateway timed out"}}"#, status: 504)
-            let stub = HTTPStub(response, response, response)
-
-            let error = try await #require(throws: LanguageModelError.self) { try await respond(stub) }
-
-            guard case .timeout = error else {
-                Issue.record("Expected a timeout, got \(error)")
-                return
-            }
-            #expect(stub.requests.count == 3)
         }
     }
 }

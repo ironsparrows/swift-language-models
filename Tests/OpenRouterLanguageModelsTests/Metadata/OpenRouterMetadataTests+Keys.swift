@@ -1,17 +1,8 @@
 import OpenRouterLanguageModels
 import Testing
 
-/// Each key with its spelling: bare for a fact every model reports, and prefixed for one only OpenRouter has.
+/// Each key with its spelling, prefixed since only OpenRouter has the fact.
 private let spellings: [(key: String, spelling: String)] = [
-    (LanguageModelMetadataKey.model, "model"),
-    (LanguageModelMetadataKey.provider, "provider"),
-    (LanguageModelMetadataKey.responseID, "responseID"),
-    (LanguageModelMetadataKey.finishReason, "finishReason"),
-    (LanguageModelMetadataKey.serviceTier, "serviceTier"),
-    (LanguageModelMetadataKey.citations, "citations"),
-    (LanguageModelMetadataKey.cost, "cost"),
-    (LanguageModelMetadataKey.cacheWriteTokenCount, "cacheWriteTokenCount"),
-    (LanguageModelMetadataKey.status, "status"),
     (OpenRouterMetadataKey.responseCacheStatus, "openRouter.responseCacheStatus"),
     (OpenRouterMetadataKey.responseCacheAge, "openRouter.responseCacheAge"),
     (OpenRouterMetadataKey.responseCacheSourceID, "openRouter.responseCacheSourceID"),
@@ -30,8 +21,6 @@ private let spellings: [(key: String, spelling: String)] = [
     (OpenRouterMetadataKey.requestedServerToolCallCount, "openRouter.requestedServerToolCallCount"),
     (OpenRouterMetadataKey.executedServerToolCallCount, "openRouter.executedServerToolCallCount"),
     (OpenRouterMetadataKey.limitSource, "openRouter.limitSource"),
-    (LanguageModelMetadataKey.webSearchCount, "webSearchCount"),
-    (LanguageModelMetadataKey.errorCode, "errorCode"),
 ]
 
 extension OpenRouterMetadataTests {

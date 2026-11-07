@@ -44,11 +44,11 @@ let package = Package(
             dependencies: ["LanguageModels", "LanguageModelsTestSupport"],
             swiftSettings: swiftSettings
         ),
-        // What the test targets share: HTTP stubs, fixtures, canonical JSON, exact exchanges, the snapshot strategy for
+        // What the test targets share: HTTP stubs, a loopback server, fixtures, exact exchanges, the snapshot strategy for
         // request bodies and live-test tools.
         .target(
             name: "LanguageModelsTestSupport",
-            dependencies: ["LanguageModels", .product(name: "InlineSnapshotTesting", package: "swift-snapshot-testing")],
+            dependencies: ["LanguageModelsCore", .product(name: "InlineSnapshotTesting", package: "swift-snapshot-testing")],
             swiftSettings: swiftSettings
         ),
         .testTarget(

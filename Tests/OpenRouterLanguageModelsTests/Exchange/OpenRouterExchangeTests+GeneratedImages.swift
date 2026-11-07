@@ -1,10 +1,10 @@
 import Foundation
 import FoundationModels
+import LanguageModels
 import LanguageModelsTestSupport
 import Testing
 import UniformTypeIdentifiers
 
-@testable import LanguageModels
 @testable import OpenRouterLanguageModels
 
 #if canImport(FoundationModels, _version: 2.1.14)
@@ -41,7 +41,7 @@ extension OpenRouterExchangeTests {
 
         @available(iOS 27.2, macOS 27.2, visionOS 27.2, watchOS 27.2, *)
         @Test func `a generated image becomes a data entry of the kind its data URL names, next to the answer's text`() async throws {
-            let url = DataURL(mediaType: "image/png", data: png).text
+            let url = dataURLText(mediaType: "image/png", data: png)
             let stub = HTTPStub(events(text("Here's a cat."), images(url), done()))
             let session = LanguageModelSession(model: model(stub, inputs: [.text, .image], outputs: [.text, .image]))
 
@@ -61,8 +61,8 @@ extension OpenRouterExchangeTests {
             let webp = Data([0x52, 0x49, 0x46, 0x46])
             let stub = HTTPStub(
                 events(
-                    images(DataURL(mediaType: "image/png", data: png).text, DataURL(mediaType: "image/webp", data: webp).text),
-                    images(DataURL(mediaType: "image/jpeg", data: png).text), done())
+                    images(dataURLText(mediaType: "image/png", data: png), dataURLText(mediaType: "image/webp", data: webp)),
+                    images(dataURLText(mediaType: "image/jpeg", data: png)), done())
             )
             let session = LanguageModelSession(model: model(stub, outputs: [.text, .image]))
 
@@ -89,7 +89,7 @@ extension OpenRouterExchangeTests {
 
         @available(iOS 27.2, macOS 27.2, visionOS 27.2, watchOS 27.2, *)
         @Test func `an image of an unknown kind is still an image`() async throws {
-            let stub = HTTPStub(events(images(DataURL(mediaType: "image/x-sketch", data: png).text), done()))
+            let stub = HTTPStub(events(images(dataURLText(mediaType: "image/x-sketch", data: png)), done()))
             let session = LanguageModelSession(model: model(stub, outputs: [.text, .image]))
 
             let response = try await session.respond(to: "Sketch a cat.")
@@ -97,23 +97,6 @@ extension OpenRouterExchangeTests {
             let entry = try #require(dataEntries(response.transcriptEntries).first)
             #expect(entry.contentType.conforms(to: .image))
             #expect(entry.content == png)
-        }
-
-        @available(iOS 27.2, macOS 27.2, visionOS 27.2, watchOS 27.2, *)
-        @Test func `generated images aren't sent back on later turns, while the answer's text is`() async throws {
-            let stub = HTTPStub(
-                events(text("Here's a cat."), images(DataURL(mediaType: "image/png", data: png).text), done()),
-                events(text("It's orange."), done())
-            )
-            let session = LanguageModelSession(model: model(stub, inputs: [.text, .image], outputs: [.text, .image]))
-
-            _ = try await session.respond(to: "Draw a cat.")
-            _ = try await session.respond(to: "Which color is it?")
-
-            let messages = messages(try body(stub, 1))
-            #expect(messages.map { $0["role"] } == ["user", "assistant", "user"])
-            #expect(messages[1] == ["role": "assistant", "content": "Here's a cat."])
-            #expect(!String(decoding: try #require(stub.requests.last).body, as: UTF8.self).contains(png.base64EncodedString()))
         }
 
         @available(iOS 27.2, macOS 27.2, visionOS 27.2, watchOS 27.2, *)

@@ -1,5 +1,6 @@
 import Foundation
 import FoundationModels
+import InlineSnapshotTesting
 import LanguageModelsTestSupport
 import Testing
 import UniformTypeIdentifiers
@@ -30,6 +31,83 @@ extension ResponsesModelTests {
             #expect(sent.body["stream"] == true)
             #expect(sent.body["max_output_tokens"] == 16)
             #expect(sent.adjustments == [.unsentSettings(["seed"]), .raisedTokenLimit(requested: 10, sent: 16)])
+        }
+
+        @Test func `a plain model sends every member of the format in the format's order`() async throws {
+            let stub = HTTPStub(events(textDelta(#"{"stars":4}"#), lifecycle("response.completed")))
+            let session = LanguageModelSession(model: plainModel(stub), tools: [LookUpTool()])
+            let options = GenerationOptions(
+                samplingMode: .random(probabilityThreshold: 0.5, seed: 1), temperature: 0.2, maximumResponseTokens: 100,
+                toolCallingMode: .allowed)
+
+            _ = try await session.respond(
+                to: "Rate it.", generating: Rating.self, options: options, contextOptions: ContextOptions(includeSchemaInPrompt: false),
+                metadata: ["team": "coach"])
+
+            assertInlineSnapshot(of: stub.requests[0].body, as: .memberLines) {
+                """
+                {
+                  "model": "vendor/model",
+                  "input": [
+                    {
+                      "role": "user",
+                      "content": "Rate it."
+                    }
+                  ],
+                  "stream": true,
+                  "tools": [
+                    {
+                      "type": "function",
+                      "name": "lookUp",
+                      "description": "Looks up a word.",
+                      "parameters": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "word": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "word"
+                        ],
+                        "title": "Arguments",
+                        "type": "object"
+                      },
+                      "strict": false
+                    }
+                  ],
+                  "tool_choice": "auto",
+                  "text": {
+                    "format": {
+                      "type": "json_schema",
+                      "name": "Rating",
+                      "schema": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "stars": {
+                            "maximum": 5,
+                            "minimum": 1,
+                            "type": "integer"
+                          }
+                        },
+                        "required": [
+                          "stars"
+                        ],
+                        "title": "Rating",
+                        "type": "object"
+                      },
+                      "strict": true
+                    }
+                  },
+                  "temperature": 0.2,
+                  "top_p": 0.5,
+                  "max_output_tokens": 100,
+                  "metadata": {
+                    "team": "coach"
+                  }
+                }
+                """
+            }
         }
 
         @Test func `the exchange's members go after the format's, in the order it writes them`() throws {

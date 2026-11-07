@@ -29,7 +29,7 @@ private let words: [(printed: String, literal: String)] = [
     (("length" as FinishReason).description, "length"),
 ]
 
-@Suite("One import")
+@Suite("One import", .timeLimit(.minutes(1)))
 struct OneImportTests {
     @Test(arguments: words)
     func `every vocabulary takes a string literal and prints it, with only this module imported`(printed: String, literal: String) {

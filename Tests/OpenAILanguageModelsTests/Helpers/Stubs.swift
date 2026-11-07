@@ -1,8 +1,8 @@
 import Foundation
 import FoundationModels
+import LanguageModels
 import LanguageModelsTestSupport
 
-@testable import LanguageModels
 @testable import OpenAILanguageModels
 
 /// The settings of a typical model that reasons, with tools and structured outputs, which takes sampling settings
@@ -42,16 +42,14 @@ func model<Effort: ModelEffort>(
     _ details: OpenAIModel<Effort>,
     options: OpenAIOptions = OpenAIOptions(),
     configuration: OpenAIConfiguration = .stubbed,
-    auth: OpenAIAuthentication = .apiKey { "sk-test" }
+    auth: (URL) -> OpenAIAuthentication = { url in .apiKey(baseURL: url) { "sk-test" } }
 ) -> OpenAILanguageModel<Effort> {
     OpenAILanguageModel(
         details: details,
         options: options,
         session: stub.session,
-        // The stub stands in for OpenAI, so the authentication's headers go to the stub's URL.
-        auth: OpenAIAuthentication(baseURL: stub.baseURL) {
-            Dictionary(uniqueKeysWithValues: try await auth.requestAuthentication.requestHeaders().map { ($0.key.rawValue, $0.value) })
-        },
+        // The stub stands in for OpenAI, so the authentication goes to the stub's URL.
+        auth: auth(stub.baseURL),
         configuration: configuration
     )
 }

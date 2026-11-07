@@ -1,12 +1,11 @@
 import Foundation
 import FoundationModels
+import LanguageModels
 import Testing
 
-@testable import LanguageModels
 @testable import OpenRouterLanguageModels
 
-/// A failed response: its status, the `metadata` of its error, the message, and the error it should become, by the
-/// kind that the log names.
+/// A failed response: its status, the `metadata` of its error, the message, and the error it should become.
 private let failures: [(status: Int, metadata: JSONValue?, message: String, kind: String)] = [
     (400, ["error_type": "context_length_exceeded"], "Too long.", "LanguageModelError.contextSizeExceeded"),
     (400, ["error_type": "token_limit_exceeded"], "Token budget reached.", "OpenRouterError"),
@@ -46,7 +45,7 @@ extension OpenRouterErrorTests {
 
             let error = OpenRouterFailure(status: failure.status, body: body, retryAfter: nil).error(contextSize: nil)
 
-            #expect(LoggedError(error).kind == failure.kind)
+            #expect(kind(of: error) == failure.kind)
         }
 
         @Test func `an oversized prompt's error keeps its status and code in its metadata`() throws {
@@ -99,6 +98,19 @@ extension OpenRouterErrorTests {
             #expect(OpenRouterError(message: "Failed.", code: code).isQuotaExhausted == isExhausted)
         }
 
+        @Test func `a rate limit's reset date is the wait after the moment of the failure`() throws {
+            let now = Date(timeIntervalSince1970: 1_793_000_000)
+            let failure = OpenRouterFailure(status: 429, body: nil, retryAfter: .seconds(30))
+
+            let error = try #require(failure.error(contextSize: nil, now: now) as? LanguageModelError)
+
+            guard case .rateLimited(let info) = error else {
+                Issue.record("Expected a rate limit, got \(error)")
+                return
+            }
+            #expect(info.resetDate == now.addingTimeInterval(30))
+        }
+
         @Test func `an error in a stream without a status or code is a host failing while it generates`() throws {
             let body = OpenRouterErrorResponse(code: "server_error", message: "Overloaded.", metadata: nil)
 
@@ -106,5 +118,18 @@ extension OpenRouterErrorTests {
 
             #expect(error == OpenRouterError(message: "Overloaded.", code: "server_error", providerName: "Vendor"))
         }
+    }
+}
+
+/// An error's type, and its case for a language model error.
+private func kind(of error: any Error) -> String {
+    guard let error = error as? LanguageModelError else { return String(describing: type(of: error)) }
+    return switch error {
+    case .contextSizeExceeded: "LanguageModelError.contextSizeExceeded"
+    case .rateLimited: "LanguageModelError.rateLimited"
+    case .guardrailViolation: "LanguageModelError.guardrailViolation"
+    case .refusal: "LanguageModelError.refusal"
+    case .timeout: "LanguageModelError.timeout"
+    default: "another LanguageModelError"
     }
 }

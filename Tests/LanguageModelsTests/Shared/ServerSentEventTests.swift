@@ -2,7 +2,7 @@ import Testing
 
 @testable import LanguageModels
 
-@Suite("Server-sent events")
+@Suite("Server-sent events", .timeLimit(.minutes(1)))
 struct ServerSentEventTests {
     @Test(arguments: [
         ("data: {\"a\":1}", ServerSentEvent.Line.data("{\"a\":1}")),
@@ -14,6 +14,7 @@ struct ServerSentEventTests {
         ("", .endOfEvent),
         ("id: 7", .ignored),
         ("data", .data("")),
+        ("data: ", .data("")),
         ("event", .event("")),
     ])
     func `a line becomes its part of an event`(line: String, part: ServerSentEvent.Line) {

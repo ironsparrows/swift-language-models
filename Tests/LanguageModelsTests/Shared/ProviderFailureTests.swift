@@ -2,24 +2,23 @@ import FoundationModels
 import LanguageModels
 import Testing
 
-@Suite("Provider failure")
+@Suite("Provider failure", .timeLimit(.minutes(1)))
 struct ProviderFailureTests {
-    @Test func `every kind of failure reads the provider's facts from its metadata`() {
+    @Test(arguments: [
+        LanguageModelError.ProviderFailure.contextSizeExceeded(contextSize: 8, tokenCount: 9), .rateLimited(resetDate: nil),
+        .guardrailViolation,
+        .refusal, .timeout, .unsupportedContent([]),
+    ])
+    func `every kind of failure reads the provider's facts from its metadata`(failure: LanguageModelError.ProviderFailure) {
         var metadata = LanguageModelError.failureMetadata(status: 429, code: "rate_limit_exceeded", provider: "Vendor")
         metadata[LanguageModelMetadataKey.requestID] = "req_1"
-        let failures: [LanguageModelError.ProviderFailure] = [
-            .contextSizeExceeded(contextSize: 8, tokenCount: 9), .rateLimited(resetDate: nil), .guardrailViolation, .refusal,
-            .timeout, .unsupportedContent([]),
-        ]
 
-        for failure in failures {
-            let facts = LanguageModelError(failure, message: "Failed.", metadata: metadata).providerMetadata
+        let facts = LanguageModelError(failure, message: "Failed.", metadata: metadata).providerMetadata
 
-            #expect(facts.status == 429, "\(failure)")
-            #expect(facts.errorCode == "rate_limit_exceeded", "\(failure)")
-            #expect(facts.provider == "Vendor", "\(failure)")
-            #expect(facts.requestID == "req_1", "\(failure)")
-        }
+        #expect(facts.status == 429)
+        #expect(facts.errorCode == "rate_limit_exceeded")
+        #expect(facts.provider == "Vendor")
+        #expect(facts.requestID == "req_1")
     }
 
     @Test(

@@ -1,8 +1,8 @@
 import Foundation
 import FoundationModels
+import LanguageModels
 import Testing
 
-@testable import LanguageModels
 @testable import OpenRouterLanguageModels
 
 extension OpenRouterErrorTests {
@@ -12,37 +12,23 @@ extension OpenRouterErrorTests {
             let error = OpenRouterError(
                 status: 402, message: "No credits for “Plan dinner”.", code: .paymentRequired, providerName: "Vendor")
 
-            #expect(
-                LoggedError(error)
-                    == LoggedError(kind: "OpenRouterError", status: 402, code: "payment_required", host: "Vendor"))
+            let fields = error.logFields
+
+            #expect(fields.kind == "OpenRouterError")
+            #expect(fields.status == 402)
+            #expect(fields.code == "payment_required")
+            #expect(fields.host == "Vendor")
         }
 
-        @Test func `a failure that becomes a language model error logs the case, and the status, code and host it came from`() {
+        @Test func `a failure that becomes a language model error keeps the status, code and host the log reads`() throws {
             let body = OpenRouterErrorResponse(message: "Slow down.", metadata: ["provider_name": "Vendor"])
-            let error = OpenRouterFailure(status: 429, body: body, retryAfter: nil).error(contextSize: nil)
+            let failure = OpenRouterFailure(status: 429, body: body, retryAfter: nil)
 
-            #expect(
-                LoggedError(error)
-                    == LoggedError(
-                        kind: "LanguageModelError.rateLimited", status: 429, code: "rate_limit_exceeded", host: "Vendor")
-            )
-        }
+            let error = try #require(failure.error(contextSize: nil) as? LanguageModelError)
 
-        @Test(arguments: [
-            (
-                LoggedError(kind: "OpenRouterError", status: 402, code: "payment_required", host: "Vendor"),
-                "HTTP 402, payment_required, host Vendor"
-            ),
-            (LoggedError(kind: "OpenRouterError", status: nil, code: "connection_failed", host: nil), "connection_failed"),
-            (LoggedError(kind: "LanguageModelError.contextSizeExceeded", status: nil, code: nil, host: nil), ""),
-        ])
-        func `the origin names only the parts that are known`(error: LoggedError, origin: String) {
-            #expect(error.origin == origin)
-        }
-
-        @Test func `any other error logs its type`() {
-            #expect(LoggedError(CancellationError()).kind == "Swift.CancellationError")
-            #expect(LoggedError(URLError(.notConnectedToInternet)).status == nil)
+            #expect(error.providerMetadata.status == 429)
+            #expect(error.providerMetadata.errorCode == "rate_limit_exceeded")
+            #expect(error.providerMetadata.provider == "Vendor")
         }
     }
 }

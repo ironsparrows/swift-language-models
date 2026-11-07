@@ -1,9 +1,9 @@
 import Foundation
 import FoundationModels
+import LanguageModels
 import LanguageModelsTestSupport
 import Testing
 
-@testable import LanguageModels
 @testable import OpenRouterLanguageModels
 
 extension OpenRouterExchangeTests {
@@ -26,16 +26,6 @@ extension OpenRouterExchangeTests {
             #expect(request.value(forHTTPHeaderField: "X-OpenRouter-Title") == "Coach")
             #expect(request.value(forHTTPHeaderField: "X-OpenRouter-Categories") == "personal-agent,general-chat")
             #expect(request.value(forHTTPHeaderField: "X-OpenRouter-App-Visibility") == "hidden")
-        }
-
-        @Test func `every request names the package in its User-Agent, a retried one too`() async throws {
-            let stub = HTTPStub(.json(#"{"error":{"code":503,"message":"Unavailable"}}"#, status: 503), events(text("Hi"), done()))
-
-            try await respond(stub)
-
-            let userAgents = stub.requests.map { $0.request.value(forHTTPHeaderField: "User-Agent") }
-            #expect(userAgents == [UserAgent.current, UserAgent.current])
-            #expect(UserAgent.current.hasPrefix("swift-language-models ("))
         }
 
         @Test func `an app without categories that isn't hidden sends neither header`() async throws {
@@ -75,19 +65,6 @@ extension OpenRouterExchangeTests {
             #expect(model.auth.baseURL == nil)
             #expect(model.session === URLSession.shared)
             #expect(model.idleTimeout == nil)
-        }
-
-        @Test func `the idle timeout becomes the request's timeout`() async throws {
-            let stub = HTTPStub(events(text("Hi"), done()))
-            let details = OpenRouterModel<Efforts.Unsupported>(
-                id: "vendor/model", displayName: "Vendor: Model", releaseDate: .distantPast, supportedParameters: chatParameters)
-            let model = OpenRouterLanguageModel(
-                details, session: stub.session, configuration: OpenRouterConfiguration(idleTimeout: .seconds(42)),
-                auth: .apiKey(baseURL: stub.baseURL) { "sk-or-test" })
-
-            _ = try await LanguageModelSession(model: model).respond(to: "Hi")
-
-            #expect(try #require(stub.requests.first).request.timeoutInterval == 42)
         }
 
         @Test func `a change to the configuration applies to the next request`() async throws {

@@ -1,9 +1,9 @@
 import Foundation
 import FoundationModels
+import LanguageModels
 import LanguageModelsTestSupport
 import Testing
 
-@testable import LanguageModels
 @testable import OpenAILanguageModels
 
 /// OpenAI's requests retry as the official SDKs do, with the stubs' models waiting for nothing between retries.
@@ -11,38 +11,20 @@ import Testing
 extension OpenAIExchangeTests {
     @Suite("Retries")
     struct Retries {
-        @Test(arguments: [408, 409, 429, 500, 502, 503, 504, 529])
-        func `a status the official SDKs retry is retried twice`(status: Int) async throws {
+        @Test(arguments: [
+            (408, true), (409, true), (429, true), (500, true), (502, true), (503, true), (504, true), (529, true),
+            (400, false), (401, false), (403, false), (404, false), (422, false),
+        ])
+        func `a status goes out again only if the official SDKs retry it, up to the configuration's limit`(
+            status: Int, isRetried: Bool
+        ) async {
             let stub = HTTPStub(failure(status), failure(status), answer())
+            var limited = reasoningModel(stub)
+            limited.configuration.retries.limit = 1
 
-            #expect(try await respond(stub) == "Hi.")
-            #expect(stub.requests.count == 3)
-        }
+            await #expect(throws: (any Error).self) { try await LanguageModelSession(model: limited).respond(to: "Hi") }
 
-        @Test(arguments: [400, 401, 403, 404, 422])
-        func `a client error isn't retried`(status: Int) async throws {
-            let stub = HTTPStub(failure(status), answer())
-
-            let error = try await #require(throws: OpenAIError.self) { try await respond(stub) }
-
-            #expect(error.status == status)
-            #expect(stub.requests.count == 1)
-        }
-
-        @Test func `x-should-retry true retries a status that isn't retried otherwise`() async throws {
-            let stub = HTTPStub(failure(400, headers: ["x-should-retry": "true"]), answer())
-
-            #expect(try await respond(stub) == "Hi.")
-            #expect(stub.requests.count == 2)
-        }
-
-        @Test func `x-should-retry false fails at once`() async throws {
-            let stub = HTTPStub(failure(503, headers: ["x-should-retry": "false"]), answer())
-
-            let error = try await #require(throws: OpenAIError.self) { try await respond(stub) }
-
-            #expect(error.status == 503)
-            #expect(stub.requests.count == 1)
+            #expect(stub.requests.count == (isRetried ? 2 : 1))
         }
 
         @Test func `a rate limit that asks to wait more than 2 minutes fails at once, with the wait`() async throws {
@@ -55,44 +37,6 @@ extension OpenAIExchangeTests {
                 return
             }
             #expect(reset.timeIntervalSinceNow > 290)
-            #expect(stub.requests.count == 1)
-        }
-
-        @Test(arguments: [
-            (HTTPHeaderName.retryAfter, "90", Duration.seconds(90)),
-            (.retryAfter, "120", .seconds(120)),
-            (.retryAfterMilliseconds, "1500", .milliseconds(1_500)),
-        ])
-        func `a retry waits as long as OpenAI asks, up to 2 minutes, as openai-python does`(
-            header: HTTPHeaderName, value: String, wait: Duration
-        ) throws {
-            let url = try #require(URL(string: "https://api.openai.com/v1/responses"))
-            let response = HTTPURLResponse(url: url, statusCode: 429, httpVersion: nil, headerFields: [header.rawValue: value])
-
-            #expect(RequestRetries.standard.policy(statuses: API.retriesStatus).retry(1, status: 429, response: response)?.wait == wait)
-        }
-
-        @Test func `the configuration's retry limit caps the retries`() async throws {
-            let stub = HTTPStub(failure(503), failure(503), answer())
-            var limited = reasoningModel(stub)
-            limited.configuration.retries.limit = 1
-
-            let error = try await #require(throws: OpenAIError.self) {
-                try await LanguageModelSession(model: limited).respond(to: "Hi")
-            }
-
-            #expect(error.status == 503)
-            #expect(stub.requests.count == 2)
-        }
-
-        @Test func `disabled retries send a failed request once`() async throws {
-            let stub = HTTPStub(failure(503), answer())
-            var model = reasoningModel(stub)
-            model.configuration.retries = .disabled
-
-            await #expect(throws: OpenAIError.self) { try await LanguageModelSession(model: model).respond(to: "Hi") }
-
-            #expect(stub.requests.count == 1)
         }
 
         @Test func `a wait past the configuration's longest server wait fails at once, with the wait`() async throws {
@@ -103,7 +47,6 @@ extension OpenAIExchangeTests {
             let error = try await #require(throws: OpenAIError.self) { try await LanguageModelSession(model: model).respond(to: "Hi") }
 
             #expect(error.retryAfter == .seconds(10))
-            #expect(stub.requests.count == 1)
         }
 
         @Test func `a model's default configuration retries twice and waits up to 10 minutes for data`() {
@@ -113,24 +56,6 @@ extension OpenAIExchangeTests {
             #expect(configuration.retries.limit == 2)
             #expect(configuration.idleTimeout == .seconds(600))
             #expect(configuration.images == .standard)
-        }
-
-        @Test(arguments: [URLError.Code.timedOut, .cannotConnectToHost, .networkConnectionLost, .notConnectedToInternet])
-        func `a failed connection is retried twice`(code: URLError.Code) async throws {
-            let stub = HTTPStub(.failure(URLError(code)), .failure(URLError(code)), answer())
-
-            #expect(try await respond(stub) == "Hi.")
-            #expect(stub.requests.count == 3)
-        }
-
-        @Test func `a dropped stream isn't retried, since the answer already started`() async throws {
-            let stub = HTTPStub(
-                responseStream([created()], [textDelta("Hel")]).droppingConnection(with: URLError(.networkConnectionLost)), answer())
-
-            let error = try await #require(throws: URLError.self) { try await respond(stub) }
-
-            #expect(error.code == .networkConnectionLost)
-            #expect(stub.requests.count == 1)
         }
 
         private func respond(_ stub: HTTPStub) async throws -> String {

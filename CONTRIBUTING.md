@@ -157,8 +157,8 @@ metadata key that keeps each message's phase, such as `openAI.phases`.
 Test a provider's requests and answers through Foundation Models, as `ExactExchangeTests` does with
 `LanguageModelsTestSupport`'s `ExactExchange`: the bytes each request sends and what the session's transcript holds
 afterwards. A stream recorded from the real service, kept in the test target's `Fixtures`, pins the events it sends.
-Test the dialect in the provider's test folder named after the format, and the format's own behavior in the format's
-test target, so moving a provider to another format doesn't rewrite its other tests.
+Test what the provider adds in its test target's `Exchange` folder, and the format's own behavior in `LanguageModelsTests`,
+on the plain model, so moving a provider to another format doesn't rewrite its other tests.
 
 ## How a module's files are laid out
 

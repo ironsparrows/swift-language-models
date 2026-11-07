@@ -3,24 +3,11 @@ import FoundationModels
 import Testing
 
 @testable import LanguageModels
-@testable import OpenRouterLanguageModels
 
-extension OpenRouterErrorTests {
-    @Suite("Retry delays")
-    struct RetryDelays {
+extension ConnectionTests {
+    @Suite("Waits a server asks for")
+    struct ServerWaits {
         private static let now = Date(timeIntervalSince1970: 1_793_000_000)
-
-        @Test func `a rate limit's reset date is the wait after the moment of the failure`() throws {
-            let failure = OpenRouterFailure(status: 429, body: nil, retryAfter: .seconds(30))
-
-            let error = try #require(failure.error(contextSize: nil, now: Self.now) as? LanguageModelError)
-
-            guard case .rateLimited(let info) = error else {
-                Issue.record("Expected a rate limit, got \(error)")
-                return
-            }
-            #expect(info.resetDate == Self.now.addingTimeInterval(30))
-        }
 
         @Test(arguments: [("30", 30.0), ("1.5", 1.5), ("-4", 0), ("inf", 86_400), ("1e300", 86_400)])
         func `a number of seconds is clamped to a day`(header: String, seconds: Double) {

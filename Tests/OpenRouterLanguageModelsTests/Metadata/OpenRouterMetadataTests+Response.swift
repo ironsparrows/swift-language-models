@@ -112,37 +112,5 @@ extension OpenRouterMetadataTests {
             #expect(metadata.routingPipeline.isEmpty)
             #expect(metadata.region == nil)
         }
-
-        @Test func `a value of another kind reads as unknown, and a list skips what isn't a structure`() {
-            let answer = Transcript.Response(
-                metadata: [
-                    LanguageModelMetadataKey.model: 42,
-                    OpenRouterMetadataKey.routingAttempt: 1.5,
-                    OpenRouterMetadataKey.routingAttempts: [
-                        GeneratedContent("Vendor"), GeneratedContent(properties: ["provider": "Other", "status": "OK"]),
-                    ],
-                    OpenRouterMetadataKey.generationTime: "2 seconds",
-                    LanguageModelMetadataKey.citations: "https://swift.org",
-                ],
-                segments: [])
-
-            let metadata = answer.openRouter
-
-            #expect(metadata.model == nil)
-            #expect(metadata.routingAttempt == nil)
-            #expect(metadata.routingAttempts.map(\.provider) == ["Other"])
-            #expect(metadata.routingAttempts.map(\.status) == [nil])
-            #expect(metadata.generationTime == nil)
-            #expect(metadata.citations.isEmpty)
-        }
-
-        @Test(arguments: [
-            (2.016, Duration.milliseconds(2_016)), (0.1, .milliseconds(100)), (12, .seconds(12)), (0.000_000_15, .nanoseconds(150)),
-        ])
-        func `a time in seconds reads as the exact duration it spells`(seconds: Double, duration: Duration) {
-            let answer = Transcript.Response(metadata: [OpenRouterMetadataKey.generationTime: seconds], segments: [])
-
-            #expect(answer.openRouter.generationTime == duration)
-        }
     }
 }

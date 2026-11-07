@@ -106,6 +106,55 @@ func chatCompletionsEvents(_ chunks: JSONValue...) -> StubResponse {
 }
 
 extension ChatCompletionsModelTests {
+    /// A chunk of answer text, which ends the answer when it has a finish reason.
+    static func textChunk(_ text: String, finishReason: String? = nil) -> JSONValue {
+        ["choices": [["delta": ["content": .string(text)], "finish_reason": finishReason.map(JSONValue.string)]]]
+    }
+
+    /// A chunk with one tool-call fragment. A fragment without an index leaves the field out.
+    static func toolCallChunk(_ index: Int? = 0, id: String? = nil, name: String? = nil, arguments: String? = nil) -> JSONValue {
+        let function: JSONValue = ["name": name.map(JSONValue.string), "arguments": arguments.map(JSONValue.string)]
+        let fragment: JSONValue = ["index": index.map(JSONValue.integer), "id": id.map(JSONValue.string), "function": function]
+        return ["choices": [["delta": ["tool_calls": [fragment]]]]]
+    }
+
+    /// The chunk that ends an answer, with its usage when there is one.
+    static func finishChunk(_ reason: String = "stop", usage: JSONValue? = nil) -> JSONValue {
+        ["choices": [["delta": [:], "finish_reason": .string(reason)]], "usage": usage]
+    }
+
+    /// A chunk of the plain reasoning text the test exchange reads.
+    static func reasoningChunk(_ reasoning: String) -> JSONValue {
+        ["choices": [["delta": ["reasoning": .string(reasoning)]]]]
+    }
+
+    /// The start of an answer: the given chunks, with the connection left open after them.
+    static func openAnswer(_ chunks: JSONValue...) -> StubResponse {
+        StubResponse.eventStream(Data(chunks.map { "data: \($0.text)\n\n" }.joined().utf8)).keepingConnectionOpen()
+    }
+
+    /// The assistant messages of the stub's request at an index.
+    static func assistantMessages(_ stub: HTTPStub, request index: Int) throws -> [JSONValue] {
+        let sent = try #require(stub.requests.dropFirst(index).first)
+        return messages(try JSONValue(json: sent.body)).filter { $0["role"] == "assistant" }
+    }
+
+    /// The text of each reasoning entry.
+    static func reasoningTexts(_ entries: some Sequence<Transcript.Entry>) -> [String] {
+        reasoningEntries(in: entries).map { $0.segments.compactMap(\.text).joined() }
+    }
+
+    /// The text of an entry that is a prompt, or `nil` for any other.
+    static func promptText(_ entry: Transcript.Entry?) -> String? {
+        guard case .prompt(let prompt)? = entry else { return nil }
+        return prompt.segments.compactMap(\.text).joined()
+    }
+
+    /// The body of the stub's request at an index.
+    static func sentBody(_ stub: HTTPStub, _ index: Int = 0) throws -> JSONValue {
+        try JSONValue(json: try #require(stub.requests.dropFirst(index).first).body)
+    }
+
     /// A model of the plain format, sending to a stub.
     static func plainModel(_ stub: HTTPStub) -> ChatCompletions.Model<ChatCompletions.PlainExchange> {
         var model = ChatCompletions.Model(name: "vendor/model", url: stub.baseURL)

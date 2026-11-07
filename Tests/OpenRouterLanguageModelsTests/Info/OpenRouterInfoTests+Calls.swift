@@ -12,25 +12,19 @@ extension OpenRouterInfoTests {
         /// What a failed call surfaces as.
         enum Outcome: Sendable {
             case openRouterError(OpenRouterError.Code, status: Int?)
-            case urlError(URLError.Code)
             case rateLimited
             case timeout
-            case cancellation
 
             func matches(_ error: (any Error)?) -> Bool {
                 switch (self, error) {
                 case (.openRouterError(let code, let status), let error as OpenRouterError):
                     return error.code == code && error.status == status
-                case (.urlError(let code), let error as URLError):
-                    return error.code == code
                 case (.rateLimited, let error as LanguageModelError):
                     if case .rateLimited = error { return true }
                     return false
                 case (.timeout, let error as LanguageModelError):
                     if case .timeout = error { return true }
                     return false
-                case (.cancellation, let error):
-                    return error is CancellationError
                 default:
                     return false
                 }
@@ -48,7 +42,6 @@ extension OpenRouterInfoTests {
             (524, #"{"error":{"message":"Timed out","code":524}}"#, .timeout),
         ])
         func `a failed response throws what a chat request throws for it`(status: Int, body: String, outcome: Outcome) async throws {
-            // A status from 500 up is retried twice, so it fails three times.
             let failure = StubResponse.json(body, status: status)
             let stub = HTTPStub(failure, failure, failure)
 
@@ -57,7 +50,6 @@ extension OpenRouterInfoTests {
             }
 
             #expect(outcome.matches(error), "Got \(String(describing: error))")
-            #expect(stub.requests.count == (status >= 500 ? 3 : 1))
         }
 
         @Test func `a rate limit carries its reset date from Retry-After`() async throws {
@@ -73,17 +65,6 @@ extension OpenRouterInfoTests {
             }
             let wait = try #require(context.resetDate).timeIntervalSinceNow
             #expect((25...31).contains(wait))
-        }
-
-        @Test(arguments: [500, 501, 502, 503, 504, 524, 529, 599])
-        func `a server failure is retried twice`(status: Int) async throws {
-            let failure = StubResponse.json("{}", status: status)
-            let stub = HTTPStub(failure, failure, try fixtureResponse("model-endpoints.json"))
-
-            let providers = try await connection(stub).endpoints(of: "anthropic/claude-haiku-5.5", for: .seconds(60))
-
-            #expect(providers.count == 3)
-            #expect(stub.requests.count == 3)
         }
 
         @Test func `a third server failure throws`() async throws {
@@ -107,27 +88,6 @@ extension OpenRouterInfoTests {
             }
 
             #expect(error?.code == .invalidResponse)
-        }
-
-        @Test(arguments: [URLError.Code.notConnectedToInternet, .cannotFindHost, .timedOut])
-        func `a failed connection is retried`(code: URLError.Code) async throws {
-            let stub = HTTPStub(.failure(URLError(code)), try fixtureResponse("model-endpoints.json"))
-
-            let providers = try await connection(stub).endpoints(of: "vendor/model", for: .seconds(60))
-
-            #expect(providers.count == 3)
-            #expect(stub.requests.count == 2)
-        }
-
-        @Test func `a cancelled request isn't retried`() async throws {
-            let stub = HTTPStub(.failure(URLError(.cancelled)), try fixtureResponse("model-endpoints.json"))
-
-            let error = await #expect(throws: (any Error).self) {
-                try await connection(stub).endpoints(of: "vendor/model", for: .seconds(60))
-            }
-
-            #expect(Outcome.cancellation.matches(error), "Got \(String(describing: error))")
-            #expect(stub.requests.count == 1)
         }
 
         @Test func `the public calls share a cache`() async throws {
@@ -220,15 +180,6 @@ extension OpenRouterInfoTests {
             }
 
             #expect(stub.requests.count == 1)
-        }
-
-        @Test func `an error that the language model's key closure throws passes through, before any request`() async throws {
-            struct KeychainLocked: Error {}
-            let stub = HTTPStub(try fixtureResponse("model-endpoints.json"))
-            let languageModel = model(stub, efforts: [Efforts.Unsupported](), auth: .apiKey { throw KeychainLocked() })
-
-            await #expect(throws: KeychainLocked.self) { try await languageModel.endpoints() }
-            #expect(stub.requests.isEmpty)
         }
     }
 }

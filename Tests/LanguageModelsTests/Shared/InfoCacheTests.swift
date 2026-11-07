@@ -4,7 +4,7 @@ import Testing
 
 @testable import LanguageModels
 
-@Suite("Info cache")
+@Suite("Info cache", .timeLimit(.minutes(1)))
 struct InfoCacheTests {
     @Test func `a second call while the answer is fresh reads the cache`() async throws {
         let stub = HTTPStub(.json("first"), .json("second"))
@@ -66,6 +66,18 @@ struct InfoCacheTests {
 
         #expect(answer == "answer")
         #expect(stub.requests.count == 4)
+    }
+
+    @Test func `an error the authentication throws passes through a cached call, before any request`() async {
+        struct KeychainLocked: Error {}
+        let stub = HTTPStub(.json("answer"))
+        let authentication = Connection.Authentication(baseURL: stub.baseURL) { throw KeychainLocked() }
+        let connection = Connection(
+            session: stub.session, authentication: authentication, idleTimeout: nil, retries: .disabled, retrying: { _ in false })
+
+        await #expect(throws: KeychainLocked.self) { try await call(connection, stub) }
+
+        #expect(stub.requests.isEmpty)
     }
 
     @Test func `a connection that isolates its cache reads no other connection's answers, and keeps its own`() async throws {

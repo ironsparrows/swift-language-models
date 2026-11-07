@@ -54,6 +54,11 @@ struct JSONValueTests {
         #expect(schema["additionalProperties"] == false)
     }
 
+    @Test(arguments: [(JSONValue.null, "null"), (true, "true")])
+    func `an encoder writes null and a bool as the JSON they are`(value: JSONValue, json: String) throws {
+        #expect(String(decoding: try JSONEncoder().encode(value), as: UTF8.self) == json)
+    }
+
     @Test func `a schema gives the same bytes every time`() throws {
         let first = try JSONValue(Meal.generationSchema, strict: true).data
 

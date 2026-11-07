@@ -1,10 +1,8 @@
-package import Foundation
+import Foundation
 package import FoundationModels
 package import InlineSnapshotTesting
-import LanguageModels
+import LanguageModelsCore
 import UniformTypeIdentifiers
-
-// MARK: - Exact exchange
 
 /// A session that the exact-exchange tests run against a stub, and what it sent and got back, read through Foundation
 /// Models' public API.
@@ -227,29 +225,4 @@ extension ExactExchange {
         ]
         return names.first { $0.0 == capability }?.1 ?? "another capability"
     }
-}
-
-// MARK: - Canonical JSON
-
-/// JSON text with sorted keys and fixed formatting, so two documents compare equal when their values match.
-///
-/// - Parameter data: A JSON document.
-/// - Returns: The document in canonical form.
-/// - Throws: An error when `data` isn't valid JSON.
-package func canonicalJSON(_ data: Data) throws -> String {
-    let object = try JSONSerialization.jsonObject(with: data, options: .fragmentsAllowed)
-    let canonical = try JSONSerialization.data(
-        withJSONObject: object,
-        options: [.sortedKeys, .prettyPrinted, .withoutEscapingSlashes, .fragmentsAllowed]
-    )
-    return String(decoding: canonical, as: UTF8.self)
-}
-
-/// JSON text with sorted keys and fixed formatting, so two documents compare equal when their values match.
-///
-/// - Parameter text: A JSON document.
-/// - Returns: The document in canonical form.
-/// - Throws: An error when `text` isn't valid JSON.
-package func canonicalJSON(_ text: String) throws -> String {
-    try canonicalJSON(Data(text.utf8))
 }

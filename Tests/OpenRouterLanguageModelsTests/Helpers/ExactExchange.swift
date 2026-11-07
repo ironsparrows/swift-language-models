@@ -1,10 +1,10 @@
 import Foundation
 import FoundationModels
+import LanguageModels
 import LanguageModelsTestSupport
 import Testing
 import UniformTypeIdentifiers
 
-@testable import LanguageModels
 @testable import OpenRouterLanguageModels
 
 extension ExactExchange {
@@ -123,7 +123,7 @@ extension ExactExchange {
             ["type": "reasoning.text", "text": "Count them.", "signature": "sig-1", "format": "anthropic-claude-v1", "index": 0]
         ]
         let earlierReasoning = Transcript.Reasoning(
-            metadata: [ReasoningOrigin.metadataKey: "openrouter", LanguageModelMetadataKey.model: "vendor/model"],
+            metadata: ["reasoningOrigin": "openrouter", LanguageModelMetadataKey.model: "vendor/model"],
             segments: [.text(.init(content: "Count them."))], signature: details.data)
         let transcript = Transcript(entries: [
             .prompt(Transcript.Prompt(segments: [.text(.init(content: "How many days in a week?"))])),

@@ -108,14 +108,5 @@ extension OpenRouterMetadataTests {
             #expect(metadataString(metadata, OpenRouterMetadataKey.routingStrategy) == "direct")
             #expect(routingKeys.dropFirst().allSatisfy { metadata[$0] == nil })
         }
-
-        @Test func `an answer without a report carries no routing keys`() async throws {
-            let stub = HTTPStub(events(text("Hi"), done()))
-
-            let response = try await LanguageModelSession(model: model(stub)).respond(to: "Hi")
-
-            let metadata = try lastResponse(of: response).metadata
-            #expect(routingKeys.allSatisfy { metadata[$0] == nil })
-        }
     }
 }

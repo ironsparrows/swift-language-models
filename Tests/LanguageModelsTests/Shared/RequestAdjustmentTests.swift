@@ -1,9 +1,10 @@
 import FoundationModels
+import LanguageModelsTestSupport
 import Testing
 
 @testable import LanguageModels
 
-@Suite("API format: request adjustments and metadata")
+@Suite("Request adjustments", .timeLimit(.minutes(1)))
 struct RequestAdjustmentTests {
     @Test func `metadata past the limits, or not a string, is left out and named by key`() {
         var metadata: [String: GeneratedContent] = Dictionary(
@@ -20,6 +21,42 @@ struct RequestAdjustmentTests {
             return
         }
         #expect(sent.members.map(\.key) == (100..<116).map { "key\($0)" })
+    }
+
+    @Test func `metadata a Chat Completions request leaves out is noted by key`() throws {
+        let generation = generationRequest([prompt(text("Hi"))], metadata: ["count": 3, "name": "Ada"])
+
+        #expect(try ChatCompletionsSentRequest(generation).adjustments == [.droppedMetadata(keys: ["count"])])
+    }
+
+    @Test func `metadata a Responses request leaves out is noted by key`() throws {
+        let generation = generationRequest([prompt(text("Hi"))], metadata: ["count": 3, "name": "Ada"])
+
+        #expect(try SentRequest(generation).adjustments == [.droppedMetadata(keys: ["count"])])
+    }
+
+    @Test(
+        arguments: [(MovedEffort(requested: "medium", sent: "low"), "low"), (MovedEffort(requested: "turbo", sent: nil), nil)]
+            as [(MovedEffort, String?)])
+    func `an effort that a Chat Completions exchange moved is noted`(moved: MovedEffort, sent: String?) throws {
+        var model = ChatCompletions.Model<ChatCompletionsTestExchange>.test()
+        model.exchange.prepares = { $0.movedEffort = moved }
+
+        let adjustments = try ChatCompletionsSentRequest(generationRequest([prompt(text("Hi"))]), model: model).adjustments
+
+        #expect(adjustments == [.movedEffort(requested: moved.requested, sent: sent)])
+    }
+
+    @Test(
+        arguments: [(MovedEffort(requested: "medium", sent: "low"), "low"), (MovedEffort(requested: "turbo", sent: nil), nil)]
+            as [(MovedEffort, String?)])
+    func `an effort that a Responses exchange moved is noted`(moved: MovedEffort, sent: String?) throws {
+        var model = Responses.Model<ResponsesTestExchange>.test()
+        model.exchange.prepares = { $0.movedEffort = moved }
+
+        let adjustments = try SentRequest(generationRequest([prompt(text("Hi"))]), model: model).adjustments
+
+        #expect(adjustments == [.movedEffort(requested: moved.requested, sent: sent)])
     }
 
     @Test(arguments: [

@@ -6,33 +6,6 @@ import Testing
 
 @testable import OpenRouterLanguageModels
 
-/// A `url_citation` annotation as OpenRouter streams it.
-private func citation(
-    _ url: String?,
-    title: String? = nil,
-    content: String? = nil,
-    start: Int? = nil,
-    end: Int? = nil
-) -> JSONValue {
-    let fields: JSONValue = [
-        "url": url.map(JSONValue.string), "title": title.map(JSONValue.string), "content": content.map(JSONValue.string),
-        "start_index": start.map(JSONValue.integer), "end_index": end.map(JSONValue.integer),
-    ]
-    return ["type": "url_citation", "url_citation": fields]
-}
-
-/// A chunk of annotations.
-private func annotations(_ annotations: JSONValue...) -> JSONValue {
-    chunk(["annotations": .array(annotations)])
-}
-
-/// The response entries of a transcript.
-private func responses(_ entries: some Sequence<Transcript.Entry>) -> [Transcript.Response] {
-    entries.compactMap { entry in
-        if case .response(let response) = entry { response } else { nil }
-    }
-}
-
 /// Each server tool with its entry in a request's tools.
 private let serverToolEntries: [(OpenRouterServerTool, JSONValue)] = [
     (.webSearch(), ["type": "openrouter:web_search"]),
@@ -135,46 +108,23 @@ extension OpenRouterOptionsTests {
 
             _ = try await LanguageModelSession(model: model, tools: [FoodTool()]).respond(to: "Hi")
 
-            let tools = elements(try body(stub)["tools"])
-            #expect(tools.map { $0["type"] } == ["function", "openrouter:datetime", "openrouter:web_search"])
-            #expect(tools.first?["function"]?["name"] == "lookUpFood")
+            #expect(elements(try body(stub)["tools"]).map { $0["type"] } == ["function", "openrouter:datetime", "openrouter:web_search"])
         }
 
         @Test(arguments: [GenerationOptions.ToolCallingMode?.none, .allowed, .required])
-        func `without the session's tools, no tool choice or parallel calls go out, whatever the mode`(
+        func `without the session's tools, no parallel calls go out, whatever the mode`(
             mode: GenerationOptions.ToolCallingMode?
         ) async throws {
             let stub = HTTPStub(events(text("Hi"), done()))
-            let model = model(stub, parameters: chatParameters.union([.parallelToolCalls]), serverTools: [.webSearch()])
+            let model = model(
+                stub, parameters: chatParameters.union([.parallelToolCalls]), serverTools: [.webSearch()],
+                options: OpenRouterOptions(parallelToolCalls: .allowed))
 
             _ = try await LanguageModelSession(model: model).respond(to: "Hi", options: GenerationOptions(toolCallingMode: mode))
 
             let body = try body(stub)
             #expect(elements(body["tools"]).map { $0["type"] } == ["openrouter:web_search"])
-            #expect(body["tool_choice"] == nil)
             #expect(body["parallel_tool_calls"] == nil)
-        }
-
-        @Test(arguments: [(GenerationOptions.ToolCallingMode.allowed, JSONValue.string("auto")), (.required, "required")])
-        func `with the session's tools, the tool choice is theirs, next to the server tools`(
-            mode: GenerationOptions.ToolCallingMode,
-            choice: JSONValue
-        ) async throws {
-            let stub = HTTPStub(
-                events(toolCall(0, id: "call_1", name: "lookUpFood", arguments: #"{"food":"egg"}"#), done("tool_calls")),
-                events(text("An egg has 100 kcal."), done())
-            )
-            let model = model(stub, parameters: chatParameters.union([.parallelToolCalls]), serverTools: [.webSearch()])
-            let session = LanguageModelSession(model: model, tools: [FoodTool()])
-
-            _ = try await session.respond(to: "Calories in an egg?", options: GenerationOptions(toolCallingMode: mode))
-
-            for index in 0..<2 {
-                let body = try body(stub, index)
-                #expect(elements(body["tools"]).map { $0["type"] } == ["function", "openrouter:web_search"])
-                #expect(body["tool_choice"] == choice)
-                #expect(body["parallel_tool_calls"] == nil)
-            }
         }
 
         @Test func `when tool calls are disallowed, server tools stay out too`() async throws {
@@ -185,7 +135,6 @@ extension OpenRouterOptionsTests {
 
             let body = try body(stub)
             #expect(body["tools"] == nil)
-            #expect(body["tool_choice"] == nil)
             #expect(body["provider"] == nil)
         }
 
@@ -243,93 +192,6 @@ extension OpenRouterOptionsTests {
 
             #expect(model.serverTools == [.webSearch(engine: .exa), .datetime()])
             #expect(OpenRouterLanguageModel(model).serverTools == model.serverTools)
-        }
-
-        @Test func `cited pages become the response entry's citations, once each, and don't go back to OpenRouter`() async throws {
-            let full = citation(
-                "https://swift.org/blog/swift-6.4", title: "Swift 6.4 Released", content: "Swift 6.4 is now available.\n[...]\nMore.",
-                start: 0, end: 18)
-            let stub = HTTPStub(
-                events(
-                    text("Swift 6.4 is out. "),
-                    annotations(full, ["type": "file", "file": ["hash": "abc", "name": "notes.pdf"]]),
-                    text("It ships with Xcode 27.2."),
-                    annotations(full, citation("https://developer.apple.com/xcode/"), citation(nil, title: "No address")),
-                    done()
-                ),
-                events(text("Yes."), done())
-            )
-            let session = LanguageModelSession(model: model(stub, serverTools: [.webSearch()]))
-
-            let response = try await session.respond(to: "What's new in Swift?")
-            _ = try await session.respond(to: "Sure?")
-
-            let answer = try #require(responses(response.transcriptEntries).last)
-            #expect(
-                answer.openRouter.citations == [
-                    Citation(
-                        url: try #require(URL(string: "https://swift.org/blog/swift-6.4")), title: "Swift 6.4 Released",
-                        excerpt: "Swift 6.4 is now available.\n[...]\nMore.", startOffset: 0, endOffset: 18),
-                    Citation(
-                        url: try #require(URL(string: "https://developer.apple.com/xcode/")), title: nil, excerpt: nil, startOffset: nil,
-                        endOffset: nil),
-                ]
-            )
-            guard case .array(let stored)? = answer.metadata[LanguageModelMetadataKey.citations]?.kind else {
-                Issue.record("The citations aren't a list in the metadata.")
-                return
-            }
-            #expect(stored.count == 2)
-            #expect(metadataString(answer.metadata, LanguageModelMetadataKey.model) == "vendor/model")
-            let assistant = try #require(try assistantMessages(stub, 1).first)
-            #expect(assistant == ["content": "Swift 6.4 is out. It ships with Xcode 27.2.", "role": "assistant"])
-        }
-
-        @Test func `citations stay on the response entry when the answer ends in tool calls`() async throws {
-            let stub = HTTPStub(
-                events(
-                    text("Eggs are light, says the USDA. "),
-                    annotations(citation("https://fdc.nal.usda.gov/", title: "FoodData Central")),
-                    toolCall(0, id: "call_1", name: "lookUpFood", arguments: #"{"food":"egg"}"#),
-                    done("tool_calls")
-                ),
-                events(text("An egg has 100 kcal."), done())
-            )
-            let session = LanguageModelSession(model: model(stub, serverTools: [.webSearch()]), tools: [FoodTool()])
-
-            let response = try await session.respond(to: "Calories in an egg?")
-
-            let answers = responses(response.transcriptEntries)
-            try #require(answers.count == 2)
-            #expect(answers[0].openRouter.citations.map(\.title) == ["FoodData Central"])
-            #expect(answers[1].openRouter.citations.isEmpty)
-        }
-
-        @Test(arguments: [OpenRouterServerTool.advisor(model: "openai/gpt-4.1-nano"), .subagent(model: "openai/gpt-4.1-nano")])
-        func `a call to another model reaches the session only as the answer and its count, with nothing to send back`(
-            tool: OpenRouterServerTool
-        ) async throws {
-            // On chat completions, OpenRouter streams only the answer the other model informed, and counts the call.
-            let usage: JSONValue = [
-                "prompt_tokens": 490, "completion_tokens": 40, "total_tokens": 530, "cost": 0.000_09,
-                "server_tool_use_details": ["tool_calls_requested": 1, "tool_calls_executed": 1],
-            ]
-            let stub = HTTPStub(
-                events(text("17 × 23 is indeed 391."), chunk([:], finishReason: "stop", usage: usage)),
-                events(text("Yes."), done())
-            )
-            let session = LanguageModelSession(model: model(stub, serverTools: [tool]))
-
-            let first = try await session.respond(to: "Is 17 × 23 391?")
-            _ = try await session.respond(to: "Sure?")
-
-            #expect(first.content == "17 × 23 is indeed 391.")
-            #expect(metadataNumber(first.usage.metadata, OpenRouterMetadataKey.requestedServerToolCallCount) == 1)
-            #expect(metadataNumber(first.usage.metadata, OpenRouterMetadataKey.executedServerToolCallCount) == 1)
-            #expect(!session.transcript.contains { if case .toolCalls = $0 { true } else { false } })
-            let assistant = try #require(try assistantMessages(stub, 1).first)
-            #expect(assistant == ["content": "17 × 23 is indeed 391.", "role": "assistant"])
-            #expect(!messages(try body(stub, 1)).contains { $0["role"] == "tool" })
         }
 
         @Test func `equal server tools are equal and hash alike, and a reasoning level tells two apart`() {

@@ -30,7 +30,7 @@ struct HTTPStubTests {
         #expect(recorded.request.httpMethod == "POST")
         #expect(recorded.request.url?.path() == "/v1/chat")
         #expect(recorded.request.value(forHTTPHeaderField: "Authorization") == "Bearer test")
-        #expect(try canonicalJSON(recorded.body) == canonicalJSON(#"{"stream":true,"model":"x"}"#))
+        #expect(recorded.body == Data(#"{"model":"x","stream":true}"#.utf8))
     }
 
     @Test func `a stub serves its responses in order, then fails`() async throws {

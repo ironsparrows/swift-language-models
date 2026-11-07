@@ -75,6 +75,35 @@ extension ChatCompletionsModelTests {
             }
         }
 
+        @Test(arguments: [
+            (
+                toolCallChunk(0, id: "call_1", name: "lookUp", arguments: #"{"word":"eg"#), "tool_calls",
+                "The model sent arguments for lookUp that aren't a whole JSON object."
+            ),
+            (toolCallChunk(0, id: "call_1", arguments: #"{"word":"egg"}"#), "tool_calls", "The model sent a tool call without its name."),
+            (
+                toolCallChunk(0, id: "call_1", name: "lookUp", arguments: #"{"word":"eg"#), "length",
+                "The answer reached its token limit inside a tool call."
+            ),
+        ])
+        func `a call that can't run fails the answer before any tool runs`(fragment: JSONValue, finishReason: String, message: String) async
+        {
+            let stub = HTTPStub(
+                chatCompletionsEvents(fragment, finishChunk(finishReason)), chatCompletionsEvents(textChunk("Done.", finishReason: "stop")))
+            let session = LanguageModelSession(model: plainModel(stub), tools: [LookUpTool()])
+
+            let failure = await #expect(throws: RequestFailure<APIErrorBody>.self) {
+                try await session.respond(to: "Define egg.")
+            }
+
+            guard case .unusableAnswer? = failure?.kind else {
+                Issue.record("The answer ended with \(String(describing: failure))")
+                return
+            }
+            #expect(failure?.message == message)
+            #expect(stub.requests.count == 1)
+        }
+
         @Test func `an event that isn't a chunk throws`() async {
             let stub = HTTPStub(.eventStream(Data("data: [1, 2]\n\n".utf8)))
 

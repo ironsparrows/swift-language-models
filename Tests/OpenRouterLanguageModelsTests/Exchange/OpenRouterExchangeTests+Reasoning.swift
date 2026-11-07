@@ -149,21 +149,6 @@ extension OpenRouterExchangeTests {
             )
         }
 
-        @Test func `reasoning another provider wrote isn't sent back`() async throws {
-            let stub = HTTPStub(events(text("Yes."), done()))
-            let transcript = Transcript(entries: [
-                .prompt(Transcript.Prompt(segments: [.text(.init(content: "Calories in an egg?"))])),
-                .reasoning(Transcript.Reasoning(segments: [.text(.init(content: "Thinking."))], signature: Data("opaque".utf8))),
-                .response(Transcript.Response(assetIDs: [], segments: [.text(.init(content: "About 70 kcal."))])),
-            ])
-            let session = LanguageModelSession(model: model(stub), transcript: transcript)
-
-            _ = try await session.respond(to: "Sure?")
-
-            let assistant = try #require(try assistantMessages(stub).first)
-            #expect(assistant == ["content": "About 70 kcal.", "role": "assistant"])
-        }
-
         @Test func `plain reasoning text is shown, and goes back as the message's reasoning since it has no details`() async throws {
             let stub = HTTPStub(
                 events(chunk(["reasoning": "Eggs are light."]), text("About 70 kcal."), done()), events(text("Yes."), done()))
@@ -202,7 +187,7 @@ extension OpenRouterExchangeTests {
             #expect(assistant["reasoning"] == "Eggs are light.")
         }
 
-        @Test func `reasoning after the answer started isn't shown, but its details still go back`() async throws {
+        @Test func `reasoning after the answer started still goes back in its details`() async throws {
             let stub = HTTPStub(
                 events(
                     reasoning(["type": "reasoning.text", "text": "Eggs are light.", "format": "anthropic-claude-v1"]),
@@ -214,10 +199,9 @@ extension OpenRouterExchangeTests {
             )
             let session = LanguageModelSession(model: model(stub))
 
-            let first = try await session.respond(to: "Calories in an egg?")
+            _ = try await session.respond(to: "Calories in an egg?")
             _ = try await session.respond(to: "Sure?")
 
-            #expect(reasoningTexts(first.transcriptEntries) == ["Eggs are light."])
             let assistant = try #require(try assistantMessages(stub, 1).first)
             #expect(
                 assistant["reasoning_details"] == [
@@ -270,25 +254,6 @@ extension OpenRouterExchangeTests {
             #expect(assistant["reasoning"] == (isSent ? "Unsigned." : nil))
         }
 
-        @Test func `each answer's details go back on its own message, even when another answer had the same`() async throws {
-            let detail: JSONValue = ["type": "reasoning.encrypted", "data": "blob"]
-            let stub = HTTPStub(
-                events(reasoning(detail), text("One."), done()),
-                events(reasoning(detail), text("Two."), done()),
-                events(text("Three."), done())
-            )
-            let session = LanguageModelSession(model: model(stub))
-
-            _ = try await session.respond(to: "One?")
-            _ = try await session.respond(to: "Two?")
-            _ = try await session.respond(to: "Three?")
-
-            let assistants = try assistantMessages(stub, 2)
-            try #require(assistants.count == 2)
-            #expect(assistants[0]["reasoning_details"] == [detail])
-            #expect(assistants[1]["reasoning_details"] == [detail])
-        }
-
         @Test func `summaries of different blocks stay apart`() async throws {
             let stub = HTTPStub(
                 events(
@@ -311,17 +276,6 @@ extension OpenRouterExchangeTests {
                     ["index": 1, "summary": "Second.", "type": "reasoning.summary"],
                 ]
             )
-        }
-
-        @Test func `reasoning tokens reach the response's usage`() async throws {
-            let stub = HTTPStub(
-                events(reasoning(["type": "reasoning.encrypted", "data": "blob"]), text("Hi"), done(completion: 40, reasoning: 32))
-            )
-
-            let response = try await LanguageModelSession(model: model(stub)).respond(to: "Hi")
-
-            #expect(response.usage.output.totalTokenCount == 40)
-            #expect(response.usage.output.reasoningTokenCount == 32)
         }
 
         /// The text of each reasoning entry.

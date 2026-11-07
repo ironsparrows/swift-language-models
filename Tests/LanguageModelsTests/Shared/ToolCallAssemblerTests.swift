@@ -4,7 +4,7 @@ import Testing
 
 private typealias Arguments = ToolCallAssembler.Arguments
 
-@Suite("Tool call assembler")
+@Suite("Tool call assembler", .timeLimit(.minutes(1)))
 struct ToolCallAssemblerTests {
     @Test func `fragments form the calls of one round by index, each announced when it starts`() throws {
         var calls = ToolCallAssembler()

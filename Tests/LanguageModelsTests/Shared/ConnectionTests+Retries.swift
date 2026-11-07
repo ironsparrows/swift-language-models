@@ -6,8 +6,81 @@ import Testing
 @testable import LanguageModels
 
 extension ConnectionTests {
+    /// A connection to a stub that retries any status from 500 up, without waiting.
+    static func connection(
+        _ stub: HTTPStub,
+        authentication: Connection.Authentication = .unauthenticated,
+        idleTimeout: Duration? = nil,
+        retryLimit: Int = 2
+    ) -> Connection {
+        Connection(
+            session: stub.session, authentication: authentication, idleTimeout: idleTimeout,
+            retries: RequestRetries(limit: retryLimit, initialDelay: .zero), retrying: { $0 >= 500 })
+    }
+
+    /// A plain model sending through a connection to a stub.
+    static func plainModel(
+        _ stub: HTTPStub,
+        authentication: Connection.Authentication = .unauthenticated,
+        idleTimeout: Duration? = nil,
+        retryLimit: Int = 2
+    ) -> ChatCompletions.Model<ChatCompletions.PlainExchange> {
+        var model = ChatCompletionsModelTests.plainModel(stub)
+        model.connection = connection(stub, authentication: authentication, idleTimeout: idleTimeout, retryLimit: retryLimit)
+        return model
+    }
+
+    /// An answer to one prompt.
+    static var answer: StubResponse {
+        chatCompletionsEvents(["choices": [["delta": ["content": "Hi"], "finish_reason": "stop"]]])
+    }
+
     @Suite("Retries")
     struct Retries {
+        /// What a failed connection surfaces as.
+        enum Outcome: Sendable {
+            case urlError(URLError.Code)
+            case timeout
+            case cancellation
+
+            func matches(_ error: (any Error)?) -> Bool {
+                switch self {
+                case .urlError(let code):
+                    return (error as? URLError)?.code == code
+                case .timeout:
+                    guard case .timeout? = error as? LanguageModelError else { return false }
+                    return true
+                case .cancellation:
+                    return error is CancellationError
+                }
+            }
+        }
+
+        /// A format, which reads its stream on its own.
+        enum Format: CaseIterable, Sendable {
+            case chatCompletions, responses
+
+            /// An answer that started and hasn't ended.
+            var startedAnswer: StubResponse {
+                switch self {
+                case .chatCompletions: .eventStream(Data(#"data: {"choices":[{"delta":{"content":"Hel"}}]}\#n\#n"#.utf8))
+                case .responses: events(textDelta("Hel"))
+                }
+            }
+
+            /// Sends one prompt from a session on the format's plain model, through a connection to a stub.
+            func respond(_ stub: HTTPStub) async throws {
+                switch self {
+                case .chatCompletions:
+                    _ = try await LanguageModelSession(model: plainModel(stub)).respond(to: "Hi")
+                case .responses:
+                    var model = ResponsesModelTests.plainModel(stub)
+                    model.connection = connection(stub)
+                    _ = try await LanguageModelSession(model: model).respond(to: "Hi")
+                }
+            }
+        }
+
         @Test func `retry-after-ms comes before Retry-After`() throws {
             let headers = [HTTPHeaderName.retryAfterMilliseconds.rawValue: "1500", HTTPHeaderName.retryAfter.rawValue: "60"]
             let url = try #require(URL(string: "https://example.com/chat"))
@@ -193,6 +266,107 @@ extension ConnectionTests {
 
             #expect(policy.retries == 0)
             #expect(policy.retry(1, status: 503, response: nil)?.wait == nil)
+        }
+
+        @Test func `a session's request goes out again after a failed connection, until it's answered`() async throws {
+            let failure = StubResponse.failure(URLError(.networkConnectionLost))
+            let stub = HTTPStub(failure, failure, answer)
+
+            let response = try await LanguageModelSession(model: plainModel(stub)).respond(to: "Hi")
+
+            #expect(response.content == "Hi")
+            #expect(stub.requests.count == 3)
+        }
+
+        @Test(arguments: [(1, 2), (0, 1)])
+        func `a request that keeps failing goes out once, then up to the retry limit`(limit: Int, requests: Int) async {
+            let failure = StubResponse.json(#"{"error":{"message":"Overloaded."}}"#, status: 503)
+            let stub = HTTPStub(failure, failure, answer)
+
+            await #expect(throws: RequestFailure<APIErrorBody>.self) {
+                _ = try await LanguageModelSession(model: plainModel(stub, retryLimit: limit)).respond(to: "Hi")
+            }
+
+            #expect(stub.requests.count == requests)
+        }
+
+        @Test func `every request names the package in its User-Agent, a retried one too`() async throws {
+            let stub = HTTPStub(.json("{}", status: 503), answer)
+
+            _ = try await LanguageModelSession(model: plainModel(stub)).respond(to: "Hi")
+
+            let userAgents = stub.requests.map { $0.request.value(forHTTPHeaderField: "User-Agent") }
+            #expect(userAgents == [UserAgent.current, UserAgent.current])
+        }
+
+        @Test(arguments: [
+            (URLError.Code.notConnectedToInternet, Outcome.urlError(.notConnectedToInternet)),
+            (.cannotFindHost, .urlError(.cannotFindHost)),
+            (.cannotConnectToHost, .urlError(.cannotConnectToHost)),
+            (.secureConnectionFailed, .urlError(.secureConnectionFailed)),
+            (.timedOut, .timeout),
+            (.cancelled, .cancellation),
+        ])
+        func `a connection that fails before a response throws the matching error`(code: URLError.Code, outcome: Outcome) async {
+            // A failed connection is retried twice, so it fails three times; a cancellation isn't retried.
+            let failure = StubResponse.failure(URLError(code))
+            let stub = HTTPStub(failure, failure, failure, answer)
+
+            let error = await #expect(throws: (any Error).self) {
+                _ = try await LanguageModelSession(model: plainModel(stub)).respond(to: "Hi")
+            }
+
+            #expect(outcome.matches(error), "Got \(String(describing: error))")
+            #expect(stub.requests.count == (code == .cancelled ? 1 : 3))
+        }
+
+        @Test(
+            arguments: Format.allCases,
+            [(URLError.Code.networkConnectionLost, Outcome.urlError(.networkConnectionLost)), (.timedOut, .timeout)])
+        func `a connection that drops mid-stream throws the matching error, without a retry`(
+            format: Format, failure: (code: URLError.Code, outcome: Outcome)
+        ) async {
+            let stub = HTTPStub(format.startedAnswer.droppingConnection(with: URLError(failure.code)), .json("{}"))
+
+            let error = await #expect(throws: (any Error).self) { try await format.respond(stub) }
+
+            #expect(failure.outcome.matches(error), "Got \(String(describing: error))")
+            #expect(stub.requests.count == 1)
+        }
+
+        @Test func `an error event in the stream isn't retried, since the answer already started`() async {
+            let stub = HTTPStub(
+                chatCompletionsEvents(["choices": [["delta": ["content": "Hi"]]]], ["error": ["message": "Overloaded."]]), answer)
+
+            await #expect(throws: RequestFailure<APIErrorBody>.self) {
+                _ = try await LanguageModelSession(model: plainModel(stub)).respond(to: "Hi")
+            }
+
+            #expect(stub.requests.count == 1)
+        }
+
+        @Test func `an error the authentication throws passes through as it is, before any request`() async {
+            struct KeychainLocked: Error {}
+            let stub = HTTPStub(answer)
+            let authentication = Connection.Authentication.apiKey({ throw KeychainLocked() }, baseURL: nil, header: { _ in [:] })
+
+            await #expect(throws: KeychainLocked.self) {
+                _ = try await LanguageModelSession(model: plainModel(stub, authentication: authentication)).respond(to: "Hi")
+            }
+
+            #expect(stub.requests.isEmpty)
+        }
+
+        @Test(arguments: [(URLError.Code.notConnectedToInternet, Outcome.urlError(.notConnectedToInternet)), (.timedOut, .timeout)])
+        func `a URLError the authentication throws is thrown as a failed connection's is`(code: URLError.Code, outcome: Outcome) async {
+            let stub = HTTPStub(answer)
+            let authentication = Connection.Authentication.apiKey({ throw URLError(code) }, baseURL: nil, header: { _ in [:] })
+
+            let error = await #expect(throws: (any Error).self) {
+                _ = try await LanguageModelSession(model: plainModel(stub, authentication: authentication)).respond(to: "Hi")
+            }
+
+            #expect(outcome.matches(error), "Got \(String(describing: error))")
         }
     }
 }

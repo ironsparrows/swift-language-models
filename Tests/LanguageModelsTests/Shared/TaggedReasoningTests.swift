@@ -2,7 +2,7 @@ import Testing
 
 @testable import LanguageModels
 
-@Suite("Tagged reasoning")
+@Suite("Tagged reasoning", .timeLimit(.minutes(1)))
 struct TaggedReasoningTests {
     @Test(
         arguments: [
@@ -12,6 +12,7 @@ struct TaggedReasoningTests {
             ("<think>A</thinking>B", "A</thinking>B", "", "<think>A</thinking>B"),
             ("<think>Cut off", "Cut off", "", "<think>Cut off"),
             ("<thinking>Plan.</think", "Plan.</think", "", "<thinking>Plan.</think"),
+            ("<think>A</think>Hi <think>B</think>", "A", "Hi <think>B</think>", "<think>A</think>"),
         ],
         [false, true]
     )

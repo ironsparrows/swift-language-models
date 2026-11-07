@@ -3,7 +3,7 @@ import Testing
 
 @testable import LanguageModels
 
-@Suite("Data URL")
+@Suite("Data URL", .timeLimit(.minutes(1)))
 struct DataURLTests {
     @Test func `bytes become a base64 data URL of their media type`() {
         #expect(DataURL(mediaType: "application/pdf", data: Data("%PDF".utf8)).text == "data:application/pdf;base64,JVBERg==")

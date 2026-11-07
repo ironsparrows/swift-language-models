@@ -78,15 +78,6 @@ extension OpenRouterOptionsTests {
             #expect(body["temperature"] == 0.5)
         }
 
-        @Test func `the token limit goes out as asked`() async throws {
-            let stub = HTTPStub(events(text("Hi"), done()))
-            let model = model(stub, fallbacks: [fallback(), fallback("other/model")])
-
-            _ = try await LanguageModelSession(model: model).respond(to: "Hi", options: GenerationOptions(maximumResponseTokens: 100_000))
-
-            #expect(try body(stub)["max_tokens"] == 100_000)
-        }
-
         @Test(arguments: [(true, true, true), (true, false, false), (false, true, false)])
         func `the shared details cache only marked prompts only when the model and every fallback do`(
             modelCaches: Bool,
@@ -98,15 +89,6 @@ extension OpenRouterOptionsTests {
             let model = model(HTTPStub(), cachesOnlyMarkedPrompts: modelCaches, fallbacks: fallbacks)
 
             #expect(model.sharedDetails.cachesOnlyMarkedPrompts == sharedCaches)
-        }
-
-        @Test func `a schema goes as structured outputs when every model takes them`() async throws {
-            let stub = HTTPStub(events(text(#"{"name":"Soup"}"#), done()))
-            let model = model(stub, fallbacks: [fallback(parameters: chatParameters)])
-
-            _ = try await LanguageModelSession(model: model).respond(to: "A dinner idea.", generating: Dish.self)
-
-            #expect(try body(stub)["response_format"]?["type"] == "json_schema")
         }
 
         @Test(arguments: [Set<OpenRouterParameter>([.tools, .maxTokens]), chatParameters.subtracting([.structuredOutputs])])
@@ -279,15 +261,10 @@ extension OpenRouterOptionsTests {
             )
             let session = LanguageModelSession(model: model(stub, fallbacks: [fallback(fallbackID)]))
 
-            let first = try await session.respond(to: "Calories in an egg?")
+            _ = try await session.respond(to: "Calories in an egg?")
             _ = try await session.respond(to: "Sure?")
 
-            let reasoningEntry = first.transcriptEntries.compactMap { entry in
-                if case .reasoning(let reasoning) = entry { reasoning } else { nil }
-            }.first
-            #expect(reasoningEntry.flatMap { metadataString($0.metadata, LanguageModelMetadataKey.model) } == answeringModel)
             let assistant = try #require(try assistantMessages(stub, 1).first)
-            #expect(assistant["content"] == "About 70 kcal.")
             #expect(assistant["reasoning_details"] == (isReplayed ? [signedDetail] : nil))
             #expect(assistant["reasoning"] == (isReplayed ? "Eggs are light." : nil))
         }

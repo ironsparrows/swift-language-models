@@ -3,7 +3,7 @@ import Testing
 
 @testable import LanguageModels
 
-@Suite("User-Agent")
+@Suite("User-Agent", .timeLimit(.minutes(1)))
 struct UserAgentTests {
     @Test(arguments: [
         ("com.example.Planner/2.3", "iOS/27.0.1", "swift-language-models (com.example.Planner/2.3; Swift/6.4; iOS/27.0.1)"),

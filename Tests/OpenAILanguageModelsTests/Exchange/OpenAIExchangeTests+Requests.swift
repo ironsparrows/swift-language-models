@@ -1,9 +1,9 @@
 import Foundation
 import FoundationModels
+import LanguageModels
 import LanguageModelsTestSupport
 import Testing
 
-@testable import LanguageModels
 @testable import OpenAILanguageModels
 
 extension OpenAIExchangeTests {
@@ -35,15 +35,6 @@ extension OpenAIExchangeTests {
             #expect(body["temperature"] == nil)
         }
 
-        @Test func `a verbosity goes as set to every model, as the official SDKs send it`() async throws {
-            let options = OpenAIOptions(verbosity: .low)
-            let reasoning = try await sentBody { reasoningModel($0, options: options) }
-            let plain = try await sentBody { plainModel($0, options: options) }
-
-            #expect(reasoning["text"] == ["verbosity": "low"])
-            #expect(plain["text"] == ["verbosity": "low"])
-        }
-
         @Test func `a level the model doesn't accept goes as the nearest effort it does`() async throws {
             let body = try await sentBody(
                 { model($0, details(efforts: [ContextOptions.ReasoningLevel.high, .medium])) }, reasoningLevel: .light)
@@ -66,34 +57,6 @@ extension OpenAIExchangeTests {
             #expect(body["reasoning"] == nil)
             #expect(body["include"] == nil)
             #expect(input(body).first == ["role": "system", "content": "Be brief."])
-        }
-
-        @Test(
-            arguments: [(OpenAIOptions.Storage.automatic, nil), (.stored, true), (.notStored, false)] as [(OpenAIOptions.Storage, Bool?)])
-        func `the storage option sends store only when it isn't OpenAI's default`(storage: OpenAIOptions.Storage, store: Bool?) async throws
-        {
-            let body = try await sentBody { reasoningModel($0, options: OpenAIOptions(storage: storage)) }
-
-            #expect(body["store"] == store.map(JSONValue.bool))
-        }
-
-        @Test func `a named cache key goes as the prompt cache key`() async throws {
-            let body = try await sentBody { reasoningModel($0, options: OpenAIOptions(cacheKey: .named("coach"))) }
-
-            #expect(body["prompt_cache_key"] == "coach")
-        }
-
-        @Test func `a session cache key is the session's first prompt id on every request`() async throws {
-            let stub = HTTPStub(
-                responseStream([created()], [textDelta("Hi."), completed()]), responseStream([created()], [textDelta("Hi."), completed()]))
-            let session = LanguageModelSession(model: reasoningModel(stub, options: OpenAIOptions(cacheKey: .session)))
-
-            _ = try await session.respond(to: "Hello")
-            _ = try await session.respond(to: "Again")
-
-            let first = try body(stub, 0)["prompt_cache_key"]
-            #expect(first?.stringValue?.isEmpty == false)
-            #expect(try body(stub, 1)["prompt_cache_key"] == first)
         }
 
         @Test func `a response schema for a model without structured outputs fails before anything is sent`() async {
@@ -134,7 +97,7 @@ extension OpenAIExchangeTests {
             func reasoning(by writer: String) -> Transcript.Entry {
                 .reasoning(
                     Transcript.Reasoning(
-                        metadata: [ReasoningOrigin.metadataKey: "openai-responses", LanguageModelMetadataKey.model: writer], segments: [],
+                        metadata: ["reasoningOrigin": "openai-responses", LanguageModelMetadataKey.model: writer], segments: [],
                         signature: JSONValue.array([item]).data))
             }
             func items(after writer: String) async throws -> [JSONValue] {
@@ -149,29 +112,11 @@ extension OpenAIExchangeTests {
             #expect(try await items(after: "gpt-test-2026-10-01") == [item])
             #expect(try await items(after: "gpt-other").isEmpty)
         }
-
-        @Test func `with storage off, only reasoning items that carry their reasoning encrypted go back`() async throws {
-            let encrypted: JSONValue = ["type": "reasoning", "id": "rs_1", "summary": [], "encrypted_content": "blob"]
-            let stored: JSONValue = ["type": "reasoning", "id": "rs_2", "summary": []]
-            let transcript = Transcript(entries: [
-                .prompt(Transcript.Prompt(segments: [text("Hi")])),
-                .reasoning(
-                    Transcript.Reasoning(
-                        metadata: [ReasoningOrigin.metadataKey: "openai-responses", LanguageModelMetadataKey.model: "gpt-test"],
-                        segments: [], signature: JSONValue.array([encrypted, stored]).data)),
-                .response(Transcript.Response(assetIDs: [], segments: [text("Hello.")])),
-            ])
-
-            let sent = try await sentBody({ reasoningModel($0, options: OpenAIOptions(storage: .notStored)) }, transcript: transcript)
-
-            #expect(sent["store"] == false)
-            #expect(input(sent).filter { $0["type"] == "reasoning" } == [encrypted])
-        }
     }
 }
 
 /// The body a model sends for a prompt, with an answer that ends at once.
-private func sentBody<Effort: ModelEffort>(
+func sentBody<Effort: ModelEffort>(
     _ makeModel: (HTTPStub) -> OpenAILanguageModel<Effort>,
     instructions: String? = nil,
     transcript: Transcript? = nil,

@@ -1,9 +1,9 @@
 import Foundation
 import FoundationModels
+import LanguageModels
 import LanguageModelsTestSupport
 import Testing
 
-@testable import LanguageModels
 @testable import OpenRouterLanguageModels
 
 extension OpenRouterInfoTests {
@@ -128,7 +128,7 @@ extension OpenRouterInfoTests {
             _ = try await fallback("anthropic/claude-haiku-5.5").endpoints(auth: .proxied(baseURL: stub.baseURL), session: stub.session)
 
             #expect(header("Authorization", of: stub) == nil)
-            #expect(header("User-Agent", of: stub) == UserAgent.current)
+            #expect(header("User-Agent", of: stub)?.hasPrefix("swift-language-models (") == true)
             #expect(header("Accept", of: stub) == "application/json")
         }
 

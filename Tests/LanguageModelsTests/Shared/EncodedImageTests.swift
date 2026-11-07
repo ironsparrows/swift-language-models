@@ -7,7 +7,7 @@ import UniformTypeIdentifiers
 
 @testable import LanguageModels
 
-@Suite("Encoded image")
+@Suite("Encoded image", .timeLimit(.minutes(1)))
 struct EncodedImageTests {
     /// Where the red half of a 40 × 20 image ends up once it's turned upright.
     enum RedSide: Sendable {
@@ -73,6 +73,8 @@ struct EncodedImageTests {
         (40, 20, .downMirrored, 2_048, 40, 20),
         (3_000, 1_000, .up, 2_048, 2_048, 683),
         (1_000, 3_000, .right, 600, 600, 200),
+        (1_200, 4_096, .up, 2_048, 600, 2_048),
+        (2_048, 2_048, .up, 2_048, 2_048, 2_048),
         (2_000, 1, .up, 100, 100, 1),
     ])
     func `the upright size turns the sides and scales the longer one down to the limit`(

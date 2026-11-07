@@ -1,8 +1,8 @@
 import Foundation
 import FoundationModels
+import LanguageModels
 import LanguageModelsTestSupport
 
-@testable import LanguageModels
 @testable import OpenRouterLanguageModels
 
 /// The parameters of a typical chat model with tools, structured outputs and reasoning.
@@ -27,8 +27,7 @@ func model<Effort: ModelEffort>(
     responseCache: OpenRouterResponseCache? = nil,
     options: OpenRouterOptions = OpenRouterOptions(),
     retryLimit: Int = RequestRetries.standard.limit,
-    configuration: OpenRouterConfiguration? = nil,
-    auth: OpenRouterAuthentication = .apiKey { "sk-or-test" }
+    configuration: OpenRouterConfiguration? = nil
 ) -> OpenRouterLanguageModel<Effort> {
     OpenRouterLanguageModel(
         details: OpenRouterModel(
@@ -51,10 +50,8 @@ func model<Effort: ModelEffort>(
         responseCache: responseCache,
         app: OpenRouterApp(name: "Coach"),
         session: stub.session,
-        // The stub stands in for OpenRouter, so the authentication's headers go to the stub's URL.
-        auth: OpenRouterAuthentication(baseURL: stub.baseURL) {
-            Dictionary(uniqueKeysWithValues: try await auth.requestAuthentication.requestHeaders().map { ($0.key.rawValue, $0.value) })
-        },
+        // The stub stands in for OpenRouter, so the authentication goes to the stub's URL.
+        auth: .apiKey(baseURL: stub.baseURL) { "sk-or-test" },
         configuration: configuration ?? OpenRouterConfiguration(retries: .immediate(limit: retryLimit))
     )
 }

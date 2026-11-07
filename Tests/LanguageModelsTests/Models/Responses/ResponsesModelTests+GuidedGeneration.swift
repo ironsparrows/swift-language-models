@@ -87,6 +87,15 @@ extension ResponsesModelTests {
                     #""test.phases":[{"length":11,"phase":"final_answer"},{"heldText":"Done.","length":0,"phase":"commentary"}]"#) == true)
         }
 
+        @Test func `a strict schema requires every property, and an optional one takes null`() throws {
+            let request = generationRequest([prompt(text("A dinner idea."))], schema: Dish.generationSchema)
+
+            let schema = try #require(try SentRequest(request).body["text"]?["format"]?["schema"])
+
+            #expect(schema["required"] == ["name", "notes"])
+            #expect(schema["properties"]?["notes"]?["anyOf"]?[1]?["type"] == "null")
+        }
+
         @Test func `a schema goes in full, with the portable schema ready`() throws {
             let request = generationRequest([prompt(text("Rate it."))], schema: Rating.generationSchema)
 
@@ -97,4 +106,10 @@ extension ResponsesModelTests {
             #expect(sent.portableSchemaBody?["text"]?["format"]?["schema"]?["properties"]?["stars"]?["description"] != nil)
         }
     }
+}
+
+@Generable
+private struct Dish {
+    var name: String
+    var notes: String?
 }

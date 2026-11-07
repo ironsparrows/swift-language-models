@@ -7,7 +7,7 @@ import UniformTypeIdentifiers
 
 @testable import OpenRouterLanguageModels
 
-@Suite("OpenRouter model")
+@Suite("OpenRouter model", .timeLimit(.minutes(1)))
 struct OpenRouterModelTests {
     @Test func `capabilities come from the parameters, inputs and reasoning the model has`() {
         let model = model(parameters: [.tools, .structuredOutputs], inputs: [.text, .image], reasoning: .mandatory)

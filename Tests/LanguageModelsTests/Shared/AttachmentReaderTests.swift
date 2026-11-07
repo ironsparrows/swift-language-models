@@ -8,7 +8,7 @@ import UniformTypeIdentifiers
 
 @testable import LanguageModels
 
-@Suite("Attachment reader")
+@Suite("Attachment reader", .timeLimit(.minutes(1)))
 struct AttachmentReaderTests {
     /// Where an image attachment's pixels come from.
     enum Source: Sendable, CaseIterable {
@@ -259,6 +259,58 @@ struct AttachmentReaderTests {
 
         #expect(encodes == 2)
         #expect(cache.count == 0)
+    }
+
+    @Test(arguments: [(String?.none, "document.pdf"), ("Menu.PDF", "Menu.PDF"), ("week 3", "week 3.pdf")])
+    func `a PDF's file name is its label, ending in pdf, or document`(label: String?, fileName: String) throws {
+        let pdf = Data("%PDF-1.4".utf8)
+
+        let content = try AttachmentReader(provider: "Test").content(of: pdf, type: .pdf, label: label, in: entry)
+
+        #expect(content == .pdf(pdf, fileName: fileName))
+    }
+
+    @Test(arguments: [
+        (UTType.utf8PlainText, "Oats, 2 cups", String.Encoding.utf8), (.commaSeparatedText, "food,kcal\negg,70", .utf8),
+        (.utf16PlainText, "Grüße 👋🏽", .utf16), (.utf16PlainText, "Grüße", .utf16LittleEndian),
+        (.utf16ExternalPlainText, "Grüße", .utf16), (.utf16ExternalPlainText, "Hi", .utf16BigEndian),
+    ])
+    func `text is decoded by its kind and byte-order mark`(type: UTType, text: String, encoding: String.Encoding) throws {
+        let data = try #require(text.data(using: encoding))
+
+        let content = try AttachmentReader(provider: "Test").content(of: data, type: type, label: nil, in: entry)
+
+        #expect(content == .text(text))
+    }
+
+    @Test(arguments: [(UTType.png, Data("not an image".utf8)), (.utf8PlainText, Data([0xFF, 0xFE, 0xFD]))])
+    func `data that can't be read as its kind is refused`(type: UTType, data: Data) throws {
+        let reader = AttachmentReader(provider: "Test", cache: EncodedImageCache())
+
+        try expectRefused { try reader.content(of: data, type: type, label: nil, in: entry) }
+    }
+
+    @Test func `an image at a web address that needs turning is refused, since only its pixels could be turned`() throws {
+        let image = Transcript.ImageAttachment(imageURL: try #require(URL(string: "https://photos.invalid/cat.png")), orientation: .left)
+
+        try expectRefused { try AttachmentReader(provider: "Test").content(of: image, in: entry) }
+    }
+
+    @Test func `a missing image file is refused instead of read`() throws {
+        let file = FileManager.default.temporaryDirectory.appending(path: "\(UUID().uuidString).png")
+        let image = Transcript.ImageAttachment(imageURL: file, orientation: .up)
+
+        try expectRefused { try AttachmentReader(provider: "Test", cache: EncodedImageCache()).content(of: image, in: entry) }
+    }
+
+    /// Expects an attachment to be refused as transcript content.
+    private func expectRefused(_ read: () throws -> AttachmentReader.Content) throws {
+        let error = try #require(throws: LanguageModelError.self) { try read() }
+
+        guard case .unsupportedTranscriptContent = error else {
+            Issue.record("Expected unsupported transcript content, got \(error)")
+            return
+        }
     }
 
     /// An image that didn't come back as JPEG that decodes.

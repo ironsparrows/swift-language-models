@@ -26,7 +26,7 @@ extension ExactExchange {
             serviceTier: .flex, verbosity: .low, reasoningSummary: .auto, cacheKey: .session, endUserID: "user-1", storage: .notStored)
         let languageModel = model(
             stub, details(efforts: [ContextOptions.ReasoningLevel.high, .medium, .low, .off]), options: options,
-            auth: .apiKey(organization: "org-1", project: "proj-1") { "sk-test" })
+            auth: { .apiKey(baseURL: $0, organization: "org-1", project: "proj-1") { "sk-test" } })
         let generation = GenerationOptions(temperature: 0.5, maximumResponseTokens: 100)
         return await ExactExchange(stub, LanguageModelSession(model: languageModel, instructions: "Be brief.")) { session, lastSnapshot in
             try await stream(

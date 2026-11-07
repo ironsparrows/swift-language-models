@@ -3,15 +3,23 @@ import Testing
 
 @testable import LanguageModels
 
-@Suite("Byte lines")
+@Suite("Byte lines", .timeLimit(.minutes(1)))
 struct ByteLinesTests {
-    @Test func `lines split at line feeds, carriage returns and the pair of both, not at other line breaks`() async throws {
-        let bytes = Array("one\r\ntwo\rthree\u{2028}still three\n\r\rlast".utf8)
+    @Test func `lines split at line feeds, carriage returns and the pair of both`() async throws {
+        let bytes = Array("one\r\ntwo\rthree\n\r\rlast".utf8)
 
         var lines: [String] = []
         for try await line in ByteLines(bytes.async) { lines.append(line) }
 
-        #expect(lines == ["one", "two", "three\u{2028}still three", "", "", "last"])
+        #expect(lines == ["one", "two", "three", "", "", "last"])
+    }
+
+    @Test(arguments: ["\u{2028}", "\u{2029}", "\u{85}"])
+    func `a Unicode line break stays inside its line`(lineBreak: String) async throws {
+        var lines: [String] = []
+        for try await line in ByteLines(Array("a\(lineBreak)b\n".utf8).async) { lines.append(line) }
+
+        #expect(lines == ["a\(lineBreak)b"])
     }
 
     @Test func `a stream ending in a line feed has no empty last line`() async throws {

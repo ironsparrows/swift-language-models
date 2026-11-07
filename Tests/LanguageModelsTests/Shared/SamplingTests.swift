@@ -4,7 +4,7 @@ import Testing
 
 @testable import LanguageModels
 
-@Suite("Sampling")
+@Suite("Sampling", .timeLimit(.minutes(1)))
 struct SamplingTests {
     @Test func `greedy sampling is temperature 0 alone`() {
         let sampling = Sampling(GenerationOptions(samplingMode: .greedy, temperature: 0.7), temperatureRange: 0...2)
