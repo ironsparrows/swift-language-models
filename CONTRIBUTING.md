@@ -103,8 +103,8 @@ In this repository:
   model's initializer requires the ones it has, and `images`, so a provider can't forget one. Give each format its own
   origin, since each sends reasoning back in another shape: reasoning a model wrote in one format is then skipped, not
   sent back in the wrong one.
-- Keep what the model, the exchange and any info calls all rely on in the module's `API.swift`: the provider's name, base
-  URL, paths and header names.
+- Keep what the model, the exchange and any info calls all rely on in the module's `Internal/API.swift`: the provider's
+  name, base URL, paths and header names.
 - Give the model a public configuration of the module's own, such as `VendorConfiguration`, built only from the core's
   pieces the module uses, `RequestRetries` and `ImageEncoding`, and an `idleTimeout`. Never declare a retry or image
   setting of the module's own. Make `Connection` from it, with the `RetriedStatuses` rule for which statuses to retry,

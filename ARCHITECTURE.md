@@ -120,7 +120,7 @@ Where each step lives:
 | Step | File |
 |---|---|
 | OpenRouter's entry | `Sources/OpenRouterLanguageModels/OpenRouterLanguageModel.swift`, `Executor.respond` |
-| OpenRouter as a Chat Completions provider, and all it does in a request | `Sources/OpenRouterLanguageModels/OpenRouterExchange.swift` |
+| OpenRouter as a Chat Completions provider, and all it does in a request | `Sources/OpenRouterLanguageModels/Internal/OpenRouterExchange.swift` |
 | The checks and the exchange | `Sources/LanguageModels/Models/ChatCompletions/ChatCompletionsModel.swift` |
 | 1 and 3: the request and its body | `ChatCompletionsRequest.swift`, with the transcript in `ChatCompletionsTranscript.swift` |
 | 4: sending | `Sources/LanguageModels/Shared/Connection.swift`, `HTTPClient.swift` |
@@ -163,7 +163,7 @@ sequenceDiagram
 | Step | File |
 |---|---|
 | OpenAI's entry | `Sources/OpenAILanguageModels/OpenAILanguageModel.swift`, `Executor.respond` |
-| OpenAI as a Responses provider | `Sources/OpenAILanguageModels/OpenAIExchange.swift` |
+| OpenAI as a Responses provider | `Sources/OpenAILanguageModels/Internal/OpenAIExchange.swift` |
 | The checks and the exchange | `Sources/LanguageModels/Models/Responses/ResponsesModel.swift` |
 | 1 and 3: the request and its body | `ResponsesRequest.swift`, over `ResponsesInput.swift` and `ResponsesReplay.swift` |
 | 5 and 6: the stream | `ResponsesStream.swift` |
