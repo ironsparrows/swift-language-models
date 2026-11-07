@@ -5,7 +5,7 @@ import LanguageModels
 /// ``InfoTransport``: to the base URL, or OpenRouter's own API, with a failure thrown as a chat request's would be.
 struct APITransport: Sendable {
     /// How the calls reach OpenRouter: the session, the authentication and its base URL, and how a call retries.
-    let connection: ProviderConnection
+    let connection: Connection
 
     /// How long an answer stays fresh in the cache.
     var cacheLifetime: Duration = OpenRouterConfiguration().infoCacheLifetime
@@ -48,9 +48,9 @@ extension APITransport {
     /// - Returns: The transport.
     static func calls(auth: OpenRouterAuthentication?, session: URLSession, configuration: OpenRouterConfiguration) -> Self {
         let authentication = auth?.requestAuthentication ?? .unauthenticated
-        let connection = ProviderConnection(
+        let connection = Connection(
             session: session, authentication: authentication, idleTimeout: configuration.idleTimeout,
-            retryPolicy: configuration.retries.policy(statuses: API.retriesStatus))
+            retries: configuration.retries, retrying: API.retriesStatus)
         return Self(connection: connection, cacheLifetime: configuration.infoCacheLifetime)
     }
 

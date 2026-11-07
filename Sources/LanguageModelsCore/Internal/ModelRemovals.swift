@@ -1,4 +1,5 @@
 package import Foundation
+package import FoundationModels
 import os
 
 /// The models a provider stopped listing, which its catalog keeps as deprecated members, each with the day it left.
@@ -28,7 +29,7 @@ package struct ModelRemovals: Sendable {
 extension ModelRemovals {
     /// A model a request may reach, as its model or a fallback, that its provider stopped listing, so the request may
     /// fail, to report before the request is sent.
-    struct Report: Equatable, Sendable {
+    package struct Report: Equatable, Sendable {
         /// The model's id.
         let id: String
         /// Midnight UTC at the start of the day the provider stopped listing the model.
@@ -51,12 +52,30 @@ extension ModelRemovals {
     }
 }
 
+extension [ModelRemovals.Report] {
+    /// The models a request may reach that their provider stopped listing.
+    ///
+    /// - Parameter models: The models a request may reach, in the order the provider tries them.
+    package init(reaching models: [any ModelDetails]) {
+        self = models.compactMap { details in
+            details.removalDate.map { ModelRemovals.Report(id: details.id.rawValue, removedOn: $0) }
+        }
+    }
+
+    /// Reports each model, before the request is sent.
+    ///
+    /// - Parameter request: The request, whose id names it in the log.
+    package func report(for request: LanguageModelExecutorGenerationRequest) {
+        let name = LanguageModelsLogging.requestName(request.id)
+        for removed in self {
+            removed.report(request: name)
+        }
+    }
+}
+
 extension DetailedLanguageModelBase {
     /// The model and fallbacks that their provider stopped listing, in the order the provider tries them.
     var removedModels: [ModelRemovals.Report] {
-        let reachable: [any ModelDetails] = [details] + fallbacks
-        return reachable.compactMap { details in
-            details.removalDate.map { ModelRemovals.Report(id: details.id.rawValue, removedOn: $0) }
-        }
+        [ModelRemovals.Report](reaching: [details] + fallbacks)
     }
 }

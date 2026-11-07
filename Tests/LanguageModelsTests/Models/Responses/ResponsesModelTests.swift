@@ -2,11 +2,12 @@ import Foundation
 import FoundationModels
 import LanguageModelsTestSupport
 import Testing
+import UniformTypeIdentifiers
 
 @testable import LanguageModels
 
-@Suite("Responses executor")
-struct ResponsesExecutorTests {
+@Suite("Responses model")
+struct ResponsesModelTests {
     @Test func `a request goes to responses, and its answer streams back`() async throws {
         let stub = HTTPStub(events(textDelta("Hi"), lifecycle("response.completed")))
 
@@ -21,12 +22,46 @@ struct ResponsesExecutorTests {
                 == #"{"model":"vendor/model","input":[{"role":"user","content":"Hello"}],"stream":true}"#)
     }
 
+    @Test func `a plain model answers in a session with no provider`() async throws {
+        let stub = HTTPStub(events(textDelta("Hi"), lifecycle("response.completed")))
+
+        let response = try await LanguageModelSession(model: plainModel(stub)).respond(to: "Hello")
+
+        #expect(response.content == "Hi")
+        #expect(stub.requests.first?.request.url?.path == "/responses")
+    }
+
+    @Test func `a plain model throws a failure as it is`() async {
+        let stub = HTTPStub(.json(#"{"error":{"message":"Bad key."}}"#, status: 401))
+
+        await #expect(throws: RequestFailure<APIErrorBody>.self) {
+            _ = try await LanguageModelSession(model: plainModel(stub)).respond(to: "Hello")
+        }
+    }
+
+    @Test func `a plain model holds an answer to its schema's guides`() async {
+        let stub = HTTPStub(events(textDelta(#"{"stars":9}"#), lifecycle("response.completed")))
+
+        await #expect(throws: GeneratedContent.ParsingError.self) {
+            _ = try await LanguageModelSession(model: plainModel(stub)).respond(to: "Rate it.", generating: Rating.self)
+        }
+    }
+
+    @Test func `a model keeps a report of each model a request may reach that its provider stopped listing`() {
+        let model = Responses.Model(
+            name: "vendor/model", url: URL(fileURLWithPath: "/"), connection: Responses.Model<ResponsesTestExchange>.test().connection,
+            providerName: "Test", capabilities: LanguageModelCapabilities([]),
+            reaching: [Reached(removalDate: nil), Reached(removalDate: .distantPast)], exchange: ResponsesTestExchange())
+
+        #expect(model.removedModels.count == 1)
+    }
+
     @Test func `a stream that ends before the response completes is cut off, even after a done`() async {
         let stub = HTTPStub(.eventStream(Data("data: \(textDelta("Hi").text)\n\ndata: [DONE]\n\n".utf8)))
 
         let (_, failure) = await respond(stub, to: [prompt(text("Hello"))])
 
-        guard case .unusableResponse(.cutOff)? = failure?.kind else {
+        guard case .unusableAnswer? = failure?.kind, failure?.message == "The response ended before it was complete." else {
             Issue.record("The answer ended with \(String(describing: failure))")
             return
         }
@@ -42,7 +77,7 @@ struct ResponsesExecutorTests {
 
         let (_, failure) = await respond(stub, to: [prompt(text("Hello"))])
 
-        guard case .errorEvent(let error)? = failure?.kind else {
+        guard case .errorEvent? = failure?.kind, let error = failure?.body else {
             Issue.record("The answer ended with \(String(describing: failure))")
             return
         }
@@ -56,10 +91,11 @@ struct ResponsesExecutorTests {
 
         let (_, failure) = await respond(stub, to: [prompt(text("Hello"))])
 
-        guard case .failedResponse(let error)? = failure?.kind else {
+        guard case .failedAnswer? = failure?.kind else {
             Issue.record("The answer ended with \(String(describing: failure))")
             return
         }
+        let error = failure?.body
         #expect(error?.message == "Slow down.")
         #expect(error?.code == "rate_limit_exceeded")
     }
@@ -70,7 +106,7 @@ struct ResponsesExecutorTests {
 
         let (_, failure) = await respond(stub, to: [prompt(text("Hello"))])
 
-        guard case .rejected(let rejection)? = failure?.kind else {
+        guard case .rejected? = failure?.kind, let rejection = failure else {
             Issue.record("The answer ended with \(String(describing: failure))")
             return
         }
@@ -125,7 +161,7 @@ struct ResponsesExecutorTests {
 
         let (_, failure) = await respond(stub, to: [prompt(text("Hello"))])
 
-        guard case .unusableResponse(.tokenLimitInToolCall)? = failure?.kind else {
+        guard case .unusableAnswer? = failure?.kind, failure?.message == "The answer reached its token limit inside a tool call." else {
             Issue.record("The answer ended with \(String(describing: failure))")
             return
         }
@@ -136,7 +172,7 @@ struct ResponsesExecutorTests {
 
         let (_, failure) = await respond(stub, to: [prompt(text("Hello"))])
 
-        guard case .failedResponse(nil)? = failure?.kind else {
+        guard case .failedAnswer? = failure?.kind, failure?.body == nil else {
             Issue.record("The answer ended with \(String(describing: failure))")
             return
         }
@@ -467,29 +503,56 @@ struct ResponsesStreamTests {
 }
 
 /// The test model, sending to a stub.
-private func model(_ stub: HTTPStub) -> ResponsesTestModel {
-    ResponsesTestModel(setup: ResponsesTestModel.Setup(url: stub.baseURL, session: stub.session))
+private func model(_ stub: HTTPStub) -> Responses.Model<ResponsesTestExchange> {
+    .test(url: stub.baseURL, session: stub.session)
 }
 
-/// Sends one request through the test model's request executor to a stub, reading the channel's events without looking
-/// at them, since a channel waits for its reader.
+/// A model a request may reach.
+private struct Reached: ModelDetails {
+    let id: ResponsesTestModelID = "vendor/model"
+    let displayName = "Model"
+    let capabilities = LanguageModelCapabilities([])
+    let reasoning = ModelReasoning.unsupported
+    let contextSize: Int? = nil
+    let reasoningEfforts: [Efforts.Unsupported] = []
+    let defaultReasoningEffort: Efforts.Unsupported? = nil
+    let removalDate: Date?
+    let dataAttachmentTypes: Set<UTType> = []
+    let dataEntryTypes: Set<UTType> = []
+}
+
+/// The id of a model a request may reach.
+private struct ResponsesTestModelID: ProviderVocabulary {
+    let rawValue: String
+}
+
+/// A model of the plain format, sending to a stub.
+private func plainModel(_ stub: HTTPStub) -> Responses.Model<Responses.PlainExchange> {
+    var model = Responses.Model(name: "vendor/model", url: stub.baseURL)
+    model.connection = Connection(
+        session: stub.session, authentication: .unauthenticated, idleTimeout: nil, retries: .disabled, retrying: { _ in false })
+    return model
+}
+
+/// Runs one exchange of the test model with a stub, reading the channel's events without looking at them, since a
+/// channel waits for its reader.
 ///
 /// - Returns: The answer, or the failure it ended in.
 private func respond(
     _ stub: HTTPStub,
     to entries: [Transcript.Entry],
     schema: GenerationSchema? = nil
-) async -> (DetailedLanguageModelAnswer?, ResponsesFailure<ResponsesTestDialect>?) {
+) async -> (DetailedLanguageModelAnswer?, RequestFailure<APIErrorBody>?) {
     let (answer, error) = await respondThrowing(stub, to: entries, schema: schema)
     guard let error else { return (answer, nil) }
-    guard let failure = error as? ResponsesFailure<ResponsesTestDialect> else {
-        Issue.record("The executor threw \(error)")
+    guard let failure = error as? RequestFailure<APIErrorBody> else {
+        Issue.record("The model threw \(error)")
         return (nil, nil)
     }
     return (nil, failure)
 }
 
-/// Sends one request through the test model's request executor to a stub.
+/// Runs one exchange of the test model with a stub.
 ///
 /// - Returns: The answer, or the error it ended in.
 private func respondThrowing(
@@ -497,12 +560,12 @@ private func respondThrowing(
     to entries: [Transcript.Entry],
     schema: GenerationSchema? = nil
 ) async -> (DetailedLanguageModelAnswer?, (any Error)?) {
-    let executor = ResponsesTestModel.RequestExecutor(configuration: .init())
     let channel = LanguageModelExecutorGenerationChannel()
     let reader = Task { for try await _ in channel {} }
     defer { reader.cancel() }
     do {
-        return (try await executor.execute(generationRequest(entries, schema: schema), model: model(stub), streamingInto: channel), nil)
+        let text = try await model(stub).run(generationRequest(entries, schema: schema), streamingInto: channel)
+        return (DetailedLanguageModelAnswer(responseText: text), nil)
     } catch {
         return (nil, error)
     }

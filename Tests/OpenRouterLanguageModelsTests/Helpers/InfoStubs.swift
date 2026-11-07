@@ -18,10 +18,10 @@ func transport(
     cache: InfoCache = InfoCache(),
     retryLimit: Int = RequestRetries.standard.limit
 ) -> APITransport {
-    let authentication = RequestAuthentication(baseURL: stub.baseURL) { headers }
-    let connection = ProviderConnection(
+    let authentication = Connection.Authentication(baseURL: stub.baseURL) { headers }
+    let connection = Connection(
         session: stub.session, authentication: authentication, idleTimeout: nil,
-        retryPolicy: RequestRetries.immediate(limit: retryLimit).policy(statuses: API.retriesStatus))
+        retries: .immediate(limit: retryLimit), retrying: API.retriesStatus)
     return APITransport(connection: connection, cacheLifetime: cacheLifetime, cache: cache)
 }
 

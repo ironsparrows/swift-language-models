@@ -1,7 +1,7 @@
 package import Foundation
 package import LanguageModelsCore
 
-extension ProviderConnection {
+extension Connection {
     /// Sends a format's request with the authentication's headers and the provider's, and opens its stream of
     /// server-sent events, sending it once more with the portable schema when the host rejects a constraint of the full
     /// one.
@@ -16,7 +16,7 @@ extension ProviderConnection {
     ///   - log: The request's log.
     /// - Returns: The stream, and the headers of its response.
     /// - Throws: ``ProviderHTTP/Failure`` for a response whose status isn't a success, after the retries, which the
-    ///   format turns into the dialect's error; what the authentication and `url` throw; and a failed connection's
+    ///   format turns into the provider's error; what the authentication and `url` throw; and a failed connection's
     ///   error.
     package func openEventStream(
         body: JSONValue,

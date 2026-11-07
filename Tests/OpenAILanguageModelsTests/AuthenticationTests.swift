@@ -9,16 +9,16 @@ import Testing
 @Suite("Authentication")
 struct AuthenticationTests {
     @Test func `an API key goes as a bearer token, with the organization and project when they're set`() async throws {
-        let plain = try await OpenAIAuthentication.apiKey { "sk-test" }.requestHeaders()
+        let plain = try await OpenAIAuthentication.apiKey { "sk-test" }.requestAuthentication.requestHeaders()
         let scoped = try await OpenAIAuthentication.apiKey(organization: "org-1", project: "proj-1") { "sk-test" }
-            .requestHeaders()
+            .requestAuthentication.requestHeaders()
 
         #expect(plain == [.authorization: "Bearer sk-test"])
         #expect(scoped == [.authorization: "Bearer sk-test", "OpenAI-Organization": "org-1", "OpenAI-Project": "proj-1"])
     }
 
     @Test func `an empty key sends no headers at all`() async throws {
-        let headers = try await OpenAIAuthentication.apiKey(organization: "org-1") { "" }.requestHeaders()
+        let headers = try await OpenAIAuthentication.apiKey(organization: "org-1") { "" }.requestAuthentication.requestHeaders()
 
         #expect(headers.isEmpty)
     }

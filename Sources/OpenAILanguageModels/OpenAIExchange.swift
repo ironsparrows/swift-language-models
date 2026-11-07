@@ -3,74 +3,63 @@ import FoundationModels
 import LanguageModels
 import UniformTypeIdentifiers
 
-// MARK: - Exchange
+// MARK: - As a Responses model
 
-/// OpenAI's dialect of the Responses format: the reasoning effort and summary, the storage, the options only OpenAI
-/// has, the settings each model takes, the reasoning items that go back on later turns, the request id, and what
-/// OpenAI's failures become.
-///
-/// The format's executor creates one for each request, from the model and its request executor, and does the rest.
-///
-/// Every hook with a default is in the extension that declares the conformance, so a misspelled one draws a warning
-/// instead of silently keeping the default; the hooks of OpenAI's own types have no default to fall back to.
-struct OpenAIResponses<Effort: ModelEffort> {
-    /// The model.
-    let model: OpenAILanguageModel<ContextOptions.ReasoningLevel>
-
-    /// Where requests go and how long they wait.
-    let configuration: OpenAILanguageModel<ContextOptions.ReasoningLevel>.RequestExecutor.Configuration
-
-    init(model: OpenAILanguageModel<Effort>, executor: OpenAILanguageModel<Effort>.RequestExecutor) {
-        self.model = OpenAILanguageModel(model)
-        configuration = .init(executor.configuration)
+extension OpenAILanguageModel {
+    /// This model as a Responses model: what is true for every request, and OpenAI's part in each.
+    ///
+    /// - Parameter configuration: Where requests go and how long they wait.
+    /// - Returns: The model.
+    /// - Throws: `OpenAIError` with `invalidRequest` when there's no valid base URL.
+    func responses(_ configuration: RequestExecutor.Configuration) throws(OpenAIError) -> Responses.Model<OpenAIExchange> {
+        let exchange = OpenAIExchange(model: OpenAILanguageModel<ContextOptions.ReasoningLevel>(self))
+        var model = Responses.Model(
+            name: details.id.rawValue, url: try API.baseURL(configuration.baseURL), connection: connection(configuration.settings),
+            providerName: API.name, capabilities: capabilities, reaching: [details] + fallbacks, exchange: exchange)
+        model.unsupportedMembers = OpenAIExchange.listedMembers.filter { !exchange.lists($0) }
+        // `developer` for a model that reasons, and `system` for one that doesn't, as models before reasoning models take
+        // instructions.
+        model.instructionsRole = details.reasoning.isSupported ? .developer : .system
+        model.images = configuration.settings.images
+        model.reasoningOrigin = API.reasoningOrigin
+        model.phasesKey = OpenAIMetadataKey.phases
+        return model
     }
-
-    /// The model's details.
-    var details: OpenAIModel<ContextOptions.ReasoningLevel> { model.details }
 }
 
-extension OpenAIResponses: ResponsesDialect {
-    typealias Model = OpenAILanguageModel<Effort>
-    typealias ProviderError = OpenAIError
-    typealias BodyExtras = OpenAIBodyExtras
-    typealias StreamState = OpenAIStreamState
+// MARK: - Exchange
 
-    static var name: String { API.name }
+/// OpenAI's part in one exchange: the reasoning effort and summary, the storage, the options only OpenAI has, the
+/// settings each model takes, the reasoning items that go back on later turns, the request id, and what OpenAI's
+/// failures become.
+///
+/// Every method with a default is here, in the type that declares the conformance, so a misspelled one draws a warning
+/// instead of silently keeping the default.
+struct OpenAIExchange: Responses.Exchange {
+    /// The model.
+    fileprivate let model: OpenAILanguageModel<ContextOptions.ReasoningLevel>
 
-    static var reasoningOrigin: ReasoningOrigin { .openAIResponses }
-
-    static var phasesMetadataKey: String { OpenAIMetadataKey.phases }
+    /// The model's details.
+    private var details: OpenAIModel<ContextOptions.ReasoningLevel> { model.details }
 
     /// The settings that go out only to models that take them.
-    static var listedMembers: Set<Responses.Member> {
-        [.temperature, .topP, .maxOutputTokens, .tools, .toolChoice, .reasoning, OpenAIBodyExtras.parallelToolCallsKey]
-    }
-
-    var modelID: OpenAIModelID { details.id }
-
-    var baseURL: URL {
-        get throws(OpenAIError) { try API.baseURL(configuration.baseURL) }
-    }
-
-    var connection: ProviderConnection { model.connection(configuration.settings) }
-
-    var imageEncoding: ImageEncoding { configuration.settings.images }
-
-    /// `developer` for a model that reasons, and `system` for one that doesn't, as models before reasoning models take
-    /// instructions.
-    var instructionsRole: InstructionsRole { details.reasoning.isSupported ? .developer : .system }
+    fileprivate static let listedMembers: Set<Responses.Member> = [
+        .temperature, .topP, .maxOutputTokens, .tools, .toolChoice, .reasoning, Members.parallelToolCallsKey,
+    ]
 
     /// Whether the model takes a setting, which the catalog names as the body does.
-    func lists(_ member: Responses.Member) -> Bool {
+    fileprivate func lists(_ member: Responses.Member) -> Bool {
         details.supportedParameters.contains(OpenAIParameter(rawValue: member.rawValue))
     }
+
+    // MARK: While the request is read
 
     /// Checks that the model takes an attachment, as Foundation Models does before a request.
     ///
     /// - Throws: `LanguageModelError.unsupportedCapability` with `.vision` for an image when the model doesn't take
     ///   images, and `LanguageModelError.unsupportedTranscriptContent` for data of a kind the model doesn't take.
-    func check(_ attachment: AttachmentKind, in entry: Transcript.Entry) throws(LanguageModelError) {
-        switch attachment {
+    func checkAttachment(_ kind: AttachmentKind, in entry: Transcript.Entry) throws(LanguageModelError) {
+        switch kind {
         case .image:
             guard details.inputModalities.contains(.image) else {
                 throw LanguageModelError.unsupported(.vision, "The model doesn't take images.")
@@ -87,9 +76,9 @@ extension OpenAIResponses: ResponsesDialect {
     func replays(_ reasoning: Transcript.Reasoning) -> Bool {
         reasoning.writer.map(details.id.names) ?? true
     }
-}
 
-extension OpenAIResponses {
+    // MARK: Before it is sent
+
     /// OpenAI's members and the format's reasoning, storage and `text` members, with each setting the model doesn't
     /// take with the request left out.
     ///
@@ -102,36 +91,38 @@ extension OpenAIResponses {
     ///
     /// - Throws: `LanguageModelError.unsupportedCapability` when tool calls are required and the model doesn't take
     ///   tools, or when the request has a response schema and the model doesn't take structured outputs.
-    func body(_ context: BodyContext) throws(LanguageModelError) -> ResponsesBodyPlan<BodyExtras> {
+    func prepare(_ request: inout Responses.Request) throws {
         let options = model.options
-        let sendsSessionTools = context.hasSessionTools && lists(.tools)
-        if context.hasSessionTools, !sendsSessionTools, context.toolCallingMode?.kind == .required {
+        let generation = request.generation
+        let sendsSessionTools = request.hasSessionTools && lists(.tools)
+        if request.hasSessionTools, !sendsSessionTools, generation.generationOptions.toolCallingMode?.kind == .required {
             throw LanguageModelError.unsupported(.toolCalling, "The model doesn't take tools, so it can't be made to call one.")
         }
-        if context.hasSchema, !details.supportedParameters.contains(.structuredOutputs) {
+        if generation.schema != nil, !details.supportedParameters.contains(.structuredOutputs) {
             throw LanguageModelError.unsupported(
                 .guidedGeneration, "The model doesn't take structured outputs, so it can't hold its answer to a schema.")
         }
-        let (effort, movedEffort) = reasoningEffort(context.reasoningLevel)
-        var plan = ResponsesBodyPlan(
-            extras: BodyExtras(
+        let (effort, movedEffort) = reasoningEffort(generation.contextOptions.reasoningLevel)
+        request.members = try JSONValueEncoder.members(
+            of: Members(
                 // The parallel calls concern only the session's tools.
                 parallelToolCalls: sendsSessionTools ? options.parallelToolCalls.value : nil,
                 serviceTier: options.serviceTier,
-                promptCacheKey: options.cacheKey.flatMap { Self.cacheKey($0, firstPromptID: context.firstPromptID) },
+                promptCacheKey: options.cacheKey.flatMap { Self.cacheKey($0, firstPromptID: request.firstPromptID) },
                 safetyIdentifier: options.endUserID
             ))
-        plan.sessionTools = sendsSessionTools ? .sent : .leftOut
-        plan.storage = options.storage.planned
-        plan.textExtras = options.verbosity.map(OpenAITextExtras.init)
-        plan.movedEffort = movedEffort
-        if details.reasoning.isSupported {
-            plan.reasoning = ResponsesBodyPlan.Reasoning(effort: effort, summary: options.reasoningSummary?.rawValue)
-            plan.asksForEncryptedReasoning = true
-            let reasons = effort.map { $0 != ContextOptions.ReasoningLevel.off.effortWord } ?? (details.reasoning == .mandatory)
-            if reasons { plan.leftOutMembers = [.temperature, .topP] }
+        request.sendsSessionTools = sendsSessionTools
+        request.storage = options.storage.storage
+        if let verbosity = options.verbosity {
+            request.textMembers = try JSONValueEncoder.members(of: TextMembers(verbosity: verbosity))
         }
-        return plan
+        request.movedEffort = movedEffort
+        if details.reasoning.isSupported {
+            request.reasoning = Responses.Request.Reasoning(effort: effort, summary: options.reasoningSummary?.rawValue)
+            request.asksForEncryptedReasoning = true
+            let reasons = effort.map { $0 != ContextOptions.ReasoningLevel.off.effortWord } ?? (details.reasoning == .mandatory)
+            if reasons { request.leftOutMembers = [.temperature, .topP] }
+        }
     }
 
     /// The effort to send for a reasoning level: the nearest the model accepts, and the level with the effort sent
@@ -148,81 +139,38 @@ extension OpenAIResponses {
         case .named(let name): name
         }
     }
-}
 
-extension OpenAIOptions.ParallelToolCalls {
-    /// The `parallel_tool_calls` value, or `nil` to leave the choice to OpenAI.
-    fileprivate var value: Bool? {
-        switch self {
-        case .automatic: nil
-        case .allowed: true
-        case .disallowed: false
-        }
-    }
-}
-
-extension OpenAIOptions.Storage {
-    /// The format's storage for the option.
-    fileprivate var planned: ResponsesBodyPlan<OpenAIBodyExtras>.Storage {
-        switch self {
-        case .automatic: .automatic
-        case .stored: .stored
-        case .notStored: .notStored
-        }
-    }
-}
-
-/// What OpenAI reports about one answer beyond the format's facts: the request's id, from the response's headers.
-struct OpenAIStreamState: Sendable {
-    /// OpenAI's id for the request.
-    let requestID: String?
-}
-
-extension OpenAIResponses {
-    func streamState(_ headers: ResponseHeaders) -> OpenAIStreamState {
-        OpenAIStreamState(requestID: headers.value(for: .requestID))
-    }
+    // MARK: When it ends, or fails
 
     /// The request's id, on the entry that ends the answer.
-    func facts(of state: OpenAIStreamState) -> AnswerFacts {
+    func additions(header: (String) -> String?) -> AnswerAdditions {
         var metadata: [String: any ConvertibleToGeneratedContent] = [:]
-        metadata[LanguageModelMetadataKey.requestID] = state.requestID
-        return AnswerFacts(metadata: metadata)
+        metadata[LanguageModelMetadataKey.requestID] = header(API.Header.requestID)
+        return AnswerAdditions(metadata: metadata)
     }
 
     /// What a failure becomes: `LanguageModelError` for a rate limit, an oversized context, a safety system, a timeout
     /// or an image OpenAI can't use, and `OpenAIError` otherwise, with `invalidResponse` for a response the format
     /// couldn't use.
-    func error(for failure: ResponsesFailure<Self>) -> MappedError<OpenAIError> {
-        let requestID = failure.state?.requestID
+    func error(for failure: RequestFailure<APIErrorBody>) -> any Error {
+        let requestID = failure.header(API.Header.requestID)
         switch failure.kind {
-        case .rejected(let rejection):
-            return OpenAIFailure(rejection).error(contextSize: details.contextSize, imageEntries: failure.imageEntries)
-        case .errorEvent(let body):
-            return OpenAIFailure(streamError: body, requestID: requestID)
+        case .rejected:
+            return OpenAIFailure(failure).error(contextSize: details.contextSize, imageEntries: failure.imageEntries)
+        case .errorEvent, .failedAnswer:
+            return OpenAIFailure(streamError: failure.body, requestID: requestID)
                 .error(contextSize: details.contextSize, imageEntries: failure.imageEntries)
-        case .failedResponse(let body):
-            return OpenAIFailure(streamError: body, requestID: requestID)
-                .error(contextSize: details.contextSize, imageEntries: failure.imageEntries)
-        case .unusableResponse:
-            return .provider(OpenAIError(message: failure.message, code: .invalidResponse, requestID: requestID))
+        case .unreadableEvent, .unusableAnswer:
+            return OpenAIError(message: failure.message, code: .invalidResponse, requestID: requestID)
         }
     }
-}
-
-extension ReasoningOrigin {
-    /// Reasoning that a model wrote through OpenAI's Responses API, which goes back as the answer's `reasoning` items,
-    /// with their reasoning encrypted.
-    ///
-    /// Saved transcripts keep this value, so it never changes.
-    static let openAIResponses = Self(rawValue: "openai-responses")
 }
 
 // MARK: - Wire
 
 /// The members of a Responses request that only OpenAI's options set, each left out when the option keeps OpenAI's
 /// default.
-struct OpenAIBodyExtras: Encodable {
+private struct Members: Encodable {
     let parallelToolCalls: Bool?
     let serviceTier: OpenAIServiceTier?
     let promptCacheKey: String?
@@ -240,6 +188,28 @@ struct OpenAIBodyExtras: Encodable {
 }
 
 /// The members OpenAI adds to `text`: how long and detailed the answer is.
-struct OpenAITextExtras: Encodable, Sendable {
+private struct TextMembers: Encodable {
     let verbosity: OpenAIOptions.Verbosity
+}
+
+extension OpenAIOptions.ParallelToolCalls {
+    /// The `parallel_tool_calls` value, or `nil` to leave the choice to OpenAI.
+    fileprivate var value: Bool? {
+        switch self {
+        case .automatic: nil
+        case .allowed: true
+        case .disallowed: false
+        }
+    }
+}
+
+extension OpenAIOptions.Storage {
+    /// The format's storage for the option.
+    fileprivate var storage: Responses.Request.Storage {
+        switch self {
+        case .automatic: .automatic
+        case .stored: .stored
+        case .notStored: .notStored
+        }
+    }
 }

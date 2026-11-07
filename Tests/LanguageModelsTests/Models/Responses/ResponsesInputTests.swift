@@ -6,8 +6,8 @@ import UniformTypeIdentifiers
 
 @testable import LanguageModels
 
-@Suite("Input")
-struct InputTests {
+@Suite("Responses input")
+struct ResponsesInputTests {
     @Test func `instructions, prompts, answers and tool outputs become messages, function calls and their outputs`() throws {
         let call = Transcript.ToolCall(id: "call_1", toolName: "lookUp", arguments: GeneratedContent(properties: ["word": "egg"]))
         let entries: [Transcript.Entry] = [
@@ -18,7 +18,7 @@ struct InputTests {
             .toolOutput(Transcript.ToolOutput(id: "call_1", toolName: "lookUp", segments: [text("egg:"), text("an oval")])),
         ]
 
-        let items = input(try ResponsesRequest(generationRequest(entries), dialect: ResponsesTestDialect()).body)
+        let items = input(try SentRequest(generationRequest(entries)).body)
 
         #expect(
             items == [
@@ -30,14 +30,14 @@ struct InputTests {
             ])
     }
 
-    @Test func `the instructions go in the dialect's role`() throws {
-        var setup = ResponsesTestModel.Setup()
-        setup.instructionsRole = .system
+    @Test func `the instructions go in the model's role`() throws {
+        var model = Responses.Model<ResponsesTestExchange>.test()
+        model.instructionsRole = .system
         let entries: [Transcript.Entry] = [
             .instructions(Transcript.Instructions(segments: [text("Be brief.")], toolDefinitions: [])), prompt(text("Hi")),
         ]
 
-        let items = input(try ResponsesRequest(generationRequest(entries), dialect: ResponsesTestDialect(setup)).body)
+        let items = input(try SentRequest(generationRequest(entries), model: model).body)
 
         #expect(items.first == ["role": "system", "content": "Be brief."])
     }
@@ -59,7 +59,7 @@ struct InputTests {
                     metadata: ["test.phases": phases(("commentary", 6), ("final_answer", 6))], segments: [text("Hm.   Hello.")])),
         ]
 
-        let items = input(try ResponsesRequest(generationRequest(entries), dialect: ResponsesTestDialect()).body)
+        let items = input(try SentRequest(generationRequest(entries)).body)
 
         #expect(
             Array(items.dropFirst()) == [
@@ -75,7 +75,7 @@ struct InputTests {
                 Transcript.Response(metadata: ["test.phases": phases(("commentary", 4), ("final_answer", 4))], segments: [text("Hello.")])),
         ]
 
-        let items = input(try ResponsesRequest(generationRequest(entries), dialect: ResponsesTestDialect()).body)
+        let items = input(try SentRequest(generationRequest(entries)).body)
 
         #expect(items.last == ["role": "assistant", "content": "Hello.", "phase": "final_answer"])
     }
@@ -88,7 +88,7 @@ struct InputTests {
             .response(Transcript.Response(metadata: ["test.phases": [commentary, final]], segments: [text(#"{"stars":4}"#)])),
         ]
 
-        let items = input(try ResponsesRequest(generationRequest(entries), dialect: ResponsesTestDialect()).body)
+        let items = input(try SentRequest(generationRequest(entries)).body)
 
         #expect(
             Array(items.dropFirst()) == [
@@ -105,7 +105,7 @@ struct InputTests {
             prompt(text("Hi")), .reasoning(reasoning), .response(Transcript.Response(assetIDs: [], segments: [])), prompt(text("Again.")),
         ]
 
-        let items = input(try ResponsesRequest(generationRequest(entries), dialect: ResponsesTestDialect()).body)
+        let items = input(try SentRequest(generationRequest(entries)).body)
 
         #expect(items == [["role": "user", "content": "Hi"], ["role": "user", "content": "Again."]])
     }
@@ -120,15 +120,11 @@ struct InputTests {
             prompt(text("Hi")), .reasoning(reasoning), .response(Transcript.Response(assetIDs: [], segments: [text("Hello.")])),
             prompt(text("Again.")),
         ]
-        var setup = ResponsesTestModel.Setup()
-        setup.plan = { _ in
-            var plan = ResponsesBodyPlan<JSONValue>(extras: [:])
-            plan.storage = .notStored
-            return plan
-        }
+        var model = Responses.Model<ResponsesTestExchange>.test()
+        model.exchange.prepares = { $0.storage = .notStored }
 
-        let notStored = input(try ResponsesRequest(generationRequest(entries), dialect: ResponsesTestDialect(setup)).body)
-        let automatic = input(try ResponsesRequest(generationRequest(entries), dialect: ResponsesTestDialect()).body)
+        let notStored = input(try SentRequest(generationRequest(entries), model: model).body)
+        let automatic = input(try SentRequest(generationRequest(entries)).body)
 
         #expect(notStored.filter { $0["type"] == "reasoning" } == [encrypted])
         #expect(automatic.filter { $0["type"] == "reasoning" } == [encrypted, stored])
@@ -143,7 +139,7 @@ struct InputTests {
             .toolCalls(Transcript.ToolCalls([call])),
         ]
 
-        let items = input(try ResponsesRequest(generationRequest(entries), dialect: ResponsesTestDialect()).body)
+        let items = input(try SentRequest(generationRequest(entries)).body)
 
         #expect(items[1] == ["role": "assistant", "content": "Looking it up.", "phase": "commentary"])
     }
@@ -152,7 +148,7 @@ struct InputTests {
         let image = Transcript.ImageAttachment(try #require(TestImage.halves(width: 8, height: 4)))
         let entries = [prompt(text("What's this?"), .attachment(.init(content: .image(image), label: "Photo")))]
 
-        let sent = try ResponsesRequest(generationRequest(entries), dialect: ResponsesTestDialect())
+        let sent = try SentRequest(generationRequest(entries))
         let content = input(sent.body).first?["content"]
 
         #expect(content?[0] == ["type": "input_text", "text": "What's this?"])
@@ -169,7 +165,7 @@ struct InputTests {
         let notes = Transcript.DataAttachment(contentType: .rtf, content: Data("{\\rtf1 Soup}".utf8))
         let entries = [prompt(.attachment(.init(content: .data(notes), label: "Notes")))]
 
-        #expect(throws: LanguageModelError.self) { try ResponsesRequest(generationRequest(entries), dialect: ResponsesTestDialect()) }
+        #expect(throws: LanguageModelError.self) { try SentRequest(generationRequest(entries)) }
     }
     #endif
 }

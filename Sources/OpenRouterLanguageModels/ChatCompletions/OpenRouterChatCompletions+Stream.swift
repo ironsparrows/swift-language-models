@@ -59,7 +59,7 @@ extension OpenRouterChatCompletions {
 
     /// The host, the response cache's report and the router's; the cost, its parts, whether the account's own key paid
     /// and the server tools' counts; and the reasoning details as the reasoning entry's signature.
-    func facts(of stream: OpenRouterStreamState) -> AnswerFacts {
+    func facts(of stream: OpenRouterStreamState) -> AnswerAdditions {
         var metadata: [String: any ConvertibleToGeneratedContent] = [:]
         metadata[LanguageModelMetadataKey.provider] = stream.provider?.rawValue
         metadata.merge(stream.responseCache?.metadata ?? [:]) { $1 }
@@ -76,7 +76,7 @@ extension OpenRouterChatCompletions {
         usage[OpenRouterMetadataKey.requestedServerToolCallCount] = serverTools?.toolCallsRequested
         usage[OpenRouterMetadataKey.executedServerToolCallCount] = serverTools?.toolCallsExecuted
         usage[LanguageModelMetadataKey.webSearchCount] = serverTools?.webSearchRequests
-        return AnswerFacts(
+        return AnswerAdditions(
             host: stream.provider?.rawValue, metadata: metadata, usageMetadata: usage,
             reasoningSignature: stream.reasoningDetails?.signature)
     }

@@ -4,10 +4,9 @@ import LanguageModelsCore
 /// What every API format needs from a provider, whatever the format: who it is, the model a request is for, where its
 /// API lives, how requests reach it, and its own error.
 ///
-/// Each format's dialect protocol, such as `ChatCompletionsDialect` or `ResponsesDialect`, refines this one with the
-/// hooks of its format, so a provider that moves to another format keeps these requirements as they are. A dialect is
-/// created for each request, by the format's executor, from the model and the model's own request executor, so a
-/// request executor can only run a dialect made for its model.
+/// `ChatCompletionsDialect` refines this protocol with the hooks of its format, so a provider that moves to another
+/// format keeps these requirements as they are. A dialect is created for each request, by the format's executor, from
+/// the model and the model's own request executor, so a request executor can only run a dialect made for its model.
 package protocol ProviderDialect: Sendable {
     /// The model whose requests the dialect sends.
     associatedtype Model: DetailedLanguageModel
@@ -41,7 +40,7 @@ package protocol ProviderDialect: Sendable {
     var baseURL: URL { get throws(ProviderError) }
 
     /// How the request reaches the provider.
-    var connection: ProviderConnection { get }
+    var connection: Connection { get }
 
     /// How the request's image attachments are encoded, from the provider's configuration. A provider whose
     /// configuration has no image settings keeps the default, ``ImageEncoding/standard``.

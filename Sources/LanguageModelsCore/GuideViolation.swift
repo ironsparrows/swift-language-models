@@ -1,4 +1,6 @@
+package import Foundation
 public import FoundationModels
+import os
 
 /// A value of a guided answer that breaks a guide of its schema, such as a number below its minimum.
 ///
@@ -110,5 +112,38 @@ public struct GuideViolations: Error, Sendable, Equatable, CustomStringConvertib
     /// Each violation, such as `minutes is 2, below the minimum of 5`, separated by semicolons.
     public var description: String {
         violations.map(\.description).joined(separator: "; ")
+    }
+}
+
+extension GuideViolations {
+    /// Checks an answer's text against the guides of the request's schema.
+    ///
+    /// A schema that can't be encoded passes, and so does a response that isn't JSON when the schema's root isn't an
+    /// object or an array, such as a string Foundation Models decodes from plain text.
+    ///
+    /// - Parameters:
+    ///   - responseText: The text of the answer's response entry, or empty when the answer ended in tool calls.
+    ///   - schema: The request's schema.
+    ///   - id: The request's id, whose start names the request in the log.
+    /// - Throws: `GeneratedContent.ParsingError`, naming each value that breaks a guide, with the ``GuideViolations``
+    ///   as its `underlyingError`, when one does, or when an object or array answer isn't complete JSON, since
+    ///   decoding would fill in what's missing.
+    package static func check(_ responseText: String, against schema: GenerationSchema, request id: UUID) throws {
+        guard !responseText.isEmpty, let json = try? JSONValue(schema, strict: true) else { return }
+        guard let answer = try? JSONValue(json: Data(responseText.utf8)) else {
+            guard let root = json["type"]?.stringValue, [JSONValue.SchemaType.object, JSONValue.SchemaType.array].contains(root)
+            else { return }
+            throw GeneratedContent.ParsingError(rawContent: responseText, debugDescription: "The answer isn't complete JSON.")
+        }
+        let violations = answer.violations(of: json)
+        guard !violations.isEmpty else { return }
+        // The log names where each value is and the guide it breaks, never the value, which is part of the answer.
+        let places = violations.map { "\($0.path.isEmpty ? "the answer" : $0.path) (\($0.keyword))" }.joined(separator: ", ")
+        let request = LanguageModelsLogging.requestName(id)
+        PackageLogger.languageModels(.error)?.error(
+            "Request \(request, privacy: .public): the answer breaks its schema's guides at \(places, privacy: .public).")
+        throw GeneratedContent.ParsingError(
+            rawContent: responseText, underlyingError: GuideViolations(violations),
+            debugDescription: "The answer breaks its schema's guides: \(GuideViolations(violations)).")
     }
 }

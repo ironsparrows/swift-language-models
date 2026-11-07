@@ -35,7 +35,7 @@ public struct OpenAIInputModality: ProviderVocabulary {
     /// against them.
     private static let attachmentTypes: KeyValuePairs<Self, Set<UTType>> = [
         .text: [.plainText],
-        .image: EncodedImage.readableTypes,
+        .image: AttachmentKind.readableImageTypes,
         .pdf: [.pdf],
     ]
 }

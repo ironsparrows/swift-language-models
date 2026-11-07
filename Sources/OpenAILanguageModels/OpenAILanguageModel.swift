@@ -149,20 +149,15 @@ public struct OpenAIAuthentication: Sendable {
 
     /// The headers that authenticate a request, read for every request, and where it goes, as a request's connection
     /// holds them.
-    let requestAuthentication: RequestAuthentication
+    let requestAuthentication: Connection.Authentication
 
-    private init(_ requestAuthentication: RequestAuthentication) {
+    private init(_ requestAuthentication: Connection.Authentication) {
         self.requestAuthentication = requestAuthentication
     }
 
     /// Authentication with these headers, sent to a base URL, such as a test server's.
     init(baseURL: URL?, headers: @escaping @Sendable () async throws -> [String: String]) {
-        self.init(RequestAuthentication(baseURL: baseURL, headers: headers))
-    }
-
-    /// Reads the headers, and throws a `URLError` that reading them throws the way a failed connection's is thrown.
-    func requestHeaders() async throws -> [HTTPHeaderName: String] {
-        try await requestAuthentication.requestHeaders()
+        self.init(Connection.Authentication(baseURL: baseURL, headers: headers))
     }
 
     /// An OpenAI API key, sent to OpenAI as a bearer token.
@@ -228,7 +223,7 @@ public struct OpenAIAuthentication: Sendable {
     private init(apiKey key: @escaping @Sendable () async throws -> String, baseURL: URL?, organization: String?, project: String?) {
         self.init(
             .apiKey(key, baseURL: baseURL) { key in
-                var headers: [HTTPHeaderName: String] = [.authorization: "Bearer \(key)"]
+                var headers = [API.Header.authorization: "Bearer \(key)"]
                 headers[API.Header.organization] = organization
                 headers[API.Header.project] = project
                 return headers
@@ -329,19 +324,9 @@ extension OpenAILanguageModel {
         public struct Configuration: Sendable, Hashable {
             let baseURL: URL?
             let settings: OpenAIConfiguration
-
-            init(baseURL: URL?, settings: OpenAIConfiguration) {
-                self.baseURL = baseURL
-                self.settings = settings
-            }
-
-            /// The same configuration for a model with another effort type.
-            init(_ other: OpenAILanguageModel<some ModelEffort>.RequestExecutor.Configuration) {
-                self.init(baseURL: other.baseURL, settings: other.settings)
-            }
         }
 
-        /// Where requests go and how long they wait, which OpenAI's dialect reads.
+        /// Where requests go and how long they wait, which the model reads as a Responses model.
         let configuration: Configuration
 
         /// Creates a request executor.
@@ -375,16 +360,16 @@ extension OpenAILanguageModel.RequestExecutor {
         model: OpenAILanguageModel,
         streamingInto channel: LanguageModelExecutorGenerationChannel
     ) async throws -> DetailedLanguageModelAnswer {
-        try await respond(to: request, model: model, streamingInto: channel, as: OpenAIResponses<Effort>.self)
+        DetailedLanguageModelAnswer(responseText: try await model.responses(configuration).run(request, streamingInto: channel))
     }
 }
 
 extension OpenAILanguageModel {
     /// How the model's requests reach OpenAI: its session and authentication, with the timeout and retries of its
     /// configuration, retrying the statuses the official SDKs retry.
-    func connection(_ configuration: OpenAIConfiguration) -> ProviderConnection {
-        ProviderConnection(
+    func connection(_ configuration: OpenAIConfiguration) -> Connection {
+        Connection(
             session: session, authentication: auth.requestAuthentication, idleTimeout: configuration.idleTimeout,
-            retryPolicy: configuration.retries.policy(statuses: API.retriesStatus))
+            retries: configuration.retries, retrying: API.retriesStatus)
     }
 }

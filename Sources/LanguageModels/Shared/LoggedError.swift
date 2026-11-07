@@ -29,7 +29,8 @@ extension LoggedError {
     package init(_ error: any Error) {
         switch error {
         case let error as any LoggableError:
-            self = error.loggedError
+            let fields = error.logFields
+            self.init(kind: fields.kind, status: fields.status, code: fields.code, host: fields.host)
         case let error as LanguageModelError:
             let (name, metadata) = error.parts
             self.init(
@@ -44,10 +45,10 @@ extension LoggedError {
     }
 }
 
-/// A provider's own error, which says what the log shows about it.
+/// An error the request log can describe, as a provider's own error is.
 package protocol LoggableError: Error {
-    /// The error's type, HTTP status, code and host.
-    var loggedError: LoggedError { get }
+    /// What the log says of the error: its type, HTTP status, code and host, never its message.
+    var logFields: (kind: String, status: Int?, code: String?, host: String?) { get }
 }
 
 extension LanguageModelError {

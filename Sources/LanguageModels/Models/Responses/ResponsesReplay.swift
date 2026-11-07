@@ -39,7 +39,7 @@ enum OutputItem: Equatable {
     static func items(inSignatureOf entry: Transcript.Reasoning) -> [OutputItem] {
         guard let signature = entry.signature, case .array(let items)? = try? JSONValue(json: signature) else { return [] }
         return items.compactMap { item in
-            switch item["type"]?.stringValue.map(ResponsesRequest.ItemType.init(rawValue:)) {
+            switch item["type"]?.stringValue.map(Responses.ItemType.init(rawValue:)) {
             case .reasoning?: .reasoning(ReasoningItem(json: item))
             case .message?: .message
             case .functionCall?: .functionCall
@@ -61,13 +61,13 @@ enum OutputItem: Equatable {
     private var json: JSONValue {
         switch self {
         case .reasoning(let item): item.json
-        case .message: ["type": .string(ResponsesRequest.ItemType.message.rawValue)]
-        case .functionCall: ["type": .string(ResponsesRequest.ItemType.functionCall.rawValue)]
+        case .message: ["type": .string(Responses.ItemType.message.rawValue)]
+        case .functionCall: ["type": .string(Responses.ItemType.functionCall.rawValue)]
         }
     }
 }
 
-extension ResponsesRequest {
+extension Responses {
     /// The `type` of an input or output item.
     struct ItemType: ProviderVocabulary {
         static let message: Self = "message"

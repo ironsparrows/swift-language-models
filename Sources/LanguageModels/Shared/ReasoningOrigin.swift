@@ -30,6 +30,12 @@ package struct ReasoningOrigin: RawRepresentable, Hashable, Sendable {
 }
 
 extension Transcript.Reasoning {
+    /// The provider and API format that wrote the entry, as its metadata names them, or `nil` when the entry names none,
+    /// such as one from a model outside this package.
+    package var origin: String? {
+        ReasoningOrigin(of: self)?.rawValue
+    }
+
     /// The model that wrote the entry, as its answer named it, or `nil` when the entry doesn't say.
     package var writer: String? {
         MetadataValues(metadata).string(LanguageModelMetadataKey.model)

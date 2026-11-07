@@ -94,7 +94,7 @@ package protocol ChatCompletionsDialect: ProviderDialect {
     func observe(_ extras: ChunkExtras, into state: inout StreamState) -> ChunkOutput
 
     /// The facts the provider adds to the answer once it's over, or to an error before then.
-    func facts(of state: StreamState) -> AnswerFacts
+    func facts(of state: StreamState) -> AnswerAdditions
 
     /// What a failure becomes: Foundation Models' error when it has a case for it, otherwise the provider's own.
     func error(for failure: ChatCompletionsFailure<Self>) -> MappedError<ProviderError>
@@ -135,5 +135,5 @@ extension ChatCompletionsDialect where ChunkExtras == NoMembers {
 extension ChatCompletionsDialect where StreamState == Void {
     package func streamState(_ headers: ResponseHeaders) {}
 
-    package func facts(of state: Void) -> AnswerFacts { AnswerFacts() }
+    package func facts(of state: Void) -> AnswerAdditions { AnswerAdditions() }
 }

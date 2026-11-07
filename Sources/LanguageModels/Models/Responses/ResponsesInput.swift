@@ -5,10 +5,10 @@ import UniformTypeIdentifiers
 
 // MARK: - Turns
 
-extension ResponsesRequest {
+extension Responses {
     /// A transcript as the format's `input` items.
     ///
-    /// Instructions become a message in the dialect's instructions role, and prompts `user` messages. One answer
+    /// Instructions become a message in the model's instructions role, and prompts `user` messages. One answer
     /// becomes its `reasoning` items, an `assistant` message for each of its messages, with its text and `phase`, and a
     /// reasoning block that the model wrote in its answer's text back at the start of the first, and a `function_call`
     /// item for each of its tool calls, in the order they came, or with the `reasoning` items first when the order
@@ -18,15 +18,12 @@ extension ResponsesRequest {
     /// generated data and an answer's attachments aren't sent back. Every entry turns into the same JSON each time, so
     /// a provider's prompt cache stays valid from one request to the next.
     struct Input {
-        private(set) var items: [Item] = []
-
-        /// Whether an item carries a PDF.
-        private(set) var carriesPDF = false
+        private var items: [Item] = []
 
         /// The transcript entries whose items carry an image, which a host's rejection of an image names.
         private(set) var imageEntries: [Transcript.Entry] = []
 
-        private let attachments: ResponsesRequest.AttachmentParts
+        private let attachments: AttachmentParts
 
         /// The provider's name, for the errors.
         private let provider: String
@@ -37,7 +34,7 @@ extension ResponsesRequest {
         /// The metadata key under which an answer's response entry keeps the phases of its messages.
         private let phasesKey: String
 
-        /// Whether a reasoning entry goes back: one of the provider's own that its dialect sends back.
+        /// Whether a reasoning entry goes back: one of the provider's own that its exchange sends back.
         private let replays: (Transcript.Reasoning) -> Bool
 
         /// The items for a transcript.
@@ -46,19 +43,33 @@ extension ResponsesRequest {
         /// prompt, carries the schema as text after its own, so every request writes it the same way.
         ///
         /// - Throws: `LanguageModelError.unsupportedTranscriptContent` for content the format or a model can't take,
-        ///   and the dialect's errors for an attachment a model doesn't take.
-        init<Dialect: ResponsesDialect>(_ transcript: some Sequence<Transcript.Entry>, dialect: Dialect) throws {
-            attachments = ResponsesRequest.AttachmentParts(dialect: dialect)
-            provider = Dialect.name
-            instructionsRole = MessageRole(rawValue: dialect.instructionsRole.rawValue)
-            phasesKey = Dialect.phasesMetadataKey
-            replays = { ReasoningOrigin(of: $0) == Dialect.reasoningOrigin && dialect.replays($0) }
+        ///   and the exchange's errors for an attachment a model doesn't take.
+        init<Exchange: Responses.Exchange>(
+            _ transcript: some Sequence<Transcript.Entry>,
+            model: Responses.Model<Exchange>,
+            exchange: Exchange
+        ) throws {
+            attachments = AttachmentParts(model: model, exchange: exchange)
+            provider = model.providerName
+            instructionsRole = MessageRole(rawValue: model.instructionsRole.rawValue)
+            phasesKey = model.phasesKey
+            let origin = model.reasoningOrigin
+            replays = { $0.origin == origin && exchange.replays($0) }
             for turn in try TranscriptTurn.turns(of: transcript, provider: provider) { try append(turn) }
+        }
+
+        /// The `input` member: the items a request with this storage sends.
+        ///
+        /// - Parameter storage: Whether the provider keeps the response.
+        /// - Returns: The items, as JSON.
+        /// - Throws: An error when an item can't be encoded.
+        func json(for storage: Request.Storage) throws -> JSONValue {
+            try JSONValueEncoder.encode(storage == .notStored ? withEncryptedReasoningOnly : items)
         }
 
         /// The items without the `reasoning` items that carry no encrypted reasoning, which a request the provider
         /// doesn't store can't send back, since the provider can't look them up by their ids.
-        var withEncryptedReasoningOnly: [Item] {
+        private var withEncryptedReasoningOnly: [Item] {
             items.filter { item in
                 if case .reasoning(let reasoning) = item { reasoning.hasEncryptedContent } else { true }
             }
@@ -156,7 +167,6 @@ extension ResponsesRequest {
                     continue
                 }
                 let attachmentParts = try attachments.parts(for: attachment, in: entry)
-                carriesPDF = carriesPDF || attachmentParts.contains(where: \.isPDF)
                 if attachmentParts.contains(where: { $0.type == .image }), !imageEntries.contains(where: { $0.id == entry.id }) {
                     imageEntries.append(entry)
                 }
@@ -183,15 +193,15 @@ extension ResponsesRequest {
 
 // MARK: - Attachments
 
-extension ResponsesRequest {
+extension Responses.Input {
     /// Prompt and tool-output attachments as the format's input parts.
     ///
     /// A label goes first, as a text part of its own, so the model can name the attachment, as an `ImageReference`
     /// does. Images go as JPEG data URLs in `input_image` parts, or as their web address when they have one. Data
     /// attachments go by kind: text as text, images as images, and PDFs as `input_file` parts. The format has no part
-    /// for other kinds, such as audio or video. The dialect first checks that its models take the attachment. The same
+    /// for other kinds, such as audio or video. The exchange first checks that its models take the attachment. The same
     /// attachment gives the same bytes every time.
-    struct AttachmentParts {
+    private struct AttachmentParts {
         /// The provider's name, for the errors.
         private let provider: String
 
@@ -200,15 +210,15 @@ extension ResponsesRequest {
         /// Checks that every model takes an attachment.
         private let check: (AttachmentKind, Transcript.Entry) throws(LanguageModelError) -> Void
 
-        init<Dialect: ResponsesDialect>(dialect: Dialect) {
-            provider = Dialect.name
-            reader = AttachmentReader(provider: provider, encoding: dialect.imageEncoding)
-            check = { (attachment, entry) throws(LanguageModelError) in try dialect.check(attachment, in: entry) }
+        init<Exchange: Responses.Exchange>(model: Responses.Model<Exchange>, exchange: Exchange) {
+            provider = model.providerName
+            reader = AttachmentReader(provider: provider, encoding: model.images)
+            check = { (attachment, entry) throws(LanguageModelError) in try exchange.checkAttachment(attachment, in: entry) }
         }
 
         /// The parts for one attachment: its label, when it has one, then the attachment.
         ///
-        /// - Throws: The dialect's errors for an attachment a model doesn't take, and
+        /// - Throws: The exchange's errors for an attachment a model doesn't take, and
         ///   `LanguageModelError.unsupportedTranscriptContent` for one that can't be read or that the format has no
         ///   part for.
         func parts(for segment: Transcript.AttachmentSegment, in entry: Transcript.Entry) throws -> [Part] {
@@ -236,122 +246,115 @@ extension ResponsesRequest {
 
 // MARK: - Wire
 
-extension ResponsesRequest {
-    /// One item of a request's `input`.
-    enum Item: Encodable, Equatable {
-        /// A message: the instructions, a prompt, or an answer's text, with the `phase` the answer's message had.
-        case message(role: MessageRole, content: Content, phase: String?)
+/// One item of a request's `input`.
+private enum Item: Encodable {
+    /// A message: the instructions, a prompt, or an answer's text, with the `phase` the answer's message had.
+    case message(role: MessageRole, content: Content, phase: String?)
 
-        /// One of an answer's function calls, matched to its output by `call_id`.
-        case functionCall(callID: String, name: String, arguments: String)
+    /// One of an answer's function calls, matched to its output by `call_id`.
+    case functionCall(callID: String, name: String, arguments: String)
 
-        /// A tool's output for a function call.
-        case functionCallOutput(callID: String, output: Content)
+    /// A tool's output for a function call.
+    case functionCallOutput(callID: String, output: Content)
 
-        /// One of an answer's `reasoning` items, as the provider sent it.
-        case reasoning(ReasoningItem)
+    /// One of an answer's `reasoning` items, as the provider sent it.
+    case reasoning(ReasoningItem)
 
-        func encode(to encoder: any Encoder) throws {
-            switch self {
-            case .message(let role, let content, let phase):
-                var container = encoder.container(keyedBy: JSONKey.self)
-                try container.encode(role, forKey: "role")
-                try container.encode(content, forKey: "content")
-                try container.encodeIfPresent(phase, forKey: "phase")
-            case .functionCall(let callID, let name, let arguments):
-                var container = encoder.container(keyedBy: JSONKey.self)
-                try container.encode(ItemType.functionCall, forKey: "type")
-                try container.encode(callID, forKey: "call_id")
-                try container.encode(name, forKey: "name")
-                try container.encode(arguments, forKey: "arguments")
-            case .functionCallOutput(let callID, let output):
-                var container = encoder.container(keyedBy: JSONKey.self)
-                try container.encode(ItemType.functionCallOutput, forKey: "type")
-                try container.encode(callID, forKey: "call_id")
-                try container.encode(output, forKey: "output")
-            case .reasoning(let item):
-                try item.encode(to: encoder)
-            }
-        }
-    }
-
-    /// A message's content or a tool's output: text alone, or a list of input parts.
-    enum Content: Encodable, Equatable {
-        case text(String)
-        case parts([Part])
-
-        /// One text part as its text, and anything else as parts.
-        init(_ parts: [Part]) {
-            if parts.count == 1, case .text(let text) = parts[0] {
-                self = .text(text)
-            } else {
-                self = .parts(parts)
-            }
-        }
-
-        func encode(to encoder: any Encoder) throws {
-            var container = encoder.singleValueContainer()
-            switch self {
-            case .text(let text): try container.encode(text)
-            case .parts(let parts): try container.encode(parts)
-            }
-        }
-    }
-
-    /// One part of a message's content.
-    enum Part: Encodable, Equatable {
-        /// An `input_text` part.
-        case text(String)
-
-        /// An `input_image` part, at a web address or as a data URL, which the model sees at the detail it picks.
-        case image(url: String)
-
-        /// An `input_file` part, holding the file as a data URL.
-        case file(name: String, data: String)
-
-        var type: PartType {
-            switch self {
-            case .text: .text
-            case .image: .image
-            case .file: .file
-            }
-        }
-
-        /// Whether the part is a PDF file.
-        var isPDF: Bool {
-            if case .file(_, let data) = self { data.hasPrefix("data:\(MediaType.pdf);") } else { false }
-        }
-
-        func encode(to encoder: any Encoder) throws {
+    func encode(to encoder: any Encoder) throws {
+        switch self {
+        case .message(let role, let content, let phase):
             var container = encoder.container(keyedBy: JSONKey.self)
-            try container.encode(type, forKey: "type")
-            switch self {
-            case .text(let text):
-                try container.encode(text, forKey: "text")
-            case .image(let url):
-                try container.encode(url, forKey: "image_url")
-                try container.encode("auto", forKey: "detail")
-            case .file(let name, let data):
-                try container.encode(name, forKey: "filename")
-                try container.encode(data, forKey: "file_data")
-            }
+            try container.encode(role, forKey: "role")
+            try container.encode(content, forKey: "content")
+            try container.encodeIfPresent(phase, forKey: "phase")
+        case .functionCall(let callID, let name, let arguments):
+            var container = encoder.container(keyedBy: JSONKey.self)
+            try container.encode(Responses.ItemType.functionCall, forKey: "type")
+            try container.encode(callID, forKey: "call_id")
+            try container.encode(name, forKey: "name")
+            try container.encode(arguments, forKey: "arguments")
+        case .functionCallOutput(let callID, let output):
+            var container = encoder.container(keyedBy: JSONKey.self)
+            try container.encode(Responses.ItemType.functionCallOutput, forKey: "type")
+            try container.encode(callID, forKey: "call_id")
+            try container.encode(output, forKey: "output")
+        case .reasoning(let item):
+            try item.encode(to: encoder)
+        }
+    }
+}
+
+/// A message's content or a tool's output: text alone, or a list of input parts.
+private enum Content: Encodable {
+    case text(String)
+    case parts([Part])
+
+    /// One text part as its text, and anything else as parts.
+    init(_ parts: [Part]) {
+        if parts.count == 1, case .text(let text) = parts[0] {
+            self = .text(text)
+        } else {
+            self = .parts(parts)
         }
     }
 
-    /// The role of a message: the person's, the model's, or the instructions' role that the dialect picks.
-    struct MessageRole: ProviderVocabulary {
-        static let user: Self = "user"
-        static let assistant: Self = "assistant"
+    func encode(to encoder: any Encoder) throws {
+        var container = encoder.singleValueContainer()
+        switch self {
+        case .text(let text): try container.encode(text)
+        case .parts(let parts): try container.encode(parts)
+        }
+    }
+}
 
-        let rawValue: String
+/// One part of a message's content.
+private enum Part: Encodable {
+    /// An `input_text` part.
+    case text(String)
+
+    /// An `input_image` part, at a web address or as a data URL, which the model sees at the detail it picks.
+    case image(url: String)
+
+    /// An `input_file` part, holding the file as a data URL.
+    case file(name: String, data: String)
+
+    var type: PartType {
+        switch self {
+        case .text: .text
+        case .image: .image
+        case .file: .file
+        }
     }
 
-    /// The `type` of a content part.
-    struct PartType: ProviderVocabulary {
-        static let text: Self = "input_text"
-        static let image: Self = "input_image"
-        static let file: Self = "input_file"
-
-        let rawValue: String
+    func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: JSONKey.self)
+        try container.encode(type, forKey: "type")
+        switch self {
+        case .text(let text):
+            try container.encode(text, forKey: "text")
+        case .image(let url):
+            try container.encode(url, forKey: "image_url")
+            try container.encode("auto", forKey: "detail")
+        case .file(let name, let data):
+            try container.encode(name, forKey: "filename")
+            try container.encode(data, forKey: "file_data")
+        }
     }
+}
+
+/// The role of a message: the person's, the model's, or the instructions' role that the model picks.
+private struct MessageRole: ProviderVocabulary {
+    static let user: Self = "user"
+    static let assistant: Self = "assistant"
+
+    let rawValue: String
+}
+
+/// The `type` of a content part.
+private struct PartType: ProviderVocabulary {
+    static let text: Self = "input_text"
+    static let image: Self = "input_image"
+    static let file: Self = "input_file"
+
+    let rawValue: String
 }

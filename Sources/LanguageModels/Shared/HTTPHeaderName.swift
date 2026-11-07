@@ -20,9 +20,6 @@ package struct HTTPHeaderName: ProviderVocabulary {
     /// `Retry-After`.
     package static let retryAfterMilliseconds: Self = "retry-after-ms"
 
-    /// The id a provider gave the request, which its support asks for.
-    package static let requestID: Self = "x-request-id"
-
     /// Whether a response says the request may be sent again: `true` or `false`.
     package static let shouldRetry: Self = "x-should-retry"
 

@@ -184,12 +184,12 @@ struct OpenAIFailure: Sendable {
     let rateLimitReset: Duration?
 
     /// A failed response.
-    init(_ rejection: HTTPRejection<APIErrorBody>) {
-        status = rejection.status
-        body = rejection.body
-        requestID = rejection.headers.value(for: .requestID)
-        retryAfter = rejection.retryAfter
-        rateLimitReset = Self.rateLimitReset(rejection.headers)
+    init(_ rejected: RequestFailure<APIErrorBody>) {
+        status = rejected.status
+        body = rejected.body
+        requestID = rejected.header(API.Header.requestID)
+        retryAfter = rejected.retryAfter
+        rateLimitReset = Self.rateLimitReset(rejected.header)
     }
 
     /// A failure in the stream: an `error` event, or a failed response with its `error` object if it has one.
@@ -211,7 +211,7 @@ struct OpenAIFailure: Sendable {
     ///   - imageEntries: The request's entries that carry an image, which an error for an image OpenAI rejects names.
     ///   - now: The time a rate limit's reset date counts from.
     /// - Returns: `LanguageModelError` when Foundation Models has a case for the failure, otherwise `OpenAIError`.
-    func error(contextSize: Int?, imageEntries: [Transcript.Entry] = [], now: Date = .now) -> MappedError<OpenAIError> {
+    func error(contextSize: Int?, imageEntries: [Transcript.Entry] = [], now: Date = .now) -> any Error {
         let failure: LanguageModelError.ProviderFailure
         switch kind {
         case .contextSizeExceeded:
@@ -226,14 +226,13 @@ struct OpenAIFailure: Sendable {
         case .unsupportedImage:
             failure = .unsupportedContent(imageEntries)
         case .openAIError:
-            return .provider(
-                OpenAIError(
-                    status: status, message: message, code: code, errorType: body?.type.map(OpenAIError.Code.init(rawValue:)),
-                    parameter: body?.param, requestID: requestID, retryAfter: retryAfter, isQuotaExhausted: isQuotaExhausted))
+            return OpenAIError(
+                status: status, message: message, code: code, errorType: body?.type.map(OpenAIError.Code.init(rawValue:)),
+                parameter: body?.param, requestID: requestID, retryAfter: retryAfter, isQuotaExhausted: isQuotaExhausted)
         }
         var metadata = LanguageModelError.failureMetadata(status: status, code: code.rawValue, provider: nil)
         metadata[LanguageModelMetadataKey.requestID] = requestID
-        return .languageModel(LanguageModelError(failure, message: message, metadata: metadata))
+        return LanguageModelError(failure, message: message, metadata: metadata)
     }
 
     /// What went wrong: OpenAI's message, or the status's own text when there's none.
@@ -287,9 +286,9 @@ struct OpenAIFailure: Sendable {
     }
 
     /// The time until the rate limits reset that a 429's headers name, the later of the requests' and the tokens'.
-    private static func rateLimitReset(_ headers: ResponseHeaders) -> Duration? {
+    private static func rateLimitReset(_ header: (String) -> String?) -> Duration? {
         [API.Header.rateLimitResetRequests, API.Header.rateLimitResetTokens]
-            .compactMap { headers.value(for: $0).flatMap(Duration.init(resetInterval:)) }.max()
+            .compactMap { header($0).flatMap(Duration.init(resetInterval:)) }.max()
     }
 
     /// The `type` of an `error` event.
@@ -336,7 +335,7 @@ extension OpenAIFailure {
 
 extension Duration {
     /// The time in a rate limit's reset header, such as `1s`, `6m0s` or `20ms`.
-    init?(resetInterval text: String) {
+    fileprivate init?(resetInterval text: String) {
         let parts = text.matches(of: /(\d+(?:\.\d+)?)(ms|s|m|h)/)
         guard !parts.isEmpty, parts.map({ String($0.0) }).joined() == text else { return nil }
         let seconds = parts.reduce(0.0) { total, part in
@@ -350,7 +349,7 @@ extension Duration {
 // MARK: - Logging
 
 extension OpenAIError: LoggableError {
-    package var loggedError: LoggedError {
-        LoggedError(kind: "OpenAIError", status: status, code: code.rawValue, host: nil)
+    package var logFields: (kind: String, status: Int?, code: String?, host: String?) {
+        ("OpenAIError", status, code.rawValue, nil)
     }
 }

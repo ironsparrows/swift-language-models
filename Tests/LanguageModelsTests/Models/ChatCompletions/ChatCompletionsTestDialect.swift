@@ -37,12 +37,10 @@ struct ChatCompletionsTestDialect: ChatCompletionsDialect {
 
     var baseURL: URL { setup.url }
 
-    var connection: ProviderConnection {
-        ProviderConnection(
-            session: setup.session, authentication: RequestAuthentication(baseURL: nil) { [:] }, idleTimeout: nil,
-            retryPolicy: .exponentialBackoff(
-                retries: 0, statuses: { _ in false }, delay: .zero, longestDelay: .zero, longestRetryAfter: .zero,
-                retriedErrors: []))
+    var connection: Connection {
+        Connection(
+            session: setup.session, authentication: Connection.Authentication(baseURL: nil) { [:] }, idleTimeout: nil,
+            retries: .disabled, retrying: { _ in false })
     }
 
     func headers(_ context: HeaderContext) -> [HTTPHeaderName: String] { ["X-Test": "yes"] }
@@ -65,10 +63,10 @@ struct ChatCompletionsTestDialect: ChatCompletionsDialect {
         return ChunkOutput(reasoning: extras.choices?.first?.delta?.reasoning)
     }
 
-    func facts(of state: TestStreamState) -> AnswerFacts {
+    func facts(of state: TestStreamState) -> AnswerAdditions {
         var metadata: [String: any ConvertibleToGeneratedContent] = [:]
         metadata[LanguageModelMetadataKey.provider] = state.host
-        return AnswerFacts(host: state.host, metadata: metadata)
+        return AnswerAdditions(host: state.host, metadata: metadata)
     }
 
     func error(for failure: ChatCompletionsFailure<ChatCompletionsTestDialect>) -> MappedError<

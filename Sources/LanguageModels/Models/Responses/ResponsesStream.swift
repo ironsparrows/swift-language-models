@@ -4,89 +4,99 @@ import LanguageModelsCore
 
 // MARK: - Stream
 
-/// One answer's stream: turns the format's events into the answer's output, which an ``AnswerChannel`` sends as
-/// Foundation Models channel events.
-///
-/// Text deltas go to the response entry as they are, since the format has reasoning of its own, and reasoning
-/// summaries and reasoning text to the reasoning entry, which each `reasoning` output item starts, with a blank line
-/// between the parts of a summary. Function calls are told apart by their output index, so the calls of one answer form
-/// one round, and a call whose arguments arrive whole, only in `response.output_item.done`, gets them from there. The
-/// answer's `reasoning` items become its reasoning entry's signature, with the places of its messages and calls when
-/// they came between them, and the `phase` of each of its messages, with the length of the message's text, goes in its
-/// metadata, so both go back on later turns in their order. A cited page's offsets count from the start of the
-/// answer's text. In a guided answer, as the official SDKs parse
-/// it, only the first message with no phase or the `final_answer` phase holds the answer: the text of the others, such
-/// as `commentary`, stays out of the response text, so the answer decodes, and goes in the metadata with its phase.
-struct ResponsesAnswerStream<Dialect: ResponsesDialect>: StreamedAnswer {
-    private let dialect: Dialect
-    private let imageEntries: [Transcript.Entry]
-    private let requiresCompleteAnswer: Bool
-
-    /// What the answer's events reported about it so far.
-    private(set) var report = AnswerReport()
-
-    /// What the dialect tracks across the answer.
-    private(set) var state: Dialect.StreamState
-
-    private var output: AnswerChannel
-    private var refusal = ""
-
-    /// The answer's `reasoning` items, as `response.output_item.done` carried them, with their output indexes.
-    private var reasoningItems: [(index: Int?, item: ReasoningItem)] = []
-
-    /// The answer's messages, by output index.
-    private var messages: [Int: Message] = [:]
-
-    /// The output index of the message that holds a guided answer, once one starts.
-    private var answerIndex: Int?
-
-    /// The answer's function calls: their ids by output index, the last one to start, and the argument text sent so
-    /// far for each, by id.
-    private var callIDs: [Int: String] = [:]
-    private var lastCallID: String?
-    private var sentArguments: [String: String] = [:]
-
-    /// The part of the reasoning the last reasoning text belongs to, so a new part starts after a blank line.
-    private var lastReasoningPart: ReasoningPart?
-
-    /// Starts the stream of an answer.
+extension Responses {
+    /// One answer's stream: turns the format's events into the answer's output, which an ``AnswerChannel`` sends as
+    /// Foundation Models channel events.
     ///
-    /// - Parameters:
-    ///   - channel: Where the answer's events go.
-    ///   - dialect: The provider's dialect.
-    ///   - headers: The headers of the response whose stream carries the answer.
-    ///   - imageEntries: The request's entries that carry an image, which an error for an image the host rejects names.
-    ///   - requiresCompleteAnswer: Whether an answer cut off at its token limit is an error, as for guided generation,
-    ///     where a partial answer would decode as a wrong value.
-    init(
-        channel: LanguageModelExecutorGenerationChannel, dialect: Dialect, headers: ResponseHeaders,
-        imageEntries: [Transcript.Entry], requiresCompleteAnswer: Bool
-    ) {
-        self.dialect = dialect
-        self.imageEntries = imageEntries
-        self.requiresCompleteAnswer = requiresCompleteAnswer
-        output = AnswerChannel(channel: channel, origin: Dialect.reasoningOrigin, readsTaggedReasoning: false)
-        state = dialect.streamState(headers)
-    }
+    /// Text deltas go to the response entry as they are, since the format has reasoning of its own, and reasoning
+    /// summaries and reasoning text to the reasoning entry, which each `reasoning` output item starts, with a blank line
+    /// between the parts of a summary. Function calls are told apart by their output index, so the calls of one answer form
+    /// one round, and a call whose arguments arrive whole, only in `response.output_item.done`, gets them from there. The
+    /// answer's `reasoning` items become its reasoning entry's signature, with the places of its messages and calls when
+    /// they came between them, and the `phase` of each of its messages, with the length of the message's text, goes in its
+    /// metadata, so both go back on later turns in their order. A cited page's offsets count from the start of the
+    /// answer's text. In a guided answer, as the official SDKs parse
+    /// it, only the first message with no phase or the `final_answer` phase holds the answer: the text of the others, such
+    /// as `commentary`, stays out of the response text, so the answer decodes, and goes in the metadata with its phase.
+    struct Stream<Exchange: Responses.Exchange> {
+        private let exchange: Exchange
+        private let headers: ResponseHeaders
+        private let provider: String
+        private let phasesKey: String
+        private let imageEntries: [Transcript.Entry]
+        private let requiresCompleteAnswer: Bool
 
-    /// The text sent to the response entry, or empty when the answer ends in tool calls, since the round that answers
-    /// them comes after.
-    var responseText: String {
-        output.responseText
-    }
+        /// What the answer's events reported about it so far.
+        private(set) var report = AnswerReport()
 
-    /// Whether any of the answer's output has arrived: text, reasoning or a tool call.
-    var hasOutput: Bool {
-        output.hasOutput
-    }
+        private var output: AnswerChannel
+        private var refusal = ""
 
-    /// The company whose servers ran the model, when the dialect names one.
-    var host: String? {
-        dialect.facts(of: state).host
+        /// The answer's `reasoning` items, as `response.output_item.done` carried them, with their output indexes.
+        private var reasoningItems: [(index: Int?, item: ReasoningItem)] = []
+
+        /// The answer's messages, by output index.
+        private var messages: [Int: Message] = [:]
+
+        /// The output index of the message that holds a guided answer, once one starts.
+        private var answerIndex: Int?
+
+        /// The answer's function calls: their ids by output index, the last one to start, and the argument text sent so
+        /// far for each, by id.
+        private var callIDs: [Int: String] = [:]
+        private var lastCallID: String?
+        private var sentArguments: [String: String] = [:]
+
+        /// The part of the reasoning the last reasoning text belongs to, so a new part starts after a blank line.
+        private var lastReasoningPart: ReasoningPart?
+
+        /// Starts the stream of an answer.
+        ///
+        /// - Parameters:
+        ///   - channel: Where the answer's events go.
+        ///   - model: The model, which names the provider and how its answers' reasoning and messages are tagged.
+        ///   - exchange: The provider's part in the exchange.
+        ///   - headers: The headers of the response whose stream carries the answer.
+        ///   - imageEntries: The request's entries that carry an image, which an error for an image the host rejects names.
+        ///   - requiresCompleteAnswer: Whether an answer cut off at its token limit is an error, as for guided generation,
+        ///     where a partial answer would decode as a wrong value.
+        init(
+            channel: LanguageModelExecutorGenerationChannel, model: Responses.Model<Exchange>, exchange: Exchange,
+            headers: ResponseHeaders, imageEntries: [Transcript.Entry], requiresCompleteAnswer: Bool
+        ) {
+            self.exchange = exchange
+            self.headers = headers
+            provider = model.providerName
+            phasesKey = model.phasesKey
+            self.imageEntries = imageEntries
+            self.requiresCompleteAnswer = requiresCompleteAnswer
+            output = AnswerChannel(channel: channel, origin: ReasoningOrigin(rawValue: model.reasoningOrigin), readsTaggedReasoning: false)
+        }
+
+        /// The text sent to the response entry, or empty when the answer ends in tool calls, since the round that answers
+        /// them comes after.
+        var responseText: String {
+            output.responseText
+        }
+
+        /// Whether any of the answer's output has arrived: text, reasoning or a tool call.
+        var hasOutput: Bool {
+            output.hasOutput
+        }
+
+        /// The company whose servers ran the model, when the exchange names one.
+        var host: String? {
+            additions.host
+        }
+
+        /// What the exchange adds to the answer.
+        private var additions: AnswerAdditions {
+            exchange.additions(header: headers.value(named:))
+        }
     }
 }
 
-extension ResponsesAnswerStream {
+extension Responses.Stream {
     /// One of an answer's messages: its `phase`, once known, its text, and whether the text is held out of the answer's
     /// text, as a guided answer's `commentary` is.
     private struct Message {
@@ -111,11 +121,11 @@ extension ResponsesAnswerStream {
 
 // MARK: - Receiving
 
-extension ResponsesAnswerStream {
+extension Responses.Stream {
     /// Sends the events for one server-sent event.
     ///
     /// - Returns: Whether the event ends the stream: `response.completed`, `response.incomplete`, or a `[DONE]`.
-    /// - Throws: The dialect's error for an event that can't be read, an `error` event and a failed response.
+    /// - Throws: The exchange's error for an event that can't be read, an `error` event and a failed response.
     mutating func receive(_ event: ServerSentEvent) async throws -> Bool {
         let streamed: ResponseEvent.Streamed?
         do {
@@ -138,9 +148,11 @@ extension ResponsesAnswerStream {
         switch event.type {
         case .error:
             // The error is nested in the event's `error` member, or is the event's own members.
-            throw failure(.errorEvent(try errorBody(event.error.map(\.data) ?? data)))
+            let body = try errorBody(event.error.map(\.data) ?? data)
+            throw exchange.error(for: RequestFailure(errorEvent: body, provider: provider, headers: headers, imageEntries: imageEntries))
         case .failed:
-            throw failure(.failedResponse(try event.response?.error.map { try errorBody($0.data) }))
+            let body = try event.response?.error.map { try errorBody($0.data) }
+            throw exchange.error(for: RequestFailure(failedAnswer: body, headers: headers, imageEntries: imageEntries))
         case .outputItemAdded:
             await startItem(event)
         case .outputItemDone:
@@ -263,8 +275,8 @@ extension ResponsesAnswerStream {
 
 extension JSONValue {
     /// The `type` of an output item.
-    fileprivate var itemType: ResponsesRequest.ItemType? {
-        self["type"]?.stringValue.map(ResponsesRequest.ItemType.init(rawValue:))
+    fileprivate var itemType: Responses.ItemType? {
+        self["type"]?.stringValue.map(Responses.ItemType.init(rawValue:))
     }
 }
 
@@ -286,7 +298,7 @@ extension Citation {
 
 extension AnswerReport {
     /// Takes the facts that a lifecycle event's response reports.
-    mutating func update(with response: ResponseEvent.Response) {
+    fileprivate mutating func update(with response: ResponseEvent.Response) {
         responseID = response.id ?? responseID
         model = response.model ?? model
         serviceTier = response.serviceTier ?? serviceTier
@@ -298,7 +310,7 @@ extension AnswerReport {
 
 extension AnswerUsage {
     /// The usage a response reported.
-    init(_ usage: ResponseEvent.Usage) {
+    fileprivate init(_ usage: ResponseEvent.Usage) {
         self.init(
             inputTokens: usage.inputTokens ?? 0,
             cachedTokens: usage.inputTokensDetails?.cachedTokens ?? 0,
@@ -311,43 +323,42 @@ extension AnswerUsage {
 
 // MARK: - Finishing
 
-extension ResponsesAnswerStream {
+extension Responses.Stream {
     /// Sends the events that end the answer: arguments for calls that had none, the reasoning signature, and the
     /// metadata and usage.
     ///
     /// An answer cut off at its token limit ends like any other, with `length` as its finish reason, since Foundation
     /// Models has no error for it. One cut off inside its tool calls throws instead, so no tool gets partial arguments,
-    /// and so does a guided answer, which would decode as a wrong value.
+    /// and so does a guided answer, which would decode as a wrong value. Only `response.completed` and
+    /// `response.incomplete` end an answer, so a stream without either was cut off, even after a `[DONE]`.
     ///
-    /// - Parameter isComplete: Whether an event ended the stream. Only `response.completed` and `response.incomplete`
-    ///   end an answer, so a stream without either was cut off, even after a `[DONE]`.
     /// - Throws: `LanguageModelError.refusal` or `.guardrailViolation` when the model declined or a filter stopped it,
-    ///   `GeneratedContent.ParsingError` when a guided answer reached its token limit, and the dialect's error when the
+    ///   `GeneratedContent.ParsingError` when a guided answer reached its token limit, and the exchange's error when the
     ///   stream was cut off, reached its token limit inside a tool call, or had a call that never got its name or whose
     ///   arguments aren't a whole JSON object.
-    mutating func finish(isComplete: Bool) async throws {
+    mutating func finish() async throws {
         guard report.finishReason != nil else {
-            throw failure(.unusableResponse(.cutOff))
+            throw failure(.cutOff)
         }
         let ending = await output.finish(
-            report: report, facts: answerFacts, refusal: refusal, requiresCompleteAnswer: requiresCompleteAnswer)
+            report: report, facts: answerAdditions, refusal: refusal, requiresCompleteAnswer: requiresCompleteAnswer)
         switch ending {
-        case .unusable(let problem)?: throw failure(.unusableResponse(problem))
+        case .unusable(let problem)?: throw failure(problem)
         case .failed(let error)?: throw error
         case nil: break
         }
     }
 
-    /// The dialect's facts, with the answer's `reasoning` items and the places of its messages and calls among them as
-    /// the reasoning signature, and the phases of its messages.
-    private var answerFacts: AnswerFacts {
-        var providerFacts = dialect.facts(of: state)
-        providerFacts.reasoningSignature = OutputItem.signature(of: outputOrder)
+    /// The exchange's additions, with the answer's `reasoning` items and the places of its messages and calls among them
+    /// as the reasoning signature, and the phases of its messages.
+    private var answerAdditions: AnswerAdditions {
+        var answerAdditions = additions
+        answerAdditions.reasoningSignature = OutputItem.signature(of: outputOrder)
         let phases = messages.sorted { $0.key < $1.key }.map(\.value.kept)
         if phases.contains(where: { $0.phase != nil || $0.heldText != nil }) {
-            providerFacts.metadata[Dialect.phasesMetadataKey] = phases.map(\.metadataValue)
+            answerAdditions.metadata[phasesKey] = phases.map(\.metadataValue)
         }
-        return providerFacts
+        return answerAdditions
     }
 
     /// The answer's output items in their order: its `reasoning` items, the messages that have text and the function
@@ -370,23 +381,23 @@ extension ResponsesAnswerStream {
         }
     }
 
-    /// An error object in the dialect's type.
-    private func errorBody(_ data: Data) throws -> Dialect.ErrorBody {
+    /// An error object in the exchange's type.
+    private func errorBody(_ data: Data) throws -> Exchange.ErrorBody {
         do {
-            return try ProviderHTTP.decoder.decode(Dialect.ErrorBody.self, from: data)
+            return try ProviderHTTP.decoder.decode(Exchange.ErrorBody.self, from: data)
         } catch {
             throw unreadable(error)
         }
     }
 
-    /// The error the answer's failure becomes, with what the dialect tracked so far.
-    private func failure(_ kind: ResponsesFailure<Dialect>.Kind) -> any Error {
-        dialect.error(for: ResponsesFailure(kind, state: state, imageEntries: imageEntries)).error
+    /// The error a stream the format couldn't use becomes.
+    private func failure(_ problem: StreamProblem) -> any Error {
+        exchange.error(for: RequestFailure(problem, provider: provider, headers: headers, imageEntries: imageEntries))
     }
 
     /// The error for an event whose data can't be read, with the reason.
     private func unreadable(_ error: any Error) -> any Error {
-        failure(.unusableResponse(.unreadableEvent("\(error)")))
+        failure(.unreadableEvent("\(error)"))
     }
 }
 
@@ -397,7 +408,7 @@ extension ResponsesAnswerStream {
 /// Every member but `type` is optional, since each kind of event carries only some of them, and hosts that follow the
 /// format add and leave out members of their own. An event of a kind the format doesn't read keeps only its `type`, so
 /// its members, whatever their shape, can't make it unreadable.
-struct ResponseEvent: Decodable {
+private struct ResponseEvent: Decodable {
     let type: EventType
 
     /// The index of the output item the event concerns, which tells an answer's function calls apart.
@@ -553,8 +564,8 @@ extension ResponseEvent {
         let rawValue: String
     }
 
-    /// One server-sent event of a streamed response: an event and its JSON, which the dialect reads its own members
-    /// from, or a `[DONE]` that a host may send after the response's last event.
+    /// One server-sent event of a streamed response: an event and its JSON, or a `[DONE]` that a host may send after the
+    /// response's last event.
     enum Streamed {
         case event(ResponseEvent, Data)
         case done

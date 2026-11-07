@@ -1,8 +1,9 @@
 package import Foundation
 package import FoundationModels
 
-/// What a provider adds to an answer's facts, as the `facts(of:)` hook of each API format's dialect returns them.
-package struct AnswerFacts {
+/// What a provider adds to an answer once it's over: the host, the facts of the entry that ends it and of its usage, and
+/// its reasoning signature.
+package struct AnswerAdditions {
     /// The company whose servers ran the model, as `LanguageModelMetadataKey.provider` names it, once known.
     package var host: String?
 

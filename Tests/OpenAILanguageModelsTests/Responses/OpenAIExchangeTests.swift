@@ -6,8 +6,8 @@ import Testing
 
 @testable import OpenAILanguageModels
 
-@Suite("OpenAI's Responses dialect")
-struct OpenAIResponsesTests {
+@Suite("OpenAI's exchange")
+struct OpenAIExchangeTests {
     @Test func `a model that reasons takes sampling settings only while its effort is none`() async throws {
         let options = GenerationOptions(temperature: 0.5)
         let off = try await sentBody({ reasoningModel($0) }, options: options, reasoningLevel: .off)

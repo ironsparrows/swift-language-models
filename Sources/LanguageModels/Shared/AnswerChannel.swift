@@ -151,7 +151,7 @@ package struct AnswerChannel {
     /// - Returns: Why the answer fails, or `nil` when it ended.
     package mutating func finish(
         report: AnswerReport,
-        facts: AnswerFacts,
+        facts: AnswerAdditions,
         refusal: String,
         requiresCompleteAnswer: Bool,
         failedAnswer: (any Error)? = nil
@@ -177,7 +177,7 @@ package struct AnswerChannel {
     /// - Parameters:
     ///   - report: What the format's own members reported about the answer.
     ///   - facts: What the provider adds to them.
-    private mutating func end(report: AnswerReport, facts: AnswerFacts) async {
+    private mutating func end(report: AnswerReport, facts: AnswerAdditions) async {
         await endReasoning(signature: facts.reasoningSignature, model: report.model)
         await sendFacts(report: report, facts: facts)
     }
@@ -196,7 +196,7 @@ package struct AnswerChannel {
 
     /// Sends the answer's facts and usage on the entry that ends it: the response entry, or the tool-calls entry when
     /// tool calls end the answer.
-    private func sendFacts(report: AnswerReport, facts: AnswerFacts) async {
+    private func sendFacts(report: AnswerReport, facts: AnswerAdditions) async {
         var metadata = report.metadata
         metadata.merge(facts.metadata) { $1 }
         let usage = report.usage

@@ -47,13 +47,10 @@ public struct DetailedLanguageModelExecutor<RequestExecutor: DetailedLanguageMod
         model: Model,
         streamingInto channel: LanguageModelExecutorGenerationChannel
     ) async throws {
-        let requestID = LanguageModelsLogging.requestName(request.id)
-        for removed in model.removedModels {
-            removed.report(request: requestID)
-        }
+        model.removedModels.report(for: request)
         let answer = try await requestExecutor.execute(request, model: model, streamingInto: channel)
         if let schema = request.schema {
-            try answer.checkGuides(of: schema, request: requestID)
+            try GuideViolations.check(answer.responseText, against: schema, request: request.id)
         }
     }
 }
