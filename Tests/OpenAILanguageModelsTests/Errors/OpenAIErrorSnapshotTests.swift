@@ -9,7 +9,7 @@ import Testing
 
 /// What every failure becomes, through a session: its type, code, status, message and metadata. Each line pair names a
 /// failure and the error it ended in, so a change to how failures map shows up here, precedence included.
-@Suite("OpenAI error snapshots")
+@Suite("OpenAI error snapshots", .timeLimit(.minutes(1)))
 struct OpenAIErrorSnapshotTests {
     @Test func `every failed response ends in the error it maps to`() async {
         let failures = await [

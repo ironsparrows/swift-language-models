@@ -154,7 +154,7 @@ then skipped, not sent back in the wrong one. Keep the values saved transcripts 
 OpenRouter's Chat Completions reasoning and `openai-responses` for OpenAI's Responses reasoning, and the Responses
 metadata key that keeps each message's phase, such as `openAI.phases`.
 
-Test a provider's requests and answers through Foundation Models, as `ExecutorExactExchangeTests` does with
+Test a provider's requests and answers through Foundation Models, as `ExactExchangeTests` does with
 `LanguageModelsTestSupport`'s `ExactExchange`: the bytes each request sends and what the session's transcript holds
 afterwards. A stream recorded from the real service, kept in the test target's `Fixtures`, pins the events it sends.
 Test the dialect in the provider's test folder named after the format, and the format's own behavior in the format's

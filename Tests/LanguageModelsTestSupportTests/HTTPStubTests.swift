@@ -2,7 +2,7 @@ import Foundation
 import LanguageModelsTestSupport
 import Testing
 
-@Suite("HTTP stub")
+@Suite("HTTP stub", .timeLimit(.minutes(1)))
 struct HTTPStubTests {
     @Test func `a fixture streams in small chunks that reassemble into lines`() async throws {
         let stub = HTTPStub(.eventStream(try Bundle.module.fixture("two-events.sse"), chunkSize: 3))
@@ -80,8 +80,7 @@ struct HTTPStubTests {
         #expect(error.code == .networkConnectionLost)
     }
 
-    @Test(.timeLimit(.minutes(1)))
-    func `an open connection delivers its chunks, then waits until the client cancels`() async throws {
+    @Test func `an open connection delivers its chunks, then waits until the client cancels`() async throws {
         let response = StubResponse(headers: ["Content-Type": "text/event-stream"], chunks: [Data("first\n".utf8)])
         let stub = HTTPStub(response.keepingConnectionOpen())
 
@@ -95,8 +94,7 @@ struct HTTPStubTests {
         #expect(error.code == .cancelled)
     }
 
-    @Test(.timeLimit(.minutes(1)))
-    func `the stub signals each response it has sent`() async throws {
+    @Test func `the stub signals each response it has sent`() async throws {
         let stub = HTTPStub(.json("{}"), .json("{}"))
         var sentResponses = stub.sentResponses.makeAsyncIterator()
 

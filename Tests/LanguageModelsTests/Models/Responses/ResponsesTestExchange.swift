@@ -1,6 +1,7 @@
 import Foundation
 import FoundationModels
 import LanguageModelsTestSupport
+import Testing
 
 @testable import LanguageModels
 
@@ -76,4 +77,56 @@ func textDelta(_ delta: String, at index: Int = 0) -> JSONValue {
 /// The event that adds or ends an output item.
 func item(_ type: String, at index: Int, _ item: JSONValue) -> JSONValue {
     ["type": .string(type), "output_index": .integer(index), "item": item]
+}
+
+extension ResponsesModelTests {
+    /// The test model, sending to a stub.
+    static func model(_ stub: HTTPStub) -> Responses.Model<ResponsesTestExchange> {
+        .test(url: stub.baseURL, session: stub.session)
+    }
+
+    /// A model of the plain format, sending to a stub.
+    static func plainModel(_ stub: HTTPStub) -> Responses.Model<Responses.PlainExchange> {
+        var model = Responses.Model(name: "vendor/model", url: stub.baseURL)
+        model.connection = Connection(
+            session: stub.session, authentication: .unauthenticated, idleTimeout: nil, retries: .disabled, retrying: { _ in false })
+        return model
+    }
+
+    /// Runs one exchange of the test model with a stub, reading the channel's events without looking at them, since a
+    /// channel waits for its reader.
+    ///
+    /// - Returns: The answer, or the failure it ended in.
+    static func respond(
+        _ stub: HTTPStub,
+        to entries: [Transcript.Entry],
+        schema: GenerationSchema? = nil
+    ) async -> (DetailedLanguageModelAnswer?, RequestFailure<APIErrorBody>?) {
+        let (answer, error) = await respondThrowing(stub, to: entries, schema: schema)
+        guard let error else { return (answer, nil) }
+        guard let failure = error as? RequestFailure<APIErrorBody> else {
+            Issue.record("The model threw \(error)")
+            return (nil, nil)
+        }
+        return (nil, failure)
+    }
+
+    /// Runs one exchange of the test model with a stub.
+    ///
+    /// - Returns: The answer, or the error it ended in.
+    static func respondThrowing(
+        _ stub: HTTPStub,
+        to entries: [Transcript.Entry],
+        schema: GenerationSchema? = nil
+    ) async -> (DetailedLanguageModelAnswer?, (any Error)?) {
+        let channel = LanguageModelExecutorGenerationChannel()
+        let reader = Task { for try await _ in channel {} }
+        defer { reader.cancel() }
+        do {
+            let text = try await model(stub).run(generationRequest(entries, schema: schema), streamingInto: channel)
+            return (DetailedLanguageModelAnswer(responseText: text), nil)
+        } catch {
+            return (nil, error)
+        }
+    }
 }
