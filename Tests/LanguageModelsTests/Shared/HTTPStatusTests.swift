@@ -3,7 +3,7 @@ import Testing
 @testable import LanguageModels
 
 /// What a status is called, the number it stands for, and which statuses each rule retries.
-@Suite("HTTP status")
+@Suite("HTTP status", .timeLimit(.minutes(1)))
 struct HTTPStatusTests {
     @Test(arguments: [
         (HTTPStatus.badRequest, 400), (.unauthorized, 401), (.paymentRequired, 402), (.forbidden, 403), (.notFound, 404),

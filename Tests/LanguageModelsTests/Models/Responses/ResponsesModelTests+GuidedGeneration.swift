@@ -89,7 +89,7 @@ extension ResponsesModelTests {
         @Test func `a strict schema requires every property, and an optional one takes null`() throws {
             let request = generationRequest([prompt(text("A dinner idea."))], schema: Dish.generationSchema)
 
-            let schema = try #require(try SentRequest(request).body["text"]?["format"]?["schema"])
+            let schema = try #require(try ResponsesSentRequest(request).body["text"]?["format"]?["schema"])
 
             #expect(schema["required"] == ["name", "notes"])
             #expect(schema["properties"]?["notes"]?["anyOf"]?[1]?["type"] == "null")
@@ -98,7 +98,7 @@ extension ResponsesModelTests {
         @Test func `a schema goes in full, with the portable schema ready`() throws {
             let request = generationRequest([prompt(text("Rate it."))], schema: Rating.generationSchema)
 
-            let sent = try SentRequest(request)
+            let sent = try ResponsesSentRequest(request)
 
             #expect(sent.body["text"]?["format"]?["schema"]?["properties"]?["stars"]?["maximum"] == 5)
             #expect(sent.portableSchemaBody?["text"]?["format"]?["schema"]?["properties"]?["stars"]?["maximum"] == nil)

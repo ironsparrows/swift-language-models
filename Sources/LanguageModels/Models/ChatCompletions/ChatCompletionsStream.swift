@@ -328,7 +328,7 @@ private struct Chunk: Decodable {
     let serviceTier: String?
     let choices: [Choice]?
     let usage: Usage?
-    /// The `error` object of an error event, which a host sends after the response's HTTP 200.
+    /// The `error` object of an error event, which a provider sends after the response's HTTP 200.
     let error: JSONValue?
 
     private enum CodingKeys: String, CodingKey {

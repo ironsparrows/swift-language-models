@@ -8,7 +8,7 @@ import Testing
 /// What OpenAI's options send.
 @Suite("OpenAI's options", .timeLimit(.minutes(1)))
 struct OpenAIOptionsTests {
-    @Test func `a verbosity goes as set to every model, as the official SDKs send it`() async throws {
+    @Test func `a verbosity goes as set to every model`() async throws {
         let options = OpenAIOptions(verbosity: .low)
         let reasoning = try await sentBody { reasoningModel($0, options: options) }
         let plain = try await sentBody { plainModel($0, options: options) }

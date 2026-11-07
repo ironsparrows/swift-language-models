@@ -32,11 +32,11 @@ struct Footer: CustomStringConvertible {
         if let cost = usage.openRouter.cost {
             parts.append(cost.dollars)
         }
-        if answer?.openRouter.isResponseCacheHit == true {
+        if answer?.openRouter.responseCacheStatus == .hit {
             parts.append("from the response cache")
         }
         if let host = answer?.openRouter.provider {
-            parts.append(host)
+            parts.append(host.rawValue)
         }
         return Style.dim(parts.joined(separator: " · "))
     }

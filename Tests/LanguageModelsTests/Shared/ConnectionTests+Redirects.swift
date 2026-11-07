@@ -8,7 +8,7 @@ import Testing
 extension ConnectionTests {
     @Suite("Redirects")
     struct Redirects {
-        @Test func `a redirect to another host isn't followed and comes back as a failure`() async throws {
+        @Test func `a redirect to another URL host isn't followed and comes back as a failure`() async throws {
             let other = HTTPStub(.json("{}"))
             let stub = HTTPStub(.redirect(to: other.baseURL.appending(path: "v1/chat").absoluteString))
 
@@ -20,7 +20,7 @@ extension ConnectionTests {
             #expect(other.requests.isEmpty)
         }
 
-        @Test func `a redirect to the same host is followed with the request's authorization`() async throws {
+        @Test func `a redirect to the same URL host is followed with the request's authorization`() async throws {
             let stub = HTTPStub(.redirect(to: "/v2/chat"), .json("{}"))
 
             _ = try await http(stub).data(for: request(stub))
@@ -38,7 +38,7 @@ extension ConnectionTests {
             ("https://api.example.com/v1/chat", "http://api.example.com/v1/chat", false),
             ("https://api.example.com/v1/chat", "https://api.example.com:8443/v1/chat", false),
         ])
-        func `a redirect is followed only to the same scheme, host and port`(from: String, to: String, isFollowed: Bool) async throws {
+        func `a redirect is followed only to the same scheme, URL host and port`(from: String, to: String, isFollowed: Bool) async throws {
             let followed = try await redirect(from: URLRequest(url: try #require(URL(string: from))), to: to)
 
             #expect((followed != nil) == isFollowed)

@@ -19,6 +19,8 @@ defaults:
 
 env:
   DEVELOPER_DIR: /Applications/Xcode_27.2.app/Contents/Developer
+  # A snapshot that's missing or wrong fails here. Snapshots are recorded on a developer's machine and reviewed.
+  SNAPSHOT_TESTING_RECORD: never
   # One rolling pull request: each run rebuilds the branch from main as one commit and updates the open pull request,
   # so a pull request waiting for review never piles up behind newer ones.
   BRANCH: catalog/update

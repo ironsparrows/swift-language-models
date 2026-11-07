@@ -62,7 +62,7 @@ extension ResponsesModelTests {
                         metadata: ["test.phases": phases(("commentary", 6), ("final_answer", 6))], segments: [text("Hm.   Hello.")])),
             ]
 
-            let items = input(try SentRequest(generationRequest(entries)).body)
+            let items = input(try ResponsesSentRequest(generationRequest(entries)).body)
 
             #expect(
                 Array(items.dropFirst()) == [
@@ -79,7 +79,7 @@ extension ResponsesModelTests {
                         metadata: ["test.phases": phases(("commentary", 4), ("final_answer", 4))], segments: [text("Hello.")])),
             ]
 
-            let items = input(try SentRequest(generationRequest(entries)).body)
+            let items = input(try ResponsesSentRequest(generationRequest(entries)).body)
 
             #expect(items.last == ["role": "assistant", "content": "Hello.", "phase": "final_answer"])
         }
@@ -92,7 +92,7 @@ extension ResponsesModelTests {
                 .response(Transcript.Response(metadata: ["test.phases": [commentary, final]], segments: [text(#"{"stars":4}"#)])),
             ]
 
-            let items = input(try SentRequest(generationRequest(entries)).body)
+            let items = input(try ResponsesSentRequest(generationRequest(entries)).body)
 
             #expect(
                 Array(items.dropFirst()) == [
@@ -110,7 +110,7 @@ extension ResponsesModelTests {
                 prompt(text("Again.")),
             ]
 
-            let items = input(try SentRequest(generationRequest(entries)).body)
+            let items = input(try ResponsesSentRequest(generationRequest(entries)).body)
 
             #expect(items == [["role": "user", "content": "Hi"], ["role": "user", "content": "Again."]])
         }
@@ -128,8 +128,8 @@ extension ResponsesModelTests {
             var model = Responses.Model<ResponsesTestExchange>.test()
             model.exchange.prepares = { $0.storage = .notStored }
 
-            let notStored = input(try SentRequest(generationRequest(entries), model: model).body)
-            let automatic = input(try SentRequest(generationRequest(entries)).body)
+            let notStored = input(try ResponsesSentRequest(generationRequest(entries), model: model).body)
+            let automatic = input(try ResponsesSentRequest(generationRequest(entries)).body)
 
             #expect(notStored.filter { $0["type"] == "reasoning" } == [encrypted])
             #expect(automatic.filter { $0["type"] == "reasoning" } == [encrypted, stored])
@@ -144,7 +144,7 @@ extension ResponsesModelTests {
                 .toolCalls(Transcript.ToolCalls([call])),
             ]
 
-            let items = input(try SentRequest(generationRequest(entries)).body)
+            let items = input(try ResponsesSentRequest(generationRequest(entries)).body)
 
             #expect(items[1] == ["role": "assistant", "content": "Looking it up.", "phase": "commentary"])
         }

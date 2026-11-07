@@ -40,7 +40,7 @@ extension Responses.Model<ResponsesTestExchange> {
 }
 
 /// What a model sends for a request, after its exchange prepared it.
-struct SentRequest {
+struct ResponsesSentRequest {
     let body: JSONValue
     let portableSchemaBody: JSONValue?
     let adjustments: [RequestAdjustment]

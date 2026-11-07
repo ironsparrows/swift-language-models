@@ -272,7 +272,7 @@ Snapshots hold whole request bodies, exchanges and errors. A single value, a typ
 `#expect`, and the generator's golden files stay as they are.
 
 - Nobody types or edits snapshot text. It's recorded.
-- CI never records: `ci.yml` sets `SNAPSHOT_TESTING_RECORD=never`.
+- CI never records: `ci.yml` and `model-catalog.yml` set `SNAPSHOT_TESTING_RECORD=never`.
 - Locally, a new snapshot is written and fails that run once, and a wrong one fails and isn't rewritten. To re-record on
   purpose, run `SNAPSHOT_TESTING_RECORD=failed swift test --filter <suite>`.
 - A snapshot says what changed, not what's right. A commit that changes one says why, and changes nothing else.

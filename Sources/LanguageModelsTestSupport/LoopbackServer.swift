@@ -17,9 +17,6 @@ package final class LoopbackServer: Sendable {
     /// The server's base URL, such as `http://127.0.0.1:52014`.
     package let baseURL: URL
 
-    /// An element for each reply the server has written.
-    private let sentReplies: AsyncStream<Void>
-
     /// An element each time a client closes a connection that a reply kept open.
     package let closedConnections: AsyncStream<Void>
 
@@ -39,9 +36,8 @@ package final class LoopbackServer: Sendable {
     /// - Parameter replies: Returns the replies, one for each request, for the server's base URL.
     /// - Throws: The listener's error, when it can't start.
     package init(_ replies: (URL) -> [LoopbackReply]) async throws {
-        let (sentReplies, sent) = AsyncStream.makeStream(of: Void.self)
         let (closedConnections, closed) = AsyncStream.makeStream(of: Void.self)
-        let script = Script(sent: sent, closed: closed)
+        let script = Script(closed: closed)
         let parameters = NWParameters.tcp
         parameters.requiredLocalEndpoint = .hostPort(host: .ipv4(.loopback), port: .any)
         let listener = try NWListener(using: parameters)
@@ -68,7 +64,6 @@ package final class LoopbackServer: Sendable {
         }
         script.add(replies(baseURL))
         self.baseURL = baseURL
-        self.sentReplies = sentReplies
         self.closedConnections = closedConnections
         self.listener = listener
         self.script = script
@@ -144,12 +139,10 @@ extension LoopbackServer {
         }
 
         private let state: Mutex<State>
-        private let sent: AsyncStream<Void>.Continuation
         private let closed: AsyncStream<Void>.Continuation
 
-        init(sent: AsyncStream<Void>.Continuation, closed: AsyncStream<Void>.Continuation) {
+        init(closed: AsyncStream<Void>.Continuation) {
             state = Mutex(State())
-            self.sent = sent
             self.closed = closed
         }
 
@@ -160,7 +153,6 @@ extension LoopbackServer {
 
         /// Ends what a test may be waiting for.
         func finish() {
-            sent.finish()
             closed.finish()
         }
 
@@ -179,7 +171,6 @@ extension LoopbackServer {
                 // The pause keeps each write apart on the socket.
                 try? await Task.sleep(for: .milliseconds(1))
             }
-            sent.yield()
             if reply.ending == .staysOpen {
                 await Self.waitForClose(of: connection)
                 closed.yield()

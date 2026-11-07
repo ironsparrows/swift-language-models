@@ -39,7 +39,7 @@ struct LoopbackTests {
         #expect(server.requests.first?.body == server.requests.last?.body)
     }
 
-    @Test func `a redirect to another host isn't followed and carries no credentials`() async throws {
+    @Test func `a redirect to another URL host isn't followed and carries no credentials`() async throws {
         // The same server under another name, so only the URL host differs, and following it would reach this server
         // again.
         let server = try await LoopbackServer { url in

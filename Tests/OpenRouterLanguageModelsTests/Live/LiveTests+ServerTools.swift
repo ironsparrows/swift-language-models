@@ -70,13 +70,13 @@ extension LiveTests {
             let session = LanguageModelSession(model: LiveModel(.openaiGpt4_1Nano).languageModel(serverTools: [subagent]))
 
             let response = try await session.respond(
-                to: "Delegate this task to the subagent: write the word 'harbor' in capital letters. Then reply with its outcome only.",
+                to: "Delegate this task to the subagent: write the word 'lantern' in capital letters. Then reply with its outcome only.",
                 options: GenerationOptions(maximumResponseTokens: 200)
             )
 
             record(answerMetadata(response), named: "metadata.txt")
             record(session.transcript, named: "transcript.txt")
-            #expect(response.content.contains("HARBOR"))
+            #expect(response.content.contains("LANTERN"))
             #expect((response.usage.openRouter.requestedServerToolCallCount ?? 0) >= 1)
             #expect(session.transcript.toolCalls.isEmpty)
         }

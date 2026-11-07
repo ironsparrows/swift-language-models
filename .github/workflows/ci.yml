@@ -36,8 +36,9 @@ jobs:
       - name: One public line in the shared target
         # Everything in `LanguageModels` is `package` or narrower, apart from the re-export of the core.
         run: |
-          test "$(grep -rhE '^\s*(@[A-Za-z_]+(\([^)]*\))?\s+)*public\s' Sources/LanguageModels --include='*.swift')" \
-            = '@_exported public import LanguageModelsCore'
+          lines="$(grep -rhE '^\s*([A-Za-z_@]+(\([^)]*\))?\s+)*(public|open)(\([a-z]+\))?\s' Sources/LanguageModels --include='*.swift')"
+          echo "$lines"
+          test "$lines" = '@_exported public import LanguageModelsCore'
       - name: Build
         run: swift build --build-tests -Xswiftc -warnings-as-errors
       - name: Generated catalog is up to date

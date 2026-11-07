@@ -19,7 +19,7 @@ extension ResponsesModelTests {
                 .toolOutput(Transcript.ToolOutput(id: "call_1", toolName: "lookUp", segments: [text("egg:"), text("an oval")])),
             ]
 
-            let items = input(try SentRequest(generationRequest(entries)).body)
+            let items = input(try ResponsesSentRequest(generationRequest(entries)).body)
 
             #expect(
                 items == [
@@ -38,7 +38,7 @@ extension ResponsesModelTests {
                 .instructions(Transcript.Instructions(segments: [text("Be brief.")], toolDefinitions: [])), prompt(text("Hi")),
             ]
 
-            let items = input(try SentRequest(generationRequest(entries), model: model).body)
+            let items = input(try ResponsesSentRequest(generationRequest(entries), model: model).body)
 
             #expect(items.first == ["role": "system", "content": "Be brief."])
         }

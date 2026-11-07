@@ -32,7 +32,7 @@ struct RequestAdjustmentTests {
     @Test func `metadata a Responses request leaves out is noted by key`() throws {
         let generation = generationRequest([prompt(text("Hi"))], metadata: ["count": 3, "name": "Ada"])
 
-        #expect(try SentRequest(generation).adjustments == [.droppedMetadata(keys: ["count"])])
+        #expect(try ResponsesSentRequest(generation).adjustments == [.droppedMetadata(keys: ["count"])])
     }
 
     @Test(
@@ -54,7 +54,7 @@ struct RequestAdjustmentTests {
         var model = Responses.Model<ResponsesTestExchange>.test()
         model.exchange.prepares = { $0.movedEffort = moved }
 
-        let adjustments = try SentRequest(generationRequest([prompt(text("Hi"))]), model: model).adjustments
+        let adjustments = try ResponsesSentRequest(generationRequest([prompt(text("Hi"))]), model: model).adjustments
 
         #expect(adjustments == [.movedEffort(requested: moved.requested, sent: sent)])
     }

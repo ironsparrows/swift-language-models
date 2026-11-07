@@ -410,9 +410,9 @@ extension Responses.Stream {
 
 /// One streamed event of a response, with the members the format reads, in OpenAI's spelling.
 ///
-/// Every member but `type` is optional, since each kind of event carries only some of them, and hosts that follow the
-/// format add and leave out members of their own. An event of a kind the format doesn't read keeps only its `type`, so
-/// its members, whatever their shape, can't make it unreadable.
+/// Every member but `type` is optional, since each kind of event carries only some of them, and providers that follow
+/// the format add and leave out members of their own. An event of a kind the format doesn't read keeps only its
+/// `type`, so its members, whatever their shape, can't make it unreadable.
 private struct ResponseEvent: Decodable {
     let type: EventType
 
@@ -569,8 +569,8 @@ extension ResponseEvent {
         let rawValue: String
     }
 
-    /// One server-sent event of a streamed response: an event and its JSON, or a `[DONE]` that a host may send after the
-    /// response's last event.
+    /// One server-sent event of a streamed response: an event and its JSON, or a `[DONE]` that a provider may send after
+    /// the response's last event.
     enum Streamed {
         case event(ResponseEvent, Data)
         case done

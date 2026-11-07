@@ -19,19 +19,19 @@ extension ChatCompletions {
         // MARK: Where requests go
 
         /// The model's id, sent as `model`.
-        private(set) var name: String
+        let name: String
 
         /// The provider's base URL, which `chat/completions` goes under.
-        private var url: URL
+        private let url: URL
 
         /// How requests reach the provider: the URL session, authentication, idle timeout and retries.
         var connection: Connection
 
         /// The provider's name, as the log's category and error messages name it.
-        private(set) var providerName: String
+        let providerName: String
 
         /// What the model can do, which Foundation Models checks before a request.
-        package private(set) var capabilities: LanguageModelCapabilities
+        package let capabilities: LanguageModelCapabilities
 
         /// The models a request may reach, in the order the provider tries them, which each request looks through for one
         /// its provider stopped listing.

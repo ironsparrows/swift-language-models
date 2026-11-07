@@ -71,8 +71,4 @@ extension LiveTests {
             }
         }
     }
-
-    /// Probes of the ways the executor may break on some models. A probe that fails today runs in a known issue, so it
-    /// reports once the problem is fixed, and one that passes stays as a regression test. Calls that share an index are
-    /// probed by the parallel calls in Tools.
 }

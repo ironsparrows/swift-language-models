@@ -5,7 +5,7 @@ import Testing
 
 @testable import LanguageModels
 
-/// An exchange that adds only what a test gives it, so the format's own behavior shows.
+/// An exchange that adds an `X-Test` header and what a test gives it, so the format's own behavior shows.
 ///
 /// Its errors are the format's failures themselves, so a test can read what failed.
 struct ChatCompletionsTestExchange: ChatCompletions.Exchange {

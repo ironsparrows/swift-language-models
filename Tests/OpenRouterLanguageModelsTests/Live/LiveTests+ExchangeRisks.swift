@@ -7,8 +7,11 @@ import Testing
 
 @diagnose(DeprecatedDeclaration, as: warning)
 extension LiveTests {
-    @Suite("Executor risks")
-    struct ExecutorRisks {
+    /// Probes of the ways a request may break on some models. A probe that fails today runs in a known issue, so it
+    /// reports once the problem is fixed, and one that passes stays as a regression test. Calls that share an index are
+    /// probed by the parallel calls in Tools.
+    @Suite("Exchange risks")
+    struct ExchangeRisks {
         /// Models whose hosts need the tool definitions whenever the history has tool calls: Anthropic, and Bedrock,
         /// the only host of Nova.
         static let toolHistoryModels = [LiveModel(.anthropicClaudeHaiku5_5), LiveModel(.amazonNovaMicroV1)]

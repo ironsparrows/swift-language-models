@@ -13,7 +13,7 @@ extension ResponsesModelTests {
             let image = Transcript.ImageAttachment(try #require(TestImage.halves(width: 8, height: 4)))
             let entries = [prompt(text("What's this?"), .attachment(.init(content: .image(image), label: "Photo")))]
 
-            let sent = try SentRequest(generationRequest(entries))
+            let sent = try ResponsesSentRequest(generationRequest(entries))
             let content = input(sent.body).first?["content"]
 
             #expect(content?[0] == ["type": "input_text", "text": "What's this?"])
@@ -30,7 +30,7 @@ extension ResponsesModelTests {
             let notes = Transcript.DataAttachment(contentType: .rtf, content: Data("{\\rtf1 Soup}".utf8))
             let entries = [prompt(.attachment(.init(content: .data(notes), label: "Notes")))]
 
-            #expect(throws: LanguageModelError.self) { try SentRequest(generationRequest(entries)) }
+            #expect(throws: LanguageModelError.self) { try ResponsesSentRequest(generationRequest(entries)) }
         }
         #endif
     }

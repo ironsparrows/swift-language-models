@@ -265,10 +265,10 @@ extension LanguageModelError {
 // MARK: - Wire
 
 /// The `error` object that OpenAI's formats send in a failed response's body, `{"error": {"message", "type",
-/// "code", "param"}}`, which other hosts of the formats send too, often with members of their own.
+/// "code", "param"}}`, which other providers that follow the formats send too, often with members of their own.
 ///
 /// The message is required. The other members are read when they have the expected kind and are `nil`
-/// otherwise, since hosts vary them.
+/// otherwise, since providers vary them.
 package struct APIErrorBody: Decodable, Sendable {
     /// What went wrong.
     package private(set) var message: String
@@ -276,7 +276,7 @@ package struct APIErrorBody: Decodable, Sendable {
     /// The kind of error, such as `invalid_request_error`.
     package var type: String?
 
-    /// The error's code, a number or a word depending on the host.
+    /// The error's code, a number or a word depending on the provider.
     package private(set) var code: JSONValue?
 
     /// The request parameter the error concerns.

@@ -85,7 +85,7 @@ private struct ToolChoice: ProviderVocabulary {
 
 /// Request metadata as OpenAI's formats take it.
 enum RequestMetadata {
-    /// The limits that OpenAI's formats, and the hosts that follow them, put on request metadata.
+    /// The limits that OpenAI's formats, and the providers that follow them, put on request metadata.
     fileprivate enum MetadataLimit {
         static let pairs = 16
         static let keyLength = 64

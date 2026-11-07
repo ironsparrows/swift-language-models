@@ -88,7 +88,7 @@ extension ResponsesModelTests {
                 [prompt(text("Hi"))], tools: [Transcript.ToolDefinition(tool: LookUpTool())],
                 options: GenerationOptions(toolCallingMode: .required))
 
-            let body = try SentRequest(request).body
+            let body = try ResponsesSentRequest(request).body
 
             #expect(keys(body) == ["model", "input", "stream", "tools", "tool_choice"])
             #expect(keys(body["tools"]?[0]) == ["type", "name", "description", "parameters", "strict"])
@@ -104,7 +104,7 @@ extension ResponsesModelTests {
                 [prompt(text("Hi"))], tools: [Transcript.ToolDefinition(tool: LookUpTool())],
                 options: GenerationOptions(toolCallingMode: .required))
 
-            let body = try SentRequest(request, model: model).body
+            let body = try ResponsesSentRequest(request, model: model).body
 
             #expect(body["tools"] == nil)
             #expect(body["tool_choice"] == nil)
@@ -117,8 +117,8 @@ extension ResponsesModelTests {
             let withSessionTool = generationRequest(
                 [prompt(text("Hi"))], tools: [Transcript.ToolDefinition(tool: LookUpTool())], options: options)
 
-            let both = try SentRequest(withSessionTool, model: model).body
-            let alone = try SentRequest(generationRequest([prompt(text("Hi"))], options: options), model: model).body
+            let both = try ResponsesSentRequest(withSessionTool, model: model).body
+            let alone = try ResponsesSentRequest(generationRequest([prompt(text("Hi"))], options: options), model: model).body
 
             #expect(both["tools"]?[0]?["name"] == "lookUp")
             #expect(both["tools"]?[1] == ["type": "web_search"])

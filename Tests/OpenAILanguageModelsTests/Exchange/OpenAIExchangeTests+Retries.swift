@@ -12,7 +12,7 @@ extension OpenAIExchangeTests {
     @Suite("Retries")
     struct Retries {
         @Test(arguments: [(408, true), (409, true), (429, true), (500, true), (600, true), (400, false)])
-        func `a status goes out again only if the official SDKs retry it, up to the configuration's limit`(
+        func `a status goes out again only if it may clear on another try, up to the configuration's limit`(
             status: Int, isRetried: Bool
         ) async {
             let stub = HTTPStub(failure(status), failure(status), answer())

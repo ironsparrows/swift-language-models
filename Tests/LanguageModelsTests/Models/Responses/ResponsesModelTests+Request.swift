@@ -38,7 +38,7 @@ extension ResponsesModelTests {
                 samplingMode: .random(probabilityThreshold: 0.5, seed: 1), temperature: 0.2, maximumResponseTokens: 10)
             let request = generationRequest([prompt(text("Hi"))], options: options, metadata: ["team": "coach"])
 
-            let sent = try SentRequest(request)
+            let sent = try ResponsesSentRequest(request)
 
             #expect(keys(sent.body) == ["model", "input", "stream", "temperature", "top_p", "max_output_tokens", "metadata"])
             #expect(sent.body["model"] == "vendor/model")
@@ -128,7 +128,7 @@ extension ResponsesModelTests {
             var model = Responses.Model<ResponsesTestExchange>.test()
             model.exchange.prepares = { $0.members = ["service_tier": "flex", "prompt_cache_key": "session"] }
 
-            let body = try SentRequest(generationRequest([prompt(text("Hi"))]), model: model).body
+            let body = try ResponsesSentRequest(generationRequest([prompt(text("Hi"))]), model: model).body
 
             #expect(keys(body) == ["model", "input", "stream", "service_tier", "prompt_cache_key"])
         }
@@ -143,7 +143,7 @@ extension ResponsesModelTests {
             }
             let request = generationRequest([prompt(text("Rate it."))], schema: Rating.generationSchema)
 
-            let body = try SentRequest(request, model: model).body
+            let body = try ResponsesSentRequest(request, model: model).body
 
             #expect(keys(body) == ["model", "input", "stream", "store", "include", "text", "reasoning"])
             #expect(body["store"] == false)
@@ -163,8 +163,8 @@ extension ResponsesModelTests {
                 request.reasoning = .init()
             }
 
-            let stored = try SentRequest(generationRequest([prompt(text("Hi"))]), model: model).body
-            let automatic = try SentRequest(generationRequest([prompt(text("Hi"))])).body
+            let stored = try ResponsesSentRequest(generationRequest([prompt(text("Hi"))]), model: model).body
+            let automatic = try ResponsesSentRequest(generationRequest([prompt(text("Hi"))])).body
 
             #expect(stored["store"] == true)
             #expect(stored["reasoning"] == nil)
@@ -176,7 +176,7 @@ extension ResponsesModelTests {
             model.unsupportedMembers = [.temperature, .maxOutputTokens]
             let options = GenerationOptions(samplingMode: .random(top: 40, seed: 3), temperature: 0.2, maximumResponseTokens: 10)
 
-            let sent = try SentRequest(generationRequest([prompt(text("Hi"))], options: options), model: model)
+            let sent = try ResponsesSentRequest(generationRequest([prompt(text("Hi"))], options: options), model: model)
 
             // A token limit left out isn't raised.
             #expect(keys(sent.body) == ["model", "input", "stream"])
@@ -191,7 +191,7 @@ extension ResponsesModelTests {
             }
             let options = GenerationOptions(temperature: 0.2)
 
-            let sent = try SentRequest(generationRequest([prompt(text("Hi"))], options: options), model: model)
+            let sent = try ResponsesSentRequest(generationRequest([prompt(text("Hi"))], options: options), model: model)
 
             #expect(sent.body["temperature"] == nil)
             #expect(sent.adjustments == [.unsentSettings(["temperature"]), .movedEffort(requested: "medium", sent: "low")])
