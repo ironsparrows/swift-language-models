@@ -152,6 +152,8 @@ public struct OpenRouterEndpoint: Sendable, Hashable {
     }
 }
 
+// MARK: - Connection
+
 extension Connection {
     /// The endpoints of one model.
     ///

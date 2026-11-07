@@ -130,42 +130,6 @@ extension RequestFailure {
     }
 }
 
-// MARK: - Error body
-
-/// The `error` object that OpenAI's formats send in a failed response's body, `{"error": {"message", "type",
-/// "code", "param"}}`, which other hosts of the formats send too, often with members of their own.
-///
-/// The message is required. The other members are read when they have the expected kind and are `nil`
-/// otherwise, since hosts vary them.
-package struct APIErrorBody: Decodable, Sendable {
-    /// What went wrong.
-    package private(set) var message: String
-
-    /// The kind of error, such as `invalid_request_error`.
-    package var type: String?
-
-    /// The error's code, a number or a word depending on the host.
-    package private(set) var code: JSONValue?
-
-    /// The request parameter the error concerns.
-    package private(set) var param: String?
-
-    package init(from decoder: any Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        message = try container.decode(String.self, forKey: .message)
-        type = try? container.decodeIfPresent(String.self, forKey: .type)
-        code = try container.decodeIfPresent(JSONValue.self, forKey: .code)
-        param = try? container.decodeIfPresent(String.self, forKey: .param)
-    }
-
-    private enum CodingKeys: String, CodingKey {
-        case message
-        case type
-        case code
-        case param
-    }
-}
-
 // MARK: - Stream problems
 
 /// Why a format couldn't use a provider's streamed response, which a ``RequestFailure`` puts in words.
@@ -299,6 +263,40 @@ extension LanguageModelError {
 }
 
 // MARK: - Wire
+
+/// The `error` object that OpenAI's formats send in a failed response's body, `{"error": {"message", "type",
+/// "code", "param"}}`, which other hosts of the formats send too, often with members of their own.
+///
+/// The message is required. The other members are read when they have the expected kind and are `nil`
+/// otherwise, since hosts vary them.
+package struct APIErrorBody: Decodable, Sendable {
+    /// What went wrong.
+    package private(set) var message: String
+
+    /// The kind of error, such as `invalid_request_error`.
+    package var type: String?
+
+    /// The error's code, a number or a word depending on the host.
+    package private(set) var code: JSONValue?
+
+    /// The request parameter the error concerns.
+    package private(set) var param: String?
+
+    package init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        message = try container.decode(String.self, forKey: .message)
+        type = try? container.decodeIfPresent(String.self, forKey: .type)
+        code = try container.decodeIfPresent(JSONValue.self, forKey: .code)
+        param = try? container.decodeIfPresent(String.self, forKey: .param)
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case message
+        case type
+        case code
+        case param
+    }
+}
 
 extension RequestFailure {
     /// The body of a failed response, `{"error": {…}}`.
