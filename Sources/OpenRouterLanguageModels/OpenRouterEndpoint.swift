@@ -166,6 +166,40 @@ extension Connection {
     }
 }
 
+// MARK: - Reading
+
+extension OpenRouterEndpoint {
+    /// An endpoint from OpenRouter's list, with its latency read in milliseconds.
+    fileprivate init(_ payload: OpenRouterEndpoint.Payload) {
+        self.init(
+            name: OpenRouterProviderName(rawValue: payload.providerName),
+            tag: OpenRouterProviderName(rawValue: payload.tag),
+            modelID: OpenRouterModelID(rawValue: payload.modelID),
+            serviceTier: payload.serviceTier.map(OpenRouterServiceTier.init(rawValue:)),
+            quantization: payload.quantization.map(OpenRouterQuantization.init(rawValue:)) ?? .unknown,
+            contextSize: payload.contextLength,
+            maximumOutputTokens: payload.maxCompletionTokens,
+            maximumPromptTokens: payload.maxPromptTokens,
+            pricing: payload.pricing.flatMap(OpenRouterPricing.init),
+            status: payload.status,
+            uptimeLast5Minutes: payload.uptimeLast5m,
+            uptimeLast30Minutes: payload.uptimeLast30m,
+            uptimeLastDay: payload.uptimeLast1d,
+            latencyLast30Minutes: payload.latencyLast30m.map { $0.percentiles { .milliseconds($0) } },
+            throughputLast30Minutes: payload.throughputLast30m.map { $0.percentiles { $0 } },
+            supportedParameters: Set((payload.supportedParameters ?? []).map(OpenRouterParameter.init(rawValue:))),
+            supportsImplicitCaching: payload.supportsImplicitCaching ?? false
+        )
+    }
+}
+
+extension OpenRouterEndpoint.Payload.Percentiles {
+    /// The percentiles, with `value` applied to each number.
+    func percentiles<Value>(_ value: (Double) -> Value) -> OpenRouterRouting.Percentiles<Value> {
+        OpenRouterRouting.Percentiles(p50: p50.map(value), p75: p75.map(value), p90: p90.map(value), p99: p99.map(value))
+    }
+}
+
 // MARK: - Wire
 
 extension OpenRouterEndpoint {
@@ -219,37 +253,5 @@ extension OpenRouterEndpoint {
             case supportedParameters = "supported_parameters"
             case supportsImplicitCaching = "supports_implicit_caching"
         }
-    }
-}
-
-extension OpenRouterEndpoint {
-    /// An endpoint from OpenRouter's list, with its latency read in milliseconds.
-    fileprivate init(_ payload: OpenRouterEndpoint.Payload) {
-        self.init(
-            name: OpenRouterProviderName(rawValue: payload.providerName),
-            tag: OpenRouterProviderName(rawValue: payload.tag),
-            modelID: OpenRouterModelID(rawValue: payload.modelID),
-            serviceTier: payload.serviceTier.map(OpenRouterServiceTier.init(rawValue:)),
-            quantization: payload.quantization.map(OpenRouterQuantization.init(rawValue:)) ?? .unknown,
-            contextSize: payload.contextLength,
-            maximumOutputTokens: payload.maxCompletionTokens,
-            maximumPromptTokens: payload.maxPromptTokens,
-            pricing: payload.pricing.flatMap(OpenRouterPricing.init),
-            status: payload.status,
-            uptimeLast5Minutes: payload.uptimeLast5m,
-            uptimeLast30Minutes: payload.uptimeLast30m,
-            uptimeLastDay: payload.uptimeLast1d,
-            latencyLast30Minutes: payload.latencyLast30m.map { $0.percentiles { .milliseconds($0) } },
-            throughputLast30Minutes: payload.throughputLast30m.map { $0.percentiles { $0 } },
-            supportedParameters: Set((payload.supportedParameters ?? []).map(OpenRouterParameter.init(rawValue:))),
-            supportsImplicitCaching: payload.supportsImplicitCaching ?? false
-        )
-    }
-}
-
-extension OpenRouterEndpoint.Payload.Percentiles {
-    /// The percentiles, with `value` applied to each number.
-    func percentiles<Value>(_ value: (Double) -> Value) -> OpenRouterRouting.Percentiles<Value> {
-        OpenRouterRouting.Percentiles(p50: p50.map(value), p75: p75.map(value), p90: p90.map(value), p99: p99.map(value))
     }
 }

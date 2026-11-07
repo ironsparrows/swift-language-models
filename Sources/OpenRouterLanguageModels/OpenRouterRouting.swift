@@ -337,7 +337,7 @@ extension OpenRouterRouting {
     }
 }
 
-// MARK: - Wire
+// MARK: - Body
 
 extension OpenRouterRouting {
     /// The `provider` object of OpenRouter's request.
@@ -349,7 +349,11 @@ extension OpenRouterRouting {
         let member = Member(routing: self, parameterSupport: parameterSupport)
         return member.isEmpty ? nil : member
     }
+}
 
+// MARK: - Wire
+
+extension OpenRouterRouting {
     /// The `provider` object of OpenRouter's request: each setting that doesn't keep OpenRouter's default, always in
     /// the same order, since a host's prompt cache and OpenRouter's response cache depend on it.
     struct Member: Encodable {

@@ -89,26 +89,6 @@ extension Responses.Request {
         /// which ``Responses/Request/asksForEncryptedReasoning`` asks for.
         case notStored
     }
-
-    /// The `reasoning` member: how hard the model reasons and what it reports of its reasoning. A value left `nil`
-    /// stays out of the member.
-    package struct Reasoning: Encodable, Sendable, Equatable {
-        /// The effort, such as `low`, in the provider's word for it.
-        private var effort: String?
-
-        /// The summary of its reasoning the model writes, such as `auto`.
-        private var summary: String?
-
-        package init(effort: String? = nil, summary: String? = nil) {
-            self.effort = effort
-            self.summary = summary
-        }
-
-        /// Whether the member carries no value, so it stays out of the body.
-        fileprivate var isEmpty: Bool {
-            effort == nil && summary == nil
-        }
-    }
 }
 
 extension Responses {
@@ -281,6 +261,28 @@ extension Responses.Request {
 }
 
 // MARK: - Wire
+
+extension Responses.Request {
+    /// The `reasoning` member: how hard the model reasons and what it reports of its reasoning. A value left `nil`
+    /// stays out of the member.
+    package struct Reasoning: Encodable, Sendable, Equatable {
+        /// The effort, such as `low`, in the provider's word for it.
+        private var effort: String?
+
+        /// The summary of its reasoning the model writes, such as `auto`.
+        private var summary: String?
+
+        package init(effort: String? = nil, summary: String? = nil) {
+            self.effort = effort
+            self.summary = summary
+        }
+
+        /// Whether the member carries no value, so it stays out of the body.
+        fileprivate var isEmpty: Bool {
+            effort == nil && summary == nil
+        }
+    }
+}
 
 /// One of the session's tools, as a function with `strict` off, so the host doesn't rewrite its schema.
 private struct FunctionTool: Encodable {

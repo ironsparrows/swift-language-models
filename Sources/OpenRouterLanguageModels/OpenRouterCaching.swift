@@ -72,22 +72,6 @@ public struct OpenRouterCacheControl: Sendable, Hashable {
     var directive: Directive {
         Directive(timeToLive: timeToLive == .fiveMinutes ? nil : timeToLive)
     }
-
-    /// The `cache_control` directive: an ephemeral cache, with its lifetime unless it's OpenRouter's default.
-    struct Directive: Encodable, Sendable {
-        fileprivate let timeToLive: TimeToLive?
-
-        func encode(to encoder: any Encoder) throws {
-            var container = encoder.container(keyedBy: Key.self)
-            try container.encode("ephemeral", forKey: .type)
-            try container.encodeIfPresent(timeToLive, forKey: .timeToLive)
-        }
-
-        private enum Key: String, CodingKey {
-            case type
-            case timeToLive = "ttl"
-        }
-    }
 }
 
 extension OpenRouterLanguageModel {
@@ -230,6 +214,26 @@ extension OpenRouterResponseCache {
             self.status = Status(rawValue: status.uppercased())
             age = header(API.Header.cacheAge).flatMap { Int($0) }
             sourceID = header(API.Header.cacheSourceID)
+        }
+    }
+}
+
+// MARK: - Wire
+
+extension OpenRouterCacheControl {
+    /// The `cache_control` directive: an ephemeral cache, with its lifetime unless it's OpenRouter's default.
+    struct Directive: Encodable, Sendable {
+        fileprivate let timeToLive: TimeToLive?
+
+        func encode(to encoder: any Encoder) throws {
+            var container = encoder.container(keyedBy: Key.self)
+            try container.encode("ephemeral", forKey: .type)
+            try container.encodeIfPresent(timeToLive, forKey: .timeToLive)
+        }
+
+        private enum Key: String, CodingKey {
+            case type
+            case timeToLive = "ttl"
         }
     }
 }

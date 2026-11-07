@@ -268,62 +268,7 @@ extension OpenRouterPricing {
     }
 }
 
-// MARK: - Wire
-
-extension OpenRouterPricing {
-    /// A `pricing` object in OpenRouter's model and endpoint lists, with each price as decimal text in US dollars.
-    struct Payload: Decodable, Sendable {
-        /// Prices that replace the base prices while their conditions hold.
-        fileprivate struct Override: Decodable, Sendable {
-            let minPromptTokens: Double?
-            let utcDays: [String]?
-            /// The start of a daily window in UTC, as an `HHMM` clock number such as `130` for 01:30.
-            let utcStart: Double?
-            /// The end of the window, exclusive, in the same form.
-            let utcEnd: Double?
-            let prompt: String?
-            let completion: String?
-            let inputCacheRead: String?
-            let inputCacheWrite: String?
-            let inputCacheWriteOneHour: String?
-            let audio: String?
-
-            private enum CodingKeys: String, CodingKey {
-                case minPromptTokens = "min_prompt_tokens"
-                case utcDays = "utc_days"
-                case utcStart = "utc_start"
-                case utcEnd = "utc_end"
-                case prompt, completion, audio
-                case inputCacheRead = "input_cache_read"
-                case inputCacheWrite = "input_cache_write"
-                case inputCacheWriteOneHour = "input_cache_write_1h"
-            }
-        }
-
-        fileprivate let prompt: String?
-        fileprivate let completion: String?
-        fileprivate let inputCacheRead: String?
-        fileprivate let inputCacheWrite: String?
-        fileprivate let inputCacheWriteOneHour: String?
-        fileprivate let internalReasoning: String?
-        fileprivate let audio: String?
-        fileprivate let image: String?
-        fileprivate let request: String?
-        fileprivate let webSearch: String?
-        /// The fraction taken off the endpoint's prices, from 0 to 1.
-        fileprivate let discount: Double?
-        fileprivate let overrides: [Override]?
-
-        private enum CodingKeys: String, CodingKey {
-            case prompt, completion, audio, image, request, discount, overrides
-            case inputCacheRead = "input_cache_read"
-            case inputCacheWrite = "input_cache_write"
-            case inputCacheWriteOneHour = "input_cache_write_1h"
-            case internalReasoning = "internal_reasoning"
-            case webSearch = "web_search"
-        }
-    }
-}
+// MARK: - Reading
 
 extension OpenRouterPricing {
     /// The prices in a `pricing` object, or `nil` when it lacks a prompt or completion price or has a negative one,
@@ -408,6 +353,63 @@ extension OpenRouterPricing.Override {
         case "friday": .friday
         case "saturday": .saturday
         default: nil
+        }
+    }
+}
+
+// MARK: - Wire
+
+extension OpenRouterPricing {
+    /// A `pricing` object in OpenRouter's model and endpoint lists, with each price as decimal text in US dollars.
+    struct Payload: Decodable, Sendable {
+        /// Prices that replace the base prices while their conditions hold.
+        fileprivate struct Override: Decodable, Sendable {
+            let minPromptTokens: Double?
+            let utcDays: [String]?
+            /// The start of a daily window in UTC, as an `HHMM` clock number such as `130` for 01:30.
+            let utcStart: Double?
+            /// The end of the window, exclusive, in the same form.
+            let utcEnd: Double?
+            let prompt: String?
+            let completion: String?
+            let inputCacheRead: String?
+            let inputCacheWrite: String?
+            let inputCacheWriteOneHour: String?
+            let audio: String?
+
+            private enum CodingKeys: String, CodingKey {
+                case minPromptTokens = "min_prompt_tokens"
+                case utcDays = "utc_days"
+                case utcStart = "utc_start"
+                case utcEnd = "utc_end"
+                case prompt, completion, audio
+                case inputCacheRead = "input_cache_read"
+                case inputCacheWrite = "input_cache_write"
+                case inputCacheWriteOneHour = "input_cache_write_1h"
+            }
+        }
+
+        fileprivate let prompt: String?
+        fileprivate let completion: String?
+        fileprivate let inputCacheRead: String?
+        fileprivate let inputCacheWrite: String?
+        fileprivate let inputCacheWriteOneHour: String?
+        fileprivate let internalReasoning: String?
+        fileprivate let audio: String?
+        fileprivate let image: String?
+        fileprivate let request: String?
+        fileprivate let webSearch: String?
+        /// The fraction taken off the endpoint's prices, from 0 to 1.
+        fileprivate let discount: Double?
+        fileprivate let overrides: [Override]?
+
+        private enum CodingKeys: String, CodingKey {
+            case prompt, completion, audio, image, request, discount, overrides
+            case inputCacheRead = "input_cache_read"
+            case inputCacheWrite = "input_cache_write"
+            case inputCacheWriteOneHour = "input_cache_write_1h"
+            case internalReasoning = "internal_reasoning"
+            case webSearch = "web_search"
         }
     }
 }

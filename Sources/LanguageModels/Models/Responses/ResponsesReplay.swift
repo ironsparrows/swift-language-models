@@ -4,24 +4,6 @@ import LanguageModelsCore
 
 // MARK: - Output items
 
-/// One of an answer's `reasoning` output items, as a later request's input sends it back: the item the stream's
-/// `response.output_item.done` carried, with members such as `type`, `id`, `summary` and `encrypted_content`, and
-/// every other member the provider sent.
-struct ReasoningItem: Encodable, Equatable {
-    /// The item, as the provider sent it.
-    let json: JSONValue
-
-    /// Whether the item carries its reasoning encrypted, which a request that the provider doesn't store needs, since
-    /// the provider can't look the item up by its id.
-    var hasEncryptedContent: Bool {
-        if case .string(let content)? = json["encrypted_content"] { !content.isEmpty } else { false }
-    }
-
-    func encode(to encoder: any Encoder) throws {
-        try json.encode(to: encoder)
-    }
-}
-
 /// One of an answer's output items, in the order the answer's reasoning entry keeps them in its signature: a
 /// `reasoning` item whole, or the place of a message or a function call.
 ///
@@ -63,18 +45,6 @@ enum OutputItem: Equatable {
         case .message: ["type": .string(Responses.ItemType.message.rawValue)]
         case .functionCall: ["type": .string(Responses.ItemType.functionCall.rawValue)]
         }
-    }
-}
-
-extension Responses {
-    /// The `type` of an input or output item.
-    struct ItemType: ProviderVocabulary {
-        static let message: Self = "message"
-        static let functionCall: Self = "function_call"
-        static let functionCallOutput: Self = "function_call_output"
-        static let reasoning: Self = "reasoning"
-
-        let rawValue: String
     }
 }
 
@@ -148,5 +118,37 @@ extension Responses {
                 return part.isEmpty ? nil : (String(part), message.phase)
             }
         }
+    }
+}
+
+// MARK: - Wire
+
+/// One of an answer's `reasoning` output items, as a later request's input sends it back: the item the stream's
+/// `response.output_item.done` carried, with members such as `type`, `id`, `summary` and `encrypted_content`, and
+/// every other member the provider sent.
+struct ReasoningItem: Encodable, Equatable {
+    /// The item, as the provider sent it.
+    let json: JSONValue
+
+    /// Whether the item carries its reasoning encrypted, which a request that the provider doesn't store needs, since
+    /// the provider can't look the item up by its id.
+    var hasEncryptedContent: Bool {
+        if case .string(let content)? = json["encrypted_content"] { !content.isEmpty } else { false }
+    }
+
+    func encode(to encoder: any Encoder) throws {
+        try json.encode(to: encoder)
+    }
+}
+
+extension Responses {
+    /// The `type` of an input or output item.
+    struct ItemType: ProviderVocabulary {
+        static let message: Self = "message"
+        static let functionCall: Self = "function_call"
+        static let functionCallOutput: Self = "function_call_output"
+        static let reasoning: Self = "reasoning"
+
+        let rawValue: String
     }
 }

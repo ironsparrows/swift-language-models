@@ -27,6 +27,32 @@ extension OpenRouterLanguageModel {
     }
 }
 
+extension OpenRouterInputModality {
+    /// The kinds of audio and movies OpenRouter takes beyond Chat Completions' WAV and MP3, each with its part: audio
+    /// as `input_audio` with its `format` value, then movies as `video_url` data URLs, each in the order OpenRouter's
+    /// kinds are matched.
+    fileprivate static var media: [ChatCompletions.MediaPart] {
+        let audio = audioTypes.compactMap { type in audioNames[type].map { ChatCompletions.MediaPart.audio(type, format: $0) } }
+        let video = videoTypes.compactMap { type in videoNames[type].map { ChatCompletions.MediaPart.video(type, mediaType: $0) } }
+        return audio + video
+    }
+
+    /// The `input_audio` `format` value of each kind of audio OpenRouter takes beyond WAV and MP3, which Chat
+    /// Completions names itself.
+    private static var audioNames: [UTType?: String] {
+        [
+            .aiff: "aiff", .mpeg4Audio: "m4a", UnnamedType.aacAudio: "aac", UnnamedType.flacAudio: "flac", UnnamedType.oggAudio: "ogg",
+        ]
+    }
+
+    /// The media type OpenRouter names each kind of movie by in a `video_url` data URL.
+    private static var videoNames: [UTType?: String] {
+        [
+            .mpeg4Movie: "video/mp4", .mpeg: "video/mpeg", .quickTimeMovie: "video/mov", UnnamedType.webMMovie: "video/webm",
+        ]
+    }
+}
+
 // MARK: - Exchange
 
 /// OpenRouter's part in one exchange: the fallback models, routing, plugins, server tools, session id and cache marks
@@ -373,6 +399,13 @@ struct OpenRouterExchange: ChatCompletions.Exchange {
     }
 }
 
+extension OpenRouterModelID {
+    /// The router models that take settings.
+    fileprivate static let autoRouter: Self = "openrouter/auto"
+    fileprivate static let autoBetaRouter: Self = "openrouter/auto-beta"
+    fileprivate static let paretoCodeRouter: Self = "openrouter/pareto-code"
+}
+
 // MARK: - Wire
 
 /// The members of a streamed chunk that only OpenRouter sends, read from the same JSON as the format's own: the host,
@@ -687,13 +720,6 @@ private struct InstructionsMark: Encodable {
     }
 }
 
-extension OpenRouterModelID {
-    /// The router models that take settings.
-    fileprivate static let autoRouter: Self = "openrouter/auto"
-    fileprivate static let autoBetaRouter: Self = "openrouter/auto-beta"
-    fileprivate static let paretoCodeRouter: Self = "openrouter/pareto-code"
-}
-
 extension OpenRouterOptions.ParallelToolCalls {
     /// The `parallel_tool_calls` value, or `nil` to leave the choice to the host.
     fileprivate var value: Bool? {
@@ -702,31 +728,5 @@ extension OpenRouterOptions.ParallelToolCalls {
         case .allowed: true
         case .disallowed: false
         }
-    }
-}
-
-extension OpenRouterInputModality {
-    /// The kinds of audio and movies OpenRouter takes beyond Chat Completions' WAV and MP3, each with its part: audio
-    /// as `input_audio` with its `format` value, then movies as `video_url` data URLs, each in the order OpenRouter's
-    /// kinds are matched.
-    fileprivate static var media: [ChatCompletions.MediaPart] {
-        let audio = audioTypes.compactMap { type in audioNames[type].map { ChatCompletions.MediaPart.audio(type, format: $0) } }
-        let video = videoTypes.compactMap { type in videoNames[type].map { ChatCompletions.MediaPart.video(type, mediaType: $0) } }
-        return audio + video
-    }
-
-    /// The `input_audio` `format` value of each kind of audio OpenRouter takes beyond WAV and MP3, which Chat
-    /// Completions names itself.
-    private static var audioNames: [UTType?: String] {
-        [
-            .aiff: "aiff", .mpeg4Audio: "m4a", UnnamedType.aacAudio: "aac", UnnamedType.flacAudio: "flac", UnnamedType.oggAudio: "ogg",
-        ]
-    }
-
-    /// The media type OpenRouter names each kind of movie by in a `video_url` data URL.
-    private static var videoNames: [UTType?: String] {
-        [
-            .mpeg4Movie: "video/mp4", .mpeg: "video/mpeg", .quickTimeMovie: "video/mov", UnnamedType.webMMovie: "video/webm",
-        ]
     }
 }

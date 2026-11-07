@@ -232,6 +232,30 @@ extension Connection {
     }
 }
 
+// MARK: - Reading
+
+extension OpenRouterCurrentDetails {
+    /// A model's current details from OpenRouter's answer.
+    fileprivate init(_ payload: OpenRouterCurrentDetails.Payload) {
+        self.init(
+            id: OpenRouterModelID(rawValue: payload.id),
+            displayName: payload.name,
+            aliasTarget: payload.aliasTarget.map { OpenRouterModelID(rawValue: $0.slug) },
+            contextSize: payload.contextLength,
+            maximumOutputTokens: payload.topProvider?.maxCompletionTokens,
+            pricing: payload.pricing.flatMap(OpenRouterPricing.init),
+            supportedParameters: Set((payload.supportedParameters ?? []).map(OpenRouterParameter.init(rawValue:))),
+            isModerated: payload.topProvider?.isModerated ?? false,
+            expirationDate: payload.expirationDate.flatMap(Self.midnightUTC)
+        )
+    }
+
+    /// Midnight UTC at the start of a day written as `YYYY-MM-DD`, or `nil` for text that isn't such a day.
+    private static func midnightUTC(_ day: String) -> Date? {
+        try? Date(day, strategy: Date.ISO8601FormatStyle(timeZone: .gmt).year().month().day())
+    }
+}
+
 // MARK: - Wire
 
 extension OpenRouterCurrentDetails {
@@ -269,28 +293,6 @@ extension OpenRouterCurrentDetails {
             case supportedParameters = "supported_parameters"
             case expirationDate = "expiration_date"
         }
-    }
-}
-
-extension OpenRouterCurrentDetails {
-    /// A model's current details from OpenRouter's answer.
-    fileprivate init(_ payload: OpenRouterCurrentDetails.Payload) {
-        self.init(
-            id: OpenRouterModelID(rawValue: payload.id),
-            displayName: payload.name,
-            aliasTarget: payload.aliasTarget.map { OpenRouterModelID(rawValue: $0.slug) },
-            contextSize: payload.contextLength,
-            maximumOutputTokens: payload.topProvider?.maxCompletionTokens,
-            pricing: payload.pricing.flatMap(OpenRouterPricing.init),
-            supportedParameters: Set((payload.supportedParameters ?? []).map(OpenRouterParameter.init(rawValue:))),
-            isModerated: payload.topProvider?.isModerated ?? false,
-            expirationDate: payload.expirationDate.flatMap(Self.midnightUTC)
-        )
-    }
-
-    /// Midnight UTC at the start of a day written as `YYYY-MM-DD`, or `nil` for text that isn't such a day.
-    private static func midnightUTC(_ day: String) -> Date? {
-        try? Date(day, strategy: Date.ISO8601FormatStyle(timeZone: .gmt).year().month().day())
     }
 }
 
