@@ -5,23 +5,5 @@ import LanguageModels
 
 extension ModelRemovals {
     /// The models OpenRouter stopped listing, which its catalog keeps as deprecated members.
-    static let openRouter = ModelRemovals([
-        "inception/mercury-2": Date(timeIntervalSince1970: 1_794_096_000),
-        "inception/mercury-2.5": Date(timeIntervalSince1970: 1_794_096_000),
-        "inception/mercury-3": Date(timeIntervalSince1970: 1_794_096_000),
-        "minimax/minimax-01": Date(timeIntervalSince1970: 1_793_836_800),
-        "minimax/minimax-m2": Date(timeIntervalSince1970: 1_793_836_800),
-        "minimax/minimax-m2-her": Date(timeIntervalSince1970: 1_793_836_800),
-        "minimax/minimax-m2.1": Date(timeIntervalSince1970: 1_793_836_800),
-        "nousresearch/hermes-3-llama-3.1-405b": Date(timeIntervalSince1970: 1_793_577_600),
-        "nousresearch/hermes-3-llama-3.1-70b": Date(timeIntervalSince1970: 1_793_577_600),
-        "nvidia/nemotron-3.5-content-safety:free": Date(timeIntervalSince1970: 1_793_923_200),
-        "poolside/laguna-s-2.1": Date(timeIntervalSince1970: 1_793_404_800),
-        "poolside/laguna-s-2.1:free": Date(timeIntervalSince1970: 1_793_404_800),
-        "poolside/laguna-xs-2.1": Date(timeIntervalSince1970: 1_793_404_800),
-        "poolside/laguna-xs-2.1:free": Date(timeIntervalSince1970: 1_793_404_800),
-        "thinkingmachines/inkling-small:free": Date(timeIntervalSince1970: 1_793_750_400),
-        "thinkingmachines/inkling:free": Date(timeIntervalSince1970: 1_793_750_400),
-        "upstage/solar-pro-3": Date(timeIntervalSince1970: 1_793_232_000),
-    ])
+    static let openRouter = ModelRemovals([:])
 }
