@@ -1,16 +1,17 @@
 import Foundation
 import FoundationModels
-import LanguageModels
 import LanguageModelsTestSupport
 import Testing
 
-@Suite("Provider HTTP")
-struct ProviderHTTPTests {
+@testable import LanguageModels
+
+@Suite("HTTP client")
+struct HTTPClientTests {
     @Test func `a redirect to another host isn't followed and comes back as a failure`() async throws {
         let other = HTTPStub(.json("{}"))
         let stub = HTTPStub(.redirect(to: other.baseURL.appending(path: "v1/chat").absoluteString))
 
-        let failure = try await #require(throws: ProviderHTTP.Failure.self) {
+        let failure = try await #require(throws: HTTPClient.Failure.self) {
             try await http(stub).data(for: request(stub))
         }
 
@@ -54,7 +55,7 @@ struct ProviderHTTPTests {
     @Test(arguments: [408, 409, 429, 500, 503, 529, 599])
     func `the backoff policy retries its statuses twice`(status: Int) async throws {
         let stub = HTTPStub(.json("{}", status: status), .json("{}", status: status), .json("{}"))
-        var retries: [ProviderHTTP.Retry] = []
+        var retries: [HTTPClient.Retry] = []
 
         _ = try await http(stub, Self.backoff()).data(for: request(stub)) { retries.append($0) }
 
@@ -68,7 +69,7 @@ struct ProviderHTTPTests {
         let failure = StubResponse.json("{}", status: 503)
         let stub = HTTPStub(failure, failure, failure, .json("{}"))
 
-        let rejected = try await #require(throws: ProviderHTTP.Failure.self) {
+        let rejected = try await #require(throws: HTTPClient.Failure.self) {
             try await http(stub, Self.backoff()).data(for: request(stub))
         }
 
@@ -80,7 +81,7 @@ struct ProviderHTTPTests {
     func `the backoff policy doesn't retry a client error`(status: Int) async throws {
         let stub = HTTPStub(.json("{}", status: status), .json("{}"))
 
-        await #expect(throws: ProviderHTTP.Failure.self) { try await http(stub, Self.backoff()).data(for: request(stub)) }
+        await #expect(throws: HTTPClient.Failure.self) { try await http(stub, Self.backoff()).data(for: request(stub)) }
 
         #expect(stub.requests.count == 1)
     }
@@ -130,7 +131,7 @@ struct ProviderHTTPTests {
         let headers = [HTTPHeaderName.retryAfter.rawValue: "121", HTTPHeaderName.shouldRetry.rawValue: "true"]
         let stub = HTTPStub(.json("{}", status: 429, headers: headers), .json("{}"))
 
-        let failure = try await #require(throws: ProviderHTTP.Failure.self) {
+        let failure = try await #require(throws: HTTPClient.Failure.self) {
             try await http(stub, Self.backoff()).data(for: request(stub))
         }
 
@@ -144,7 +145,7 @@ struct ProviderHTTPTests {
     ])
     func `the backoff policy retries a failed connection`(code: URLError.Code) async throws {
         let stub = HTTPStub(.failure(URLError(code)), .failure(URLError(code)), StubResponse(chunks: [Data("{}".utf8)]))
-        var retries: [ProviderHTTP.Retry] = []
+        var retries: [HTTPClient.Retry] = []
 
         _ = try await http(stub, Self.backoff()).stream(for: request(stub)) { retries.append($0) }
 
@@ -214,20 +215,20 @@ struct ProviderHTTPTests {
         #expect(policy.retry(1, status: 503, response: nil)?.wait == nil)
     }
 
-    private func http(_ stub: HTTPStub, _ policy: ProviderHTTP.RetryPolicy = Self.backoff(retries: 0)) -> ProviderHTTP {
-        ProviderHTTP(session: stub.session, retryPolicy: policy)
+    private func http(_ stub: HTTPStub, _ policy: HTTPClient.RetryPolicy = Self.backoff(retries: 0)) -> HTTPClient {
+        HTTPClient(session: stub.session, retryPolicy: policy)
     }
 
     /// The shared policy's behavior, with configurable waits so these tests finish quickly.
     private static func backoff(
         delay: Duration = .zero, longestDelay: Duration = .zero, retries: Int = 2
-    ) -> ProviderHTTP.RetryPolicy {
+    ) -> HTTPClient.RetryPolicy {
         .exponentialBackoff(
             retries: retries, statuses: { [408, 409, 429].contains($0) || $0 >= 500 }, delay: delay, longestDelay: longestDelay,
             longestRetryAfter: .seconds(120))
     }
 
     private func request(_ stub: HTTPStub) -> URLRequest {
-        ProviderHTTP.request(url: stub.baseURL.appending(path: "v1/chat"), authHeaders: [.authorization: "Bearer key"])
+        HTTPClient.request(url: stub.baseURL.appending(path: "v1/chat"), authHeaders: [.authorization: "Bearer key"])
     }
 }

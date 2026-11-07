@@ -1,6 +1,7 @@
 import Foundation
-import LanguageModels
 import Testing
+
+@testable import LanguageModels
 
 @Suite("Byte lines")
 struct ByteLinesTests {

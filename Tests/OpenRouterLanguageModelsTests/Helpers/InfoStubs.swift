@@ -9,20 +9,12 @@ func fixtureResponse(_ name: String, status: Int = 200) throws -> StubResponse {
     .json(String(decoding: try Bundle.module.fixture(name), as: UTF8.self), status: status)
 }
 
-/// A transport to a stub with the given headers, a cache of its own unless one is given, and the shared retry policy
-/// without its waits.
-func transport(
-    _ stub: HTTPStub,
-    cacheLifetime: Duration = .seconds(60),
-    headers: [String: String] = [:],
-    cache: InfoCache = InfoCache(),
-    retryLimit: Int = RequestRetries.standard.limit
-) -> APITransport {
-    let authentication = Connection.Authentication(baseURL: stub.baseURL) { headers }
+/// A connection to a stub, with a cache of its own and the shared retry policy without its waits.
+func connection(_ stub: HTTPStub) -> Connection {
+    let authentication = Connection.Authentication(baseURL: stub.baseURL) { [:] }
     let connection = Connection(
-        session: stub.session, authentication: authentication, idleTimeout: nil,
-        retries: .immediate(limit: retryLimit), retrying: API.retriesStatus)
-    return APITransport(connection: connection, cacheLifetime: cacheLifetime, cache: cache)
+        session: stub.session, authentication: authentication, idleTimeout: nil, retries: .immediate(), retrying: API.retriesStatus)
+    return connection.isolatingCache()
 }
 
 extension RequestRetries {

@@ -1,6 +1,7 @@
 import FoundationModels
-import LanguageModels
 import Testing
+
+@testable import LanguageModels
 
 @Suite("Reasoning origin")
 struct ReasoningOriginTests {

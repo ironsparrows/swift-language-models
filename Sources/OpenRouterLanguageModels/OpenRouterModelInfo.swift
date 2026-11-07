@@ -13,7 +13,7 @@ extension OpenRouterLanguageModel {
     /// - Throws: What ``OpenRouterModel/endpoints(auth:session:)`` throws, and any error the model's authentication
     ///   throws.
     public func endpoints() async throws -> [OpenRouterEndpoint] {
-        try await transport.endpoints(of: details.id)
+        try await connection(configuration).endpoints(of: details.id, for: configuration.infoCacheLifetime)
     }
 
     /// What OpenRouter lists for the model's ``details`` now, as ``OpenRouterModel/currentDetails(auth:session:)``
@@ -23,7 +23,7 @@ extension OpenRouterLanguageModel {
     /// - Throws: What ``OpenRouterModel/currentDetails(auth:session:)`` throws, and any error the model's
     ///   authentication throws.
     public func currentDetails() async throws -> OpenRouterCurrentDetails {
-        try await transport.currentDetails(of: details.id)
+        try await connection(configuration).currentDetails(of: details.id, for: configuration.infoCacheLifetime)
     }
 
     /// What OpenRouter charges for the model's ``details`` now, with the model's authentication and session.
@@ -32,12 +32,6 @@ extension OpenRouterLanguageModel {
     /// - Throws: What ``currentDetails()`` throws.
     public func currentPricing() async throws -> OpenRouterPricing? {
         try await currentDetails().pricing
-    }
-
-    /// The transport of the model's calls besides chat completions, through the model's connection, keeping answers as
-    /// long as its configuration says.
-    var transport: APITransport {
-        APITransport(connection: connection(configuration), cacheLifetime: configuration.infoCacheLifetime)
     }
 }
 
@@ -85,7 +79,8 @@ extension OpenRouterModel {
         session: URLSession = .shared,
         configuration: OpenRouterConfiguration
     ) async throws -> [OpenRouterEndpoint] {
-        try await APITransport.calls(auth: auth, session: session, configuration: configuration).endpoints(of: id)
+        let connection = Connection(auth: auth, session: session, configuration: configuration)
+        return try await connection.endpoints(of: id, for: configuration.infoCacheLifetime)
     }
 
     /// What OpenRouter lists for the model now: its prices, limits and parameters.
@@ -120,7 +115,8 @@ extension OpenRouterModel {
         session: URLSession = .shared,
         configuration: OpenRouterConfiguration
     ) async throws -> OpenRouterCurrentDetails {
-        try await APITransport.calls(auth: auth, session: session, configuration: configuration).currentDetails(of: id)
+        let connection = Connection(auth: auth, session: session, configuration: configuration)
+        return try await connection.currentDetails(of: id, for: configuration.infoCacheLifetime)
     }
 
     /// What OpenRouter charges for the model now, from ``currentDetails(auth:session:)``.
@@ -233,67 +229,54 @@ public struct OpenRouterCurrentDetails: Sendable, Hashable {
     }
 }
 
-extension APITransport {
-    /// One model's current details.
-    func currentDetails(of model: OpenRouterModelID) async throws -> OpenRouterCurrentDetails {
-        OpenRouterCurrentDetails(
-            try await value(at: API.Path.model(model), as: APITransport.DataEnvelope<OpenRouterCurrentDetails.Payload>.self).data)
+// MARK: - Connection
+
+extension Connection {
+    /// The connection of a catalog model's calls, which aren't tied to a language model.
+    ///
+    /// - Parameters:
+    ///   - auth: How the calls authenticate, and where they go, or `nil` to call OpenRouter without a key.
+    ///   - session: The URL session that sends the requests.
+    ///   - configuration: How the calls retry.
+    fileprivate init(auth: OpenRouterAuthentication?, session: URLSession, configuration: OpenRouterConfiguration) {
+        self.init(
+            session: session, authentication: auth?.requestAuthentication ?? .unauthenticated, idleTimeout: configuration.idleTimeout,
+            retries: configuration.retries, retrying: API.retriesStatus)
     }
-}
 
-// MARK: - Transport
+    /// One model's current details.
+    ///
+    /// - Parameters:
+    ///   - model: The model.
+    ///   - lifetime: How long an answer stays fresh in the cache.
+    /// - Returns: The details.
+    /// - Throws: What ``value(at:as:for:)`` throws.
+    fileprivate func currentDetails(of model: OpenRouterModelID, for lifetime: Duration) async throws -> OpenRouterCurrentDetails {
+        OpenRouterCurrentDetails(try await value(at: API.Path.model(model), as: OpenRouterCurrentDetails.Payload.self, for: lifetime))
+    }
 
-/// Reads what OpenRouter's API lists about a model, besides chat completions, and decodes it, through the shared
-/// ``InfoTransport``: to the base URL, or OpenRouter's own API, with a failure thrown as a chat request's would be.
-struct APITransport: Sendable {
-    /// How the calls reach OpenRouter: the session, the authentication and its base URL, and how a call retries.
-    let connection: Connection
-
-    /// How long an answer stays fresh in the cache.
-    var cacheLifetime: Duration = OpenRouterConfiguration().infoCacheLifetime
-
-    var cache = InfoCache.shared
-
-    /// Reads a path and decodes the answer's body, or reuses a fresh answer from the cache.
+    /// Reads a path under the base URL, or OpenRouter's own API, and decodes the `data` of the answer's body, or reuses a
+    /// fresh answer from the cache, with a failure thrown as a chat request's would be.
     ///
     /// - Parameters:
     ///   - path: The path under the base URL, such as `models/anthropic/claude-haiku-5.5/endpoints`.
-    ///   - type: The type of the answer's body.
-    /// - Returns: The decoded body.
+    ///   - type: The type of the body's `data`.
+    ///   - lifetime: How long an answer stays fresh in the cache.
+    /// - Returns: The decoded `data`.
     /// - Throws: `OpenRouterError` with `invalidResponse` when the body doesn't decode, and otherwise what
     ///   ``OpenRouterFailure``, the authentication and a failed connection throw.
-    func value<Value: Decodable & Sendable>(at path: String, as type: Value.Type) async throws -> Value {
-        let headers = try await connection.authentication.requestHeaders()
-        let base = try API.baseURL(connection.authentication.baseURL)
-        let transport = InfoTransport(http: connection.http, logger: .openRouter, cacheLifetime: cacheLifetime, cache: cache)
-        return try await transport.value(
-            at: base.appending(path: path), path: path, headers: headers, decode: Self.decode,
+    func value<Value: Decodable & Sendable>(at path: String, as type: Value.Type, for lifetime: Duration) async throws -> Value {
+        try await cachedValue(
+            at: path, under: API.baseURL(authentication.baseURL), for: lifetime, provider: API.name, decode: Self.decode,
             failure: { (rejected: RequestFailure<OpenRouterErrorResponse>) in OpenRouterFailure(rejected).error(contextSize: nil) })
     }
 
     private static func decode<Value: Decodable>(_ data: Data) throws -> Value {
         do {
-            return try ProviderHTTP.decoder.decode(Value.self, from: data)
+            return try JSONDecoder().decode(DataEnvelope<Value>.self, from: data).data
         } catch {
             throw OpenRouterError(message: "OpenRouter sent a response that couldn't be read: \(error)", code: .invalidResponse)
         }
-    }
-}
-
-extension APITransport {
-    /// The transport of a catalog model's calls, which aren't tied to a language model.
-    ///
-    /// - Parameters:
-    ///   - auth: How the calls authenticate, and where they go, or `nil` to call OpenRouter without a key.
-    ///   - session: The URL session that sends the requests.
-    ///   - configuration: How the calls wait, retry and reuse earlier answers.
-    /// - Returns: The transport.
-    static func calls(auth: OpenRouterAuthentication?, session: URLSession, configuration: OpenRouterConfiguration) -> Self {
-        let authentication = auth?.requestAuthentication ?? .unauthenticated
-        let connection = Connection(
-            session: session, authentication: authentication, idleTimeout: configuration.idleTimeout,
-            retries: configuration.retries, retrying: API.retriesStatus)
-        return Self(connection: connection, cacheLifetime: configuration.infoCacheLifetime)
     }
 }
 
@@ -358,9 +341,7 @@ extension OpenRouterCurrentDetails {
     }
 }
 
-extension APITransport {
-    /// The body of OpenRouter's answers, `{"data": …}`.
-    struct DataEnvelope<Value: Decodable & Sendable>: Decodable, Sendable {
-        let data: Value
-    }
+/// The body of OpenRouter's answers, `{"data": …}`.
+private struct DataEnvelope<Value: Decodable>: Decodable {
+    let data: Value
 }

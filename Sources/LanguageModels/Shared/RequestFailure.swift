@@ -6,9 +6,9 @@ import LanguageModelsCore
 
 /// A request that failed, before a provider says what it becomes.
 ///
-/// An exchange's `error(for:)` reads it and returns the error a session throws: Foundation Models' own when it has a case
-/// for the failure, so apps handle it the same way for every model, and otherwise the provider's. Only a shared model
-/// creates one, from what it received.
+/// An exchange's `error(for:)`, or the `failure` closure of a cached call, reads it and returns the error to throw:
+/// Foundation Models' own when it has a case for the failure, so apps handle it the same way for every model, and
+/// otherwise the provider's. Only a shared model or a connection creates one, from what it received.
 package struct RequestFailure<ErrorBody: Decodable & Sendable>: Error {
     /// What failed.
     package enum Kind: Sendable {
@@ -68,16 +68,15 @@ extension RequestFailure {
     /// - Parameters:
     ///   - failure: The response.
     ///   - imageEntries: The request's entries that carry an image.
-    init(rejected failure: ProviderHTTP.Failure, imageEntries: [Transcript.Entry]) {
-        let rejection = failure.rejection(as: ErrorBody.self)
+    init(rejected failure: HTTPClient.Failure, imageEntries: [Transcript.Entry]) {
         kind = .rejected
-        status = rejection.status
-        body = rejection.body
-        rawBody = rejection.rawBody
-        retryAfter = rejection.retryAfter
-        message = HTTPURLResponse.localizedString(forStatusCode: rejection.status)
+        status = failure.status
+        body = try? HTTPClient.decoder.decode(Envelope.self, from: failure.body).error
+        rawBody = failure.body
+        retryAfter = failure.retryAfter
+        message = HTTPURLResponse.localizedString(forStatusCode: failure.status)
         self.imageEntries = imageEntries
-        headers = rejection.headers
+        headers = ResponseHeaders(failure.response)
     }
 
     /// An error event in the stream.
@@ -146,13 +145,6 @@ package struct APIErrorBody: Decodable, Sendable {
     /// The request parameter the error concerns.
     package var param: String?
 
-    package init(message: String, type: String? = nil, code: JSONValue? = nil, param: String? = nil) {
-        self.message = message
-        self.type = type
-        self.code = code
-        self.param = param
-    }
-
     package init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         message = try container.decode(String.self, forKey: .message)
@@ -169,56 +161,12 @@ package struct APIErrorBody: Decodable, Sendable {
     }
 }
 
-// MARK: - Rejected responses
-
-/// A response whose status isn't a success, as a provider's error mapping reads it: the status, the `error` object of
-/// its body in the provider's type, the body as it arrived, the wait it asks for, and its headers.
-///
-/// Only ``ProviderHTTP`` makes one, from the response it received, so a mapping can't be handed a made-up failure.
-package struct HTTPRejection<Body: Decodable & Sendable>: Sendable {
-    /// The HTTP status, or 0 for a response that isn't HTTP.
-    package let status: Int
-
-    /// The `error` object of the body, `{"error": {…}}`, or `nil` when the body isn't one the provider sends, such as a
-    /// gateway's HTML page.
-    package let body: Body?
-
-    /// The body as it arrived, for what a provider sends beside the `error` object.
-    package let rawBody: Data
-
-    /// The wait the response's `Retry-After` header asks for.
-    package let retryAfter: Duration?
-
-    /// The response's headers.
-    package let headers: ResponseHeaders
-
-    init(_ failure: ProviderHTTP.Failure) {
-        status = failure.status
-        body = try? ProviderHTTP.decoder.decode(Envelope.self, from: failure.body).error
-        rawBody = failure.body
-        retryAfter = failure.retryAfter
-        headers = ResponseHeaders(failure.response)
-    }
-
-    /// The body of a failed response, `{"error": {…}}`.
-    private struct Envelope: Decodable {
-        let error: Body
-    }
-}
-
-extension ProviderHTTP.Failure {
-    /// The failure as a provider's error mapping reads it, with the body's `error` object in the provider's type.
-    package func rejection<Body>(as body: Body.Type) -> HTTPRejection<Body> {
-        HTTPRejection(self)
-    }
-}
-
 // MARK: - Stream problems
 
 /// Why a format couldn't use a provider's streamed response, which a ``RequestFailure`` puts in words.
 ///
 /// Only a shared model reports one.
-package enum StreamProblem: Error, Equatable {
+enum StreamProblem: Error, Equatable {
     /// An event's data isn't one the format can read, with the reason it couldn't be read.
     case unreadableEvent(String)
 
@@ -238,7 +186,7 @@ package enum StreamProblem: Error, Equatable {
     ///
     /// - Parameter provider: The provider's name, such as `OpenRouter`.
     /// - Returns: A sentence for the error's message.
-    package func message(provider: String) -> String {
+    func message(provider: String) -> String {
         switch self {
         case .unreadableEvent(let reason): "\(provider) sent an event that couldn't be read: \(reason)"
         case .cutOff: "The response ended before it was complete."
@@ -314,5 +262,14 @@ extension LanguageModelError {
     /// The error for a capability a model doesn't have, such as tool calling.
     package static func unsupported(_ capability: LanguageModelCapabilities.Capability, _ description: String) -> LanguageModelError {
         .unsupportedCapability(.init(capability: capability, debugDescription: description))
+    }
+}
+
+// MARK: - Wire
+
+extension RequestFailure {
+    /// The body of a failed response, `{"error": {…}}`.
+    fileprivate struct Envelope: Decodable {
+        let error: ErrorBody
     }
 }

@@ -1,10 +1,11 @@
 import CoreGraphics
 import Foundation
 import ImageIO
-import LanguageModels
 import LanguageModelsTestSupport
 import Testing
 import UniformTypeIdentifiers
+
+@testable import LanguageModels
 
 @Suite("Encoded image")
 struct EncodedImageTests {

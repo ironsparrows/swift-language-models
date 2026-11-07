@@ -1,7 +1,8 @@
 import Foundation
 import FoundationModels
-import LanguageModels
 import Testing
+
+@testable import LanguageModels
 
 @Suite("Sampling")
 struct SamplingTests {

@@ -1,9 +1,9 @@
 import Foundation
 import FoundationModels
-import LanguageModels
 import LanguageModelsTestSupport
 import Testing
 
+@testable import LanguageModels
 @testable import OpenAILanguageModels
 
 @Suite("OpenAI's exchange")

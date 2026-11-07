@@ -384,7 +384,7 @@ extension Responses.Stream {
     /// An error object in the exchange's type.
     private func errorBody(_ data: Data) throws -> Exchange.ErrorBody {
         do {
-            return try ProviderHTTP.decoder.decode(Exchange.ErrorBody.self, from: data)
+            return try HTTPClient.decoder.decode(Exchange.ErrorBody.self, from: data)
         } catch {
             throw unreadable(error)
         }
@@ -579,7 +579,7 @@ extension ResponseEvent {
             case "[DONE]": self = .done
             default:
                 let data = Data(event.data.utf8)
-                self = .event(try ProviderHTTP.decoder.decode(ResponseEvent.self, from: data), data)
+                self = .event(try HTTPClient.decoder.decode(ResponseEvent.self, from: data), data)
             }
         }
     }

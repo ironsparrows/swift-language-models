@@ -1,10 +1,10 @@
 import Foundation
 import FoundationModels
-import LanguageModels
 import LanguageModelsTestSupport
 import Testing
 import UniformTypeIdentifiers
 
+@testable import LanguageModels
 @testable import OpenRouterLanguageModels
 
 #if canImport(FoundationModels, _version: 2.1.14)

@@ -318,7 +318,7 @@ struct OpenRouterFailure: Sendable {
     ///   - imageEntries: The request's entries that carry an image, which an error for an image the host rejects names.
     ///   - now: The time a rate limit's reset date counts from.
     /// - Returns: `LanguageModelError` when Foundation Models has a case for the failure, otherwise `OpenRouterError`.
-    func error(contextSize: Int?, imageEntries: [Transcript.Entry] = [], now: Date = .now) -> MappedError<OpenRouterError> {
+    func error(contextSize: Int?, imageEntries: [Transcript.Entry] = [], now: Date = .now) -> any Error {
         let message = body.bestMessage
         let metadata = self.metadata
         let failure: LanguageModelError.ProviderFailure
@@ -337,10 +337,9 @@ struct OpenRouterFailure: Sendable {
         case .unsupportedImage:
             failure = .unsupportedContent(imageEntries)
         case .openRouterError:
-            return .provider(
-                OpenRouterError(status: status, message: message, code: code, providerName: providerName, retryAfter: retryAfter))
+            return OpenRouterError(status: status, message: message, code: code, providerName: providerName, retryAfter: retryAfter)
         }
-        return .languageModel(LanguageModelError(failure, message: message, metadata: metadata))
+        return LanguageModelError(failure, message: message, metadata: metadata)
     }
 
     /// What the failure becomes: the `LanguageModelError` case for its code, or for a 402 or 403 that the response shows

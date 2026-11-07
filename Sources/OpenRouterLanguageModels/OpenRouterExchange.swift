@@ -368,10 +368,10 @@ struct OpenRouterExchange: ChatCompletions.Exchange {
     func error(for failure: RequestFailure<OpenRouterErrorResponse>) -> any Error {
         switch failure.kind {
         case .rejected:
-            OpenRouterFailure(failure).error(contextSize: details.contextSize, imageEntries: failure.imageEntries).error
+            OpenRouterFailure(failure).error(contextSize: details.contextSize, imageEntries: failure.imageEntries)
         case .errorEvent:
             OpenRouterFailure(streamError: failure.body ?? OpenRouterErrorResponse(message: failure.message), provider: host)
-                .error(contextSize: details.contextSize, imageEntries: failure.imageEntries).error
+                .error(contextSize: details.contextSize, imageEntries: failure.imageEntries)
         case .unreadableEvent:
             OpenRouterError(message: failure.message, code: .invalidResponse)
         case .unusableAnswer:

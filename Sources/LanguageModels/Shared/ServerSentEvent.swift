@@ -2,21 +2,16 @@
 
 /// One event of a server-sent event stream: its name, when it has one, and its data, with the lines of a multi-line
 /// `data` field joined by line breaks.
-package struct ServerSentEvent: Equatable, Sendable {
-    package var name: String?
-    package var data: String
-
-    package init(name: String? = nil, data: String) {
-        self.name = name
-        self.data = data
-    }
+struct ServerSentEvent: Equatable, Sendable {
+    var name: String?
+    var data: String
 }
 
 extension ServerSentEvent {
     /// One line of a server-sent event stream.
     ///
     /// A blank line ends an event. A comment line, which servers send to keep a connection open, carries nothing.
-    package enum Line: Equatable, Sendable {
+    enum Line: Equatable, Sendable {
         /// A `data:` line's payload.
         case data(String)
 
@@ -32,7 +27,7 @@ extension ServerSentEvent {
         /// Reads one line.
         ///
         /// - Parameter line: The line, without its line break.
-        package init(_ line: some StringProtocol) {
+        init(_ line: some StringProtocol) {
             guard !line.isEmpty else {
                 self = .endOfEvent
                 return
@@ -60,21 +55,21 @@ extension ServerSentEvent {
 
     /// The events of a byte stream, each ending at a blank line, and the last one also at the stream's end. An event
     /// without data, such as one of comments only, is skipped.
-    package struct Events<Base: AsyncSequence>: AsyncSequence where Base.Element == UInt8 {
-        package typealias Element = ServerSentEvent
-        package typealias Failure = Base.Failure
+    struct Events<Base: AsyncSequence>: AsyncSequence where Base.Element == UInt8 {
+        typealias Element = ServerSentEvent
+        typealias Failure = Base.Failure
 
         private let base: Base
 
-        package init(_ base: Base) {
+        init(_ base: Base) {
             self.base = base
         }
 
-        package func makeAsyncIterator() -> AsyncIterator {
+        func makeAsyncIterator() -> AsyncIterator {
             AsyncIterator(lines: ByteLines(base).makeAsyncIterator())
         }
 
-        package struct AsyncIterator: AsyncIteratorProtocol {
+        struct AsyncIterator: AsyncIteratorProtocol {
             private var lines: ByteLines<Base>.AsyncIterator
             private var isAtStart = true
 
@@ -82,7 +77,7 @@ extension ServerSentEvent {
                 self.lines = lines
             }
 
-            package mutating func next(isolation actor: isolated (any Actor)? = #isolation) async throws(Base.Failure)
+            mutating func next(isolation actor: isolated (any Actor)? = #isolation) async throws(Base.Failure)
                 -> ServerSentEvent?
             {
                 var name: String?
@@ -105,7 +100,7 @@ extension ServerSentEvent {
                 return data.isEmpty ? nil : ServerSentEvent(name: name, data: data.joined(separator: "\n"))
             }
 
-            package mutating func next() async throws(Base.Failure) -> ServerSentEvent? {
+            mutating func next() async throws(Base.Failure) -> ServerSentEvent? {
                 try await next(isolation: #isolation)
             }
         }
@@ -119,24 +114,24 @@ extension ServerSentEvent {
 ///
 /// `URLSession.AsyncBytes.lines` also splits at Unicode line breaks such as U+2028, which JSON may carry unescaped
 /// inside a string, so one server-sent event could arrive as two broken halves.
-package struct ByteLines<Base: AsyncSequence>: AsyncSequence where Base.Element == UInt8 {
-    package typealias Element = String
-    package typealias Failure = Base.Failure
+struct ByteLines<Base: AsyncSequence>: AsyncSequence where Base.Element == UInt8 {
+    typealias Element = String
+    typealias Failure = Base.Failure
 
     private let base: Base
 
     /// The lines of a byte stream.
     ///
     /// - Parameter base: The bytes, such as a response body.
-    package init(_ base: Base) {
+    init(_ base: Base) {
         self.base = base
     }
 
-    package func makeAsyncIterator() -> AsyncIterator {
+    func makeAsyncIterator() -> AsyncIterator {
         AsyncIterator(base: base.makeAsyncIterator())
     }
 
-    package struct AsyncIterator: AsyncIteratorProtocol {
+    struct AsyncIterator: AsyncIteratorProtocol {
         private var base: Base.AsyncIterator
         private var isFinished = false
 
@@ -147,7 +142,7 @@ package struct ByteLines<Base: AsyncSequence>: AsyncSequence where Base.Element 
             self.base = base
         }
 
-        package mutating func next(isolation actor: isolated (any Actor)? = #isolation) async throws(Base.Failure) -> String? {
+        mutating func next(isolation actor: isolated (any Actor)? = #isolation) async throws(Base.Failure) -> String? {
             guard !isFinished else { return nil }
             var line: [UInt8] = []
             while let byte = try await base.next(isolation: actor) {
@@ -169,7 +164,7 @@ package struct ByteLines<Base: AsyncSequence>: AsyncSequence where Base.Element 
             return line.isEmpty ? nil : Self.text(line)
         }
 
-        package mutating func next() async throws(Base.Failure) -> String? {
+        mutating func next() async throws(Base.Failure) -> String? {
             try await next(isolation: #isolation)
         }
 

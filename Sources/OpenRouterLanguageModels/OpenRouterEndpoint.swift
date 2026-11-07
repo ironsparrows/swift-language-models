@@ -152,11 +152,17 @@ public struct OpenRouterEndpoint: Sendable, Hashable {
     }
 }
 
-extension APITransport {
+extension Connection {
     /// The endpoints of one model.
-    func endpoints(of model: OpenRouterModelID) async throws -> [OpenRouterEndpoint] {
-        let endpoints = try await value(at: API.Path.endpoints(of: model), as: APITransport.DataEnvelope<OpenRouterEndpoint.List>.self)
-        return endpoints.data.endpoints.map(OpenRouterEndpoint.init)
+    ///
+    /// - Parameters:
+    ///   - model: The model.
+    ///   - lifetime: How long an answer stays fresh in the cache.
+    /// - Returns: The endpoints.
+    /// - Throws: What ``value(at:as:for:)`` throws.
+    func endpoints(of model: OpenRouterModelID, for lifetime: Duration) async throws -> [OpenRouterEndpoint] {
+        let list = try await value(at: API.Path.endpoints(of: model), as: OpenRouterEndpoint.List.self, for: lifetime)
+        return list.endpoints.map(OpenRouterEndpoint.init)
     }
 }
 

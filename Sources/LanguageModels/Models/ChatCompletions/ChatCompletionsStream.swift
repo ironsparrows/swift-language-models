@@ -101,7 +101,7 @@ extension ChatCompletions.Stream {
         if let error = chunk.error, error != .null {
             let body: Exchange.ErrorBody
             do {
-                body = try ProviderHTTP.decoder.decode(ErrorEvent.self, from: data).error
+                body = try HTTPClient.decoder.decode(ErrorEvent.self, from: data).error
             } catch {
                 throw unreadable(error)
             }
@@ -353,7 +353,7 @@ private enum StreamEvent<Extras: Decodable> {
         case "[DONE]": self = .done
         default:
             let data = Data(event.data.utf8)
-            let decoded = try ProviderHTTP.decoder.decode(Decoded.self, from: data)
+            let decoded = try HTTPClient.decoder.decode(Decoded.self, from: data)
             self = .chunk(decoded.chunk, decoded.extras, data)
         }
     }

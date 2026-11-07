@@ -130,7 +130,7 @@ extension ChatCompletions.Model {
         streamingInto channel: LanguageModelExecutorGenerationChannel
     ) async throws -> String {
         var exchange = exchange
-        var log = OperationLog(request: generation.id, logger: PackageLogger(category: providerName))
+        var log = RequestLog(request: generation.id, logger: PackageLogger(category: providerName))
         do {
             // 1. Read the transcript, tools, schema and options. The exchange checks attachments and picks reasoning.
             var request = try ChatCompletions.Request(generation, model: self, exchange: exchange)
@@ -174,14 +174,13 @@ extension ChatCompletions.Model {
         headers: [String: String],
         imageEntries: [Transcript.Entry],
         exchange: Exchange,
-        log: OperationLog
+        log: RequestLog
     ) async throws -> (URLSession.AsyncBytes, ResponseHeaders) {
         do {
             return try await connection.openEventStream(
-                body: body.json, portableSchemaBody: body.portableJSON,
-                headers: Dictionary(uniqueKeysWithValues: headers.map { (HTTPHeaderName(rawValue: $0.key), $0.value) }),
-                url: { url.appending(path: "chat/completions") }, log: log)
-        } catch let rejected as ProviderHTTP.Failure {
+                body: body.json, portableSchemaBody: body.portableJSON, headers: headers,
+                url: url.appending(path: "chat/completions"), log: log)
+        } catch let rejected as HTTPClient.Failure {
             throw exchange.error(for: RequestFailure(rejected: rejected, imageEntries: imageEntries))
         }
     }

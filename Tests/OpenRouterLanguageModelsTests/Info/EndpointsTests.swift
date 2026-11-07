@@ -1,9 +1,9 @@
 import Foundation
 import FoundationModels
-import LanguageModels
 import LanguageModelsTestSupport
 import Testing
 
+@testable import LanguageModels
 @testable import OpenRouterLanguageModels
 
 @Suite("Info: a model's endpoints")
@@ -174,7 +174,7 @@ struct EndpointsTests {
             """#
         let stub = HTTPStub(.json(body))
 
-        let provider = try #require(try await transport(stub).endpoints(of: "vendor/model").first)
+        let provider = try #require(try await connection(stub).endpoints(of: "vendor/model", for: .seconds(60)).first)
 
         #expect(
             provider

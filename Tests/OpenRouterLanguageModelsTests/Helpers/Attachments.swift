@@ -1,8 +1,8 @@
 import Foundation
 import FoundationModels
-import LanguageModels
 import LanguageModelsTestSupport
 
+@testable import LanguageModels
 @testable import OpenRouterLanguageModels
 
 /// A prompt entry with an attachment and no text.

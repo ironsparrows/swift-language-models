@@ -1,5 +1,6 @@
-import LanguageModels
 import Testing
+
+@testable import LanguageModels
 
 @Suite("Tagged reasoning")
 struct TaggedReasoningTests {

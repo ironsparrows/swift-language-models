@@ -1,7 +1,7 @@
-package import Foundation
-package import FoundationModels
+import Foundation
+import FoundationModels
 import ImageIO
-package import LanguageModelsCore
+import LanguageModelsCore
 package import UniformTypeIdentifiers
 
 // MARK: - Reader
@@ -11,9 +11,9 @@ package import UniformTypeIdentifiers
 ///
 /// Images are encoded once and then kept in a cache, so the images a transcript sends again with each request aren't
 /// decoded and encoded each time.
-package struct AttachmentReader {
+struct AttachmentReader {
     /// What an attachment holds, ready for a provider's content part.
-    package enum Content: Equatable {
+    enum Content: Equatable {
         /// An image's pixels, upright and scaled down to the reader's longest side, as JPEG.
         case jpeg(Data)
         /// An image at an http or https address, already upright.
@@ -26,7 +26,7 @@ package struct AttachmentReader {
     }
 
     /// The longest side, in pixels, of an image sent as data. A larger image is scaled down to it.
-    package var maximumImageSide: Int { encoding.encodedMaximumSide }
+    var maximumImageSide: Int { encoding.encodedMaximumSide }
 
     /// How images sent as data are encoded: their longest side and JPEG quality.
     private let encoding: ImageEncoding
@@ -41,7 +41,7 @@ package struct AttachmentReader {
     ///   - provider: The provider's name, as the errors name it.
     ///   - encoding: How images sent as data are encoded, such as the provider's configuration says.
     ///   - cache: Where encoded images are kept, by default the cache that every request shares.
-    package init(provider: String, encoding: ImageEncoding = .standard, cache: EncodedImageCache = .shared) {
+    init(provider: String, encoding: ImageEncoding = .standard, cache: EncodedImageCache = .shared) {
         self.provider = provider
         self.encoding = encoding
         self.cache = cache
@@ -51,7 +51,7 @@ package struct AttachmentReader {
     ///   - provider: The provider's name, as the errors name it.
     ///   - maximumImageSide: The longest side, in pixels, of an image sent as data.
     ///   - cache: Where encoded images are kept, by default the cache that every request shares.
-    package init(provider: String, maximumImageSide: Int, cache: EncodedImageCache = .shared) {
+    init(provider: String, maximumImageSide: Int, cache: EncodedImageCache = .shared) {
         self.init(provider: provider, encoding: ImageEncoding(maximumSide: maximumImageSide), cache: cache)
     }
 
@@ -67,7 +67,7 @@ package struct AttachmentReader {
     /// - Returns: What the attachment holds.
     /// - Throws: What `check` throws, and `LanguageModelError.unsupportedTranscriptContent` for an attachment that
     ///   can't be read or of a kind the package doesn't know.
-    package func content(
+    func content(
         of segment: Transcript.AttachmentSegment,
         in entry: Transcript.Entry,
         checking check: (AttachmentKind) throws(LanguageModelError) -> Void
@@ -93,7 +93,7 @@ package struct AttachmentReader {
     ///
     /// - Throws: `LanguageModelError.unsupportedTranscriptContent` for an image that can't be read, or at an address
     ///   that isn't http or https, or that isn't upright.
-    package func content(of image: Transcript.ImageAttachment, in entry: Transcript.Entry) throws -> Content {
+    func content(of image: Transcript.ImageAttachment, in entry: Transcript.Entry) throws -> Content {
         switch image.url {
         case let url? where url.isFileURL:
             let orientation = image.orientation
@@ -127,7 +127,7 @@ package struct AttachmentReader {
     /// data.
     ///
     /// - Throws: `LanguageModelError.unsupportedTranscriptContent` for text or an image that can't be read.
-    package func content(of data: Data, type: UTType, label: String?, in entry: Transcript.Entry) throws -> Content {
+    func content(of data: Data, type: UTType, label: String?, in entry: Transcript.Entry) throws -> Content {
         if type.conforms(to: .plainText) {
             guard let text = String(data: data, encoding: Self.textEncoding(of: data, type: type)) else {
                 throw LanguageModelError.unsupported(entry, "The text attachment isn't valid \(type.identifier).")
@@ -173,7 +173,7 @@ package struct AttachmentReader {
 
 extension Transcript.AttachmentSegment {
     /// The attachment's label, or `nil` when it has none or an empty one.
-    package var givenLabel: String? {
+    var givenLabel: String? {
         label.flatMap { $0.isEmpty ? nil : $0 }
     }
 }
@@ -200,19 +200,19 @@ extension AttachmentKind {
 
 /// Bytes written inline as a URL, `data:<media type>;base64,<bytes>`, as chat APIs take attachments and return
 /// generated images.
-package struct DataURL: Sendable, Equatable {
+struct DataURL: Sendable, Equatable {
     /// The media type of the bytes, such as `image/png`, without parameters.
-    package let mediaType: String
+    let mediaType: String
 
     /// The bytes.
-    package let data: Data
+    let data: Data
 
     /// A data URL for bytes of a media type.
     ///
     /// - Parameters:
     ///   - mediaType: The media type, such as `application/pdf`.
     ///   - data: The bytes.
-    package init(mediaType: String, data: Data) {
+    init(mediaType: String, data: Data) {
         self.mediaType = mediaType
         self.data = data
     }
@@ -221,7 +221,7 @@ package struct DataURL: Sendable, Equatable {
     /// base64.
     ///
     /// - Parameter text: The URL, such as `data:image/png;base64,iVBORw0KGgo=`.
-    package init?(_ text: String) {
+    init?(_ text: String) {
         guard text.hasPrefix("data:"), let comma = text.firstIndex(of: ",") else { return nil }
         let header = text[text.index(text.startIndex, offsetBy: 5)..<comma].split(separator: ";", omittingEmptySubsequences: false)
         guard header.count > 1, header.last == "base64", let data = Data(base64Encoded: String(text[text.index(after: comma)...])) else {
@@ -231,7 +231,7 @@ package struct DataURL: Sendable, Equatable {
     }
 
     /// The URL's text.
-    package var text: String {
+    var text: String {
         "data:\(mediaType);base64,\(data.base64EncodedString())"
     }
 }

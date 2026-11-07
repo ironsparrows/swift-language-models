@@ -5,7 +5,7 @@ import LanguageModelsCore
 
 /// One turn of a conversation, as provider APIs take them: instructions, a prompt, everything one answer wrote, or a
 /// tool's output.
-package enum TranscriptTurn {
+enum TranscriptTurn {
     case instructions(Transcript.Instructions, entry: Transcript.Entry)
     case prompt(Transcript.Prompt, entry: Transcript.Entry)
     /// An answer's reasoning, response and tool calls, in their order, which APIs take as one assistant message.
@@ -22,7 +22,7 @@ package enum TranscriptTurn {
     ///   - provider: The provider's name, for the error.
     /// - Returns: The turns, in the transcript's order.
     /// - Throws: `LanguageModelError.unsupportedTranscriptContent` for a kind of entry no turn holds.
-    package static func turns(of transcript: some Sequence<Transcript.Entry>, provider: String) throws -> [TranscriptTurn] {
+    static func turns(of transcript: some Sequence<Transcript.Entry>, provider: String) throws -> [TranscriptTurn] {
         var turns: [TranscriptTurn] = []
         var answer: [Transcript.Entry] = []
         func endAnswer() {
@@ -56,7 +56,7 @@ package enum TranscriptTurn {
 
 extension Transcript.Segment {
     /// The segment's text: a text segment's own, a structure as JSON, and `nil` for an attachment.
-    package var text: String? {
+    var text: String? {
         switch self {
         case .text(let text): text.content
         case .structure(let structure): JSONValue(structure.content).text
@@ -68,7 +68,7 @@ extension Transcript.Segment {
 extension Transcript {
     /// The id of the transcript's first prompt, which stays the same for the whole session, so a provider that keeps a
     /// session's requests on one host can send it as the session's id; `nil` before the first prompt.
-    package var firstPromptID: String? {
+    var firstPromptID: String? {
         for case .prompt(let prompt) in self {
             return prompt.id
         }
@@ -85,14 +85,14 @@ extension Transcript {
 /// that answers through more than one API format, such as Chat Completions and Responses, gives each format its own
 /// value, since each sends reasoning back in another shape. Saved transcripts keep the tag, so its key and each
 /// value never change.
-package struct ReasoningOrigin: RawRepresentable, Hashable, Sendable {
+struct ReasoningOrigin: RawRepresentable, Hashable, Sendable {
     /// The metadata key under which a reasoning entry names the provider that wrote it.
-    package static let metadataKey = "reasoningOrigin"
+    static let metadataKey = "reasoningOrigin"
 
     /// The provider's name, as the metadata spells it.
-    package let rawValue: String
+    let rawValue: String
 
-    package init(rawValue: String) {
+    init(rawValue: String) {
         self.rawValue = rawValue
     }
 
@@ -100,7 +100,7 @@ package struct ReasoningOrigin: RawRepresentable, Hashable, Sendable {
     /// this package.
     ///
     /// - Parameter reasoning: The entry whose metadata is read.
-    package init?(of reasoning: Transcript.Reasoning) {
+    init?(of reasoning: Transcript.Reasoning) {
         guard case .string(let name)? = reasoning.metadata[Self.metadataKey]?.kind else { return nil }
         self.init(rawValue: name)
     }
@@ -128,7 +128,7 @@ extension ReasoningOrigin {
     ///     reads back.
     ///   - taggedBlock: The block that opened the answer's text, such as `<think>…</think>`, which goes back there.
     /// - Returns: The metadata.
-    package func metadata(model: String?, taggedBlock: String?) -> [String: any ConvertibleToGeneratedContent] {
+    func metadata(model: String?, taggedBlock: String?) -> [String: any ConvertibleToGeneratedContent] {
         var metadata: [String: any ConvertibleToGeneratedContent] = [Self.metadataKey: rawValue]
         metadata[LanguageModelMetadataKey.model] = model
         metadata[TaggedReasoning.metadataKey] = taggedBlock
@@ -139,11 +139,11 @@ extension ReasoningOrigin {
 extension TaggedReasoning {
     /// The metadata key under which a reasoning entry keeps the block as the model wrote it, so it goes back where the
     /// model put it.
-    package static let metadataKey = "taggedReasoning"
+    static let metadataKey = "taggedReasoning"
 
     /// The block to send back at the start of an answer's text, as its reasoning entry keeps it, or `nil` when the
     /// entry keeps none.
-    package static func block(of reasoning: Transcript.Reasoning) -> String? {
+    static func block(of reasoning: Transcript.Reasoning) -> String? {
         if case .string(let block)? = reasoning.metadata[metadataKey]?.kind { block } else { nil }
     }
 }

@@ -2,6 +2,7 @@ import Foundation
 import FoundationModels
 import Testing
 
+@testable import LanguageModels
 @testable import OpenRouterLanguageModels
 
 @Suite("Retry delay")
@@ -11,7 +12,7 @@ struct RetryDelayTests {
     @Test func `a rate limit's reset date is the wait after the moment of the failure`() throws {
         let failure = OpenRouterFailure(status: 429, body: nil, retryAfter: .seconds(30))
 
-        let error = try #require(failure.error(contextSize: nil, now: Self.now).error as? LanguageModelError)
+        let error = try #require(failure.error(contextSize: nil, now: Self.now) as? LanguageModelError)
 
         guard case .rateLimited(let info) = error else {
             Issue.record("Expected a rate limit, got \(error)")

@@ -149,7 +149,7 @@ extension Responses.Model {
         streamingInto channel: LanguageModelExecutorGenerationChannel
     ) async throws -> String {
         var exchange = exchange
-        var log = OperationLog(request: generation.id, logger: PackageLogger(category: providerName))
+        var log = RequestLog(request: generation.id, logger: PackageLogger(category: providerName))
         do {
             // 1. Read the transcript, tools, schema and options. The exchange checks attachments and picks reasoning.
             var request = try Responses.Request(generation, model: self, exchange: exchange)
@@ -187,13 +187,13 @@ extension Responses.Model {
         _ body: Responses.Request.Body,
         imageEntries: [Transcript.Entry],
         exchange: Exchange,
-        log: OperationLog
+        log: RequestLog
     ) async throws -> (URLSession.AsyncBytes, ResponseHeaders) {
         do {
             return try await connection.openEventStream(
-                body: body.json, portableSchemaBody: body.portableJSON, headers: [:], url: { url.appending(path: "responses") },
+                body: body.json, portableSchemaBody: body.portableJSON, headers: [:], url: url.appending(path: "responses"),
                 log: log)
-        } catch let rejected as ProviderHTTP.Failure {
+        } catch let rejected as HTTPClient.Failure {
             throw exchange.error(for: RequestFailure(rejected: rejected, imageEntries: imageEntries))
         }
     }

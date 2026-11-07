@@ -1,5 +1,6 @@
-import LanguageModels
 import Testing
+
+@testable import LanguageModels
 
 @Suite("Server-sent events")
 struct ServerSentEventTests {

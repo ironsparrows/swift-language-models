@@ -1,9 +1,9 @@
 import Foundation
 import FoundationModels
-import LanguageModels
 import LanguageModelsTestSupport
 import Testing
 
+@testable import LanguageModels
 @testable import OpenAILanguageModels
 
 /// OpenAI's requests retry as the official SDKs do, with the stubs' models waiting for nothing between retries.

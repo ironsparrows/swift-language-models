@@ -2,11 +2,11 @@ import CoreGraphics
 import Foundation
 import FoundationModels
 import ImageIO
-import LanguageModels
 import LanguageModelsTestSupport
 import Testing
 import UniformTypeIdentifiers
 
+@testable import LanguageModels
 @testable import OpenRouterLanguageModels
 
 /// A tool that returns a chart as an image.

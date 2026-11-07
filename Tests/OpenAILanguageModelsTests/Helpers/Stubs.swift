@@ -1,8 +1,8 @@
 import Foundation
 import FoundationModels
-import LanguageModels
 import LanguageModelsTestSupport
 
+@testable import LanguageModels
 @testable import OpenAILanguageModels
 
 /// The settings of a typical model that reasons, with tools and structured outputs, which takes sampling settings

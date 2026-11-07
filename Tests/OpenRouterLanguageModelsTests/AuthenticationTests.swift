@@ -1,10 +1,10 @@
 import Foundation
 import FoundationModels
-import LanguageModels
 import LanguageModelsTestSupport
 import Synchronization
 import Testing
 
+@testable import LanguageModels
 @testable import OpenRouterLanguageModels
 
 @Suite("Authentication")

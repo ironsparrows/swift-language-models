@@ -1,15 +1,15 @@
 import Foundation
-package import FoundationModels
-package import LanguageModelsCore
+import FoundationModels
+import LanguageModelsCore
 
 // MARK: - Sampling
 
 /// Foundation Models' sampling options as the settings a provider sends.
 package struct Sampling {
-    package var temperature: Double?
-    package var topP: Double?
+    var temperature: Double?
+    var topP: Double?
     package var topK: Int?
-    package var seed: UInt64?
+    var seed: UInt64?
     /// Whether the options ask for greedy sampling, which a provider may also send as `top_k` 1 where it rules out no
     /// host.
     package var isGreedy = false
@@ -20,7 +20,7 @@ package struct Sampling {
     /// - Parameters:
     ///   - options: The request's generation options.
     ///   - temperatureRange: The temperatures the provider takes, such as 0 to 2.
-    package init(_ options: GenerationOptions, temperatureRange: ClosedRange<Double>) {
+    init(_ options: GenerationOptions, temperatureRange: ClosedRange<Double>) {
         temperature = options.temperature.map { $0.clamped(to: temperatureRange) }
         switch options.samplingMode?.kind {
         case .greedy?:
@@ -43,7 +43,7 @@ package struct Sampling {
 extension Sampling {
     /// A seed as a number that hosts read as a signed 64-bit integer. A seed of 2^63 or more loses its top bit, so
     /// every seed is sent, and each one as the same number on every platform.
-    package static func json(seed: UInt64) -> JSONValue {
+    static func json(seed: UInt64) -> JSONValue {
         let folded = seed & UInt64(Int64.max)
         return Int(exactly: folded).map(JSONValue.integer) ?? .largeInteger(Decimal(folded))
     }
@@ -60,7 +60,7 @@ extension Double {
 extension GenerationOptions.ToolCallingMode {
     /// Whether the model may or must call the session's tools, as OpenAI's formats spell it in `tool_choice`, or `nil`
     /// for a kind the formats have no word for.
-    package var toolChoice: JSONValue? {
+    var toolChoice: JSONValue? {
         let choice: ToolChoice? =
             switch kind {
             case .allowed: .auto
@@ -84,7 +84,7 @@ private struct ToolChoice: ProviderVocabulary {
 // MARK: - Metadata
 
 /// Request metadata as OpenAI's formats take it.
-package enum RequestMetadata {
+enum RequestMetadata {
     /// The limits that OpenAI's formats, and the hosts that follow them, put on request metadata.
     private enum MetadataLimit {
         static let pairs = 16
@@ -96,7 +96,7 @@ package enum RequestMetadata {
     /// up to 512. Pairs past the limits are left out, since a host rejects the whole request for them.
     ///
     /// - Returns: The metadata to send, or `nil` when none is left, and the keys of the pairs left out, sorted.
-    package static func limited(_ metadata: [String: GeneratedContent]) -> (json: JSONValue?, droppedKeys: [String]) {
+    static func limited(_ metadata: [String: GeneratedContent]) -> (json: JSONValue?, droppedKeys: [String]) {
         let members = metadata.compactMap { key, value -> JSONObject.Member? in
             guard key.count <= MetadataLimit.keyLength, case .string(let text) = value.kind, text.count <= MetadataLimit.valueLength
             else { return nil }
@@ -114,7 +114,7 @@ package enum RequestMetadata {
 /// A change a request makes to what the app asked for, so that its models and the provider take it.
 ///
 /// Each one is likely a mistake in the app, so the request logs it.
-package enum RequestAdjustment: Equatable, Sendable {
+enum RequestAdjustment: Equatable, Sendable {
     /// Settings left out because the model, or a fallback when the request has one, doesn't list their parameters, by
     /// key, in the order the body has them.
     case unlistedParameters([String])
@@ -140,7 +140,7 @@ package enum RequestAdjustment: Equatable, Sendable {
     ///
     /// - Parameter adjustments: The request's adjustments, in the order it made them.
     /// - Returns: The same adjustments, in the log's order.
-    package static func inLogOrder(_ adjustments: [RequestAdjustment]) -> [RequestAdjustment] {
+    static func inLogOrder(_ adjustments: [RequestAdjustment]) -> [RequestAdjustment] {
         (0...3).flatMap { rank in adjustments.filter { $0.logRank == rank } }
     }
 
@@ -163,7 +163,7 @@ extension RequestAdjustment {
     ///   - model: The id of the model the request names first.
     ///   - provider: The provider's name, such as `OpenRouter`.
     /// - Returns: A sentence that names the model.
-    package func message(model: String, provider: String) -> String {
+    func message(model: String, provider: String) -> String {
         switch self {
         case .unlistedParameters(let parameters):
             return """
@@ -194,7 +194,7 @@ extension RequestAdjustment {
     ///   - model: The id of the model the request names first.
     ///   - provider: The provider's name, such as `OpenRouter`.
     /// - Returns: The message, and the keys after it.
-    package func warning(model: String, provider: String) -> String {
+    func warning(model: String, provider: String) -> String {
         guard case .droppedMetadata(let keys) = self else { return message(model: model, provider: provider) }
         return "\(message(model: model, provider: provider)) Keys: \(keys.joined(separator: ", "))."
     }

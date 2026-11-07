@@ -1,9 +1,10 @@
 import Foundation
 import FoundationModels
-import LanguageModels
 import LanguageModelsTestSupport
 import OpenAILanguageModels
 import Testing
+
+@testable import LanguageModels
 
 @diagnose(DeprecatedDeclaration, as: warning)
 extension LiveTests {

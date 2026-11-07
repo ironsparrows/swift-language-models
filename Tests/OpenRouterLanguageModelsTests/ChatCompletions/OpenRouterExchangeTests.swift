@@ -94,5 +94,5 @@ private func exchange(options: OpenRouterOptions = OpenRouterOptions()) throws -
 
 /// OpenRouter's members of a chunk with the given members.
 private func chunk(_ members: JSONValue) throws -> OpenRouterChunkExtras {
-    try ProviderHTTP.decoder.decode(OpenRouterChunkExtras.self, from: members.data)
+    try HTTPClient.decoder.decode(OpenRouterChunkExtras.self, from: members.data)
 }

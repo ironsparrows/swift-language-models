@@ -1,8 +1,8 @@
 import Foundation
 import FoundationModels
-import LanguageModels
 import LanguageModelsTestSupport
 
+@testable import LanguageModels
 @testable import OpenRouterLanguageModels
 
 /// The parameters of a typical chat model with tools, structured outputs and reasoning.

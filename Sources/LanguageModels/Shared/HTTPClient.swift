@@ -1,6 +1,6 @@
 package import Foundation
 import FoundationModels
-package import LanguageModelsCore
+import LanguageModelsCore
 
 // MARK: - Client
 
@@ -11,9 +11,9 @@ package import LanguageModelsCore
 /// policy retries. A response that asks for a longer wait than the policy allows fails the request at once instead,
 /// with the wait on its error, so the app can retry later, and so does one that the policy doesn't retry, such as one
 /// whose `x-should-retry` is `false`.
-package struct ProviderHTTP: Sendable {
+struct HTTPClient: Sendable {
     /// The decoder of response bodies and streamed chunks, which requests share, since `JSONDecoder` is `Sendable`.
-    package static let decoder = JSONDecoder()
+    static let decoder = JSONDecoder()
 
     private let session: URLSession
 
@@ -28,21 +28,21 @@ package struct ProviderHTTP: Sendable {
     /// - Parameters:
     ///   - session: The URL session that sends the requests.
     ///   - retryPolicy: When a request that fails is sent again, and how long it waits first.
-    package init(session: URLSession, retryPolicy: RetryPolicy) {
+    init(session: URLSession, retryPolicy: RetryPolicy) {
         self.session = session
         self.retryPolicy = retryPolicy
     }
 
     /// A response whose status isn't a success, with the start of its body and the delay it asks to wait.
-    package struct Failure: Error {
+    struct Failure: Error {
         /// The HTTP status, or 0 for a response that isn't HTTP.
-        package let status: Int
-        package let body: Data
-        package let response: HTTPURLResponse?
+        let status: Int
+        let body: Data
+        let response: HTTPURLResponse?
 
         /// The wait the response's `retry-after-ms` or `Retry-After` header asks for.
-        package var retryAfter: Duration? {
-            ProviderHTTP.retryAfter(of: response)
+        var retryAfter: Duration? {
+            HTTPClient.retryAfter(of: response)
         }
     }
 
@@ -58,7 +58,7 @@ package struct ProviderHTTP: Sendable {
     ///   - headers: The provider's own headers.
     ///   - idleTimeout: How long to wait for the next data, or `nil` for the session's default.
     /// - Returns: The request.
-    package static func request(
+    static func request(
         url: URL,
         method: String = HTTPMethod.get,
         body: Data? = nil,
@@ -88,7 +88,7 @@ package struct ProviderHTTP: Sendable {
     /// - Returns: The stream and its response's headers.
     /// - Throws: ``Failure`` for a status that isn't a success, after the retries; and what a session's request throws,
     ///   with a `URLError` mapped the way a failed connection's is.
-    package func stream(for request: URLRequest, onRetry: (Retry) -> Void = { _ in }) async throws -> (
+    func stream(for request: URLRequest, onRetry: (Retry) -> Void = { _ in }) async throws -> (
         URLSession.AsyncBytes, ResponseHeaders
     ) {
         let (bytes, response) = try await send(
@@ -111,7 +111,7 @@ package struct ProviderHTTP: Sendable {
     /// - Returns: The body and its response.
     /// - Throws: ``Failure`` for a status that isn't a success, after the retries; and what a session's request throws,
     ///   with a `URLError` mapped the way a failed connection's is.
-    package func data(for request: URLRequest, onRetry: (Retry) -> Void = { _ in }) async throws -> (Data, HTTPURLResponse?) {
+    func data(for request: URLRequest, onRetry: (Retry) -> Void = { _ in }) async throws -> (Data, HTTPURLResponse?) {
         try await send(
             request, onRetry: onRetry, load: { try await session.data(for: $0, delegate: SameHostRedirects()) },
             discard: { _ in }, errorBody: { $0.prefix(errorBodyLimit) })
@@ -169,7 +169,7 @@ package struct ProviderHTTP: Sendable {
     }
 
     /// The wait a response asks for: its `retry-after-ms` header, in milliseconds, or its `Retry-After` header.
-    static func retryAfter(of response: HTTPURLResponse?) -> Duration? {
+    private static func retryAfter(of response: HTTPURLResponse?) -> Duration? {
         Duration(retryAfterMilliseconds: response?.value(forHTTPHeaderField: HTTPHeaderName.retryAfterMilliseconds.rawValue))
             ?? Duration(retryAfter: response?.value(forHTTPHeaderField: HTTPHeaderName.retryAfter.rawValue))
     }
@@ -188,7 +188,7 @@ package struct ProviderHTTP: Sendable {
 extension URLError {
     /// The error to throw for a failed connection: cancellation as `CancellationError`, a timeout as
     /// `LanguageModelError.timeout`, and any other failure as the `URLError` itself.
-    package var thrownError: any Error {
+    var thrownError: any Error {
         switch code {
         case .cancelled: CancellationError()
         case .timedOut: LanguageModelError.timeout(.init(debugDescription: localizedDescription))
@@ -199,17 +199,17 @@ extension URLError {
 
 // MARK: - Retries
 
-extension ProviderHTTP {
+extension HTTPClient {
     /// When a provider's request that fails is sent again, and how long it waits first.
     ///
-    /// A provider makes its policy from the app's ``RequestRetries`` with
-    /// ``RequestRetries/policy(statuses:retriedErrors:)``, giving only the statuses it retries.
-    package struct RetryPolicy: Sendable {
+    /// A connection makes its policy from the app's ``RequestRetries`` with
+    /// ``RequestRetries/policy(statuses:retriedErrors:)``, giving only the statuses the provider retries.
+    struct RetryPolicy: Sendable {
         /// The most times a request is sent again.
-        package let retries: Int
+        let retries: Int
 
         /// The errors of a failed connection after which a request is sent again, such as a timeout.
-        package let retriedErrors: Set<URLError.Code>
+        private let retriedErrors: Set<URLError.Code>
 
         /// Whether a response is retried, from its status and its `x-should-retry` header, if any.
         private let retriesResponse: @Sendable (_ status: Int, _ shouldRetry: String?) -> Bool
@@ -227,7 +227,7 @@ extension ProviderHTTP {
         ///     any.
         ///   - wait: The wait before a retry, from how many retries came before it and the wait the response asks for,
         ///     if any, or `nil` to fail at once.
-        package init(
+        private init(
             retries: Int,
             retriedErrors: Set<URLError.Code>,
             retriesResponse: @escaping @Sendable (_ status: Int, _ shouldRetry: String?) -> Bool,
@@ -247,10 +247,10 @@ extension ProviderHTTP {
         ///   - response: The response, whose `x-should-retry`, `retry-after-ms` and `Retry-After` headers count.
         /// - Returns: The retry, or `nil` when the request has made its retries, the status isn't retried, or the
         ///   response asks for a longer wait than the policy allows.
-        package func retry(_ number: Int, status: Int, response: HTTPURLResponse?) -> Retry? {
+        func retry(_ number: Int, status: Int, response: HTTPURLResponse?) -> Retry? {
             guard number <= retries,
                 retriesResponse(status, response?.value(forHTTPHeaderField: HTTPHeaderName.shouldRetry.rawValue)),
-                let wait = wait(number - 1, ProviderHTTP.retryAfter(of: response))
+                let wait = wait(number - 1, HTTPClient.retryAfter(of: response))
             else { return nil }
             return Retry(status: status, error: nil, wait: wait, number: number, limit: retries)
         }
@@ -261,7 +261,7 @@ extension ProviderHTTP {
         ///   - number: The retry's number, from 1.
         ///   - error: The connection's error.
         /// - Returns: The retry, or `nil` when the request has made its retries or the error isn't retried.
-        package func retry(_ number: Int, after error: URLError) -> Retry? {
+        func retry(_ number: Int, after error: URLError) -> Retry? {
             guard number <= retries, retriedErrors.contains(error.code), let wait = wait(number - 1, nil)
             else { return nil }
             return Retry(status: nil, error: error, wait: wait, number: number, limit: retries)
@@ -269,28 +269,28 @@ extension ProviderHTTP {
     }
 
     /// A request that's sent again: what failed, and how long it waits first.
-    package struct Retry: Sendable {
+    struct Retry: Sendable {
         /// The failed response's status, or `nil` when the connection failed.
-        package let status: Int?
+        let status: Int?
 
         /// The failed connection's error, or `nil` when a response failed.
-        package let error: URLError?
+        let error: URLError?
 
         /// The wait before the request is sent again.
-        package let wait: Duration
+        let wait: Duration
 
         /// The retry's number, from 1.
-        package let number: Int
+        let number: Int
 
         /// The most times the request is sent again.
-        package let limit: Int
+        let limit: Int
     }
 }
 
-extension ProviderHTTP.RetryPolicy {
+extension HTTPClient.RetryPolicy {
     /// The errors of a connection that couldn't be made, timed out or was lost, or that brought back a response that
     /// isn't HTTP.
-    package static let connectionErrors: Set<URLError.Code> = [
+    fileprivate static let connectionErrors: Set<URLError.Code> = [
         .timedOut, .cannotFindHost, .dnsLookupFailed, .cannotConnectToHost, .notConnectedToInternet, .networkConnectionLost,
         .secureConnectionFailed, .badServerResponse,
     ]
@@ -310,7 +310,7 @@ extension ProviderHTTP.RetryPolicy {
     ///   - longestRetryAfter: The longest wait a response can ask for and still be retried, after that wait.
     ///   - retriedErrors: The errors of a failed connection after which a request is sent again.
     /// - Returns: The policy.
-    package static func exponentialBackoff(
+    static func exponentialBackoff(
         retries: Int,
         statuses: @escaping @Sendable (Int) -> Bool,
         delay: Duration,
@@ -346,10 +346,10 @@ extension RequestRetries {
     ///   - statuses: Whether a response's status is retried when its `x-should-retry` doesn't say.
     ///   - retriedErrors: The errors of a failed connection after which a request is sent again.
     /// - Returns: The policy.
-    package func policy(
+    func policy(
         statuses: @escaping @Sendable (Int) -> Bool,
-        retriedErrors: Set<URLError.Code> = ProviderHTTP.RetryPolicy.connectionErrors
-    ) -> ProviderHTTP.RetryPolicy {
+        retriedErrors: Set<URLError.Code> = HTTPClient.RetryPolicy.connectionErrors
+    ) -> HTTPClient.RetryPolicy {
         let delay = max(initialDelay, .zero)
         return .exponentialBackoff(
             retries: max(limit, 0), statuses: statuses, delay: delay, longestDelay: delay * 16,
@@ -364,7 +364,7 @@ extension Duration {
     private static let longestRetryDelay = 86_400.0
 
     /// The delay in a `Retry-After` header: a number of seconds, or an HTTP date.
-    package init?(retryAfter header: String?, now: Date = .now) {
+    init?(retryAfter header: String?, now: Date = .now) {
         guard let header = header?.trimmingCharacters(in: .whitespaces), !header.isEmpty else { return nil }
         if let seconds = Double(header) {
             self.init(clampedSeconds: seconds)
@@ -381,7 +381,7 @@ extension Duration {
     }
 
     /// The delay in a `retry-after-ms` header, in milliseconds.
-    package init?(retryAfterMilliseconds header: String?) {
+    init?(retryAfterMilliseconds header: String?) {
         guard let header, let milliseconds = Double(header.trimmingCharacters(in: .whitespaces)), milliseconds.isFinite else {
             return nil
         }
@@ -409,11 +409,11 @@ extension Duration {
 /// server. A followed redirect keeps the request's credentials.
 ///
 /// A redirect elsewhere isn't followed, and the redirect response itself comes back, as a failed request.
-package final class SameHostRedirects: NSObject, URLSessionTaskDelegate, Sendable {
+final class SameHostRedirects: NSObject, URLSessionTaskDelegate, Sendable {
     // `@concurrent`, because the compiler crashes building the Objective-C thunk of a `nonisolated(nonsending)`
     // delegate method (Swift 6.4.2).
     @concurrent
-    package func urlSession(
+    func urlSession(
         _ session: URLSession,
         task: URLSessionTask,
         willPerformHTTPRedirection response: HTTPURLResponse,
@@ -457,9 +457,9 @@ extension SameHostRedirects {
 /// id and version follow, read from the main bundle, then the Swift and operating system versions. Outside an app
 /// bundle, as in a command-line tool or a test, the app is left out. It's what the app reports about itself, for a
 /// provider's statistics, not proof of anything.
-package enum UserAgent {
+enum UserAgent {
     /// The `User-Agent` of this process.
-    package static let current = value(app: app(of: .main), swiftVersion: swiftVersion, system: system)
+    static let current = value(app: app(of: .main), swiftVersion: swiftVersion, system: system)
 
     /// A `User-Agent`: the package, then a comment of the app, the Swift version and the operating system.
     ///
@@ -468,7 +468,7 @@ package enum UserAgent {
     ///   - swiftVersion: The version of the Swift compiler that built the package, such as `6.4`.
     ///   - system: The operating system and its version, such as `iOS/27.0.1`.
     /// - Returns: The header's value.
-    package static func value(app: String?, swiftVersion: String, system: String) -> String {
+    static func value(app: String?, swiftVersion: String, system: String) -> String {
         let comment = [app, "Swift/\(swiftVersion)", system].compactMap(\.self).joined(separator: "; ")
         return "swift-language-models (\(comment))"
     }
@@ -478,7 +478,7 @@ package enum UserAgent {
     /// - Parameter bundle: The bundle, usually the main one.
     /// - Returns: The bundle id, and its version when the bundle has one, or `nil` for a bundle that isn't an app's
     ///   or an app extension's.
-    package static func app(of bundle: Bundle) -> String? {
+    static func app(of bundle: Bundle) -> String? {
         guard ["app", "appex"].contains(bundle.bundleURL.pathExtension), let id = bundle.bundleIdentifier else { return nil }
         let version = bundle.infoDictionary?["CFBundleShortVersionString"] as? String
         return version.map { "\(id)/\($0)" } ?? id
@@ -518,10 +518,8 @@ package enum UserAgent {
 
 // MARK: - Headers and media types
 
-/// The headers of a provider's response, as a provider and an error mapping read them.
-///
-/// Only ``ProviderHTTP`` makes them, from the response it received.
-package struct ResponseHeaders: Sendable {
+/// The headers of a provider's response, which a provider reads by name.
+struct ResponseHeaders: Sendable {
     private let response: HTTPURLResponse?
 
     init(_ response: HTTPURLResponse?) {
@@ -536,47 +534,44 @@ package struct ResponseHeaders: Sendable {
 
 /// The name of an HTTP header, such as `Authorization`.
 ///
-/// Header names are compared as written, so a provider spells each the same way everywhere, as the names here do.
-package struct HTTPHeaderName: ProviderVocabulary {
+/// Header names are compared as written when a provider's headers merge over the authentication's, so each is spelled
+/// the same way everywhere.
+struct HTTPHeaderName: ProviderVocabulary {
     /// The media types a response may have.
-    package static let accept: Self = "Accept"
+    fileprivate static let accept: Self = "Accept"
 
     /// The credentials of a request, such as `Bearer …`.
-    package static let authorization: Self = "Authorization"
+    static let authorization: Self = "Authorization"
 
     /// The media type of a request's body.
-    package static let contentType: Self = "Content-Type"
+    fileprivate static let contentType: Self = "Content-Type"
 
     /// How long a response asks to wait before trying again.
-    package static let retryAfter: Self = "Retry-After"
+    static let retryAfter: Self = "Retry-After"
 
     /// How long a response asks to wait before trying again, in milliseconds, which takes precedence over
     /// `Retry-After`.
-    package static let retryAfterMilliseconds: Self = "retry-after-ms"
+    static let retryAfterMilliseconds: Self = "retry-after-ms"
 
     /// Whether a response says the request may be sent again: `true` or `false`.
-    package static let shouldRetry: Self = "x-should-retry"
+    static let shouldRetry: Self = "x-should-retry"
 
     /// The client that sends a request.
-    package static let userAgent: Self = "User-Agent"
+    fileprivate static let userAgent: Self = "User-Agent"
 
-    package let rawValue: String
-
-    package init(rawValue: String) {
-        self.rawValue = rawValue
-    }
+    let rawValue: String
 }
 
 /// The HTTP methods that providers' requests use.
-package enum HTTPMethod {
-    package static let get = "GET"
-    package static let post = "POST"
+enum HTTPMethod {
+    fileprivate static let get = "GET"
+    static let post = "POST"
 }
 
 /// The media types that providers' requests and attachments use.
-package enum MediaType {
-    package static let eventStream = "text/event-stream"
-    package static let jpeg = "image/jpeg"
-    package static let json = "application/json"
-    package static let pdf = "application/pdf"
+enum MediaType {
+    static let eventStream = "text/event-stream"
+    static let jpeg = "image/jpeg"
+    fileprivate static let json = "application/json"
+    static let pdf = "application/pdf"
 }

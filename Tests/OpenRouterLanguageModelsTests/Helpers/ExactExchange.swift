@@ -1,10 +1,10 @@
 import Foundation
 import FoundationModels
-import LanguageModels
 import LanguageModelsTestSupport
 import Testing
 import UniformTypeIdentifiers
 
+@testable import LanguageModels
 @testable import OpenRouterLanguageModels
 
 extension ExactExchange {

@@ -1,57 +1,57 @@
-package import Foundation
+import Foundation
 import FoundationModels
-package import LanguageModelsCore
+import LanguageModelsCore
 import os
 
 // MARK: - Log
 
-/// The timing, retry and failure messages of one operation a provider runs, such as a request or a call for a model's
-/// info, under a label that names it, such as `Request 1A2B3C4D`.
+/// The timing, retry and failure messages of one request to a provider, a generation or a call for a model's info, under
+/// a label that names it, such as `Request 1A2B3C4D`.
 ///
 /// It logs retries at `info`, a cancellation at `debug` and any other failure at `error`, with the error's message
 /// kept private, since it may quote the request.
-package struct OperationLog {
-    /// What names the operation in each message.
-    package let label: String
+struct RequestLog {
+    /// What names the request in each message.
+    let label: String
     /// The provider's log category.
-    package let logger: PackageLogger
+    let logger: PackageLogger
     private let start = ContinuousClock.now
     private var firstToken: ContinuousClock.Instant?
 
-    /// Starts the log of an operation, and its timing.
+    /// Starts the log of a request, and its timing.
     ///
     /// - Parameters:
-    ///   - label: What names the operation, such as `GET models`.
+    ///   - label: What names the request, such as `GET models`.
     ///   - logger: The provider's log category.
-    package init(_ label: String, logger: PackageLogger) {
+    init(_ label: String, logger: PackageLogger) {
         self.label = label
         self.logger = logger
     }
 
     /// Starts the log of a generation request, named by the start of the id Foundation Models gave it, as the core's
     /// own messages about the request name it.
-    package init(request id: UUID, logger: PackageLogger) {
+    init(request id: UUID, logger: PackageLogger) {
         self.init("Request \(LanguageModelsLogging.requestName(id))", logger: logger)
     }
 
-    /// The milliseconds since the operation started.
-    package var elapsedMilliseconds: Int {
+    /// The milliseconds since the request started.
+    var elapsedMilliseconds: Int {
         Self.milliseconds(ContinuousClock.now - start)
     }
 
     /// When the first token arrived after the start, such as `120 ms`, or `never`.
-    package var firstTokenDelay: String {
+    private var firstTokenDelay: String {
         firstToken.map { "\(Self.milliseconds($0 - start)) ms" } ?? "never"
     }
 
     /// Notes when the answer's first token arrived, once.
-    package mutating func receivedToken() {
+    mutating func receivedToken() {
         firstToken = firstToken ?? ContinuousClock.now
     }
 
     /// Logs a retry: the status of the response that failed, or the error of the connection that did, and which retry
     /// it is after how long a wait.
-    package func retrying(_ retry: ProviderHTTP.Retry) {
+    func retrying(_ retry: HTTPClient.Retry) {
         guard let logger = logger(.info) else { return }
         let failure = retry.status.map { " got HTTP \($0)" } ?? "'s connection failed with URLError \(retry.error?.code.rawValue ?? 0)"
         logger.info(
@@ -63,7 +63,7 @@ package struct OperationLog {
     }
 
     /// Logs a cancellation at `debug`, and any other failure at `error`, with the error it became.
-    package func failed(_ error: any Error) {
+    func failed(_ error: any Error) {
         if error is CancellationError {
             logger(.debug)?.debug("\(label, privacy: .public) was cancelled after \(elapsedMilliseconds) ms.")
             return
@@ -85,9 +85,9 @@ package struct OperationLog {
     }
 }
 
-// MARK: - Requests
+// MARK: - Generation requests
 
-extension OperationLog {
+extension RequestLog {
     /// Logs what a request leaves out or changes from what the app asked for, at `info` with the keys of metadata left
     /// out kept private, and shows it as a runtime warning in a debug build.
     ///
@@ -95,7 +95,7 @@ extension OperationLog {
     ///   - adjustment: The change.
     ///   - model: The id of the model the request names first.
     ///   - provider: The provider's name, such as `OpenRouter`.
-    package func report(_ adjustment: RequestAdjustment, model: String, provider: String) {
+    func report(_ adjustment: RequestAdjustment, model: String, provider: String) {
         if let logger = logger(.info) {
             let message = adjustment.message(model: model, provider: provider)
             if case .droppedMetadata(let keys) = adjustment {
@@ -111,7 +111,7 @@ extension OperationLog {
     /// Logs the retry of a request whose host rejected a constraint of its response schema.
     ///
     /// - Parameter host: The company whose servers rejected it, when the provider names one.
-    package func retryingWithPortableSchema(host: String?) {
+    func retryingWithPortableSchema(host: String?) {
         logger(.info)?.info(
             """
             \(label, privacy: .public): \(host ?? "the host", privacy: .public) rejected a constraint of the response \
@@ -126,7 +126,7 @@ extension OperationLog {
     ///   - body: The request's body.
     ///   - model: The id of the model the request names.
     ///   - nonOptions: The body's members that aren't options, such as the model and the transcript.
-    package func sending(_ body: JSONValue, to model: String, leavingOut nonOptions: Set<String>) {
+    func sending(_ body: JSONValue, to model: String, leavingOut nonOptions: Set<String>) {
         guard let logger = logger(.debug) else { return }
         let options = if case .object(let body) = body { body.members.map(\.key) } else { [String]() }
         let sent = options.filter { !nonOptions.contains($0) }.joined(separator: ", ")
@@ -139,7 +139,7 @@ extension OperationLog {
     /// - Parameters:
     ///   - report: What the format's own members reported about the answer.
     ///   - host: The company whose servers ran the model, when the provider names one.
-    package func finished(_ report: AnswerReport, host: String?) {
+    func finished(_ report: AnswerReport, host: String?) {
         guard let logger = logger(.debug) else { return }
         logger.debug(
             """
@@ -149,71 +149,21 @@ extension OperationLog {
             """
         )
     }
-
-    /// Runs a request, logging the error it fails with: a failed connection's error as `URLError` maps it, and any
-    /// other error as it is.
-    ///
-    /// - Parameter request: Sends the request, with the log to write to.
-    /// - Returns: What the request returns.
-    /// - Throws: What the request throws, with a `URLError` mapped the way a failed connection's is.
-    package func run<Value>(_ request: (inout OperationLog) async throws -> Value) async throws -> Value {
-        var log = self
-        do {
-            do {
-                return try await request(&log)
-            } catch let error as URLError {
-                throw error.thrownError
-            }
-        } catch {
-            log.failed(error)
-            throw error
-        }
-    }
-
-    /// Reads a response's server-sent events into an answer, until one ends the stream or the stream ends, and notes
-    /// when the answer's first output arrived.
-    ///
-    /// - Parameters:
-    ///   - bytes: The response's stream.
-    ///   - answer: The answer the events go to.
-    /// - Returns: Whether an event ended the stream.
-    /// - Throws: What the answer throws for an event, what the stream throws, and `CancellationError` when the task is
-    ///   cancelled.
-    package mutating func read(_ bytes: URLSession.AsyncBytes, into answer: inout some StreamedAnswer) async throws -> Bool {
-        var ended = false
-        for try await event in ServerSentEvent.Events(bytes) {
-            try Task.checkCancellation()
-            if try await answer.receive(event) {
-                ended = true
-                break
-            }
-            if answer.hasOutput { receivedToken() }
-        }
-        try Task.checkCancellation()
-        return ended
-    }
 }
 
 // MARK: - Errors
 
 /// What the log says about an error a request throws: its type, and the HTTP status, error code and host it came
 /// from, so the log shows how a failure was mapped. Never its message, which may quote the request.
-package struct LoggedError: Equatable {
+struct LoggedError: Equatable {
     /// The error's type, and its case for a `LanguageModelError`, such as `LanguageModelError.rateLimited`.
-    package let kind: String
-    package let status: Int?
-    package let code: String?
-    package let host: String?
-
-    package init(kind: String, status: Int?, code: String?, host: String?) {
-        self.kind = kind
-        self.status = status
-        self.code = code
-        self.host = host
-    }
+    let kind: String
+    let status: Int?
+    let code: String?
+    let host: String?
 
     /// Where the error came from, such as `HTTP 429, rate_limit_exceeded, host Vendor`, with only the parts known.
-    package var origin: String {
+    var origin: String {
         [status.map { "HTTP \($0)" }, code, host.map { "host \($0)" }].compactMap(\.self).joined(separator: ", ")
     }
 }
@@ -221,7 +171,7 @@ package struct LoggedError: Equatable {
 extension LoggedError {
     /// The parts of an error: a provider error's own, a `LanguageModelError`'s from its metadata, and only the type of
     /// any other error.
-    package init(_ error: any Error) {
+    init(_ error: any Error) {
         switch error {
         case let error as any LoggableError:
             let fields = error.logFields

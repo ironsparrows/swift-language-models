@@ -1,10 +1,10 @@
-package import CoreGraphics
+import CoreGraphics
 import CryptoKit
-package import Foundation
-package import ImageIO
-package import LanguageModelsCore
+import Foundation
+import ImageIO
+import LanguageModelsCore
 import Synchronization
-package import UniformTypeIdentifiers
+import UniformTypeIdentifiers
 
 // MARK: - Encoding
 
@@ -14,20 +14,20 @@ package import UniformTypeIdentifiers
 /// black. An image whose longer side is over the limit is scaled down to it, never up. Only the pixels reach the bytes,
 /// never the source's metadata, such as where a photo was taken. The same image gives the same bytes every time, so a
 /// provider's prompt cache stays valid when a later request sends it again.
-package struct EncodedImage: Sendable, Equatable {
+struct EncodedImage: Sendable, Equatable {
     /// The image kinds ImageIO reads, which ``init(data:maximumSide:quality:)`` takes.
-    package static let readableTypes: Set<UTType> = Set(
+    static let readableTypes: Set<UTType> = Set(
         ((CGImageSourceCopyTypeIdentifiers() as? [String]) ?? []).compactMap { UTType($0) }.filter { $0.conforms(to: .image) }
     )
 
     /// The JPEG bytes.
-    package let data: Data
+    let data: Data
 
     /// The width of the encoded image, in pixels.
-    package let width: Int
+    let width: Int
 
     /// The height of the encoded image, in pixels.
-    package let height: Int
+    let height: Int
 
     /// Encodes decoded pixels, such as a Foundation Models image attachment's, or fails when the image is empty or
     /// ImageIO can't encode it.
@@ -37,7 +37,7 @@ package struct EncodedImage: Sendable, Equatable {
     ///   - orientation: How the stored pixels turn upright.
     ///   - maximumSide: The longest side, in pixels, of the encoded image.
     ///   - quality: The JPEG quality, from 0 to 1.
-    package init?(
+    init?(
         _ image: CGImage, orientation: CGImagePropertyOrientation, maximumSide: Int, quality: Double = ImageEncoding.standard.quality
     ) {
         guard image.width > 0, image.height > 0, maximumSide > 0 else { return nil }
@@ -75,7 +75,7 @@ package struct EncodedImage: Sendable, Equatable {
     ///   - data: The file's bytes, in a kind of ``readableTypes``.
     ///   - maximumSide: The longest side, in pixels, of the encoded image.
     ///   - quality: The JPEG quality, from 0 to 1.
-    package init?(data: Data, maximumSide: Int, quality: Double = ImageEncoding.standard.quality) {
+    init?(data: Data, maximumSide: Int, quality: Double = ImageEncoding.standard.quality) {
         guard let source = CGImageSourceCreateWithData(data as CFData, nil) else { return nil }
         self.init(source, orientation: nil, maximumSide: maximumSide, quality: quality)
     }
@@ -88,7 +88,7 @@ package struct EncodedImage: Sendable, Equatable {
     ///   - orientation: How the stored pixels turn upright, which wins over the orientation the file records.
     ///   - maximumSide: The longest side, in pixels, of the encoded image.
     ///   - quality: The JPEG quality, from 0 to 1.
-    package init?(
+    init?(
         contentsOf url: URL, orientation: CGImagePropertyOrientation, maximumSide: Int, quality: Double = ImageEncoding.standard.quality
     ) {
         guard let source = CGImageSourceCreateWithURL(url as CFURL, nil) else { return nil }
@@ -122,7 +122,7 @@ package struct EncodedImage: Sendable, Equatable {
     ///   - orientation: How the stored pixels turn upright.
     ///   - maximumSide: The longest side, in pixels, of the encoded image, above zero.
     /// - Returns: The upright width and height, in pixels.
-    package static func uprightSize(
+    static func uprightSize(
         width: Int,
         height: Int,
         orientation: CGImagePropertyOrientation,
@@ -160,12 +160,12 @@ extension CGImagePropertyOrientation {
 
 extension ImageEncoding {
     /// The longest side the encoder uses, at least 1.
-    package var encodedMaximumSide: Int {
+    var encodedMaximumSide: Int {
         max(maximumSide, 1)
     }
 
     /// The JPEG quality the encoder uses, from 0 to 1.
-    package var encodedQuality: Double {
+    var encodedQuality: Double {
         quality.isNaN ? Self.standard.quality : min(max(quality, 0), 1)
     }
 }
@@ -180,13 +180,13 @@ extension ImageEncoding {
 /// by the image itself, which the cache keeps alive so no other image can take its place. Each is also kept by its
 /// orientation, longest side and JPEG quality. Once the cache is over its limits, the images used least recently go
 /// first. Images that can't be read or encoded aren't kept.
-package final class EncodedImageCache: Sendable {
+final class EncodedImageCache: Sendable {
     /// The cache that every request shares, which empties when the system runs low on memory, since the images it
     /// keeps can be encoded again.
-    package static let shared = EncodedImageCache(emptiesUnderMemoryPressure: true)
+    static let shared = EncodedImageCache(emptiesUnderMemoryPressure: true)
 
     /// What an encoded image is kept by.
-    package struct Key: Hashable, Sendable {
+    struct Key: Hashable, Sendable {
         private let source: Source
 
         /// The orientation the pixels are turned upright by, or `nil` for the one an image file's data records.
@@ -203,7 +203,7 @@ package final class EncodedImageCache: Sendable {
         ///   - data: The file's bytes.
         ///   - maximumSide: The longest side, in pixels, of the encoded image.
         ///   - quality: The JPEG quality, from 0 to 1.
-        package init(data: Data, maximumSide: Int, quality: Double = ImageEncoding.standard.quality) {
+        init(data: Data, maximumSide: Int, quality: Double = ImageEncoding.standard.quality) {
             source = .data(SHA256.hash(data: data))
             orientation = nil
             self.maximumSide = maximumSide
@@ -217,7 +217,7 @@ package final class EncodedImageCache: Sendable {
         ///   - orientation: How the stored pixels turn upright.
         ///   - maximumSide: The longest side, in pixels, of the encoded image.
         ///   - quality: The JPEG quality, from 0 to 1.
-        package init?(
+        init?(
             file url: URL, orientation: CGImagePropertyOrientation, maximumSide: Int, quality: Double = ImageEncoding.standard.quality
         ) {
             guard let version = FileVersion(path: url.standardizedFileURL.resolvingSymlinksInPath().path(percentEncoded: false)) else {
@@ -236,7 +236,7 @@ package final class EncodedImageCache: Sendable {
         ///   - orientation: How the stored pixels turn upright.
         ///   - maximumSide: The longest side, in pixels, of the encoded image.
         ///   - quality: The JPEG quality, from 0 to 1.
-        package init(
+        init(
             image: CGImage, orientation: CGImagePropertyOrientation, maximumSide: Int, quality: Double = ImageEncoding.standard.quality
         ) {
             source = .pixels(Identity(image: image))
@@ -337,7 +337,7 @@ package final class EncodedImageCache: Sendable {
     ///     image over it on its own is encoded each time.
     ///   - entryLimit: The most images the cache keeps.
     ///   - emptiesUnderMemoryPressure: Whether the cache drops every image when the system warns that memory runs low.
-    package init(byteLimit: Int = 64 << 20, entryLimit: Int = 64, emptiesUnderMemoryPressure: Bool = false) {
+    init(byteLimit: Int = 64 << 20, entryLimit: Int = 64, emptiesUnderMemoryPressure: Bool = false) {
         self.byteLimit = byteLimit
         self.entryLimit = entryLimit
         guard emptiesUnderMemoryPressure else {
@@ -355,12 +355,12 @@ package final class EncodedImageCache: Sendable {
     }
 
     /// The number of images the cache keeps.
-    package var count: Int {
+    var count: Int {
         storage.withLock { $0.entries.count }
     }
 
     /// Drops every image, so each is encoded again the next time it's sent.
-    package func removeAll() {
+    func removeAll() {
         storage.withLock { $0 = Storage() }
     }
 
@@ -372,7 +372,7 @@ package final class EncodedImageCache: Sendable {
     ///   - key: What the image is kept by, or `nil` to encode it without keeping it.
     ///   - encode: Encodes the image, or gives `nil` when it can't be read or encoded.
     /// - Returns: The JPEG's bytes, or `nil` when the image can't be read or encoded.
-    package func jpeg(for key: Key?, encode: () -> Data?) -> Data? {
+    func jpeg(for key: Key?, encode: () -> Data?) -> Data? {
         guard let key else { return encode() }
         if let data = cached(key) { return data }
         guard let data = encode() else { return nil }
