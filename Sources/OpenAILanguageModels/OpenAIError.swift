@@ -45,30 +45,6 @@ public struct OpenAIError: Error, Sendable, Equatable, LocalizedError {
     ///   - status: The HTTP status.
     ///   - message: What went wrong.
     ///   - code: What kind of failure it was.
-    ///   - parameter: The request setting the failure concerns.
-    ///   - requestID: OpenAI's id for the request.
-    ///   - retryAfter: How long to wait before retrying.
-    ///   - isQuotaExhausted: Whether the account, organization or project ran out of quota or credits.
-    public init(
-        status: Int? = nil,
-        message: String,
-        code: Code = .unmapped,
-        parameter: String? = nil,
-        requestID: String? = nil,
-        retryAfter: Duration? = nil,
-        isQuotaExhausted: Bool = false
-    ) {
-        self.init(
-            status: status, message: message, code: code, errorType: nil, parameter: parameter, requestID: requestID,
-            retryAfter: retryAfter, isQuotaExhausted: isQuotaExhausted)
-    }
-
-    /// Creates an error with OpenAI's error type.
-    ///
-    /// - Parameters:
-    ///   - status: The HTTP status.
-    ///   - message: What went wrong.
-    ///   - code: What kind of failure it was.
     ///   - errorType: OpenAI's error type, or `nil` when it names none.
     ///   - parameter: The request setting the failure concerns.
     ///   - requestID: OpenAI's id for the request.
@@ -78,7 +54,7 @@ public struct OpenAIError: Error, Sendable, Equatable, LocalizedError {
         status: Int? = nil,
         message: String,
         code: Code = .unmapped,
-        errorType: Code?,
+        errorType: Code? = nil,
         parameter: String? = nil,
         requestID: String? = nil,
         retryAfter: Duration? = nil,
@@ -230,7 +206,7 @@ struct OpenAIFailure: Sendable {
                 status: status, message: message, code: code, errorType: body?.type.map(OpenAIError.Code.init(rawValue:)),
                 parameter: body?.param, requestID: requestID, retryAfter: retryAfter, isQuotaExhausted: isQuotaExhausted)
         }
-        let metadata = ProviderErrorMetadata.metadata(status: status, code: code.rawValue, provider: nil, requestID: requestID)
+        let metadata = ProviderErrorMetadata(status: status, code: code.rawValue, requestID: requestID).contextMetadata
         return LanguageModelError(failure, message: message, metadata: metadata)
     }
 

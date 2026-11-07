@@ -23,14 +23,18 @@ struct ResponsesTestExchange: Responses.Exchange {
 
 extension Responses.Model<ResponsesTestExchange> {
     /// A model of a provider named `Test`, sending to a URL with no retries.
-    static func test(url: URL = URL(fileURLWithPath: "/"), session: URLSession = .shared) -> Self {
+    static func test(
+        url: URL = URL(fileURLWithPath: "/"),
+        session: URLSession = .shared,
+        reaching models: [any ModelDetails] = []
+    ) -> Self {
         Self(
             name: "vendor/model", url: url,
             connection: Connection(
                 session: session, authentication: Connection.Authentication(baseURL: nil) { [:] }, idleTimeout: nil, retries: .disabled,
                 retrying: { _ in false }),
-            providerName: "Test", capabilities: LanguageModelCapabilities([.guidedGeneration, .toolCalling, .reasoning]), reaching: [],
-            exchange: ResponsesTestExchange())
+            providerName: "Test", capabilities: LanguageModelCapabilities([.guidedGeneration, .toolCalling, .reasoning]),
+            reaching: models, exchange: ResponsesTestExchange())
     }
 }
 
@@ -81,8 +85,8 @@ func item(_ type: String, at index: Int, _ item: JSONValue) -> JSONValue {
 
 extension ResponsesModelTests {
     /// The test model, sending to a stub.
-    static func model(_ stub: HTTPStub) -> Responses.Model<ResponsesTestExchange> {
-        .test(url: stub.baseURL, session: stub.session)
+    static func model(_ stub: HTTPStub, reaching models: [any ModelDetails] = []) -> Responses.Model<ResponsesTestExchange> {
+        .test(url: stub.baseURL, session: stub.session, reaching: models)
     }
 
     /// A model of the plain format, sending to a stub.
@@ -93,40 +97,31 @@ extension ResponsesModelTests {
         return model
     }
 
-    /// Runs one exchange of the test model with a stub, reading the channel's events without looking at them, since a
+    /// Runs one request of the test model with a stub, reading the channel's events without looking at them, since a
     /// channel waits for its reader.
     ///
-    /// - Returns: The answer, or the failure it ended in.
-    static func respond(
-        _ stub: HTTPStub,
-        to entries: [Transcript.Entry],
-        schema: GenerationSchema? = nil
-    ) async -> (DetailedLanguageModelAnswer?, RequestFailure<APIErrorBody>?) {
-        let (answer, error) = await respondThrowing(stub, to: entries, schema: schema)
-        guard let error else { return (answer, nil) }
+    /// - Returns: The failure it ended in, or `nil` when it's answered.
+    static func respond(_ stub: HTTPStub, to entries: [Transcript.Entry]) async -> RequestFailure<APIErrorBody>? {
+        guard let error = await respondThrowing(stub, to: entries) else { return nil }
         guard let failure = error as? RequestFailure<APIErrorBody> else {
             Issue.record("The model threw \(error)")
-            return (nil, nil)
+            return nil
         }
-        return (nil, failure)
+        return failure
     }
 
-    /// Runs one exchange of the test model with a stub.
+    /// Runs one request of the test model with a stub.
     ///
-    /// - Returns: The answer, or the error it ended in.
-    static func respondThrowing(
-        _ stub: HTTPStub,
-        to entries: [Transcript.Entry],
-        schema: GenerationSchema? = nil
-    ) async -> (DetailedLanguageModelAnswer?, (any Error)?) {
+    /// - Returns: The error it ended in, or `nil` when it's answered.
+    static func respondThrowing(_ stub: HTTPStub, to entries: [Transcript.Entry]) async -> (any Error)? {
         let channel = LanguageModelExecutorGenerationChannel()
         let reader = Task { for try await _ in channel {} }
         defer { reader.cancel() }
         do {
-            let text = try await model(stub).run(generationRequest(entries, schema: schema), streamingInto: channel)
-            return (DetailedLanguageModelAnswer(responseText: text), nil)
+            try await model(stub).respond(to: generationRequest(entries), streamingInto: channel)
+            return nil
         } catch {
-            return (nil, error)
+            return error
         }
     }
 }

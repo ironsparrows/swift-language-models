@@ -432,7 +432,7 @@ public struct OpenRouterErrorMetadata: Sendable, Hashable {
     public let status: Int?
 
     /// The code the failure would have as an ``OpenRouterError``, such as ``OpenRouterError/Code/budgetExceeded``.
-    public let errorCode: OpenRouterError.Code?
+    public let code: OpenRouterError.Code?
 
     /// The host that failed, such as `Anthropic`, when OpenRouter names one.
     public let provider: OpenRouterProviderName?
@@ -444,8 +444,8 @@ public struct OpenRouterErrorMetadata: Sendable, Hashable {
     init(_ metadata: [String: any Sendable]) {
         let shared = ProviderErrorMetadata(metadata)
         status = shared.status
-        errorCode = shared.errorCode.map(OpenRouterError.Code.init(rawValue:))
-        provider = shared.provider.map(OpenRouterProviderName.init(rawValue:))
+        code = shared.code.map(OpenRouterError.Code.init(rawValue:))
+        provider = shared.host.map(OpenRouterProviderName.init(rawValue:))
         limitSource = (metadata[Key.limitSource] as? String).map(LimitSource.init(rawValue:))
     }
 
@@ -453,7 +453,7 @@ public struct OpenRouterErrorMetadata: Sendable, Hashable {
     static func metadata(
         status: Int?, code: OpenRouterError.Code, provider: OpenRouterProviderName?, limitSource: LimitSource?
     ) -> [String: any Sendable] {
-        var metadata = ProviderErrorMetadata.metadata(status: status, code: code.rawValue, provider: provider?.rawValue)
+        var metadata = ProviderErrorMetadata(status: status, code: code.rawValue, host: provider?.rawValue).contextMetadata
         metadata[Key.limitSource] = limitSource?.rawValue
         return metadata
     }

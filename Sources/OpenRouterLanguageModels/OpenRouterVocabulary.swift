@@ -137,7 +137,7 @@ public struct OpenRouterPlugin: ProviderVocabulary {
 ///
 /// OpenRouter calls the companies that serve its models providers, such as a model's maker, Amazon Bedrock or
 /// Together, and routes each request to one of them. This type, ``OpenRouterRouting``'s settings,
-/// ``OpenRouterError/providerName`` and ``OpenRouterResponseMetadata/provider`` keep OpenRouter's word, and their
+/// ``OpenRouterError/provider`` and ``OpenRouterResponseMetadata/provider`` keep OpenRouter's word, and their
 /// documentation calls them hosts. Elsewhere in this package, as in `ProviderVocabulary`, a provider is the API a
 /// request goes to, which here is OpenRouter itself.
 public struct OpenRouterProviderName: ProviderVocabulary {

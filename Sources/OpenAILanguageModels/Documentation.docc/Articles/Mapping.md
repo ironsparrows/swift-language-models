@@ -107,7 +107,7 @@ the ones any provider can report, the same way for every provider module, as
 | `url_citation` annotations | ``OpenAIResponseMetadata/citations``, on the response entry |
 | `usage.input_tokens_details.cache_write_tokens` | ``OpenAIUsageMetadata/cacheWriteTokenCount`` |
 | Each message's `phase`, and the text of a guided answer's messages that don't decode | ``OpenAIResponseMetadata/messages``, on the entry that ends the answer |
-| A failure's HTTP status, the code an ``OpenAIError`` would have, and the request id | ``OpenAIErrorMetadata/status``, ``OpenAIErrorMetadata/errorCode`` and ``OpenAIErrorMetadata/requestID``, on the `LanguageModelError` it becomes |
+| A failure's HTTP status, the code an ``OpenAIError`` would have, and the request id | ``OpenAIErrorMetadata/status``, ``OpenAIErrorMetadata/code`` and ``OpenAIErrorMetadata/requestID``, on the `LanguageModelError` it becomes |
 
 ### Errors
 

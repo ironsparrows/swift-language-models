@@ -52,7 +52,7 @@ compiles, with a warning, unless the build treats warnings as errors.
 A catalog follows its service, which adds and stops listing models often, so a catalog change is a patch release
 unless code that compiled may stop compiling:
 
-- **Major:** a generated member is deleted, which only a maintainer's edit to a snapshot does.
+- **Major:** a generated member is deleted, which only a maintainer does, for a major release.
 - **Patch:** any other change to a catalog: members added, deprecated or made current again, a model that gains or
   stops accepting reasoning levels, or a model's limits, name, dates or parameters.
 - **None:** only the shape of the service's API changed, which changes no generated code.

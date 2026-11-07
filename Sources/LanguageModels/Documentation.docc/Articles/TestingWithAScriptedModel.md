@@ -12,8 +12,8 @@ guided generation and keeps the transcript, so the test exercises the app's code
 like this.
 
 The model belongs in the app's test target. It conforms to Foundation Models' `LanguageModel` directly, with an
-executor of its own that reads a script. A provider module's model instead conforms to ``DetailedLanguageModel`` and
-writes only a request executor, as <doc:WritingAProvider> describes.
+executor of its own that reads a script. A provider module's model instead conforms to ``DetailedLanguageModel``,
+with an executor that makes the protocol's two checks, as <doc:WritingAProvider> describes.
 
 ### Write the model
 

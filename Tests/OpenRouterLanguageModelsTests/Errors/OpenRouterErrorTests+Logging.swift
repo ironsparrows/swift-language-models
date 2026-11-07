@@ -10,7 +10,7 @@ extension OpenRouterErrorTests {
     struct Logging {
         @Test func `an OpenRouter error logs its status, code and host`() {
             let error = OpenRouterError(
-                status: 402, message: "No credits for “Plan dinner”.", code: .paymentRequired, providerName: "Vendor")
+                status: 402, message: "No credits for “Plan dinner”.", code: .paymentRequired, provider: "Vendor")
 
             let fields = error.logFields
 
@@ -27,8 +27,8 @@ extension OpenRouterErrorTests {
             let error = try #require(failure.error(contextSize: nil) as? LanguageModelError)
 
             #expect(error.providerMetadata.status == 429)
-            #expect(error.providerMetadata.errorCode == "rate_limit_exceeded")
-            #expect(error.providerMetadata.provider == "Vendor")
+            #expect(error.providerMetadata.code == "rate_limit_exceeded")
+            #expect(error.providerMetadata.host == "Vendor")
         }
     }
 }

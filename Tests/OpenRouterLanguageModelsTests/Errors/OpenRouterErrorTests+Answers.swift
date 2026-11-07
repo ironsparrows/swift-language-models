@@ -152,7 +152,7 @@ extension OpenRouterErrorTests {
             let error = try await #require(throws: OpenRouterError.self) { try await respond(stub) }
 
             #expect(error.code == .paymentRequired)
-            #expect(error.providerName == "Anthropic")
+            #expect(error.provider == "Anthropic")
             #expect(error.status == 402)
         }
 
@@ -191,7 +191,7 @@ extension OpenRouterErrorTests {
 
             let error = try await #require(throws: OpenRouterError.self) { try await respond(stub) }
 
-            #expect(error == OpenRouterError(message: message, code: "server_error", providerName: "openai"))
+            #expect(error == OpenRouterError(message: message, code: "server_error", provider: "openai"))
         }
 
         @Test func `an error in the stream takes the host its metadata names before the chunk's`() async throws {
@@ -205,7 +205,7 @@ extension OpenRouterErrorTests {
 
             #expect(error.status == 502)
             #expect(error.code == .providerUnavailable)
-            #expect(error.providerName == "Anthropic")
+            #expect(error.provider == "Anthropic")
         }
 
         @Test func `an error in the stream without a code is a server failure of the host an earlier chunk named`() async throws {
@@ -213,7 +213,7 @@ extension OpenRouterErrorTests {
 
             let error = try await #require(throws: OpenRouterError.self) { try await respond(stub) }
 
-            #expect(error == OpenRouterError(message: "Generation failed.", code: .server, providerName: "Vendor"))
+            #expect(error == OpenRouterError(message: "Generation failed.", code: .server, provider: "Vendor"))
         }
 
         @Test func `a rate limit in the stream keeps its status, its code and the chunk's host in its metadata`() async throws {
@@ -232,10 +232,10 @@ extension OpenRouterErrorTests {
             #expect(info.metadata["provider"] as? String == "openai")
             #expect(info.metadata["status"] as? Int == 429)
             #expect(info.metadata["errorCode"] as? String == "rate_limit_exceeded")
-            #expect(error.providerMetadata.provider == "openai")
+            #expect(error.providerMetadata.host == "openai")
             #expect(error.providerMetadata.status == 429)
             #expect(error.openRouter.provider == "openai")
-            #expect(error.openRouter.errorCode == "rate_limit_exceeded")
+            #expect(error.openRouter.code == "rate_limit_exceeded")
             #expect(error.openRouter.limitSource == nil)
         }
 
@@ -307,7 +307,7 @@ extension OpenRouterErrorTests {
             let error = try await #require(throws: OpenRouterError.self) { try await respond(stub) }
 
             #expect(error.code == .server)
-            #expect(error.providerName == "Vendor")
+            #expect(error.provider == "Vendor")
         }
 
         @Test(arguments: [408, 504, 524])

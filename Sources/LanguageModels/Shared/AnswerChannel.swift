@@ -576,7 +576,7 @@ private enum AnswerEnding: Equatable {
     ///   - host: The company whose servers ran the model, when the provider names one.
     /// - Returns: `LanguageModelError.refusal` or `.guardrailViolation`, or `GeneratedContent.ParsingError`.
     func error(responseText: String, host: String?) -> (any Error)? {
-        let metadata = ProviderErrorMetadata.metadata(status: nil, code: nil, provider: host)
+        let metadata = ProviderErrorMetadata(host: host).contextMetadata
         switch self {
         case .refusal(let refusal):
             return LanguageModelError(.refusal, message: refusal, metadata: metadata)

@@ -25,6 +25,10 @@ struct CommandTests {
         #expect(command?.base == "origin/main")
     }
 
+    @Test func `clear-removed takes the name it has on the command line`() throws {
+        #expect(try Command.parse(["clear-removed"], currentDirectory: Self.currentDirectory)?.action == .clearRemoved)
+    }
+
     @Test func `help gives no command`() throws {
         #expect(try Command.parse(["render", "--help"], currentDirectory: Self.currentDirectory) == nil)
     }

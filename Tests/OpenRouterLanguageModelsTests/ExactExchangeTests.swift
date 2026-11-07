@@ -643,7 +643,7 @@ struct ExactExchangeTests {
             }
 
             error
-            OpenRouterError(status: Optional(502), message: "Provider returned error", code: provider_overloaded, providerName: Optional(Vendor), retryAfter: nil)
+            OpenRouterError(status: Optional(502), message: "Provider returned error", code: provider_overloaded, provider: Optional(Vendor), retryAfter: nil)
             """
         }
     }
@@ -675,7 +675,7 @@ struct ExactExchangeTests {
             }
 
             error
-            OpenRouterError(status: nil, message: "The response ended before it was complete.", code: invalid_response, providerName: Optional(Vendor), retryAfter: nil)
+            OpenRouterError(status: nil, message: "The response ended before it was complete.", code: invalid_response, provider: Optional(Vendor), retryAfter: nil)
             """
         }
     }

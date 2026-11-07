@@ -22,6 +22,6 @@ func requestBody(
     let channel = LanguageModelExecutorGenerationChannel()
     let reader = Task { for try await _ in channel {} }
     defer { reader.cancel() }
-    _ = try await model.chatCompletions(model.executorConfiguration).run(request, streamingInto: channel)
+    try await model.chatCompletions(model.executorConfiguration).respond(to: request, streamingInto: channel)
     return try body(stub)
 }

@@ -11,7 +11,7 @@ extension OpenAILanguageModel {
     /// - Parameter configuration: Where requests go and how long they wait.
     /// - Returns: The model.
     /// - Throws: `OpenAIError` with `invalidRequest` when there's no valid base URL.
-    func responses(_ configuration: RequestExecutor.Configuration) throws(OpenAIError) -> Responses.Model<OpenAIExchange> {
+    func responses(_ configuration: Executor.Configuration) throws(OpenAIError) -> Responses.Model<OpenAIExchange> {
         let exchange = OpenAIExchange(model: OpenAILanguageModel<ContextOptions.ReasoningLevel>(self))
         var model = Responses.Model(
             name: details.id.rawValue, url: try API.baseURL(configuration.baseURL), connection: connection(configuration.settings),

@@ -1,6 +1,7 @@
 import Foundation
 import FoundationModels
 import LanguageModelsCore
+import Testing
 import UniformTypeIdentifiers
 
 /// A model that answers every request with the reasoning level it received.
@@ -13,21 +14,28 @@ struct EchoModel<Effort: ModelEffort>: DetailedLanguageModel {
         let contextSize: Int? = 1_000
         let reasoningEfforts: [Effort]
         var defaultReasoningEffort: Effort? { reasoningEfforts.first }
-        var removalDate: Date?
+        var removedOn: Date?
+        /// Confirms each read of ``removalDate``, which is how a request looks for a removed model.
+        var reads: Confirmation?
+        var removalDate: Date? {
+            reads?()
+            return removedOn
+        }
         var dataAttachmentTypes: Set<UTType> = [.image]
         var dataEntryTypes: Set<UTType> = []
     }
 
-    struct RequestExecutor: DetailedLanguageModelRequestExecutor {
+    struct Executor: LanguageModelExecutor {
         struct Configuration: Hashable, Sendable {}
 
         init(configuration: Configuration) {}
 
-        func execute(
-            _ request: LanguageModelExecutorGenerationRequest,
+        func respond(
+            to request: LanguageModelExecutorGenerationRequest,
             model: EchoModel,
             streamingInto channel: LanguageModelExecutorGenerationChannel
-        ) async throws -> DetailedLanguageModelAnswer {
+        ) async throws {
+            model.reportRemovedModels(for: request)
             let level =
                 switch request.contextOptions.reasoningLevel {
                 case .custom(let value)?: value
@@ -38,17 +46,17 @@ struct EchoModel<Effort: ModelEffort>: DetailedLanguageModel {
                 @unknown default: "unknown"
                 }
             await channel.send(.response(action: .appendText(level, tokenCount: 1)))
-            return DetailedLanguageModelAnswer(responseText: level)
+            try model.checkGuides(ofResponseText: level, for: request)
         }
     }
 
     var details: Details
     var fallbacks: [Details]
 
-    var executorConfiguration: RequestExecutor.Configuration { .init() }
+    var executorConfiguration: Executor.Configuration { .init() }
 
-    init(efforts: [Effort], removalDate: Date? = nil, fallbacks: [Details] = []) {
-        details = Details(reasoningEfforts: efforts, removalDate: removalDate)
+    init(efforts: [Effort], removedOn: Date? = nil, fallbacks: [Details] = []) {
+        details = Details(reasoningEfforts: efforts, removedOn: removedOn)
         self.fallbacks = fallbacks
     }
 }

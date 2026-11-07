@@ -28,7 +28,7 @@ public struct OpenRouterError: Error, Sendable, Equatable, LocalizedError {
     ///
     /// OpenRouter calls the hosts that serve its models providers, and the name keeps OpenRouter's word: it names the
     /// host, never OpenRouter itself.
-    public let providerName: OpenRouterProviderName?
+    public let provider: OpenRouterProviderName?
 
     /// How long to wait before retrying, when OpenRouter says.
     public let retryAfter: Duration?
@@ -39,25 +39,25 @@ public struct OpenRouterError: Error, Sendable, Equatable, LocalizedError {
     ///   - status: The HTTP status.
     ///   - message: What went wrong.
     ///   - code: What kind of failure it was.
-    ///   - providerName: The host that failed.
+    ///   - provider: The host that failed.
     ///   - retryAfter: How long to wait before retrying.
     public init(
         status: Int? = nil,
         message: String,
         code: Code = .unmapped,
-        providerName: OpenRouterProviderName? = nil,
+        provider: OpenRouterProviderName? = nil,
         retryAfter: Duration? = nil
     ) {
         self.status = status
         self.message = message
         self.code = code
-        self.providerName = providerName
+        self.provider = provider
         self.retryAfter = retryAfter
     }
 
     /// The message, after the host's name when there is one.
     public var errorDescription: String? {
-        providerName.map { "[\($0.rawValue)] \(message)" } ?? message
+        provider.map { "[\($0.rawValue)] \(message)" } ?? message
     }
 
     /// Whether the account ran out of credits or the key reached a spending limit that never resets, as
@@ -260,7 +260,7 @@ struct OpenRouterFailure: Sendable {
     /// The kind of failure.
     let code: OpenRouterError.Code
     /// The host that failed: the one the body names, or for an error in a stream, the one its chunk names.
-    let providerName: OpenRouterProviderName?
+    let provider: OpenRouterProviderName?
     /// Whether the router's report says a guardrail blocked the request.
     let isGuardrailBlock: Bool
 
@@ -280,7 +280,7 @@ struct OpenRouterFailure: Sendable {
         self.body = body
         self.retryAfter = retryAfter
         code = Self.code(of: body, status: status) ?? .unmapped
-        providerName = body.providerName
+        provider = body.providerName
         isGuardrailBlock = routerReport?.isGuardrailBlock == true
     }
 
@@ -307,7 +307,7 @@ struct OpenRouterFailure: Sendable {
         self.body = body
         retryAfter = nil
         code = Self.code(of: body, status: body.status) ?? .server
-        providerName = body.providerName ?? provider
+        self.provider = body.providerName ?? provider
         isGuardrailBlock = false
     }
 
@@ -337,7 +337,7 @@ struct OpenRouterFailure: Sendable {
         case .unsupportedImage:
             failure = .unsupportedContent(imageEntries)
         case .openRouterError:
-            return OpenRouterError(status: status, message: message, code: code, providerName: providerName, retryAfter: retryAfter)
+            return OpenRouterError(status: status, message: message, code: code, provider: provider, retryAfter: retryAfter)
         }
         return LanguageModelError(failure, message: message, metadata: metadata)
     }
@@ -365,7 +365,7 @@ struct OpenRouterFailure: Sendable {
 
     /// The metadata of a `LanguageModelError`: the status, the code, the host that failed and the budget it ran into.
     private var metadata: [String: any Sendable] {
-        OpenRouterErrorMetadata.metadata(status: status, code: code, provider: providerName, limitSource: body.limitSource)
+        OpenRouterErrorMetadata.metadata(status: status, code: code, provider: provider, limitSource: body.limitSource)
     }
 
     /// The kind of failure: the error type the body names, then the type its status stands for, then the code the body
@@ -429,6 +429,6 @@ extension OpenRouterFailure {
 
 extension OpenRouterError: LoggableError {
     package var logFields: (kind: String, status: Int?, code: String?, host: String?) {
-        ("OpenRouterError", status, code.rawValue, providerName?.rawValue)
+        ("OpenRouterError", status, code.rawValue, provider?.rawValue)
     }
 }

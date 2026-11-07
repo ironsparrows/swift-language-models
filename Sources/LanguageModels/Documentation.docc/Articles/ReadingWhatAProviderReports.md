@@ -59,7 +59,7 @@ A failure that throws Foundation Models' `LanguageModelError` carries what the p
 @Snippet(path: "swift-language-models/Snippets/ProviderMetadata", slice: "errors")
 
 ``ProviderErrorMetadata/status`` is `nil` for a failure in the stream, which arrives after the response's HTTP 200.
-``ProviderErrorMetadata/provider`` names the host that failed, such as the one OpenRouter sent the request to. An error
+``ProviderErrorMetadata/host`` names the host that failed, such as the one OpenRouter sent the request to. An error
 that Foundation Models threw itself, such as for a capability the model lacks, has none of these facts.
 
 ### Read what only one provider reports

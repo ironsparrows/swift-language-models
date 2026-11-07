@@ -10,6 +10,30 @@ import UniformTypeIdentifiers
 extension ChatCompletionsModelTests {
     @Suite("Request")
     struct Request {
+        @Test func `every request looks for a removed model among those it may reach, even one that fails`() async throws {
+            let stub = HTTPStub(chatCompletionsEvents(textChunk("Hi", finishReason: "stop")), .json("{}", status: 404))
+
+            try await confirmation(expectedCount: 4) { read in
+                let model = model(stub, reaching: [Reached(reads: read), Reached(reads: read)])
+
+                _ = try await LanguageModelSession(model: model).respond(to: "Hello")
+                await #expect(throws: (any Error).self) {
+                    _ = try await LanguageModelSession(model: model).respond(to: "Hello")
+                }
+            }
+        }
+
+        @Test func `a request to a model its provider stopped listing is still sent`() async throws {
+            let stub = HTTPStub(chatCompletionsEvents(textChunk("Hi", finishReason: "stop")))
+
+            let session = LanguageModelSession(model: model(stub, reaching: [Reached(removedOn: .distantPast)]))
+
+            let response = try await session.respond(to: "Hello")
+
+            #expect(response.content == "Hi")
+            #expect(stub.requests.count == 1)
+        }
+
         @Test func `the format writes its members in a fixed order`() throws {
             let options = GenerationOptions(
                 samplingMode: .random(probabilityThreshold: 0.5, seed: 1), temperature: 0.2, maximumResponseTokens: 10)

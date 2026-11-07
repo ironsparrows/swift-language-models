@@ -207,7 +207,7 @@ extension [ModelRemovals.Report] {
     }
 }
 
-extension DetailedLanguageModelBase {
+extension DetailedLanguageModel {
     /// The model and fallbacks that their provider stopped listing, in the order the provider tries them.
     var removedModels: [ModelRemovals.Report] {
         [ModelRemovals.Report](reaching: [details] + fallbacks)

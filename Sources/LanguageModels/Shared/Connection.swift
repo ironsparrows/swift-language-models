@@ -9,7 +9,7 @@ import os
 /// How a provider's requests reach it: the URL session that sends them, how they authenticate, how long they wait
 /// for data and when a request that fails is sent again.
 ///
-/// A provider builds one from its model and its request executor's configuration, or for a call that has no model, such
+/// A provider builds one from its model and its executor's configuration, or for a call that has no model, such
 /// as a catalog entry's info call. The shared models and the provider's info calls send requests through it.
 package struct Connection: Sendable {
     /// The URL session that sends the requests.

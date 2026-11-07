@@ -9,7 +9,7 @@ picks one for each request. ``OpenRouterRouting`` limits and orders the hosts it
 models to try when the model fails.
 
 OpenRouter calls these hosts providers, so the package keeps that word wherever it names one:
-``OpenRouterProviderName``, ``OpenRouterRouting/allowedProviders``, ``OpenRouterError/providerName`` and
+``OpenRouterProviderName``, ``OpenRouterRouting/allowedProviders``, ``OpenRouterError/provider`` and
 ``OpenRouterResponseMetadata/provider``.
 
 Fallbacks, routing and aliases such as `~anthropic/claude-haiku-latest` can each change which model or host answers a

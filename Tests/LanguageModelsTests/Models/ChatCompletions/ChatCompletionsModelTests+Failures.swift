@@ -20,7 +20,7 @@ extension ChatCompletionsModelTests {
         @Test func `a stream that ends before its end and before a finish reason is cut off`() async {
             let stub = HTTPStub(.eventStream(Data(#"data: {"choices":[{"delta":{"content":"Hi"}}]}\#n\#n"#.utf8)))
 
-            let (_, failure) = await respond(stub, to: [prompt(text("Hello"))])
+            let failure = await respond(stub, to: [prompt(text("Hello"))])
 
             guard case .unusableAnswer? = failure?.kind, failure?.message == "The response ended before it was complete." else {
                 Issue.record("The answer ended with \(String(describing: failure))")
@@ -31,7 +31,7 @@ extension ChatCompletionsModelTests {
         @Test func `an error event mid-stream fails the answer with its error object`() async {
             let stub = HTTPStub(chatCompletionsEvents(["choices": [["delta": ["content": "Hi"]]]], ["error": ["message": "Overloaded."]]))
 
-            let (_, failure) = await respond(stub, to: [prompt(text("Hello"))])
+            let failure = await respond(stub, to: [prompt(text("Hello"))])
 
             guard case .errorEvent? = failure?.kind, let error = failure?.body else {
                 Issue.record("The answer ended with \(String(describing: failure))")
@@ -43,7 +43,7 @@ extension ChatCompletionsModelTests {
         @Test func `an answer whose finish reason is error fails`() async {
             let stub = HTTPStub(chatCompletionsEvents(["choices": [["delta": ["content": "Hi"], "finish_reason": "error"]]]))
 
-            let (_, failure) = await respond(stub, to: [prompt(text("Hello"))])
+            let failure = await respond(stub, to: [prompt(text("Hello"))])
 
             guard case .failedAnswer? = failure?.kind else {
                 Issue.record("The answer ended with \(String(describing: failure))")
@@ -54,7 +54,7 @@ extension ChatCompletionsModelTests {
         @Test func `a failed response's error object names what went wrong`() async {
             let stub = HTTPStub(.json(#"{"error":{"message":"Bad key.","type":"invalid_request_error"}}"#, status: 401))
 
-            let (_, failure) = await respond(stub, to: [prompt(text("Hello"))])
+            let failure = await respond(stub, to: [prompt(text("Hello"))])
 
             guard case .rejected? = failure?.kind, let rejection = failure else {
                 Issue.record("The answer ended with \(String(describing: failure))")

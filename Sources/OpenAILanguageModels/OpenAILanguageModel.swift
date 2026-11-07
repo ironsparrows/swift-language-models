@@ -44,14 +44,10 @@ public struct OpenAILanguageModel<Effort: ModelEffort>: DetailedLanguageModel {
     /// to the next request.
     public var configuration: OpenAIConfiguration
 
-    /// Where requests go, with the model's ``configuration``, as Foundation Models hands them to the request executor.
-    public var executorConfiguration: RequestExecutor.Configuration {
-        RequestExecutor.Configuration(baseURL: auth.baseURL, settings: configuration)
+    /// Where requests go, with the model's ``configuration``, as Foundation Models hands them to the executor.
+    public var executorConfiguration: Executor.Configuration {
+        Executor.Configuration(baseURL: auth.baseURL, settings: configuration)
     }
-
-    /// The longest time to wait for the next data, from sending the request to the end of the answer, or `nil` for
-    /// the session's own timeout, as the ``configuration`` sets it.
-    public var idleTimeout: Duration? { configuration.idleTimeout }
 
     /// Creates a model.
     ///
@@ -73,25 +69,6 @@ public struct OpenAILanguageModel<Effort: ModelEffort>: DetailedLanguageModel {
         auth: OpenAIAuthentication
     ) {
         self.init(details: details, options: options, session: session, auth: auth, configuration: configuration)
-    }
-
-    /// Creates a model with an idle timeout.
-    ///
-    /// - Parameters:
-    ///   - details: The model, usually from the catalog, such as `.gpt6Luna`.
-    ///   - options: Request settings that only OpenAI has.
-    ///   - session: The URL session that sends requests.
-    ///   - idleTimeout: The longest time to wait for the next data, or `nil` for the session's own timeout.
-    ///   - auth: How requests authenticate, and where they go.
-    @available(*, deprecated, message: "Pass the idle timeout in an OpenAIConfiguration: configuration: OpenAIConfiguration(idleTimeout:)")
-    public init(
-        _ details: OpenAIModel<Effort>,
-        options: OpenAIOptions = OpenAIOptions(),
-        session: URLSession = .shared,
-        idleTimeout: Duration?,
-        auth: OpenAIAuthentication
-    ) {
-        self.init(details, options: options, session: session, configuration: OpenAIConfiguration(idleTimeout: idleTimeout), auth: auth)
     }
 
     init(
@@ -259,8 +236,6 @@ extension OpenAILanguageModel {
 
 // MARK: - Settings
 
-extension OpenAILanguageModel: ConfigurableLanguageModel {}
-
 /// How an OpenAI model's requests are sent: how long they wait, how they retry, and how their images are encoded.
 ///
 /// Options, such as ``OpenAIOptions``, are what a request asks OpenAI for. The configuration is how the package sends
@@ -278,7 +253,7 @@ extension OpenAILanguageModel: ConfigurableLanguageModel {}
 /// var batch = model
 /// batch.configuration.images.maximumSide = 1_024
 /// ```
-public struct OpenAIConfiguration: Sendable, Hashable, RetryingConfiguration, ImageEncodingConfiguration {
+public struct OpenAIConfiguration: Sendable, Hashable {
     /// The longest time to wait for the next data, from sending the request to the end of the answer, or `nil` for
     /// the URL session's own timeout.
     public var idleTimeout: Duration?
@@ -311,13 +286,13 @@ public struct OpenAIConfiguration: Sendable, Hashable, RetryingConfiguration, Im
 extension OpenAILanguageModel {
     /// Sends a model's requests to OpenAI and streams each answer into Foundation Models.
     ///
-    /// The model's executor, a `DetailedLanguageModelExecutor` of this request executor, creates it and calls it for
-    /// each answer. It keeps no state between answers.
-    public struct RequestExecutor: DetailedLanguageModelRequestExecutor {
-        /// The model the request executor sends requests for.
+    /// Foundation Models creates it from the model's `executorConfiguration` and calls it for each answer. It keeps no
+    /// state between answers.
+    public struct Executor: LanguageModelExecutor {
+        /// The model the executor sends requests for.
         public typealias Model = OpenAILanguageModel
 
-        /// Where the request executor sends requests, with the model's ``OpenAIConfiguration``. It holds no secrets.
+        /// Where the executor sends requests, with the model's ``OpenAIConfiguration``. It holds no secrets.
         ///
         /// The model makes it from its authentication's base URL and its configuration, so an app sets
         /// ``OpenAILanguageModel/configuration`` rather than this.
@@ -327,40 +302,42 @@ extension OpenAILanguageModel {
         }
 
         /// Where requests go and how long they wait, which the model reads as a Responses model.
-        let configuration: Configuration
+        private let configuration: Configuration
 
-        /// Creates a request executor.
+        /// Creates an executor.
         ///
         /// - Parameter configuration: Where to send requests.
         public init(configuration: Configuration) {
             self.configuration = configuration
         }
-    }
-}
 
-extension OpenAILanguageModel.RequestExecutor {
-    /// Sends one request and streams its answer.
-    ///
-    /// A failed request is retried up to twice, only before any data arrives, as the official SDKs retry it: after a
-    /// failed connection, a 408, 409 or 429, any status from 500 up, or any status whose `x-should-retry` is `true`,
-    /// unless its `x-should-retry` is `false` or its `retry-after-ms` or `Retry-After` asks for more than 2 minutes. A
-    /// request whose schema has a constraint OpenAI rejects is sent once more with the portable schema, which carries
-    /// its constraints in descriptions.
-    ///
-    /// - Parameters:
-    ///   - request: The transcript, tools, schema and options to send.
-    ///   - model: The model to answer with.
-    ///   - channel: Where the answer's events go.
-    /// - Returns: The answer's response text, which the model's executor checks against the request's schema.
-    /// - Throws: `LanguageModelError` for failures Foundation Models has a case for, `OpenAIError` for the rest, and
-    ///   `CancellationError` when the task is cancelled. An error that the model's authentication throws passes through
-    ///   as it is, unless it's a `URLError`, which maps as a failed connection's does.
-    public func execute(
-        _ request: LanguageModelExecutorGenerationRequest,
-        model: OpenAILanguageModel,
-        streamingInto channel: LanguageModelExecutorGenerationChannel
-    ) async throws -> DetailedLanguageModelAnswer {
-        DetailedLanguageModelAnswer(responseText: try await model.responses(configuration).run(request, streamingInto: channel))
+        /// Sends one request and streams its answer.
+        ///
+        /// A failed request is retried up to twice, only before any data arrives, as the official SDKs retry it: after a
+        /// failed connection, a 408, 409 or 429, any status from 500 up, or any status whose `x-should-retry` is `true`,
+        /// unless its `x-should-retry` is `false` or its `retry-after-ms` or `Retry-After` asks for more than 2 minutes. A
+        /// request whose schema has a constraint OpenAI rejects is sent once more with the portable schema, which carries
+        /// its constraints in descriptions.
+        ///
+        /// A model the request may reach that OpenAI stopped listing is reported first, and the answer is checked against
+        /// the schema's guides last, as ``DetailedLanguageModel/reportRemovedModels(for:)`` and
+        /// ``DetailedLanguageModel/checkGuides(ofResponseText:for:)`` do.
+        ///
+        /// - Parameters:
+        ///   - request: The transcript, tools, schema and options to send.
+        ///   - model: The model to answer with.
+        ///   - channel: Where the answer's events go.
+        /// - Throws: `LanguageModelError` for failures Foundation Models has a case for, `OpenAIError` for the rest,
+        ///   `GeneratedContent.ParsingError` when a value of the answer breaks a guide of the request's schema or an object or
+        ///   array answer isn't complete JSON, and `CancellationError` when the task is cancelled. An error that the model's authentication throws passes through
+        ///   as it is, unless it's a `URLError`, which maps as a failed connection's does.
+        public func respond(
+            to request: LanguageModelExecutorGenerationRequest,
+            model: OpenAILanguageModel,
+            streamingInto channel: LanguageModelExecutorGenerationChannel
+        ) async throws {
+            try await model.responses(configuration).respond(to: request, streamingInto: channel)
+        }
     }
 }
 

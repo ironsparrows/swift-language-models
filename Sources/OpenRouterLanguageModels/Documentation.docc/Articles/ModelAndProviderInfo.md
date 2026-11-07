@@ -8,8 +8,9 @@ The catalog holds what changes rarely about a model, such as its context size an
 from OpenRouter when an app asks: each provider that serves the model, such as Google Vertex or Amazon Bedrock, with its
 prices, limits and recent health, and the model's current prices.
 
-The calls belong to a model: ``OpenRouterModel/endpoints(auth:session:)``,
-``OpenRouterModel/currentDetails(auth:session:)`` and ``OpenRouterModel/currentPricing(auth:session:)``.
+The calls belong to a model: ``OpenRouterModel/endpoints(auth:session:configuration:)``,
+``OpenRouterModel/currentDetails(auth:session:configuration:)`` and
+``OpenRouterModel/currentPricing(auth:session:configuration:)``.
 They need no API key, and take an optional ``OpenRouterAuthentication`` and URL session. On
 ``OpenRouterLanguageModel``, ``OpenRouterLanguageModel/endpoints()``, ``OpenRouterLanguageModel/currentDetails()`` and
 ``OpenRouterLanguageModel/currentPricing()`` read them for the model's ``OpenRouterLanguageModel/details`` with the
@@ -46,9 +47,9 @@ settings.
 ### Read today's prices
 
 The catalog keeps no prices, since OpenRouter changes them often.
-``OpenRouterModel/currentDetails(auth:session:)`` reads what OpenRouter lists for a model now: its
+``OpenRouterModel/currentDetails(auth:session:configuration:)`` reads what OpenRouter lists for a model now: its
 prices, context size, output limit, request parameters, whether its first-ranked provider moderates content, and the
-day OpenRouter retires it. ``OpenRouterModel/currentPricing(auth:session:)`` reads only the prices, as
+day OpenRouter retires it. ``OpenRouterModel/currentPricing(auth:session:configuration:)`` reads only the prices, as
 ``OpenRouterPricing``, whose ``OpenRouterPricing/prices(forPromptTokens:at:)`` applies the overrides for long prompts
 and off-peak hours:
 

@@ -23,6 +23,32 @@ struct CatalogSnapshotTests {
         #expect(snapshot.removed.first?.removedOn == "2026-10-29")
     }
 
+    @Test func `clearing drops the removed models, and the effort levels and words marked removed`() throws {
+        let snapshot = catalogSnapshot(
+            catalogModel("vendor/a", efforts: ["high"], removedEfforts: [CatalogWord("low", removedOn: "2026-10-31")]),
+            removed: [RemovedModel(model: catalogModel("vendor/old"), removedOn: "2026-10-01")],
+            vocabularies: [.parameters: [CatalogWord("best_of"), CatalogWord("legacy", removedOn: "2026-10-01")]],
+            efforts: [CatalogWord("high"), CatalogWord("max", removedOn: "2026-10-31")]
+        )
+
+        let cleared = try snapshot.clearingRemoved()
+
+        #expect(
+            cleared
+                == catalogSnapshot(
+                    catalogModel("vendor/a", efforts: ["high"]), vocabularies: [.parameters: [CatalogWord("best_of")]],
+                    efforts: [CatalogWord("high")]))
+    }
+
+    @Test func `clearing fails when a listed model would take the name of a removed one`() {
+        let older = RemovedModel(model: catalogModel("x/m-1-5", releasedAt: 100), removedOn: "2026-10-01")
+        let snapshot = catalogSnapshot(catalogModel("x/m-1.5", releasedAt: 200), removed: [older])
+
+        #expect(throws: GeneratorError.invalidCatalog("Clearing what's removed would rename these models: x/m-1.5.")) {
+            try snapshot.clearingRemoved()
+        }
+    }
+
     @Test func `a model that comes back leaves removed`() throws {
         #expect(try update(with: Self.models("a", "b", "c", "d", "e", "old")).removed.isEmpty)
     }

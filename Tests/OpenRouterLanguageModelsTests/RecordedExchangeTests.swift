@@ -596,7 +596,7 @@ struct RecordedExchangeTests {
             instructions [] tools: ["lookUpFood"]
 
             error
-            OpenRouterError(status: Optional(502), message: "Sorry, something went wrong.", code: provider_unavailable, providerName: Optional(OpenAI), retryAfter: nil)
+            OpenRouterError(status: Optional(502), message: "Sorry, something went wrong.", code: provider_unavailable, provider: Optional(OpenAI), retryAfter: nil)
             """#
         }
     }
@@ -1001,7 +1001,7 @@ struct RecordedExchangeTests {
 
         assertInlineSnapshot(of: exchange.error ?? "no error", as: .lines) {
             """
-            OpenRouterError(status: Optional(401), message: "User not found.", code: authentication, providerName: nil, retryAfter: nil)
+            OpenRouterError(status: Optional(401), message: "User not found.", code: authentication, provider: nil, retryAfter: nil)
             """
         }
     }
@@ -1017,10 +1017,10 @@ struct RecordedExchangeTests {
         assertInlineSnapshot(of: failures.map { "\($0.0)\n\($0.1 ?? "no error")" }.joined(separator: "\n\n"), as: .lines) {
             """
             invalid key
-            OpenRouterError(status: Optional(401), message: "Missing Authentication header", code: authentication, providerName: nil, retryAfter: nil)
+            OpenRouterError(status: Optional(401), message: "Missing Authentication header", code: authentication, provider: nil, retryAfter: nil)
 
             unknown model
-            OpenRouterError(status: Optional(400), message: "vendor/no-such-model is not a valid model ID", code: invalid_request, providerName: nil, retryAfter: nil)
+            OpenRouterError(status: Optional(400), message: "vendor/no-such-model is not a valid model ID", code: invalid_request, provider: nil, retryAfter: nil)
 
             context overflow
             LanguageModelError.contextSizeExceeded contextSize: 131072 tokenCount: 175000 "This endpoint's maximum context length is 131072 tokens. However, you requested about 175000 tokens (175000 of text input). Please reduce the length of either one, or use the context-compression plugin to compress your prompt automatically." metadata: [errorCode: context_length_exceeded, status: 400]

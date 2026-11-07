@@ -93,7 +93,7 @@ extension LiveTests {
             #expect(count == 3)
             #expect(wait < .seconds(2))
             // While many sessions run at once, Foundation Models may fail the turn after a cancelled stream itself, before
-            // the model's request executor sends anything.
+            // the model's executor sends anything.
             try await withKnownIssue("Foundation Models may fail the next turn after a cancel itself.", isIntermittent: true) {
                 let again = try await session.respond(to: "Reply with the single word: done", options: LiveTests.short)
                 #expect(again.content.localizedCaseInsensitiveContains("done"))

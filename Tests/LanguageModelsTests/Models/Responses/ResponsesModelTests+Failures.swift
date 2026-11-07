@@ -20,7 +20,7 @@ extension ResponsesModelTests {
         @Test func `a stream that ends before the response completes is cut off, even after a done`() async {
             let stub = HTTPStub(.eventStream(Data("data: \(textDelta("Hi").text)\n\ndata: [DONE]\n\n".utf8)))
 
-            let (_, failure) = await respond(stub, to: [prompt(text("Hello"))])
+            let failure = await respond(stub, to: [prompt(text("Hello"))])
 
             guard case .unusableAnswer? = failure?.kind, failure?.message == "The response ended before it was complete." else {
                 Issue.record("The answer ended with \(String(describing: failure))")
@@ -39,7 +39,7 @@ extension ResponsesModelTests {
         func `an error event mid-stream fails the answer with its error, flat or nested`(event: JSONValue) async {
             let stub = HTTPStub(events(textDelta("Hi"), event))
 
-            let (_, failure) = await respond(stub, to: [prompt(text("Hello"))])
+            let failure = await respond(stub, to: [prompt(text("Hello"))])
 
             guard case .errorEvent? = failure?.kind, let error = failure?.body else {
                 Issue.record("The answer ended with \(String(describing: failure))")
@@ -53,7 +53,7 @@ extension ResponsesModelTests {
             let stub = HTTPStub(
                 events(textDelta("Hi"), lifecycle("response.failed", ["error": ["code": "rate_limit_exceeded", "message": "Slow down."]])))
 
-            let (_, failure) = await respond(stub, to: [prompt(text("Hello"))])
+            let failure = await respond(stub, to: [prompt(text("Hello"))])
 
             guard case .failedAnswer? = failure?.kind else {
                 Issue.record("The answer ended with \(String(describing: failure))")
@@ -68,7 +68,7 @@ extension ResponsesModelTests {
             let stub = HTTPStub(
                 .json(#"{"error":{"message":"Bad key.","type":"invalid_request_error","code":"invalid_api_key"}}"#, status: 401))
 
-            let (_, failure) = await respond(stub, to: [prompt(text("Hello"))])
+            let failure = await respond(stub, to: [prompt(text("Hello"))])
 
             guard case .rejected? = failure?.kind, let rejection = failure else {
                 Issue.record("The answer ended with \(String(describing: failure))")
@@ -82,7 +82,7 @@ extension ResponsesModelTests {
             let refusal: JSONValue = ["type": "response.refusal.delta", "output_index": 0, "content_index": 0, "delta": "I can't."]
             let stub = HTTPStub(events(refusal, lifecycle("response.completed")))
 
-            let (_, error) = await respondThrowing(stub, to: [prompt(text("Hello"))])
+            let error = await respondThrowing(stub, to: [prompt(text("Hello"))])
 
             guard case .refusal? = error as? LanguageModelError else {
                 Issue.record("The answer ended with \(String(describing: error))")
@@ -94,7 +94,7 @@ extension ResponsesModelTests {
             let stub = HTTPStub(
                 events(textDelta("Hi"), lifecycle("response.incomplete", ["incomplete_details": ["reason": "content_filter"]])))
 
-            let (_, error) = await respondThrowing(stub, to: [prompt(text("Hello"))])
+            let error = await respondThrowing(stub, to: [prompt(text("Hello"))])
 
             guard case .guardrailViolation? = error as? LanguageModelError else {
                 Issue.record("The answer ended with \(String(describing: error))")
@@ -105,7 +105,7 @@ extension ResponsesModelTests {
         @Test func `a failed response without an error object fails the answer all the same`() async {
             let stub = HTTPStub(events(textDelta("Hi"), lifecycle("response.failed", ["status": "failed"])))
 
-            let (_, failure) = await respond(stub, to: [prompt(text("Hello"))])
+            let failure = await respond(stub, to: [prompt(text("Hello"))])
 
             guard case .failedAnswer? = failure?.kind, failure?.body == nil else {
                 Issue.record("The answer ended with \(String(describing: failure))")

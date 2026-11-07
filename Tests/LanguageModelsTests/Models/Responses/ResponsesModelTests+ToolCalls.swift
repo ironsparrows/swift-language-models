@@ -18,7 +18,7 @@ extension ResponsesModelTests {
                     ["type": "response.function_call_arguments.delta", "output_index": 0, "delta": #"{"word""#],
                     lifecycle("response.incomplete", ["incomplete_details": ["reason": "max_output_tokens"]])))
 
-            let (_, failure) = await respond(stub, to: [prompt(text("Hello"))])
+            let failure = await respond(stub, to: [prompt(text("Hello"))])
 
             guard case .unusableAnswer? = failure?.kind, failure?.message == "The answer reached its token limit inside a tool call." else {
                 Issue.record("The answer ended with \(String(describing: failure))")
@@ -26,23 +26,21 @@ extension ResponsesModelTests {
             }
         }
 
-        @Test func `function call arguments without an output index go to the last call`() async {
+        @Test func `function call arguments without an output index go to the last call`() async throws {
             let stub = HTTPStub(
                 events(
                     item(
                         "response.output_item.added", at: 0,
                         ["type": "function_call", "call_id": "call_1", "name": "lookUp", "arguments": ""]),
                     ["type": "response.function_call_arguments.delta", "delta": #"{"word":"egg"}"#],
-                    [
-                        "type": "response.output_item.done",
-                        "item": ["type": "function_call", "call_id": "call_1", "name": "lookUp", "arguments": #"{"word":"egg"}"#],
-                    ],
-                    lifecycle("response.completed")))
+                    ["type": "response.output_item.done", "item": ["type": "function_call", "call_id": "call_1", "name": "lookUp"]],
+                    lifecycle("response.completed")),
+                events(textDelta("Found."), lifecycle("response.completed")))
 
-            let (answer, failure) = await respond(stub, to: [prompt(text("Hello"))])
+            let response = try await LanguageModelSession(model: model(stub), tools: [LookUpTool()]).respond(to: "Define egg.")
 
-            if let failure { Issue.record("The answer failed: \(failure)") }
-            #expect(answer?.responseText == "")
+            #expect(response.content == "Found.")
+            #expect(String(decoding: try #require(stub.requests.last).body, as: UTF8.self).contains(#""arguments":"{\"word\":\"egg\"}""#))
         }
 
         @Test func `parallel function calls form one round, with arguments that stream or arrive whole, and go back with their outputs`()

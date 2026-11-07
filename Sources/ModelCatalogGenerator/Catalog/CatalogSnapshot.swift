@@ -190,6 +190,33 @@ struct CatalogSnapshot: Codable, Equatable, Sendable {
 }
 
 extension CatalogSnapshot {
+    /// The snapshot without what it keeps only so that generated members stay: its removed models, and the effort levels
+    /// and words marked removed. Rendering it deletes those members, which ``CatalogChanges`` reports as major changes.
+    ///
+    /// - Throws: ``GeneratorError/invalidCatalog(_:)`` when a listed model would take the name of a removed one, so its
+    ///   member would change without a report.
+    func clearingRemoved() throws(GeneratorError) -> CatalogSnapshot {
+        let cleared = CatalogSnapshot(
+            source: source,
+            models: models.map { model in
+                var model = model
+                model.removedReasoningEfforts = []
+                return model
+            },
+            removed: [],
+            vocabularies: vocabularies.mapValues { words in words.filter { $0.removedOn == nil } },
+            efforts: efforts.filter { $0.removedOn == nil }
+        )
+        let names = Dictionary(uniqueKeysWithValues: namedModels.map { ($0.model.id, $0.name) })
+        let renamed = cleared.namedModels.filter { names[$0.model.id] != $0.name }.map(\.model.id)
+        guard renamed.isEmpty else {
+            throw .invalidCatalog("Clearing what's removed would rename these models: \(renamed.joined(separator: ", ")).")
+        }
+        return cleared
+    }
+}
+
+extension CatalogSnapshot {
     private enum CodingKeys: String, CodingKey {
         case source, models, removed, vocabularies, efforts
     }

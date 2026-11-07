@@ -1,5 +1,6 @@
 import Foundation
 import FoundationModels
+import LanguageModelsTestSupport
 import Testing
 
 @testable import LanguageModelsCore
@@ -25,10 +26,10 @@ struct ModelRemovalsTests {
     @Test func `a removed model and fallback are named with their days, in the order the provider tries them`() {
         let model = EchoModel<HighLowEffort>(
             efforts: [],
-            removalDate: Self.gone,
+            removedOn: Self.gone,
             fallbacks: [
                 .init(id: "listed", reasoningEfforts: []),
-                .init(id: "fallback", reasoningEfforts: [], removalDate: Self.earlier),
+                .init(id: "fallback", reasoningEfforts: [], removedOn: Self.earlier),
             ]
         )
 
@@ -39,17 +40,19 @@ struct ModelRemovalsTests {
         )
     }
 
+    @Test func `reporting a request looks through the model and each fallback`() async {
+        await confirmation(expectedCount: 2) { read in
+            var model = EchoModel<HighLowEffort>(efforts: [], fallbacks: [.init(id: "fallback", reasoningEfforts: [], reads: read)])
+            model.details.reads = read
+
+            model.reportRemovedModels(for: generationRequest([]))
+        }
+    }
+
     @Test func `the message names the model and the day it left`() {
         #expect(
             ModelRemovals.Report(id: "vendor/gone", removedOn: Self.gone).message
                 == "The request names vendor/gone, which its provider stopped listing on 2026-10-31, so it may fail. Choose another model."
         )
-    }
-
-    @Test func `a request to a removed model is still sent`() async throws {
-        let profile = LanguageModelSession.Profile { Instructions("Echo the reasoning level.") }
-            .model(EchoModel<HighLowEffort>(efforts: [], removalDate: Self.gone))
-
-        #expect(try await LanguageModelSession(profile: profile).respond(to: "Which level?").content == "default")
     }
 }

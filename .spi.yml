@@ -1,7 +1,7 @@
 version: 1
 builder:
   configs:
-    - documentation_targets: [OpenRouterLanguageModels, LanguageModels]
+    - documentation_targets: [OpenRouterLanguageModels]
     # Build the library, not the package scheme, which also holds the generator and the test targets.
     - platform: ios
       scheme: OpenRouterLanguageModels

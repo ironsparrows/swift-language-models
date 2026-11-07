@@ -11,7 +11,7 @@ request that repeats an earlier one gets the earlier answer back at no cost.
 
 What a cache read or write costs differs by model and changes often. ``OpenRouterPricing/cacheRead``,
 ``OpenRouterPricing/cacheWrite`` and ``OpenRouterPricing/cacheWriteOneHour`` give a model's prices today, from
-``OpenRouterModel/currentPricing(auth:session:)``, as <doc:ModelAndProviderInfo> shows. Multiples below are
+``OpenRouterModel/currentPricing(auth:session:configuration:)``, as <doc:ModelAndProviderInfo> shows. Multiples below are
 of the model's input price.
 
 ### Hosts that cache on their own

@@ -7,7 +7,7 @@ Handle failures, and read what OpenRouter reports about each answer.
 Rate limits, oversized contexts, content filters, refusals, timeouts and attachments a host rejects throw Foundation
 Models' own `LanguageModelError`, so the same `catch` works for every model. Anything else, such as a rejected API key
 or no credits left, throws ``OpenRouterError``, with its ``OpenRouterError/status``, ``OpenRouterError/code``,
-``OpenRouterError/providerName`` and ``OpenRouterError/retryAfter``:
+``OpenRouterError/provider`` and ``OpenRouterError/retryAfter``:
 
 @Snippet(path: "swift-language-models/Snippets/Errors", slice: "errors")
 

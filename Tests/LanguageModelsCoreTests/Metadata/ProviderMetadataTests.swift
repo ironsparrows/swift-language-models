@@ -40,7 +40,7 @@ struct ProviderMetadataTests {
     }
 
     @Test func `the keys of an error's facts never change`() {
-        let metadata = ProviderErrorMetadata.metadata(status: 429, code: "rate_limit_exceeded", provider: "Vendor", requestID: "req_1")
+        let metadata = ProviderErrorMetadata(status: 429, code: "rate_limit_exceeded", host: "Vendor", requestID: "req_1").contextMetadata
 
         #expect(metadata["status"] as? Int == 429)
         #expect(metadata["errorCode"] as? String == "rate_limit_exceeded")

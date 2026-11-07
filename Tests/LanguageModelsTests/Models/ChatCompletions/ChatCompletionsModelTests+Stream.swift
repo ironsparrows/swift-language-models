@@ -41,10 +41,9 @@ extension ChatCompletionsModelTests {
             let stub = HTTPStub(
                 chatCompletionsEvents(["choices": [["delta": ["content": "Hi"]]]], ["choices": [["delta": [:], "finish_reason": "stop"]]]))
 
-            let (answer, failure) = await respond(stub, to: [prompt(text("Hello"))])
+            let response = try await LanguageModelSession(model: model(stub)).respond(to: "Hello")
 
-            if let failure { Issue.record("The answer failed: \(failure)") }
-            #expect(answer?.responseText == "Hi")
+            #expect(response.content == "Hi")
             let sent = try #require(stub.requests.first)
             #expect(sent.request.url?.path == "/chat/completions")
             #expect(sent.request.value(forHTTPHeaderField: "X-Test") == "yes")

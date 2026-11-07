@@ -178,7 +178,7 @@ extension LoggedError {
             self.init(kind: fields.kind, status: fields.status, code: fields.code, host: fields.host)
         case let error as LanguageModelError:
             let facts = error.providerMetadata
-            self.init(kind: "LanguageModelError.\(error.caseName)", status: facts.status, code: facts.errorCode, host: facts.provider)
+            self.init(kind: "LanguageModelError.\(error.caseName)", status: facts.status, code: facts.code, host: facts.host)
         default:
             self.init(kind: String(reflecting: type(of: error)), status: nil, code: nil, host: nil)
         }

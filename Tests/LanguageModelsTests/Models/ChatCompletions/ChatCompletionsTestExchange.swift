@@ -58,14 +58,18 @@ struct TestExtras: Decodable {
 
 extension ChatCompletions.Model<ChatCompletionsTestExchange> {
     /// A model of a provider named `Test`, sending to a URL with no retries.
-    static func test(url: URL = URL(fileURLWithPath: "/"), session: URLSession = .shared) -> Self {
+    static func test(
+        url: URL = URL(fileURLWithPath: "/"),
+        session: URLSession = .shared,
+        reaching models: [any ModelDetails] = []
+    ) -> Self {
         var model = Self(
             name: "vendor/model", url: url,
             connection: Connection(
                 session: session, authentication: Connection.Authentication(baseURL: nil) { [:] }, idleTimeout: nil, retries: .disabled,
                 retrying: { _ in false }),
-            providerName: "Test", capabilities: LanguageModelCapabilities([.guidedGeneration, .toolCalling, .reasoning]), reaching: [],
-            exchange: ChatCompletionsTestExchange())
+            providerName: "Test", capabilities: LanguageModelCapabilities([.guidedGeneration, .toolCalling, .reasoning]),
+            reaching: models, exchange: ChatCompletionsTestExchange())
         // The fallbacks a test adds go after the model, as a provider may order its members.
         model.memberOrder = [.model, "models", .messages]
         return model
@@ -162,8 +166,8 @@ extension ChatCompletionsModelTests {
     }
 
     /// A model of a provider named `Test`, sending to a stub.
-    static func model(_ stub: HTTPStub) -> ChatCompletions.Model<ChatCompletionsTestExchange> {
-        .test(url: stub.baseURL, session: stub.session)
+    static func model(_ stub: HTTPStub, reaching models: [any ModelDetails] = []) -> ChatCompletions.Model<ChatCompletionsTestExchange> {
+        .test(url: stub.baseURL, session: stub.session, reaching: models)
     }
 
     /// A session's exchange with a stub, for one prompt.
@@ -183,27 +187,23 @@ extension ChatCompletionsModelTests {
         }
     }
 
-    /// Runs one exchange of the test model with a stub, reading the channel's events without looking at them, since a
+    /// Runs one request of the test model with a stub, reading the channel's events without looking at them, since a
     /// channel waits for its reader.
     ///
-    /// - Returns: The answer, or the failure it ended in.
-    static func respond(
-        _ stub: HTTPStub,
-        to entries: [Transcript.Entry],
-        schema: GenerationSchema? = nil
-    ) async -> (DetailedLanguageModelAnswer?, RequestFailure<APIErrorBody>?) {
+    /// - Returns: The failure it ended in, or `nil` when it's answered.
+    static func respond(_ stub: HTTPStub, to entries: [Transcript.Entry]) async -> RequestFailure<APIErrorBody>? {
         let model = ChatCompletions.Model<ChatCompletionsTestExchange>.test(url: stub.baseURL, session: stub.session)
         let channel = LanguageModelExecutorGenerationChannel()
         let reader = Task { for try await _ in channel {} }
         defer { reader.cancel() }
         do {
-            let text = try await model.run(generationRequest(entries, schema: schema), streamingInto: channel)
-            return (DetailedLanguageModelAnswer(responseText: text), nil)
+            try await model.respond(to: generationRequest(entries), streamingInto: channel)
+            return nil
         } catch let failure as RequestFailure<APIErrorBody> {
-            return (nil, failure)
+            return failure
         } catch {
             Issue.record("The model threw \(error)")
-            return (nil, nil)
+            return nil
         }
     }
 }

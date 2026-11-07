@@ -12,10 +12,9 @@ extension ResponsesModelTests {
         @Test func `a request goes to responses, and its answer streams back`() async throws {
             let stub = HTTPStub(events(textDelta("Hi"), lifecycle("response.completed")))
 
-            let (answer, failure) = await respond(stub, to: [prompt(text("Hello"))])
+            let response = try await LanguageModelSession(model: model(stub)).respond(to: "Hello")
 
-            if let failure { Issue.record("The answer failed: \(failure)") }
-            #expect(answer?.responseText == "Hi")
+            #expect(response.content == "Hi")
             let sent = try #require(stub.requests.first)
             #expect(sent.request.url?.path == "/responses")
             #expect(
@@ -32,14 +31,13 @@ extension ResponsesModelTests {
             #expect(stub.requests.first?.request.url?.path == "/responses")
         }
 
-        @Test func `an event of a kind the format doesn't read is passed over, whatever its shape`() async {
+        @Test func `an event of a kind the format doesn't read is passed over, whatever its shape`() async throws {
             let shell: JSONValue = ["type": "response.shell_call_output_content.delta", "output_index": 0, "delta": ["stdout": "ok"]]
             let stub = HTTPStub(events(shell, textDelta("Hi"), lifecycle("response.completed")))
 
-            let (answer, failure) = await respond(stub, to: [prompt(text("Hello"))])
+            let response = try await LanguageModelSession(model: model(stub)).respond(to: "Hello")
 
-            if let failure { Issue.record("The answer failed: \(failure)") }
-            #expect(answer?.responseText == "Hi")
+            #expect(response.content == "Hi")
         }
 
         @Test func `reasoning summaries, the reasoning item, text, citations, usage and the finish reason end up in the transcript`() async

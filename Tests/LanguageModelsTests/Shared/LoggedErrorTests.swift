@@ -17,7 +17,7 @@ struct LoggedErrorTests {
     }
 
     @Test func `a language model error logs its case, and the status, code and host in its metadata`() {
-        let metadata = ProviderErrorMetadata.metadata(status: 429, code: "rate_limit_exceeded", provider: "Vendor")
+        let metadata = ProviderErrorMetadata(status: 429, code: "rate_limit_exceeded", host: "Vendor").contextMetadata
         let error = LanguageModelError(.rateLimited(resetDate: nil), message: "Slow down.", metadata: metadata)
 
         #expect(

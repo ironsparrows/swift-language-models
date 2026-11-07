@@ -18,20 +18,21 @@ struct FixedAnswerModel: DetailedLanguageModel {
         let dataEntryTypes: Set<UTType> = []
     }
 
-    struct RequestExecutor: DetailedLanguageModelRequestExecutor {
+    struct Executor: LanguageModelExecutor {
         struct Configuration: Hashable, Sendable {
             let answer: String
         }
 
         let configuration: Configuration
 
-        func execute(
-            _ request: LanguageModelExecutorGenerationRequest,
+        func respond(
+            to request: LanguageModelExecutorGenerationRequest,
             model: FixedAnswerModel,
             streamingInto channel: LanguageModelExecutorGenerationChannel
-        ) async throws -> DetailedLanguageModelAnswer {
+        ) async throws {
+            model.reportRemovedModels(for: request)
             await channel.send(.response(action: .appendText(configuration.answer, tokenCount: 1)))
-            return DetailedLanguageModelAnswer(responseText: configuration.answer)
+            try model.checkGuides(ofResponseText: configuration.answer, for: request)
         }
     }
 
@@ -39,5 +40,5 @@ struct FixedAnswerModel: DetailedLanguageModel {
     let details = Details()
     let fallbacks: [Details] = []
 
-    var executorConfiguration: RequestExecutor.Configuration { .init(answer: answer) }
+    var executorConfiguration: Executor.Configuration { .init(answer: answer) }
 }

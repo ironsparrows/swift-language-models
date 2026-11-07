@@ -300,7 +300,7 @@ public struct ProviderUsageMetadata: Sendable, Hashable {
 ///     let response = try await session.respond(to: "Plan dinner.")
 ///     print(response.content)
 /// } catch let error as LanguageModelError {
-///     print("HTTP \(error.providerMetadata.status ?? 0), code \(error.providerMetadata.errorCode ?? "none")")
+///     print("HTTP \(error.providerMetadata.status ?? 0), code \(error.providerMetadata.code ?? "none")")
 ///     print("Request id, for the provider's support:", error.providerMetadata.requestID ?? "none")
 /// }
 /// ```
@@ -308,35 +308,52 @@ public struct ProviderUsageMetadata: Sendable, Hashable {
 /// An error that Foundation Models threw itself, such as for a capability the model lacks, has none of them. Each
 /// provider module also reads its own facts, in its own words, through a property named for the provider, such as
 /// `openRouter` for the budget a request ran into.
+///
+/// A provider module of your own writes the facts by passing ``contextMetadata`` as the `metadata` of the
+/// `LanguageModelError` it throws. Foundation Models 2.1.14, in Xcode 27.2, drops the `metadata` argument of
+/// `LanguageModelError.ContextSizeExceeded`'s initializer, so set `metadata` after creating it.
 public struct ProviderErrorMetadata: Sendable, Hashable {
     /// The HTTP status of the response that failed, such as 429 for a rate limit, or `nil` for a failure in the stream,
     /// which arrives after the response's HTTP 200.
     public let status: Int?
 
     /// The provider module's code for the failure, in the provider's own words, such as `rate_limit_exceeded`.
-    public let errorCode: String?
+    public let code: String?
 
     /// The company whose servers failed, when the provider names one, such as the host OpenRouter sent the request to.
-    public let provider: String?
+    public let host: String?
 
     /// The provider's id for the request that failed, which its support asks for.
     public let requestID: String?
 
-    /// The facts in an error's metadata.
-    package init(_ metadata: [String: any Sendable]) {
-        status = metadata[Key.status] as? Int
-        errorCode = metadata[Key.errorCode] as? String
-        provider = metadata[Key.provider] as? String
-        requestID = metadata[Key.requestID] as? String
+    /// Creates the facts of a failure, for a provider module to write or for a test.
+    ///
+    /// - Parameters:
+    ///   - status: The HTTP status of the response that failed.
+    ///   - code: The provider module's code for the failure, in the provider's own words.
+    ///   - host: The company whose servers failed.
+    ///   - requestID: The provider's id for the request that failed.
+    public init(status: Int? = nil, code: String? = nil, host: String? = nil, requestID: String? = nil) {
+        self.status = status
+        self.code = code
+        self.host = host
+        self.requestID = requestID
     }
 
-    /// A failure's shared metadata: its HTTP status, the provider's code for it, the company that failed and the
-    /// provider's id for the request, each when known.
-    package static func metadata(status: Int?, code: String?, provider: String?, requestID: String? = nil) -> [String: any Sendable] {
+    /// The facts in an error's metadata.
+    package init(_ metadata: [String: any Sendable]) {
+        self.init(
+            status: metadata[Key.status] as? Int, code: metadata[Key.errorCode] as? String, host: metadata[Key.provider] as? String,
+            requestID: metadata[Key.requestID] as? String)
+    }
+
+    /// The facts as the metadata of a `LanguageModelError`, under the keys every provider module's errors share, to add
+    /// a module's own keys to. A fact that's `nil` has no key.
+    public var contextMetadata: [String: any Sendable] {
         var metadata: [String: any Sendable] = [:]
         metadata[Key.status] = status
         metadata[Key.errorCode] = code
-        metadata[Key.provider] = provider
+        metadata[Key.provider] = host
         metadata[Key.requestID] = requestID
         return metadata
     }

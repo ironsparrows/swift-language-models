@@ -136,7 +136,7 @@ the same way for every provider module, as <doc:/LanguageModels/ReadingWhatAProv
 | `usage.server_tool_use_details`: `tool_calls_requested`, `tool_calls_executed`, `web_search_requests` | ``OpenRouterUsageMetadata/requestedServerToolCallCount``, ``OpenRouterUsageMetadata/executedServerToolCallCount``, ``OpenRouterUsageMetadata/webSearchCount`` |
 | `X-OpenRouter-Cache-Status`, `X-OpenRouter-Cache-Age`, `X-OpenRouter-Cache-Source-Id` headers | ``OpenRouterResponseMetadata/responseCacheStatus``, ``OpenRouterResponseMetadata/responseCacheAge``, ``OpenRouterResponseMetadata/responseCacheSourceID`` |
 | `openrouter_metadata`: `strategy`, `attempt`, `attempts`, `endpoints.available`, `pipeline`, `region`, `generation_time` | ``OpenRouterResponseMetadata/routingStrategy``, ``OpenRouterResponseMetadata/routingAttempt``, ``OpenRouterResponseMetadata/routingAttempts``, ``OpenRouterResponseMetadata/routingEndpoints``, ``OpenRouterResponseMetadata/routingPipeline``, ``OpenRouterResponseMetadata/region``, ``OpenRouterResponseMetadata/generationTime`` |
-| A failure's HTTP status, error code and host | ``OpenRouterErrorMetadata/status``, ``OpenRouterErrorMetadata/errorCode`` and ``OpenRouterErrorMetadata/provider``, on the `LanguageModelError` it becomes |
+| A failure's HTTP status, error code and host | ``OpenRouterErrorMetadata/status``, ``OpenRouterErrorMetadata/code`` and ``OpenRouterErrorMetadata/provider``, on the `LanguageModelError` it becomes |
 
 ### Errors
 
@@ -174,8 +174,8 @@ The calls of <doc:ModelAndProviderInfo> read OpenRouter's lists with `GET`, and 
 
 | Swift | OpenRouter |
 |---|---|
-| ``OpenRouterModel/endpoints(auth:session:)``, ``OpenRouterModel/endpoints(auth:session:configuration:)`` | `models/{id}/endpoints` under the base URL, each of `data.endpoints` an ``OpenRouterEndpoint`` |
-| ``OpenRouterModel/currentDetails(auth:session:)``, ``OpenRouterModel/currentPricing(auth:session:)`` | `model/{id}` under the base URL, `data` as ``OpenRouterCurrentDetails`` |
+| ``OpenRouterModel/endpoints(auth:session:configuration:)`` | `models/{id}/endpoints` under the base URL, each of `data.endpoints` an ``OpenRouterEndpoint`` |
+| ``OpenRouterModel/currentDetails(auth:session:configuration:)``, ``OpenRouterModel/currentPricing(auth:session:configuration:)`` | `model/{id}` under the base URL, `data` as ``OpenRouterCurrentDetails`` |
 | The call's ``OpenRouterAuthentication``, when one is given | Its headers and base URL, as for a request; no headers without one |
 | ``OpenRouterEndpoint/name``, ``OpenRouterEndpoint/tag``, ``OpenRouterEndpoint/modelID`` | `provider_name`, `tag`, `model_id` |
 | ``OpenRouterEndpoint/serviceTier``, ``OpenRouterEndpoint/quantization``, ``OpenRouterEndpoint/status`` | `service_tier`, `quantization`, `status` |

@@ -95,7 +95,7 @@ extension OpenRouterExchangeTests {
             let error = try await #require(throws: OpenRouterError.self) { try await session.respond(to: "Hi") }
 
             #expect(error.code == .invalidResponse)
-            #expect(error.providerName == host)
+            #expect(error.provider == host)
             #expect(stub.requests.count == 1)
         }
     }

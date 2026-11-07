@@ -11,7 +11,7 @@ extension OpenRouterLanguageModel {
     /// - Parameter configuration: Where requests go, how they name the app and how they're sent.
     /// - Returns: The model.
     /// - Throws: `OpenRouterError` with `invalidRequest` when there's no valid base URL.
-    func chatCompletions(_ configuration: RequestExecutor.Configuration) throws(OpenRouterError)
+    func chatCompletions(_ configuration: Executor.Configuration) throws(OpenRouterError)
         -> ChatCompletions.Model<OpenRouterExchange>
     {
         let exchange = OpenRouterExchange(
@@ -194,7 +194,7 @@ struct OpenRouterExchange: ChatCompletions.Exchange {
         request.movedEffort = reasoning.movedEffort
         // A request that may reach a model whose structured outputs reject constraints sends the portable schema from
         // the start. Other hosts get the full schema, and the portable one only if they reject it. Either way, the
-        // model's executor checks the answer against the full schema.
+        // shared model checks the answer against the full schema.
         request.usesPortableSchema = model.modelIDs.contains(where: \.rejectsSchemaConstraints)
         // The cache mark on the last instructions caches the tools and instructions before it on the host, for the
         // session's later requests and for another session's that reach the same host.
@@ -363,9 +363,9 @@ struct OpenRouterExchange: ChatCompletions.Exchange {
         case .unreadableEvent:
             OpenRouterError(message: failure.message, code: .invalidResponse)
         case .unusableAnswer:
-            OpenRouterError(message: failure.message, code: .invalidResponse, providerName: host)
+            OpenRouterError(message: failure.message, code: .invalidResponse, provider: host)
         case .failedAnswer:
-            OpenRouterError(message: failure.message, code: .server, providerName: host)
+            OpenRouterError(message: failure.message, code: .server, provider: host)
         }
     }
 }

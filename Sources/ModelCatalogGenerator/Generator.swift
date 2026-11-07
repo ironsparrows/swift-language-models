@@ -74,6 +74,8 @@ enum Generator {
             _ = try write(GeneratedFile(path: reportPath, contents: try CatalogJSON.encoded(Report(changes))), in: packageDirectory)
             let release = changes.bump == .none ? "no release" : "a \(changes.bump.rawValue) release"
             log("The catalogs' changes since \(base.ref) need \(release). See \(changelogPath).")
+        case .clearRemoved:
+            try clearRemoved(command.sources, in: packageDirectory, log: log)
         }
     }
 
@@ -236,17 +238,42 @@ enum Generator {
         }
     }
 
+    /// Drops what the sources' snapshots mark removed, so the next render deletes those members. Deleting a member needs a
+    /// major release, so only a maintainer runs this, and never a fetch.
+    ///
+    /// - Throws: ``GeneratorError/fileAccess(_:)`` when a source has no snapshot yet, and
+    ///   ``GeneratorError/invalidCatalog(_:)`` when clearing would rename a listed model's member.
+    private static func clearRemoved(_ sources: [CatalogSource], in packageDirectory: URL, log: (String) -> Void) throws(GeneratorError) {
+        var changed = false
+        for source in sources {
+            let snapshot = try packageSnapshot(of: source, in: packageDirectory)
+            let file = GeneratedFile(path: source.snapshotPath, contents: try CatalogJSON.encoded(try snapshot.clearingRemoved()))
+            guard try write(file, in: packageDirectory) else { continue }
+            let models = snapshot.removed.map(\.model.id)
+            log("Cleared \(source.snapshotPath). Models deleted: \(models.isEmpty ? "none" : models.joined(separator: ", ")).")
+            changed = true
+        }
+        if !changed { log("The catalogs mark nothing removed.") }
+    }
+
     /// The generated files for every source's snapshot.
     ///
     /// - Throws: ``GeneratorError/fileAccess(_:)`` when a source has no snapshot yet.
     private static func generatedFiles(in packageDirectory: URL) throws(GeneratorError) -> [GeneratedFile] {
         let snapshots = try CatalogSource.allCases.map { (source) throws(GeneratorError) in
-            guard let snapshot = try CatalogJSON.read(CatalogSnapshot.self, at: source.snapshotPath, in: packageDirectory) else {
-                throw .fileAccess("\(source.snapshotPath) is missing. Run `fetch` to create it.")
-            }
-            return snapshot
+            try packageSnapshot(of: source, in: packageDirectory)
         }
         return try CatalogRenderer.files(for: snapshots)
+    }
+
+    /// A source's snapshot in the package.
+    ///
+    /// - Throws: ``GeneratorError/fileAccess(_:)`` when the source has no snapshot yet.
+    private static func packageSnapshot(of source: CatalogSource, in packageDirectory: URL) throws(GeneratorError) -> CatalogSnapshot {
+        guard let snapshot = try CatalogJSON.read(CatalogSnapshot.self, at: source.snapshotPath, in: packageDirectory) else {
+            throw .fileAccess("\(source.snapshotPath) is missing. Run `fetch` to create it.")
+        }
+        return snapshot
     }
 
     /// Writes a file unless it already holds the contents, so an unchanged file keeps its modification date.

@@ -28,8 +28,8 @@ the changes. When a source fails, the pull request still carries the sources tha
 fails so someone looks. It keeps one pull request, `catalog/update`, with a changelog and a `release:` label for the
 release the changes need:
 
-- `major` when a generated member is deleted, which only a hand edit to a snapshot does. The pull request also gets
-  `needs-review` and waits for a maintainer.
+- `major` when a generated member is deleted, which only a hand edit to a snapshot or the generator's `clear-removed`
+  does. The pull request also gets `needs-review` and waits for a maintainer.
 - `patch` for any other change to a snapshot: a member added, deprecated or made current again, a model that gains or
   stops accepting effort levels, or a model's limits or parameters.
 - No label when only the shape of a provider's API changed.

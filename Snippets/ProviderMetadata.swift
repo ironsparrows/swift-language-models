@@ -76,8 +76,8 @@ func errorFacts(session: LanguageModelSession) async throws {
         print(response.content)
     } catch let error as LanguageModelError {
         print("HTTP status:", error.providerMetadata.status.map(String.init) ?? "none")
-        print("The provider's code:", error.providerMetadata.errorCode ?? "none")
-        print("The host that failed:", error.providerMetadata.provider ?? "unnamed")
+        print("The provider's code:", error.providerMetadata.code ?? "none")
+        print("The host that failed:", error.providerMetadata.host ?? "unnamed")
         print("Request id, for the provider's support:", error.providerMetadata.requestID ?? "none")
     }
     // snippet.end

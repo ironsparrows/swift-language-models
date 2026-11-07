@@ -76,7 +76,7 @@ struct OpenRouterErrorSnapshotTests {
             LanguageModelError.contextSizeExceeded contextSize: 200000 tokenCount: 0 "Too long." metadata: [errorCode: context_length_exceeded, status: 400]
 
             400 token limit error type
-            OpenRouterError(status: Optional(400), message: "Token budget reached.", code: token_limit_exceeded, providerName: nil, retryAfter: nil)
+            OpenRouterError(status: Optional(400), message: "Token budget reached.", code: token_limit_exceeded, provider: nil, retryAfter: nil)
 
             400 context in the message
             LanguageModelError.contextSizeExceeded contextSize: 200000 tokenCount: 0 "This model's maximum context length is 200000 tokens." metadata: [errorCode: context_length_exceeded, status: 400]
@@ -85,10 +85,10 @@ struct OpenRouterErrorSnapshotTests {
             LanguageModelError.contextSizeExceeded contextSize: 200000 tokenCount: 250000 "This endpoint's maximum context length is 200000 tokens. However, you requested about 250000 tokens." metadata: [errorCode: context_length_exceeded, status: 400]
 
             400 about a context setting
-            OpenRouterError(status: Optional(400), message: "Invalid value for context_management.", code: invalid_request, providerName: nil, retryAfter: nil)
+            OpenRouterError(status: Optional(400), message: "Invalid value for context_management.", code: invalid_request, provider: nil, retryAfter: nil)
 
             400 without an error type
-            OpenRouterError(status: Optional(400), message: "Bad request.", code: invalid_request, providerName: nil, retryAfter: nil)
+            OpenRouterError(status: Optional(400), message: "Bad request.", code: invalid_request, provider: nil, retryAfter: nil)
 
             400 rate limit error type
             LanguageModelError.rateLimited resetDate: nil "Slow down." metadata: [errorCode: rate_limit_exceeded, status: 400]
@@ -100,13 +100,13 @@ struct OpenRouterErrorSnapshotTests {
             LanguageModelError.refusal "I can't help with that." metadata: [errorCode: refusal, status: 400]
 
             400 unknown error type
-            OpenRouterError(status: Optional(400), message: "Image not found", code: image_not_found, providerName: nil, retryAfter: nil)
+            OpenRouterError(status: Optional(400), message: "Image not found", code: image_not_found, provider: nil, retryAfter: nil)
 
             401
-            OpenRouterError(status: Optional(401), message: "No auth credentials found", code: authentication, providerName: nil, retryAfter: nil)
+            OpenRouterError(status: Optional(401), message: "No auth credentials found", code: authentication, provider: nil, retryAfter: nil)
 
             402 without a limit
-            OpenRouterError(status: Optional(402), message: "No credits.", code: payment_required, providerName: nil, retryAfter: nil)
+            OpenRouterError(status: Optional(402), message: "No credits.", code: payment_required, provider: nil, retryAfter: nil)
 
             402 in-flight budget
             LanguageModelError.rateLimited resetDate: nil "Too many at once." metadata: [errorCode: payment_required, openRouter.limitSource: openrouter_in_flight_budget, status: 402]
@@ -115,55 +115,55 @@ struct OpenRouterErrorSnapshotTests {
             LanguageModelError.refusal "No." metadata: [errorCode: refusal, openRouter.limitSource: openrouter_in_flight_budget, status: 402]
 
             403 without a flag
-            OpenRouterError(status: Optional(403), message: "Not allowed.", code: permission_denied, providerName: nil, retryAfter: nil)
+            OpenRouterError(status: Optional(403), message: "Not allowed.", code: permission_denied, provider: nil, retryAfter: nil)
 
             403 flagged input
             LanguageModelError.guardrailViolation "Flagged." metadata: [errorCode: permission_denied, status: 403]
 
             403 content filter without a report
-            OpenRouterError(status: Optional(403), message: "Request blocked by content filter: [BLOCKED]", code: permission_denied, providerName: nil, retryAfter: nil)
+            OpenRouterError(status: Optional(403), message: "Request blocked by content filter: [BLOCKED]", code: permission_denied, provider: nil, retryAfter: nil)
 
             403 guardrail blocked
             LanguageModelError.guardrailViolation "Request blocked by content filter: [BLOCKED]" metadata: [errorCode: permission_denied, status: 403]
 
             403 guardrail redacted
-            OpenRouterError(status: Optional(403), message: "Request blocked by content filter: [BLOCKED]", code: permission_denied, providerName: nil, retryAfter: nil)
+            OpenRouterError(status: Optional(403), message: "Request blocked by content filter: [BLOCKED]", code: permission_denied, provider: nil, retryAfter: nil)
 
             403 budget that resets
             LanguageModelError.rateLimited resetDate: 2026-11-03T00:00:00Z "Budget spent." metadata: [errorCode: budget_exceeded, openRouter.limitSource: api_key, status: 403]
 
             403 lifetime budget
-            OpenRouterError(status: Optional(403), message: "Budget spent.", code: budget_exceeded, providerName: nil, retryAfter: nil)
+            OpenRouterError(status: Optional(403), message: "Budget spent.", code: budget_exceeded, provider: nil, retryAfter: nil)
 
             403 reasons win over another error type
             LanguageModelError.guardrailViolation "Flagged." metadata: [errorCode: permission_denied, status: 403]
 
             404
-            OpenRouterError(status: Optional(404), message: "Failed", code: not_found, providerName: nil, retryAfter: nil)
+            OpenRouterError(status: Optional(404), message: "Failed", code: not_found, provider: nil, retryAfter: nil)
 
             408
             LanguageModelError.timeout "Timed out." metadata: [errorCode: timeout, status: 408]
 
             413
-            OpenRouterError(status: Optional(413), message: "Failed", code: payload_too_large, providerName: nil, retryAfter: nil)
+            OpenRouterError(status: Optional(413), message: "Failed", code: payload_too_large, provider: nil, retryAfter: nil)
 
             422
-            OpenRouterError(status: Optional(422), message: "Failed", code: unprocessable, providerName: nil, retryAfter: nil)
+            OpenRouterError(status: Optional(422), message: "Failed", code: unprocessable, provider: nil, retryAfter: nil)
 
             429
             LanguageModelError.rateLimited resetDate: nil "Slow down." metadata: [errorCode: rate_limit_exceeded, status: 429]
 
             500
-            OpenRouterError(status: Optional(500), message: "Failed.", code: server, providerName: nil, retryAfter: nil)
+            OpenRouterError(status: Optional(500), message: "Failed.", code: server, provider: nil, retryAfter: nil)
 
             500 timeout error type
             LanguageModelError.timeout "Timed out." metadata: [errorCode: timeout, status: 500]
 
             500 with a Retry-After wait
-            OpenRouterError(status: Optional(500), message: "Internal error", code: server, providerName: nil, retryAfter: Optional(15.0 seconds))
+            OpenRouterError(status: Optional(500), message: "Internal error", code: server, provider: nil, retryAfter: Optional(15.0 seconds))
 
             503
-            OpenRouterError(status: Optional(503), message: "No host.", code: provider_unavailable, providerName: nil, retryAfter: nil)
+            OpenRouterError(status: Optional(503), message: "No host.", code: provider_unavailable, provider: nil, retryAfter: nil)
 
             504
             LanguageModelError.timeout "Gateway timed out." metadata: [errorCode: timeout, status: 504]
@@ -172,7 +172,7 @@ struct OpenRouterErrorSnapshotTests {
             LanguageModelError.timeout "Timed out." metadata: [errorCode: timeout, status: 524]
 
             a body that isn't JSON
-            OpenRouterError(status: Optional(502), message: "bad gateway", code: provider_unavailable, providerName: nil, retryAfter: nil)
+            OpenRouterError(status: Optional(502), message: "bad gateway", code: provider_unavailable, provider: nil, retryAfter: nil)
             """
         }
     }
@@ -242,13 +242,13 @@ struct OpenRouterErrorSnapshotTests {
             LanguageModelError.contextSizeExceeded contextSize: 200000 tokenCount: 250000 "This endpoint's maximum context length is 200000 tokens. However, you requested about 250000 tokens." metadata: [errorCode: context_length_exceeded, provider: Vendor, status: 400]
 
             text code with the chunk's host
-            OpenRouterError(status: nil, message: "Failed.", code: server_error, providerName: Optional(openai), retryAfter: nil)
+            OpenRouterError(status: nil, message: "Failed.", code: server_error, provider: Optional(openai), retryAfter: nil)
 
             the metadata's host before the chunk's
-            OpenRouterError(status: Optional(502), message: "Provider returned error", code: provider_unavailable, providerName: Optional(Anthropic), retryAfter: nil)
+            OpenRouterError(status: Optional(502), message: "Provider returned error", code: provider_unavailable, provider: Optional(Anthropic), retryAfter: nil)
 
             no code
-            OpenRouterError(status: nil, message: "Generation failed.", code: server, providerName: Optional(Vendor), retryAfter: nil)
+            OpenRouterError(status: nil, message: "Generation failed.", code: server, provider: Optional(Vendor), retryAfter: nil)
 
             rate limit
             LanguageModelError.rateLimited resetDate: nil "Rate limit exceeded" metadata: [errorCode: rate_limit_exceeded, provider: openai, status: 429]
@@ -260,13 +260,13 @@ struct OpenRouterErrorSnapshotTests {
             LanguageModelError.guardrailViolation "A content filter stopped the response." metadata: [provider: Vendor]
 
             answer that ends in an error
-            OpenRouterError(status: nil, message: "The model\'s response ended in an error.", code: server, providerName: Optional(Vendor), retryAfter: nil)
+            OpenRouterError(status: nil, message: "The model\'s response ended in an error.", code: server, provider: Optional(Vendor), retryAfter: nil)
 
             event that isn't a chunk
-            OpenRouterError(status: nil, message: "OpenRouter sent an event that couldn\'t be read: <decoding error>", code: invalid_response, providerName: nil, retryAfter: nil)
+            OpenRouterError(status: nil, message: "OpenRouter sent an event that couldn\'t be read: <decoding error>", code: invalid_response, provider: nil, retryAfter: nil)
 
             cut off
-            OpenRouterError(status: nil, message: "The response ended before it was complete.", code: invalid_response, providerName: Optional(Vendor), retryAfter: nil)
+            OpenRouterError(status: nil, message: "The response ended before it was complete.", code: invalid_response, provider: Optional(Vendor), retryAfter: nil)
 
             connection lost
             URLError -1005
@@ -275,13 +275,13 @@ struct OpenRouterErrorSnapshotTests {
             LanguageModelError.timeout "<the system's text>" metadata: []
 
             call whose arguments stop partway
-            OpenRouterError(status: nil, message: "The model sent arguments for lookUpFood that aren\'t a whole JSON object.", code: invalid_response, providerName: Optional(Vendor), retryAfter: nil)
+            OpenRouterError(status: nil, message: "The model sent arguments for lookUpFood that aren\'t a whole JSON object.", code: invalid_response, provider: Optional(Vendor), retryAfter: nil)
 
             call that never gets a name
-            OpenRouterError(status: nil, message: "The model sent a tool call without its name.", code: invalid_response, providerName: Optional(Vendor), retryAfter: nil)
+            OpenRouterError(status: nil, message: "The model sent a tool call without its name.", code: invalid_response, provider: Optional(Vendor), retryAfter: nil)
 
             call cut off at the token limit
-            OpenRouterError(status: nil, message: "The answer reached its token limit inside a tool call.", code: invalid_response, providerName: Optional(Vendor), retryAfter: nil)
+            OpenRouterError(status: nil, message: "The answer reached its token limit inside a tool call.", code: invalid_response, provider: Optional(Vendor), retryAfter: nil)
             """#
         }
     }

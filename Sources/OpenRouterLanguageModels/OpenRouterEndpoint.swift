@@ -19,7 +19,7 @@ import Foundation
 /// )
 /// ```
 ///
-/// ``OpenRouterModel/endpoints(auth:session:)`` lists a model's endpoints.
+/// ``OpenRouterModel/endpoints(auth:session:configuration:)`` lists a model's endpoints.
 public struct OpenRouterEndpoint: Sendable, Hashable {
     /// The host's name, such as `Google`, to show to people.
     ///

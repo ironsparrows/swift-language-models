@@ -50,12 +50,12 @@ extension OpenRouterExchangeTests {
             #expect(model.app == app)
             #expect(model.auth.baseURL == baseURL)
             #expect(model.session === session)
-            #expect(model.idleTimeout == .seconds(90))
+            #expect(model.configuration.idleTimeout == .seconds(90))
             let open = OpenRouterLanguageModel(model)
             #expect(open.app == app)
             #expect(open.auth.baseURL == baseURL)
             #expect(open.session === session)
-            #expect(open.idleTimeout == .seconds(90))
+            #expect(open.configuration.idleTimeout == .seconds(90))
         }
 
         @Test func `a model without settings names no app and keeps OpenRouter's address, the shared session and its timeout`() {
@@ -64,7 +64,7 @@ extension OpenRouterExchangeTests {
             #expect(model.app == OpenRouterApp())
             #expect(model.auth.baseURL == nil)
             #expect(model.session === URLSession.shared)
-            #expect(model.idleTimeout == nil)
+            #expect(model.configuration.idleTimeout == nil)
         }
 
         @Test func `a change to the configuration applies to the next request`() async throws {
@@ -77,19 +77,8 @@ extension OpenRouterExchangeTests {
             model.configuration.idleTimeout = .seconds(7)
             _ = try await LanguageModelSession(model: model).respond(to: "Hi")
 
-            #expect(model.idleTimeout == .seconds(7))
             #expect(model.executorConfiguration.settings.idleTimeout == .seconds(7))
             #expect(stub.requests.map(\.request.timeoutInterval).last == 7)
-        }
-
-        /// Code written before ``OpenRouterConfiguration`` still builds, with a deprecation warning, and still sets the
-        /// idle timeout.
-        @available(*, deprecated)
-        @Test func `the initializer with an idle timeout still sets it`() {
-            let model = OpenRouterLanguageModel(fallback("openai/gpt-5-mini"), idleTimeout: .seconds(30), auth: .apiKey { "sk-or-test" })
-
-            #expect(model.idleTimeout == .seconds(30))
-            #expect(model.configuration.retries == .standard)
         }
     }
 }

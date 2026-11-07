@@ -3,20 +3,34 @@ import FoundationModels
 import InlineSnapshotTesting
 import LanguageModelsTestSupport
 import Testing
-import UniformTypeIdentifiers
 
 @testable import LanguageModels
 
 extension ResponsesModelTests {
     @Suite("Request")
     struct Request {
-        @Test func `a model keeps a report of each model a request may reach that its provider stopped listing`() {
-            let model = Responses.Model(
-                name: "vendor/model", url: URL(fileURLWithPath: "/"), connection: Responses.Model<ResponsesTestExchange>.test().connection,
-                providerName: "Test", capabilities: LanguageModelCapabilities([]),
-                reaching: [Reached(removalDate: nil), Reached(removalDate: .distantPast)], exchange: ResponsesTestExchange())
+        @Test func `every request looks for a removed model among those it may reach, even one that fails`() async throws {
+            let stub = HTTPStub(events(textDelta("Hi"), lifecycle("response.completed")), .json("{}", status: 404))
 
-            #expect(model.removedModels.count == 1)
+            try await confirmation(expectedCount: 4) { read in
+                let model = model(stub, reaching: [Reached(reads: read), Reached(reads: read)])
+
+                _ = try await LanguageModelSession(model: model).respond(to: "Hello")
+                await #expect(throws: (any Error).self) {
+                    _ = try await LanguageModelSession(model: model).respond(to: "Hello")
+                }
+            }
+        }
+
+        @Test func `a request to a model its provider stopped listing is still sent`() async throws {
+            let stub = HTTPStub(events(textDelta("Hi"), lifecycle("response.completed")))
+
+            let session = LanguageModelSession(model: model(stub, reaching: [Reached(removedOn: .distantPast)]))
+
+            let response = try await session.respond(to: "Hello")
+
+            #expect(response.content == "Hi")
+            #expect(stub.requests.count == 1)
         }
 
         @Test func `the format writes its members in a fixed order, leaves out a seed and raises a token limit below 16`() throws {
@@ -183,23 +197,4 @@ extension ResponsesModelTests {
             #expect(sent.adjustments == [.unsentSettings(["temperature"]), .movedEffort(requested: "medium", sent: "low")])
         }
     }
-}
-
-/// A model a request may reach.
-private struct Reached: ModelDetails {
-    let id: ResponsesTestModelID = "vendor/model"
-    let displayName = "Model"
-    let capabilities = LanguageModelCapabilities([])
-    let reasoning = ModelReasoning.unsupported
-    let contextSize: Int? = nil
-    let reasoningEfforts: [Efforts.Unsupported] = []
-    let defaultReasoningEffort: Efforts.Unsupported? = nil
-    let removalDate: Date?
-    let dataAttachmentTypes: Set<UTType> = []
-    let dataEntryTypes: Set<UTType> = []
-}
-
-/// The id of a model a request may reach.
-private struct ResponsesTestModelID: ProviderVocabulary {
-    let rawValue: String
 }

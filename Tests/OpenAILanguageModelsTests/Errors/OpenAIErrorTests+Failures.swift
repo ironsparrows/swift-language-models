@@ -177,11 +177,11 @@ extension OpenAIErrorTests {
             let error = try #require(await respond(stub) as? LanguageModelError)
 
             #expect(error.providerMetadata.status == 429)
-            #expect(error.providerMetadata.errorCode == "rate_limit_exceeded")
+            #expect(error.providerMetadata.code == "rate_limit_exceeded")
             #expect(error.providerMetadata.requestID == "req_1")
-            #expect(error.providerMetadata.provider == nil)
+            #expect(error.providerMetadata.host == nil)
             #expect(error.openAI.status == 429)
-            #expect(error.openAI.errorCode == "rate_limit_exceeded")
+            #expect(error.openAI.code == "rate_limit_exceeded")
             #expect(error.openAI.requestID == "req_1")
         }
 

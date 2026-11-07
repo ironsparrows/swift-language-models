@@ -21,10 +21,9 @@ extension ResponsesModelTests {
             let rejection = #"{"error":{"message":"Keyword 'maximum' is not supported for type 'integer'"}}"#
             let stub = HTTPStub(.json(rejection, status: 400), events(textDelta(#"{"stars":4}"#), lifecycle("response.completed")))
 
-            let (answer, failure) = await respond(stub, to: [prompt(text("Rate it."))], schema: Rating.generationSchema)
+            let response = try await LanguageModelSession(model: model(stub)).respond(to: "Rate it.", generating: Rating.self)
 
-            if let failure { Issue.record("The answer failed: \(failure)") }
-            #expect(answer?.responseText == #"{"stars":4}"#)
+            #expect(response.content.stars == 4)
             let bodies = try stub.requests.map { try JSONValue(json: $0.body) }
             #expect(bodies.count == 2)
             #expect(bodies.first?["text"]?["format"]?["schema"]?["properties"]?["stars"]?["maximum"] == 5)

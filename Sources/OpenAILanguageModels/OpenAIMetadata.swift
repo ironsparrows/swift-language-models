@@ -158,7 +158,7 @@ public struct OpenAIUsageMetadata: Sendable, Hashable {
 ///     let response = try await session.respond(to: "Plan dinner.")
 ///     print(response.content)
 /// } catch let error as LanguageModelError {
-///     print("Code \(error.openAI.errorCode?.rawValue ?? "none"), request id \(error.openAI.requestID ?? "none")")
+///     print("Code \(error.openAI.code?.rawValue ?? "none"), request id \(error.openAI.requestID ?? "none")")
 /// }
 /// ```
 ///
@@ -170,7 +170,7 @@ public struct OpenAIErrorMetadata: Sendable, Hashable {
 
     /// The code the failure would have as an ``OpenAIError``: OpenAI's code or error type, or the package's code for
     /// the HTTP status, such as ``OpenAIError/Code/unmapped`` for a 429 without one.
-    public let errorCode: OpenAIError.Code?
+    public let code: OpenAIError.Code?
 
     /// OpenAI's id for the request that failed, which its support asks for.
     public let requestID: String?
@@ -179,7 +179,7 @@ public struct OpenAIErrorMetadata: Sendable, Hashable {
     init(_ metadata: [String: any Sendable]) {
         let shared = ProviderErrorMetadata(metadata)
         status = shared.status
-        errorCode = shared.errorCode.map(OpenAIError.Code.init(rawValue:))
+        code = shared.code.map(OpenAIError.Code.init(rawValue:))
         requestID = shared.requestID
     }
 }

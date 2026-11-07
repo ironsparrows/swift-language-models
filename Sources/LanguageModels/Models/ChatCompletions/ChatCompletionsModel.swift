@@ -33,8 +33,9 @@ extension ChatCompletions {
         /// What the model can do, which Foundation Models checks before a request.
         package var capabilities: LanguageModelCapabilities
 
-        /// The models a request may reach that their provider stopped listing, which each request reports.
-        var removedModels: [ModelRemovals.Report]
+        /// The models a request may reach, in the order the provider tries them, which each request looks through for one
+        /// its provider stopped listing.
+        package let reachableModels: [any ModelDetails]
 
         // MARK: How the provider differs from the plain format
 
@@ -82,7 +83,7 @@ extension ChatCompletions {
             self.connection = connection
             self.providerName = providerName
             self.capabilities = capabilities
-            removedModels = [ModelRemovals.Report](reaching: models)
+            reachableModels = models
             reasoningOrigin = providerName.lowercased()
             self.exchange = exchange
         }
@@ -99,12 +100,12 @@ extension ChatCompletions.Model {
     ///   - generation: The transcript, tools, schema and options to send.
     ///   - channel: Where the answer's events go.
     /// - Throws: What ``run(_:streamingInto:)`` throws, and `GeneratedContent.ParsingError` when a value of the answer
-    ///   breaks a guide of the request's schema.
-    func respond(
+    ///   breaks a guide of the request's schema or an object or array answer isn't complete JSON.
+    package func respond(
         to generation: LanguageModelExecutorGenerationRequest,
         streamingInto channel: LanguageModelExecutorGenerationChannel
     ) async throws {
-        removedModels.report(for: generation)
+        [ModelRemovals.Report](reaching: reachableModels).report(for: generation)
         let text = try await run(generation, streamingInto: channel)
         if let schema = generation.schema {
             try GuideViolations.check(text, against: schema, request: generation.id)
@@ -125,7 +126,7 @@ extension ChatCompletions.Model {
     /// - Throws: `LanguageModelError` for failures Foundation Models has a case for, what the exchange makes of the
     ///   rest, a failed connection's error as `URLError` maps it, what the authentication throws, and
     ///   `CancellationError` when the task is cancelled.
-    package func run(
+    private func run(
         _ generation: LanguageModelExecutorGenerationRequest,
         streamingInto channel: LanguageModelExecutorGenerationChannel
     ) async throws -> String {

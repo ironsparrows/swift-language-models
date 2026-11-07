@@ -60,11 +60,8 @@ The package logs each request to the unified logging system, never with API keys
 
 ### Request configuration
 
-- ``ConfigurableLanguageModel``
 - ``RequestRetries``
-- ``RetryingConfiguration``
 - ``ImageEncoding``
-- ``ImageEncodingConfiguration``
 
 ### Reasoning level
 
@@ -111,7 +108,5 @@ The package logs each request to the unified logging system, never with API keys
 ### Provider modules
 
 - <doc:WritingAProvider>
-- ``DetailedLanguageModelRequestExecutor``
-- ``DetailedLanguageModelAnswer``
-- ``DetailedLanguageModelExecutor``
-- ``DetailedLanguageModelBase``
+- ``DetailedLanguageModel/reportRemovedModels(for:)``
+- ``DetailedLanguageModel/checkGuides(ofResponseText:for:)``

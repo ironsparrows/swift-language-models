@@ -10,13 +10,13 @@ struct ProviderFailureTests {
         .refusal, .timeout, .unsupportedContent([]),
     ])
     func `every kind of failure reads the provider's facts from its metadata`(failure: LanguageModelError.ProviderFailure) {
-        let metadata = ProviderErrorMetadata.metadata(status: 429, code: "rate_limit_exceeded", provider: "Vendor", requestID: "req_1")
+        let metadata = ProviderErrorMetadata(status: 429, code: "rate_limit_exceeded", host: "Vendor", requestID: "req_1").contextMetadata
 
         let facts = LanguageModelError(failure, message: "Failed.", metadata: metadata).providerMetadata
 
         #expect(facts.status == 429)
-        #expect(facts.errorCode == "rate_limit_exceeded")
-        #expect(facts.provider == "Vendor")
+        #expect(facts.code == "rate_limit_exceeded")
+        #expect(facts.host == "Vendor")
         #expect(facts.requestID == "req_1")
     }
 

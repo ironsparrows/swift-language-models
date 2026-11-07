@@ -6,7 +6,7 @@ kinds.
 ## Overview
 
 A provider module's model conforms to ``DetailedLanguageModel``, so it carries ``ModelDetails`` in
-``DetailedLanguageModelBase/details``. Foundation Models reads the model's capabilities from them, and an app reads the
+``DetailedLanguageModel/details``. Foundation Models reads the model's capabilities from them, and an app reads the
 rest, such as to show a model's context size or to offer only models that call tools:
 
 @Snippet(path: "swift-language-models/Snippets/Catalog", slice: "details")

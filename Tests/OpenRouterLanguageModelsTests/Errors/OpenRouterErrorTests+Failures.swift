@@ -77,7 +77,7 @@ extension OpenRouterErrorTests {
             #expect(info.metadata["openRouter.limitSource"] as? String == "api_key")
             #expect(info.metadata["errorCode"] as? String == "budget_exceeded")
             #expect(error.openRouter.limitSource == .apiKey)
-            #expect(error.openRouter.errorCode == .budgetExceeded)
+            #expect(error.openRouter.code == .budgetExceeded)
             #expect(error.openRouter.status == 403)
         }
 
@@ -116,7 +116,7 @@ extension OpenRouterErrorTests {
 
             let error = try #require(OpenRouterFailure(streamError: body, provider: "Vendor").error(contextSize: nil) as? OpenRouterError)
 
-            #expect(error == OpenRouterError(message: "Overloaded.", code: "server_error", providerName: "Vendor"))
+            #expect(error == OpenRouterError(message: "Overloaded.", code: "server_error", provider: "Vendor"))
         }
     }
 }
