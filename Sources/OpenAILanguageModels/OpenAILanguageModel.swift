@@ -55,8 +55,8 @@ public struct OpenAILanguageModel<Effort: ModelEffort>: DetailedLanguageModel {
     ///   - details: The model, usually from the catalog, such as `.gpt6Luna`.
     ///   - options: Request settings that only OpenAI has.
     ///   - session: The URL session that sends requests. Its configuration applies, but the package still sets each
-    ///     request's headers, its timeout when the configuration's `idleTimeout` is set, and redirects only to the
-    ///     same host.
+    ///     request's headers and, when the configuration's `idleTimeout` is set, its timeout, and follows redirects
+    ///     only to the same scheme, URL host and port.
     ///   - configuration: How requests are sent: how long they wait, how they retry, and how their images are encoded.
     ///   - auth: How requests authenticate, and where they go: ``OpenAIAuthentication/apiKey(organization:project:_:)``
     ///     to OpenAI, ``OpenAIAuthentication/apiKey(baseURL:organization:project:_:)`` to another server that speaks
@@ -132,7 +132,7 @@ public struct OpenAIAuthentication: Sendable {
         self.requestAuthentication = requestAuthentication
     }
 
-    /// Authentication with these headers, sent to a base URL, such as a test server's.
+    /// Authentication with these headers, sent to a base URL, such as a server of your own.
     private init(baseURL: URL?, headers: @escaping @Sendable () async throws -> [String: String]) {
         self.init(Connection.Authentication(baseURL: baseURL, headers: headers))
     }
@@ -144,7 +144,7 @@ public struct OpenAIAuthentication: Sendable {
     ///     key's default.
     ///   - project: The project the requests count toward, sent as `OpenAI-Project`, or `nil` for the key's default.
     ///   - key: Returns the key. It's called for every request and never stored. An empty key sends no
-    ///     `Authorization` header.
+    ///     `Authorization` header, and no `OpenAI-Organization` or `OpenAI-Project`.
     /// - Returns: The authentication.
     public static func apiKey(
         organization: String? = nil,
@@ -158,7 +158,8 @@ public struct OpenAIAuthentication: Sendable {
     /// company's or a test server.
     ///
     /// Requests go to the same paths under `baseURL` as under OpenAI's API, such as `responses`, and follow redirects
-    /// only to the same host. To keep the key out of the app, use ``proxied(baseURL:headers:)`` instead.
+    /// only to the same scheme, URL host and port. To keep the key out of the app, use ``proxied(baseURL:headers:)``
+    /// instead.
     ///
     /// - Parameters:
     ///   - baseURL: The server's URL, which stands in for `https://api.openai.com/v1/`.
@@ -166,7 +167,7 @@ public struct OpenAIAuthentication: Sendable {
     ///     key's default.
     ///   - project: The project the requests count toward, sent as `OpenAI-Project`, or `nil` for the key's default.
     ///   - key: Returns the key. It's called for every request and never stored. An empty key sends no
-    ///     `Authorization` header.
+    ///     `Authorization` header, and no `OpenAI-Organization` or `OpenAI-Project`.
     /// - Returns: The authentication.
     public static func apiKey(
         baseURL: URL,
@@ -181,7 +182,7 @@ public struct OpenAIAuthentication: Sendable {
     /// ships no key.
     ///
     /// Requests go to the same paths under `baseURL` as under OpenAI's API, such as `responses`, and follow redirects
-    /// only to the same host.
+    /// only to the same scheme, URL host and port.
     ///
     /// - Parameters:
     ///   - baseURL: The server's URL, which stands in for `https://api.openai.com/v1/`.
@@ -259,8 +260,7 @@ public struct OpenAIConfiguration: Sendable, Hashable {
     public var idleTimeout: Duration?
 
     /// How a request that fails before any data arrives is sent again: after a failed connection, a 408, 409 or 429,
-    /// or any status from 500 up, as OpenAI's own SDKs retry it, or whatever status when `x-should-retry` is `true`,
-    /// but never when it's `false`.
+    /// any status from 500 up, or any status whose `x-should-retry` is `true`, but never when it's `false`.
     public var retries: RequestRetries
 
     /// How image attachments are encoded before they're sent.
@@ -270,9 +270,8 @@ public struct OpenAIConfiguration: Sendable, Hashable {
     ///
     /// - Parameters:
     ///   - idleTimeout: The longest time to wait for the next data, or `nil` for the URL session's own timeout. The
-    ///     default is 10 minutes, as in OpenAI's own SDKs, since a model that reasons hard may send nothing for a
-    ///     while.
-    ///   - retries: How a failed request is sent again. The default retries up to twice, as OpenAI's own SDKs do.
+    ///     default is 10 minutes, since a model that reasons hard may send nothing for a while.
+    ///   - retries: How a failed request is sent again. The default retries up to twice.
     ///   - images: How image attachments are encoded.
     public init(idleTimeout: Duration? = .seconds(600), retries: RequestRetries = .standard, images: ImageEncoding = .standard) {
         self.idleTimeout = idleTimeout
@@ -297,11 +296,14 @@ extension OpenAILanguageModel {
         /// The model makes it from its authentication's base URL and its configuration, so an app sets
         /// ``OpenAILanguageModel/configuration`` rather than this.
         public struct Configuration: Sendable, Hashable {
+            /// The server that stands in for OpenAI's API, or `nil` for OpenAI's API itself.
             let baseURL: URL?
+
+            /// How the model's requests are sent.
             let settings: OpenAIConfiguration
         }
 
-        /// Where requests go and how long they wait, which the model reads as a Responses model.
+        /// Where requests go and how they're sent, which the model reads as a Responses model.
         private let configuration: Configuration
 
         /// Creates an executor.
@@ -313,11 +315,11 @@ extension OpenAILanguageModel {
 
         /// Sends one request and streams its answer.
         ///
-        /// A failed request is retried up to twice, only before any data arrives, as the official SDKs retry it: after a
-        /// failed connection, a 408, 409 or 429, any status from 500 up, or any status whose `x-should-retry` is `true`,
-        /// unless its `x-should-retry` is `false` or its `retry-after-ms` or `Retry-After` asks for more than 2 minutes. A
-        /// request whose schema has a constraint OpenAI rejects is sent once more with the portable schema, which carries
-        /// its constraints in descriptions.
+        /// A failed request is sent again as ``OpenAIConfiguration/retries`` says, only before any data arrives: after
+        /// a failed connection, a 408, 409 or 429, any status from 500 up, or any status whose `x-should-retry` is
+        /// `true`, unless its `x-should-retry` is `false` or its `retry-after-ms` or `Retry-After` asks for a longer
+        /// wait than ``RequestRetries/longestServerWait``. A request whose schema has a constraint OpenAI rejects is
+        /// sent once more with the portable schema, which carries its constraints in descriptions.
         ///
         /// A model the request may reach that OpenAI stopped listing is reported first, and the answer is checked against
         /// the schema's guides last, as ``DetailedLanguageModel/reportRemovedModels(for:)`` and
@@ -328,9 +330,10 @@ extension OpenAILanguageModel {
         ///   - model: The model to answer with.
         ///   - channel: Where the answer's events go.
         /// - Throws: `LanguageModelError` for failures Foundation Models has a case for, `OpenAIError` for the rest,
-        ///   `GeneratedContent.ParsingError` when a value of the answer breaks a guide of the request's schema or an object or
-        ///   array answer isn't complete JSON, and `CancellationError` when the task is cancelled. An error that the model's authentication throws passes through
-        ///   as it is, unless it's a `URLError`, which maps as a failed connection's does.
+        ///   `GeneratedContent.ParsingError` when a value of the answer breaks a guide of the request's schema, an object
+        ///   or array answer isn't complete JSON or a guided answer reaches its token limit, the `URLError` of a failed
+        ///   connection, and `CancellationError` when the task is cancelled. An error that the model's authentication
+        ///   throws passes through as it is, unless it's a `URLError`, which maps as a failed connection's does.
         public func respond(
             to request: LanguageModelExecutorGenerationRequest,
             model: OpenAILanguageModel,
@@ -343,7 +346,7 @@ extension OpenAILanguageModel {
 
 extension OpenAILanguageModel {
     /// How the model's requests reach OpenAI: its session and authentication, with the timeout and retries of its
-    /// configuration, retrying the statuses the official SDKs retry.
+    /// configuration, retrying a 408, 409 or 429 and any status from 500 up.
     func connection(_ configuration: OpenAIConfiguration) -> Connection {
         Connection(
             session: session, authentication: auth.requestAuthentication, idleTimeout: configuration.idleTimeout,

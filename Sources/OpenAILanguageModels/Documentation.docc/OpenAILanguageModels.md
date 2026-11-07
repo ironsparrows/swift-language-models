@@ -33,9 +33,8 @@ and reasoning levels. Its effort type lists exactly the levels the model accepts
 only those levels. The catalog lists the models OpenAI still serves through the Responses API, and keeps no prices,
 as <doc:ChoosingAModel> describes.
 
-Model details, typed reasoning efforts and logging live in the
-[`LanguageModels` module](doc:/LanguageModels),
-which this module re-exports.
+Model details, typed reasoning efforts and logging live in the [`LanguageModels` module](doc:/LanguageModels), which
+this module re-exports.
 
 ## Topics
 

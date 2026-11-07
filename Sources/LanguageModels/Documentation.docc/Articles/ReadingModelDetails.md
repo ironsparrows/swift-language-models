@@ -31,8 +31,9 @@ From OS 27.2, Foundation Models asks the model itself, with `supportsDataAttachm
 
 @Snippet(path: "swift-language-models/Snippets/Catalog", slice: "dataKinds")
 
-``DetailedLanguageModel`` answers from the details. A provider module's model can answer for more than its details
-describe, such as for every model a request may reach.
+``DetailedLanguageModel`` answers from the details of every model a request may reach: the model and its fallbacks. A
+provider module's model can answer for more than those details describe, such as for a PDF its provider reads for a
+model that can't.
 
 ### Apple's guides
 

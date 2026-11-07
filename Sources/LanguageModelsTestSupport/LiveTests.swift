@@ -5,7 +5,7 @@ package import Testing
 // MARK: - Live fixtures
 
 // What every provider's live tests share: tools whose answers a model can't know, a plan with the schema features
-// providers differ on, and readers of a session's transcript.
+// hosts differ on, and readers of a session's transcript.
 
 /// A tool whose answer the model can't know, so an answer with it shows the tool ran.
 package struct WeatherTool: Tool {
@@ -25,7 +25,7 @@ package struct WeatherTool: Tool {
     }
 }
 
-/// A plan with the schema features providers differ on: a nested type, an enum, an exact count, ranges and an
+/// A plan with the schema features hosts differ on: a nested type, an enum, an exact count, ranges and an
 /// optional property.
 @Generable
 package struct Trip {
@@ -48,6 +48,7 @@ private enum Season {
     case spring, summer, autumn, winter
 }
 
+/// One thing to do on a ``Trip``.
 @Generable
 package struct Activity {
     private var name: String

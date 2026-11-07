@@ -19,10 +19,10 @@ public struct OpenAIModel<Effort: ModelEffort>: ModelDetails, Hashable {
     /// When OpenAI created the model, or `nil` when the details don't record it.
     public let releaseDate: Date?
 
-    /// The day the model's training data ends, at midnight UTC.
+    /// The day the model's training data ends, at midnight UTC, or `nil` when the details don't record it.
     public let knowledgeCutoff: Date?
 
-    /// The day OpenAI shuts the model down, at midnight UTC.
+    /// The day OpenAI shuts the model down, at midnight UTC, or `nil` when the details don't record one.
     public let expirationDate: Date?
 
     /// The day the catalog stopped listing the model, at midnight UTC, as this release's catalog records it, or `nil`
@@ -34,7 +34,7 @@ public struct OpenAIModel<Effort: ModelEffort>: ModelDetails, Hashable {
         ModelRemovals.openAI.removalDate(of: id.rawValue)
     }
 
-    /// The size of the model's context window, in tokens.
+    /// The size of the model's context window, in tokens, or `nil` when the details don't record it.
     public let contextSize: Int?
 
     /// The kinds of input the model accepts, such as text, images or PDF documents.
@@ -95,7 +95,7 @@ public struct OpenAIModel<Effort: ModelEffort>: ModelDetails, Hashable {
         self.defaultReasoningEffort = defaultReasoningEffort
     }
 
-    /// What the model supports, from the request settings and input kinds it accepts.
+    /// What the model supports, from the request settings and input kinds it accepts, and whether it reasons.
     ///
     /// Guided generation needs `structured_outputs`, so OpenAI holds the answer to the schema.
     public var capabilities: LanguageModelCapabilities {

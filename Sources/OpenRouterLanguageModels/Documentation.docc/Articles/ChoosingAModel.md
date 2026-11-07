@@ -70,8 +70,8 @@ lists what each setting becomes.
 
 OpenRouter bills each request from the account's credits, at the price of the model that answered, which the answer's
 ``OpenRouterResponseMetadata/model`` names. The catalog keeps no prices, since OpenRouter changes them often.
-``OpenRouterModel/currentPricing(auth:session:configuration:)`` reads today's, as <doc:ModelAndProviderInfo> shows, and the
-answer's usage reports what the request cost, in ``OpenRouterUsageMetadata/cost``, as <doc:ErrorsAndMetadata> shows.
+``OpenRouterModel/currentPricing(auth:session:configuration:)`` reads today's, as <doc:ModelAndProviderInfo> shows, and
+the answer's usage reports what the request cost, in ``OpenRouterUsageMetadata/cost``, as <doc:ErrorsAndMetadata> shows.
 What else a request costs:
 
 - **Tool calls.** Each round of tool calls is a request of its own, billed on its own, and the answer's usage reports

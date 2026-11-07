@@ -8,7 +8,7 @@ import UniformTypeIdentifiers
 extension OpenAILanguageModel {
     /// This model as a Responses model: what is true for every request, and OpenAI's part in each.
     ///
-    /// - Parameter configuration: Where requests go and how long they wait.
+    /// - Parameter configuration: Where requests go and how they're sent.
     /// - Returns: The model.
     /// - Throws: `OpenAIError` with `invalidRequest` when there's no valid base URL.
     func responses(_ configuration: Executor.Configuration) throws(OpenAIError) -> Responses.Model<OpenAIExchange> {
@@ -69,23 +69,23 @@ struct OpenAIExchange: Responses.Exchange {
         }
     }
 
-    /// Whether OpenAI's reasoning goes back: only to the model that wrote it, or to the model it's a dated snapshot
-    /// of, since encrypted reasoning suits only that model.
+    /// Whether OpenAI's reasoning goes back: only when this model wrote it, or a dated snapshot of this model did,
+    /// since encrypted reasoning suits only that model. Reasoning that names no writer goes back too.
     func replays(_ reasoning: Transcript.Reasoning) -> Bool {
         reasoning.writer.map(details.id.names) ?? true
     }
 
     // MARK: Before it is sent
 
-    /// OpenAI's members and the format's reasoning, storage and `text` members, with each setting the model doesn't
-    /// take with the request left out.
+    /// Adds OpenAI's members, sets the format's reasoning, storage and `text` members, and leaves out each setting the
+    /// model doesn't take with the request.
     ///
     /// A model that reasons takes `temperature` and `top_p` only while its effort is `none`, so a request that sets
     /// another effort, or goes to a model that always reasons, leaves them out. A request that sets no effort for a
-    /// model that can stop reasoning sends them as the app set them, as the official SDKs do, since the catalog's
-    /// default effort doesn't always match the model's own: GPT-5.4 mini takes them, although its catalog default is
-    /// `medium`. Every request of a model that reasons asks for its reasoning encrypted, so its reasoning items go
-    /// back on later turns whether or not OpenAI keeps the response.
+    /// model that can stop reasoning sends them as the app set them, since the catalog's default effort doesn't always
+    /// match the model's own: GPT-5.4 mini takes them, although its catalog default is `medium`. Every request of a
+    /// model that reasons asks for its reasoning encrypted, so its reasoning items go back on later turns whether or
+    /// not OpenAI keeps the response.
     ///
     /// - Throws: `LanguageModelError.unsupportedCapability` when tool calls are required and the model doesn't take
     ///   tools, or when the request has a response schema and the model doesn't take structured outputs.
@@ -123,8 +123,8 @@ struct OpenAIExchange: Responses.Exchange {
         }
     }
 
-    /// The effort to send for a reasoning level: the nearest the model accepts, and the level with the effort sent
-    /// when that effort isn't the level's own or none is.
+    /// The effort to send for a reasoning level, which is the nearest the model accepts, and the move the request logs
+    /// when that effort isn't the level's own or none is sent.
     private func reasoningEffort(_ level: ContextOptions.ReasoningLevel?) -> (String?, MovedEffort?) {
         guard let level, details.reasoning.isSupported else { return (nil, nil) }
         return level.sentEffort(supporting: details.reasoningEfforts)
@@ -146,8 +146,8 @@ struct OpenAIExchange: Responses.Exchange {
     }
 
     /// What a failure becomes: `LanguageModelError` for a rate limit, an oversized context, a safety system, a timeout
-    /// or an image OpenAI can't use, and `OpenAIError` otherwise, with `invalidResponse` for a response the format
-    /// couldn't use.
+    /// or an image OpenAI can't use, and `OpenAIError` otherwise, such as for a quota that ran out, with
+    /// `invalidResponse` for a stream the format couldn't use.
     func error(for failure: RequestFailure<APIErrorBody>) -> any Error {
         let requestID = failure.header(API.Header.requestID)
         switch failure.kind {

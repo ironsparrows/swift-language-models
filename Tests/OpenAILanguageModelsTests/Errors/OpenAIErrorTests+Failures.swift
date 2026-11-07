@@ -85,7 +85,7 @@ extension OpenAIErrorTests {
                 (408, #"{"error":{"message":"Timed out."}}"#, .timeout),
             ] as [(Int, String, Outcome)])
         func `a failed response throws what its status and error say`(status: Int, body: String, outcome: Outcome) async {
-            // A 408, 429 or 500 is retried twice, as the official SDKs retry it, so it fails three times.
+            // A 408, 429 or 500 is retried twice, so it fails three times.
             let failure = StubResponse.json(body, status: status, headers: ["x-request-id": "req_1"])
             let stub = HTTPStub(failure, failure, failure)
 

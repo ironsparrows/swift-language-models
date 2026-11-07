@@ -117,16 +117,17 @@ extension ChatCompletions.Model {
     ///
     /// The request goes with the authentication's headers and the exchange's. It is retried as the connection says, only
     /// before any data arrives, and once with the portable schema when the host rejects a constraint of the full one. The
-    /// answer streams into the channel, with the exchange's own members of each chunk read alongside the format's. Every
-    /// failure becomes what the exchange's ``ChatCompletions/Exchange/error(for:)`` makes of it.
+    /// answer streams into the channel, with the exchange's own members of each chunk read alongside the format's. A
+    /// rejected response and a failure in the stream become what the exchange's
+    /// ``ChatCompletions/Exchange/error(for:)`` makes of them.
     ///
     /// - Parameters:
     ///   - generation: The transcript, tools, schema and options to send.
     ///   - channel: Where the answer's events go.
     /// - Returns: The answer's response text, or empty text when the answer ends in tool calls.
-    /// - Throws: `LanguageModelError` for failures Foundation Models has a case for, what the exchange makes of the
-    ///   rest, a failed connection's error as `URLError` maps it, what the authentication throws, and
-    ///   `CancellationError` when the task is cancelled.
+    /// - Throws: `LanguageModelError` for failures Foundation Models has a case for, `GeneratedContent.ParsingError` when
+    ///   a guided answer reaches its token limit, what the exchange makes of the rest, a failed connection's error as
+    ///   `URLError` maps it, what the authentication throws, and `CancellationError` when the task is cancelled.
     private func run(
         _ generation: LanguageModelExecutorGenerationRequest,
         streamingInto channel: LanguageModelExecutorGenerationChannel
@@ -224,8 +225,8 @@ extension ChatCompletions {
         /// none.
         associatedtype ChunkExtras: Decodable = NoMembers
 
-        /// The `error` object of the provider's failed responses, `{"error": {…}}`. The default is the one OpenAI's formats
-        /// send.
+        /// The `error` object of the provider's failed responses, `{"error": {…}}`. The default is the one OpenAI's
+        /// formats send.
         associatedtype ErrorBody: Decodable & Sendable = APIErrorBody
 
         // MARK: While the request is read
@@ -239,8 +240,9 @@ extension ChatCompletions {
         /// wrote never does. The default sends back every one.
         func replays(_ reasoning: Transcript.Reasoning) -> Bool
 
-        /// The members an assistant message carries for the reasoning it sends back. A member whose value is an empty
-        /// list or empty text carries no reasoning, so an answer with nothing else isn't sent back. The default sends none.
+        /// The members an assistant message carries for the reasoning it sends back. A member whose value is `null`, an
+        /// empty list or empty text carries no reasoning, so an answer with nothing else isn't sent back. The default
+        /// sends none.
         ///
         /// - Parameter reasoning: The answer's reasoning entries that go back, in their order, each with its text, or
         ///   empty text for a block the model wrote at the start of its answer's text, which goes back there instead.
@@ -269,11 +271,11 @@ extension ChatCompletions {
         /// - Returns: What the provider adds.
         func additions(header: (String) -> String?) -> AnswerAdditions
 
-        /// What a failure becomes: Foundation Models' error when it has a case for it, otherwise the provider's own. What each
-        /// status stands for reads best as a `switch` over ``HTTPStatus`` with no `default`, so a status named later has to
-        /// be decided.
+        /// What a failure becomes: Foundation Models' error when it has a case for it, otherwise the provider's own. A
+        /// provider's table of what each status stands for switches over ``HTTPStatus`` with no `default`, so naming
+        /// another status stops its build until it decides.
         ///
-        /// - Parameter failure: The failure.
+        /// - Parameter failure: A rejected response or a failure in the stream. A failed connection never gets here.
         /// - Returns: The error a session throws.
         func error(for failure: RequestFailure<ErrorBody>) -> any Error
     }
@@ -314,7 +316,7 @@ extension ChatCompletions {
 
 extension ChatCompletions.Model where Exchange == ChatCompletions.PlainExchange {
     /// Creates a model that speaks the plain format: to a server that needs no credentials, with no idle timeout of its
-    /// own, retrying transient failures, with every capability Foundation Models names. The URL's host stands
+    /// own, retrying transient failures, with every capability Foundation Models names. The URL host stands
     /// for the provider's name, which the log, error messages, and the tags on its answers' reasoning use.
     ///
     /// - Parameters:

@@ -43,7 +43,8 @@ jobs:
       - name: Generated catalog is up to date
         run: swift run --skip-build ModelCatalogGenerator check --package-directory .
       - name: Test
-        # Without OPENROUTER_API_KEY the live suites skip themselves, so this runs only the fixture-based tests.
+        # Without OPENROUTER_API_KEY and OPENAI_API_KEY the live suites skip themselves, so this runs only the
+        # fixture-based tests.
         run: swift test --skip-build
 
   minimum:

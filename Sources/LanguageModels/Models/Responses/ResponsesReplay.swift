@@ -26,10 +26,9 @@ struct ReasoningItem: Encodable, Equatable {
 /// `reasoning` item whole, or the place of a message or a function call.
 ///
 /// A signature is a JSON array. When every `reasoning` item came before the answer's messages and calls, as in most
-/// answers and in every transcript written before the order was kept, it holds the `reasoning` items alone. Otherwise
-/// it also holds `{"type": "message"}` and `{"type": "function_call"}` in the places of the answer's messages and
-/// calls, so they go back between the `reasoning` items as they came. Saved transcripts keep this shape, so it never
-/// changes.
+/// answers, it holds the `reasoning` items alone. Otherwise it also holds `{"type": "message"}` and
+/// `{"type": "function_call"}` in the places of the answer's messages and calls, so they go back between the
+/// `reasoning` items as they came. Saved transcripts keep this shape, so it never changes.
 enum OutputItem: Equatable {
     case reasoning(ReasoningItem)
     case message

@@ -100,7 +100,7 @@ sequenceDiagram
     M->>X: 2 prepare(&request)
     M->>M: 3 request.body(): members in order, the unsupported ones left out
     M->>CN: 4 openEventStream (one more attempt with the portable schema)
-    CN->>OR: POST chat/completions, with retries, redirects only to the same URL host
+    CN->>OR: POST chat/completions, with retries, redirects only to the same scheme, URL host and port
     OR-->>CN: server-sent events
     loop each event
         M->>ST: 5 receive(event)
@@ -147,7 +147,7 @@ sequenceDiagram
     M->>X: 1 read the input: checkAttachment, replays
     M->>X: 2 prepare(&request): storage, encrypted reasoning, reasoning, text members
     M->>M: 3 request.body(): leave out unsupported and unsent members
-    M->>CN: 4 openEventStream POST responses (retries as the official SDKs retry, then one with the portable schema)
+    M->>CN: 4 openEventStream POST responses (retries, then one with the portable schema)
     CN->>OA: request
     OA-->>CN: server-sent events
     loop each event
@@ -203,8 +203,8 @@ next. Every method but `error(for:)` has a default that adds nothing:
 **On the request,** in `prepare(_:)`, what depends on the one request. Chat Completions has `headers`, `members`,
 `sendsSessionTools`, `serverTools`, `tokenLimitMember`, `usesPortableSchema`, `instructionsMark` and `movedEffort`.
 Responses has `members`, `sendsSessionTools`, `serverTools`, `reasoning`, `movedEffort`, `storage`,
-`asksForEncryptedReasoning`, `textMembers` and `leftOutMembers`. An exchange can't change the messages or the settings
-the app asked for.
+`asksForEncryptedReasoning`, `textMembers` and `leftOutMembers`. An exchange can't change what the messages say or the
+settings the app asked for.
 
 Implement a method that has a default in the type that declares the conformance: only there does a misspelled one draw a
 warning, which CI's `-warnings-as-errors` turns into an error, instead of silently keeping the default.
@@ -213,7 +213,7 @@ warning, which CI's `-warnings-as-errors` turns into an error, instead of silent
 
 Facts are typed in code and flat keys in storage. Foundation Models keeps an answer's facts as flat metadata, and saved
 transcripts keep those keys, so their spellings never change. One file per module knows its keys, and they're private
-there:
+there, apart from `phasesKey`, which a provider hands its shared model:
 
 | Module | File | Reader |
 |---|---|---|
@@ -284,8 +284,9 @@ flowchart LR
     classDef provider fill:#e8f0fe,stroke:#3b6fd8,color:#1d1d1f
 ```
 
-`ModelCatalogGenerator fetch` downloads each source's documents into `Catalogs/`, and `render` turns them into typed
-models, efforts, vocabularies and removed models. OpenRouter's come from its model list and API description. OpenAI's
-come from three: the ids its API description names for the Responses API, the models its `/v1/models` still serves,
-which needs an API key, and what models.dev says each model takes; a model past its shutdown day is left out.
-`model-catalog.yml` runs both daily and opens a pull request whose release label `release.yml` reads.
+`ModelCatalogGenerator fetch` downloads each source's documents and keeps a snapshot of them in `Catalogs/`, and
+`render` turns the snapshots into typed models, efforts, vocabularies and removed models. OpenRouter's come from its
+model list and API description. OpenAI's come from three: the models its `/v1/models` still serves, which needs an API
+key, what models.dev says each model takes, and the effort words in its API description. A model past its shutdown day
+is left out, and so is one that works only with an endpoint other than the Responses API. `model-catalog.yml` runs both
+daily and opens a pull request whose release label `release.yml` reads.

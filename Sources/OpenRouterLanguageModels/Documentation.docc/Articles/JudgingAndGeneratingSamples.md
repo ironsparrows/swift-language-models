@@ -38,7 +38,7 @@ It isn't guaranteed that every model and host accepts the judge's schema. Run a 
 its rationales before a full run; `judgePrompt(for:output:)` shows the prompt the judge gets.
 
 Always pass `judge:`. Without it, a `ModelJudgeEvaluator` uses `SystemLanguageModel()`, Apple's on-device model, which
-goes against that advice when it judges a larger remote model, and isn't available on every Mac or CI host.
+goes against that advice when it judges a larger remote model, and isn't available on every Mac or CI machine.
 
 Keep the judge the same from run to run, as the model under test: a catalog model rather than an alias, and no
 fallbacks, so the same model rates every sample. <doc:RepeatableRuns> describes how.
@@ -110,10 +110,10 @@ scores them:
 dataset reaches `targetCount`, which counts the seeds. Without a `sessionProvider`, it uses a default model;
 with one, the model and instructions of the session it returns.
 
-The generator calls the provider when it starts, and again whenever the session runs out of context. The new session
-knows nothing of the earlier exchange, so its instructions stand alone: what the feature does, what a sample holds and
-the rules each sample follows. For samples with tool expectations, they also name each tool and when it's called,
-since the generator's model doesn't know them.
+The generator calls `sessionProvider` when it starts, and again whenever the session runs out of context. The new
+session knows nothing of the earlier exchange, so its instructions stand alone: what the feature does, what a sample
+holds and the rules each sample follows. For samples with tool expectations, they also name each tool and when it's
+called, since the generator's model doesn't know them.
 
 A validator rejects samples that break a rule, and `invalidSamples` keeps them for review:
 

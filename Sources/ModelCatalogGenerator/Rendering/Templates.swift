@@ -1,6 +1,6 @@
 // MARK: - Model efforts
 
-/// Renders a namespace with an empty type for each of a source's models, such as `OpenRouterCatalog`, and each model's
+/// Renders a namespace, such as `OpenRouterCatalog`, with an empty type for each of a source's models, and each model's
 /// effort levels as static members of `Efforts.Of` that type.
 ///
 /// Each model has an effort type of its own, so the type stays the same when the model's levels change. A level the
@@ -17,6 +17,10 @@ enum ModelEffortsTemplate {
         "\(source.generatedDirectory)/\(source.modelsNamespace)+Efforts.swift"
     }
 
+    /// The source's file of model types and effort levels.
+    ///
+    /// - Throws: ``GeneratorError/invalidCatalog(_:)`` when a model gets no type name, a name Swift reserves or the
+    ///   name of another model.
     static func render(_ snapshot: CatalogSnapshot, ranking: EffortRanking) throws(GeneratorError) -> GeneratedFile {
         let source = snapshot.source
         let namespace = source.modelsNamespace
@@ -96,6 +100,7 @@ enum ModelRemovalsTemplate {
         "\(source.generatedDirectory)/ModelRemovals+\(source.swiftName).swift"
     }
 
+    /// The source's file of removal days, whose table is empty when the catalog keeps no removed model.
     static func render(_ snapshot: CatalogSnapshot) -> GeneratedFile {
         let source = snapshot.source
         let removed = snapshot.removed.sorted { $0.model.id < $1.model.id }
@@ -139,7 +144,7 @@ enum ReasoningLevelTemplate {
     ///
     /// - Parameters:
     ///   - ranking: Every effort word, highest first.
-    ///   - removed: The words that no source uses any more, each with a source it left.
+    ///   - removed: The words that every source stopped using, each with the first source that marked it removed.
     ///   - sources: The sources of the catalogs.
     /// - Returns: The generated file.
     static func render(ranking: EffortRanking, removed: [String: CatalogSource], sources: [CatalogSource]) -> GeneratedFile {
@@ -175,6 +180,10 @@ enum VocabularyTemplate {
         "\(source.generatedDirectory)/\(source.typeName(of: vocabulary))+Catalog.swift"
     }
 
+    /// The file of a vocabulary's words, with the words the source stopped using marked deprecated.
+    ///
+    /// - Throws: ``GeneratorError/invalidCatalog(_:)`` when a word gets no member name, the name of a case of
+    ///   `Optional` or the name of another word.
     static func render(_ vocabulary: CatalogVocabulary, of snapshot: CatalogSnapshot) throws(GeneratorError) -> GeneratedFile {
         let source = snapshot.source
         let typeName = source.typeName(of: vocabulary)

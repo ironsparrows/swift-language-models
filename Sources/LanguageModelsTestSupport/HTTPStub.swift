@@ -3,10 +3,10 @@ import Synchronization
 
 // MARK: - Stub
 
-/// A fake HTTP host for one test.
+/// A fake HTTP server for one test.
 ///
 /// Requests sent through ``session`` to ``baseURL`` get the stub's responses, in order, and the stub records each one.
-/// Every stub has its own random host, so tests with different stubs run in parallel. A request after the last
+/// Every stub has its own random URL host, so tests with different stubs run in parallel. A request after the last
 /// response fails with `URLError.resourceUnavailable`.
 package final class HTTPStub: Sendable {
     /// The stub's base URL, such as `https://<random>.test`.
@@ -74,7 +74,7 @@ package struct StubResponse: Sendable {
         /// The body ends after its last chunk.
         case finished
 
-        /// The request fails before any response arrives, as when the host can't be reached.
+        /// The request fails before any response arrives, as when the server can't be reached.
         case failedBeforeResponse(URLError)
 
         /// The body stops with an error after its last chunk, as when the connection drops mid-stream.
@@ -84,7 +84,7 @@ package struct StubResponse: Sendable {
         /// cancels.
         case openConnection
 
-        /// The response redirects the request to a URL, or to a path on the same host.
+        /// The response redirects the request to a URL, or to a path on the same URL host.
         case redirected(to: String)
     }
 
@@ -117,7 +117,7 @@ package struct StubResponse: Sendable {
         self.ending = ending
     }
 
-    /// A request that fails with an error before any response arrives, as when the host can't be reached.
+    /// A request that fails with an error before any response arrives, as when the server can't be reached.
     ///
     /// - Parameter error: The error the request fails with, such as `URLError(.notConnectedToInternet)`.
     /// - Returns: The response.
@@ -154,7 +154,7 @@ package struct StubResponse: Sendable {
     /// A redirect to another stub's URL reaches that stub, since every stub's session reaches every stub.
     ///
     /// - Parameters:
-    ///   - location: Where the redirect points: a URL, or a path on the stub's own host, such as `/v2/chat`.
+    ///   - location: Where the redirect points: a URL, or a path on the stub's own URL host, such as `/v2/chat`.
     ///   - status: The redirect's status, such as 307.
     /// - Returns: The response.
     package static func redirect(to location: String, status: Int = 307) -> Self {
@@ -193,8 +193,9 @@ package struct StubResponse: Sendable {
 
 // MARK: - URL protocol
 
-/// Serves the responses an ``HTTPStub`` registered for a request's host, and records each request.
+/// Serves the responses an ``HTTPStub`` registered for a request's URL host, and records each request.
 private final class StubURLProtocol: URLProtocol {
+    /// What one stub's URL host has left to serve, what it received, and where it signals a sent response.
     private struct Host {
         var responses: [StubResponse]
         var requests: [RecordedRequest] = []
@@ -289,7 +290,7 @@ private final class StubURLProtocol: URLProtocol {
         return true
     }
 
-    /// Records the request and takes the host's next response, with the continuation to signal once it's sent.
+    /// Records the request and takes its URL host's next response, with the continuation to signal once it's sent.
     private func nextResponse(for host: String) -> (Result<StubResponse, URLError>, AsyncStream<Void>.Continuation?) {
         let recorded = RecordedRequest(request: request, body: Self.body(of: request))
         return Self.hosts.withLock { hosts in

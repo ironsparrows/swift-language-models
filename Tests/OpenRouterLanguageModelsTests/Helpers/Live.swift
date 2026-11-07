@@ -19,7 +19,7 @@ struct LiveModel: Sendable, CustomTestStringConvertible {
     /// A level that keeps the model reasoning at little cost.
     let reasoningLevel: ContextOptions.ReasoningLevel
 
-    /// Whether the model's reasoning comes back signed or encrypted, for the provider to check when it's replayed.
+    /// Whether the model's reasoning comes back signed or encrypted, for the host to check when it's replayed.
     let signsReasoning: Bool
 
     /// The OpenRouter settings the model's requests use, such as a PDF engine.

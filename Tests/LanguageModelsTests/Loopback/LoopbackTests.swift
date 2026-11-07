@@ -40,7 +40,8 @@ struct LoopbackTests {
     }
 
     @Test func `a redirect to another host isn't followed and carries no credentials`() async throws {
-        // The same server under another name, so only the host differs, and following it would reach this server again.
+        // The same server under another name, so only the URL host differs, and following it would reach this server
+        // again.
         let server = try await LoopbackServer { url in
             let target = "http://localhost:\(url.port ?? 0)/chat/completions"
             return [LoopbackReply(status: 307, headers: ["Location": target]), .eventStream(Self.answer)]

@@ -22,10 +22,10 @@ and its `providerMetadata` reads as ``ProviderErrorMetadata``, the same way for 
 ``OpenAIError/Code/unmapped`` for a 408 or 429 without one, and ``OpenAIError/Code/server`` for a status from 500 up or
 a failure in the stream that names none. OpenAI's support asks for the request id.
 
-A failed connection, a 408, 409 or 429, and any status from 500 up are retried up to twice, as the official SDKs retry
-them, before any data arrives, and so is any status whose `x-should-retry` is `true`. A failure whose `x-should-retry`
-is `false` isn't retried, and one that asks for a wait longer than 2 minutes throws at once, with the wait on its error.
-<doc:Mapping#Errors> lists what each failure becomes.
+A failed connection, a 408, 409 or 429, and any status from 500 up are retried up to twice before any data arrives,
+and so is any status whose `x-should-retry` is `true`. A failure whose `x-should-retry` is `false` isn't retried, and
+one that asks for a wait longer than 2 minutes throws at once, with the wait on its error. <doc:Mapping#Errors> lists
+what each failure becomes.
 
 ### Read an answer's metadata
 
@@ -47,7 +47,8 @@ entry, so they sit on its first call, and `openAI` on the `Transcript.ToolCalls`
 Saved transcripts keep these facts. The ones any provider can report, such as the model and the request id, also read
 through `providerMetadata`, as ``ProviderResponseMetadata`` and ``ProviderUsageMetadata``, so code that reads them
 works with any language model in this package, as <doc:/LanguageModels/ReadingWhatAProviderReports> shows. The only fact
-OpenAI reports that other providers don't is the `phase` of each of an answer's messages, which ``OpenAIResponseMetadata/messages`` reads and <doc:Reasoning> describes.
+OpenAI reports that other providers don't is the `phase` of each of an answer's messages, which
+``OpenAIResponseMetadata/messages`` reads and <doc:Reasoning> describes.
 
 ### Add up a response's usage
 

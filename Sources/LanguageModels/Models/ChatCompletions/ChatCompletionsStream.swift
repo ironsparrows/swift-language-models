@@ -9,9 +9,10 @@ extension ChatCompletions {
     /// One answer's stream: turns the format's chunks, with the exchange's members, into the answer's output, which an
     /// ``AnswerChannel`` sends as Foundation Models channel events.
     ///
-    /// Reasoning arrives in the provider's members, and tool-call fragments by index, so parallel calls form one round.
-    /// Each piece of data the model generates becomes a data entry of its own. The answer ends with its metadata and usage
-    /// on the entry that finishes it, and with the pages it cites on its response entry.
+    /// Reasoning arrives in the provider's members, or in a block in reasoning tags that opens the answer's text, and
+    /// tool-call fragments by index, so parallel calls form one round. Each piece of data the model generates becomes a
+    /// data entry of its own. The answer ends with its metadata and usage on the entry that finishes it, and with the
+    /// pages it cites on its response entry.
     struct Stream<Exchange: ChatCompletions.Exchange> {
         private var exchange: Exchange
         private let headers: ResponseHeaders
@@ -95,6 +96,9 @@ extension ChatCompletions.Stream {
         }
     }
 
+    /// Takes one chunk's facts, then sends its reasoning, text, tool calls and generated data, in that order.
+    ///
+    /// - Throws: The exchange's error when the chunk is an error event, which sends nothing.
     private mutating func receive(_ chunk: Chunk, extras: Exchange.ChunkExtras, data: Data) async throws {
         report.update(with: chunk)
         let chunkAdditions = exchange.read(extras)
@@ -168,8 +172,8 @@ extension AnswerUsage {
 // MARK: - Finishing
 
 extension ChatCompletions.Stream {
-    /// Sends the events that end the answer: arguments for calls that had none, the reasoning signature, and the
-    /// metadata and usage.
+    /// Sends the events that end the answer: the text held back, arguments for calls that had none, the reasoning
+    /// signature, and the metadata and usage.
     ///
     /// An answer cut off at its token limit ends like any other, with `length` as its finish reason, since Foundation
     /// Models has no error for it. One cut off inside its tool calls throws instead, so no tool gets partial arguments,
@@ -180,7 +184,7 @@ extension ChatCompletions.Stream {
     /// - Throws: `LanguageModelError.refusal` or `.guardrailViolation` when the model declined or a filter stopped it,
     ///   `GeneratedContent.ParsingError` when a guided answer reached its token limit, and the exchange's error when the
     ///   stream was cut off, ended in an error, reached its token limit inside a tool call, or had a call that never
-    ///   got its name.
+    ///   got its name or whose arguments aren't a whole JSON object.
     mutating func finish(isComplete: Bool) async throws {
         guard isComplete || report.finishReason != nil else {
             throw failure(.cutOff)
@@ -245,8 +249,8 @@ private struct Chunk: Decodable {
         }
     }
 
-    /// A note on the answer's text, of which only URL citations are read. Other kinds, such as file annotations, have
-    /// none.
+    /// A note on the answer's text, of which only URL citations are read. Other kinds, such as file annotations, have no
+    /// `url_citation`.
     struct Annotation: Decodable {
         /// A web page the text cites. Hosts may leave out any member, so each is optional, and some add the cited
         /// excerpt as `content`.

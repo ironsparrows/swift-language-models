@@ -4,12 +4,11 @@ import LanguageModels
 
 // MARK: - Details
 
-/// OpenRouter's `reasoning_details`: the reasoning a model produced, in the form OpenRouter needs back on later
-/// turns.
+/// OpenRouter's `reasoning_details`: the reasoning a model produced, in the form OpenRouter needs back on later turns.
 ///
 /// The details are stored in a reasoning entry's signature, and the entry's metadata names OpenRouter as its origin, so
-/// only reasoning that OpenRouter wrote is sent back. The metadata also names the model that
-/// wrote it, so reasoning a fallback wrote isn't sent to another model.
+/// only reasoning from OpenRouter is sent back. The metadata also names the model that wrote it, so reasoning a
+/// fallback wrote isn't sent to another model.
 struct ReasoningDetails: Sendable, Equatable {
     private var details: [JSONValue] = []
 
@@ -114,7 +113,7 @@ extension ReasoningDetails {
 
         let rawValue: String
 
-        /// Whether the provider rejects reasoning text sent back without its signature.
+        /// Whether the host rejects reasoning text sent back without its signature.
         var requiresSignedText: Bool { self == .anthropic || self == .gemini }
     }
 }
@@ -131,11 +130,11 @@ extension JSONValue {
 extension ReasoningDetails {
     /// The assistant message's `reasoning` and `reasoning_details` for the reasoning it sends back.
     ///
-    /// The details go back as OpenRouter sent them, and the text of the reasoning that came with them, since text
-    /// without them would reach the host unsigned. Reasoning that came as text alone goes back as text, as OpenRouter
-    /// takes it from models that return only raw reasoning. A block the model wrote in its answer's text already goes
-    /// back there, so its text isn't sent again. Some models send an empty list of details when they didn't reason,
-    /// and expect it back.
+    /// The details go back as OpenRouter sent them, with the text of the reasoning they came with. When no details are
+    /// left to send, that text stays out too, since it would reach the host unsigned. Reasoning that came as text alone
+    /// goes back as text, as OpenRouter takes it from models that return only raw reasoning. A block the model wrote in
+    /// its answer's text already goes back there, so its text isn't sent again. Some models send an empty list of
+    /// details when they didn't reason, and expect it back.
     static func replayMembers(for reasoning: [(entry: Transcript.Reasoning, text: String)]) -> JSONObject {
         var signedText = ""
         var plainText = ""

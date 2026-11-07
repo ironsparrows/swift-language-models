@@ -136,7 +136,7 @@ extension OpenAIModelList {
     }
 
     /// Whether a model works only with Chat Completions or with an endpoint other than the Responses API, which a word
-    /// of its id tells, as OpenAI's model pages list each model's endpoints:
+    /// of its id tells:
     /// - `audio` and `search`: Chat Completions only, as `gpt-audio-mini` and `gpt-4o-search-preview`, since the
     ///   Responses API searches with a tool instead;
     /// - `instruct`: the legacy Completions endpoint only, as `gpt-3.5-turbo-instruct`;
@@ -172,7 +172,8 @@ extension OpenAIModelList {
         ranking.filter(efforts.contains) + efforts.filter { !ranking.contains($0) }.reversed()
     }
 
-    /// Whether and when a model reasons: never, unless a request turns it off when it takes `none`, or always.
+    /// Whether and when a model reasons: never for a model that doesn't reason, always for one that doesn't take
+    /// `none`, and otherwise unless a request turns it off.
     private static func reasoning(reasons: Bool, efforts: [String]) -> CatalogReasoning {
         guard reasons else { return .unsupported }
         return efforts.contains(EffortRanking.offWord) ? .optional(enabledByDefault: true) : .mandatory

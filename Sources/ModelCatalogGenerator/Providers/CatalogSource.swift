@@ -23,7 +23,8 @@ enum CatalogSource: String, Codable, CaseIterable, Sendable {
         }
     }
 
-    /// The environment variable that holds the API key the provider's model list needs, or `nil` when it needs none.
+    /// The environment variable that holds the API key the provider's list of served models needs, or `nil` when it
+    /// needs none.
     private var apiKeyVariable: String? {
         switch self {
         case .openrouter: nil
@@ -31,7 +32,8 @@ enum CatalogSource: String, Codable, CaseIterable, Sendable {
         }
     }
 
-    /// The vocabularies of the provider's API, each rendered as a type of its own, in the order their files are made.
+    /// The vocabularies of the provider's API, each rendered as the static members of a type of its own, in the order
+    /// their files are made.
     var vocabularies: [CatalogVocabulary] {
         switch self {
         case .openrouter:
@@ -42,8 +44,8 @@ enum CatalogSource: String, Codable, CaseIterable, Sendable {
     }
 
     /// The words of a vocabulary that the provider's module names in its own code, such as the parameters a request
-    /// sends. They stay current when the source stops listing them, since a deprecated member would fail the module's
-    /// build, which treats warnings as errors.
+    /// sends. They stay current when the source stops listing them, since a deprecated member would fail CI's build of
+    /// the module, which treats warnings as errors.
     func wordsNamedByModule(in vocabulary: CatalogVocabulary) -> Set<String> {
         switch self {
         case .openrouter:
@@ -69,7 +71,7 @@ enum CatalogSource: String, Codable, CaseIterable, Sendable {
 
     /// The effort words that the provider's module, or the core module under it, names in its own code, such as
     /// `none` as `ReasoningLevel.off`. They stay current when the source stops listing them, since a deprecated member
-    /// would fail the modules' builds, which treat warnings as errors.
+    /// would fail CI's builds of the modules, which treat warnings as errors.
     var effortsNamedByModule: Set<String> {
         switch self {
         case .openrouter, .openai: [EffortRanking.offWord]
@@ -110,7 +112,7 @@ enum CatalogSource: String, Codable, CaseIterable, Sendable {
     /// - Parameters:
     ///   - session: The session that sends the requests.
     ///   - baseURL: Where every document lives, such as a test server, in place of the provider's own addresses.
-    ///   - environment: The environment variables, which hold the API key a source's model list needs.
+    ///   - environment: The environment variables, which hold the API key a source's list of served models needs.
     ///   - retryDelay: The pause before a failed request is sent again.
     /// - Returns: The response bodies.
     /// - Throws: ``GeneratorError/brokenSource(_:)`` for a network failure, an HTTP error, or a missing API key.
@@ -146,7 +148,7 @@ enum CatalogSource: String, Codable, CaseIterable, Sendable {
     /// - Parameters:
     ///   - documents: The response bodies.
     ///   - today: The day of the fetch, in UTC, before which a model's shutdown has passed.
-    /// - Returns: The models, unsorted, and the words of each vocabulary.
+    /// - Returns: The models, which a snapshot sorts, the words of each vocabulary and the efforts.
     /// - Throws: ``GeneratorError/brokenSource(_:)`` when a document doesn't decode.
     func catalog(from documents: CatalogSource.Documents, today: CatalogDay) throws(GeneratorError) -> FetchedCatalog {
         switch self {
@@ -252,6 +254,10 @@ enum CatalogSource: String, Codable, CaseIterable, Sendable {
         }
     }
 
+    /// Downloads one document, sending the request once more after a pause when it fails without a response.
+    ///
+    /// - Throws: ``GeneratorError/brokenSource(_:)`` when the source has no address for the document, the request fails
+    ///   again, or the status isn't a success.
     private func download(
         _ document: CatalogSource.Documents.Kind,
         from location: DocumentLocation,
@@ -304,12 +310,12 @@ extension CatalogSource {
     struct Documents: Sendable {
         /// A document a fetch reads.
         enum Kind: Sendable, CustomStringConvertible {
-            /// The list of the source's models.
+            /// The list that describes the source's models, which for OpenAI is models.dev's.
             case modelList
             /// The source's OpenAPI description, which lists the whole vocabularies and describes their words.
             case apiDescription
-            /// The list of the models the provider still serves, for a source whose model list describes models the
-            /// provider no longer serves too.
+            /// The list of the models the provider still serves, for a source whose model list also describes models
+            /// the provider stopped serving.
             case servedModels
 
             var description: String {

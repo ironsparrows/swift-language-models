@@ -9,8 +9,8 @@ public import os
 ///
 /// The package logs what each request sends, what it leaves out or changes from what the app asked for, retries,
 /// which model and host answered, failures, and how long each request took. Every message has the subsystem
-/// `com.ironsparrows.swift-language-models` and a category named after each provider module, or `LanguageModels` for
-/// what the core logs, such as a request that may reach a model its provider stopped listing.
+/// `com.ironsparrows.swift-language-models` and a category named after its provider, or `LanguageModels` for what the
+/// core logs, such as a request that may reach a model its provider stopped listing.
 ///
 /// It never logs API keys, prompts, answers, tool arguments or outputs, or attachments, nor a host's error message,
 /// which may quote the request. This covers the package's own logging: a recording with Instruments' Foundation Models
@@ -72,13 +72,13 @@ extension OSLogType {
 ///
 /// ```swift
 /// extension PackageLogger {
-///     static let vendor = PackageLogger(category: "Vendor")
+///     static let openRouter = PackageLogger(category: "OpenRouter")
 /// }
 ///
-/// PackageLogger.vendor(.debug)?.debug("Sending \(id, privacy: .public)")
+/// PackageLogger.openRouter(.debug)?.debug("Sending \(id, privacy: .public)")
 /// ```
 ///
-/// A message at a level the app turned off returns `nil` before the message is built.
+/// A level the app turned off returns `nil`, so the message is never built.
 package struct PackageLogger: Sendable {
     private let logger: Logger
 
@@ -108,9 +108,9 @@ extension PackageLogger {
 /// Shows a purple runtime warning in Xcode, in a debug build, for a likely mistake in the app that the package worked
 /// around, such as a setting the model doesn't take.
 ///
-/// Apple has no API for runtime warnings, so this does what Point-Free's IssueReporting does: it logs a fault to the
-/// `com.apple.runtime-issues` subsystem, which Xcode shows as a runtime issue when the fault seems to come from one of
-/// Apple's frameworks. The fault names SwiftUI's image when the process has loaded SwiftUI, and the caller's otherwise.
+/// Apple has no API for runtime warnings, so this logs a fault to the `com.apple.runtime-issues` subsystem, which Xcode
+/// shows as a runtime issue when the fault seems to come from one of Apple's frameworks. The fault names SwiftUI's image
+/// when the process has loaded SwiftUI, and the caller's otherwise.
 ///
 /// A release build shows nothing, and neither does a debug build whose app set ``LanguageModelsLogging/minimumLevel``
 /// to `.fault`; any other level leaves the warnings on.

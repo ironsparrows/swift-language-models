@@ -31,8 +31,8 @@ package struct RequestFailure<ErrorBody: Decodable & Sendable>: Error {
     /// What failed.
     package let kind: Kind
 
-    /// The status of a rejected response, which is ``HTTPStatus/other(_:)`` with 0 for a response that isn't HTTP; `nil` for
-    /// a failure in the stream.
+    /// The status of a rejected response, which is ``HTTPStatus/other(_:)`` with 0 for a response that isn't HTTP; `nil`
+    /// for a failure in the stream.
     package let status: HTTPStatus?
 
     /// The `error` object, or `nil` when the failure carries none, or none in the provider's type, such as a gateway's
@@ -227,7 +227,8 @@ extension LanguageModelError {
         switch failure {
         case .contextSizeExceeded(let contextSize, let tokenCount):
             var exceeded = ContextSizeExceeded(contextSize: contextSize, tokenCount: tokenCount, debugDescription: message)
-            // Foundation Models 2.1.14, in Xcode 27.2, drops the initializer's `metadata` argument, so it's set afterwards.
+            // Foundation Models 2.1.14, in Xcode 27.2, drops the initializer's `metadata` argument, so it's set
+            // afterwards.
             exceeded.metadata = metadata
             self = .contextSizeExceeded(exceeded)
         case .rateLimited(let resetDate):

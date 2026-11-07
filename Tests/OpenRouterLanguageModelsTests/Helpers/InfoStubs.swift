@@ -9,7 +9,7 @@ func fixtureResponse(_ name: String, status: Int = 200) throws -> StubResponse {
     .json(String(decoding: try Bundle.module.fixture(name), as: UTF8.self), status: status)
 }
 
-/// A connection to a stub, with a cache of its own and the shared retry policy without its waits.
+/// A connection to a stub, with a cache of its own and the standard retries without their waits.
 func connection(_ stub: HTTPStub) -> Connection {
     let authentication = Connection.Authentication(baseURL: stub.baseURL) { [:] }
     let connection = Connection(

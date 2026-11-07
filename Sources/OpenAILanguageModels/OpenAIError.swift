@@ -197,7 +197,8 @@ struct OpenAIFailure: Sendable {
         return LanguageModelError(failure, message: message, metadata: metadata)
     }
 
-    /// What went wrong: OpenAI's message, or the status's own text when there's none.
+    /// What went wrong: OpenAI's message, or the status's own text when there's none, or a sentence of the package's
+    /// for a failure in the stream that has neither.
     private var message: String {
         body?.message ?? status?.text ?? "The model's response ended in an error."
     }
@@ -218,8 +219,9 @@ struct OpenAIFailure: Sendable {
         return status.map(Self.code(for:)) ?? .server
     }
 
-    /// The kind a status stands for, for a body that names none. Any status from 500 up is OpenAI failing. A status that
-    /// becomes `LanguageModelError` is read by name in ``providerFailure(contextSize:imageEntries:now:)``.
+    /// The kind a status stands for, for a body that names none: any status from 500 up is OpenAI failing, and a status
+    /// with no kind of its own, such as a 400 or a 429, is `unmapped`. Whether a status becomes `LanguageModelError` is
+    /// decided in ``providerFailure(contextSize:imageEntries:now:)``, not here.
     private static func code(for status: HTTPStatus) -> OpenAIError.Code {
         switch status {
         case .unauthorized: .authentication

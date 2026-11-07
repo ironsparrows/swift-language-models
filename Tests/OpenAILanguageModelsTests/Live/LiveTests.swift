@@ -54,7 +54,7 @@ struct LiveModel: Sendable, CustomTestStringConvertible {
 
     /// The model with OpenAI's settings and the running test's API key.
     ///
-    /// - Throws: An issue when the catalog no longer lists the model.
+    /// - Throws: An issue when the catalog doesn't list the model.
     func languageModel(
         options: OpenAIOptions = OpenAIOptions(),
         auth: OpenAIAuthentication? = nil

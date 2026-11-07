@@ -28,7 +28,7 @@ public protocol DetailedLanguageModel: LanguageModel {
 // MARK: - Details and capabilities
 
 extension DetailedLanguageModel {
-    /// The capabilities that the model's details and each of its fallbacks' list, since any of them may answer.
+    /// The capabilities that the details of the model and of each of its fallbacks list, since any of them may answer.
     ///
     /// A model without fallbacks has its details' capabilities. With fallbacks, only tool calling, guided
     /// generation, reasoning and vision can be kept, the capabilities Foundation Models names.
@@ -71,11 +71,11 @@ extension DetailedLanguageModel {
 // MARK: - What an executor calls
 
 extension DetailedLanguageModel {
-    /// Logs an error and, in a debug build, shows a runtime warning for each model the request may reach that its
-    /// provider stopped listing, since the request may fail: the model, then its fallbacks, each whose
-    /// ``ModelDetails/removalDate`` is set.
+    /// Reports each model a request may reach that its provider stopped listing, since the request may fail.
     ///
-    /// In a provider module of your own, the executor calls this first, before it sends the request.
+    /// For the model and then its fallbacks, each one whose ``ModelDetails/removalDate`` is set logs an error and, in a
+    /// debug build, shows a runtime warning. In a provider module of your own, the executor calls this first, before it
+    /// sends the request.
     ///
     /// - Parameter request: The request, whose id names it in the log.
     public func reportRemovedModels(for request: LanguageModelExecutorGenerationRequest) {
@@ -88,8 +88,8 @@ extension DetailedLanguageModel {
     /// In a provider module of your own, the executor calls this last, once it has sent the answer's events.
     ///
     /// - Parameters:
-    ///   - text: The text of the answer's response entry, as the executor sent it, or empty when the answer ended in tool
-    ///     calls.
+    ///   - text: The text of the answer's response entry, as the executor sent it, or empty when the answer ended in
+    ///     tool calls.
     ///   - request: The request.
     /// - Throws: `GeneratedContent.ParsingError` when a value breaks a guide, as Foundation Models throws for an answer
     ///   that doesn't decode, or when an object or array answer isn't complete JSON.

@@ -1,7 +1,7 @@
 public import Foundation
 public import FoundationModels
-// Re-exports `LanguageModels`, and through it the core every provider shares, so `import OpenRouterLanguageModels` is all an
-// app needs: typed reasoning efforts, `FileAttachment`, the model details and logging come with it.
+// Re-exports `LanguageModels`, and through it the core every provider shares, so `import OpenRouterLanguageModels` is
+// all an app needs: typed reasoning efforts, `FileAttachment`, the model details and logging come with it.
 @_exported public import LanguageModels
 #if canImport(FoundationModels, _version: 2.1.14)
 public import UniformTypeIdentifiers
@@ -91,8 +91,8 @@ public struct OpenRouterLanguageModel<Effort: ModelEffort>: DetailedLanguageMode
     ///     cost, or `nil` to leave it off.
     ///   - app: How requests name the app to OpenRouter, which credits the app's usage in its rankings.
     ///   - session: The URL session that sends requests. Its configuration applies, but the package still sets each
-    ///     request's headers, its timeout when the configuration's `idleTimeout` is set, and redirects only to the
-    ///     same host.
+    ///     request's headers, sets its timeout when the configuration's `idleTimeout` is set, and follows redirects
+    ///     only to the same scheme, URL host and port.
     ///   - configuration: How requests are sent: how long they wait, how they retry, how their images are encoded, and
     ///     how long model info stays fresh.
     ///   - auth: How requests authenticate, and where they go: ``OpenRouterAuthentication/apiKey(_:)`` to OpenRouter,
@@ -227,8 +227,8 @@ public struct OpenRouterAuthentication: Sendable {
     /// of your company's or a test server.
     ///
     /// Requests go to the same paths under `baseURL` as under OpenRouter's API, such as `chat/completions`, and follow
-    /// redirects only to the same host. Model info calls, such as `endpoints()`, go there too. To keep the key out of
-    /// the app, use ``proxied(baseURL:headers:)`` instead.
+    /// redirects only to the same scheme, URL host and port. Model info calls, such as `endpoints()`, go there too. To
+    /// keep the key out of the app, use ``proxied(baseURL:headers:)`` instead.
     ///
     /// - Parameters:
     ///   - baseURL: The server's URL, which stands in for `https://openrouter.ai/api/v1/`.
@@ -243,7 +243,7 @@ public struct OpenRouterAuthentication: Sendable {
     /// app ships no key.
     ///
     /// Requests go to the same paths under `baseURL` as under OpenRouter's API, such as `chat/completions`, and follow
-    /// redirects only to the same host. Model info calls, such as `endpoints()`, go there too.
+    /// redirects only to the same scheme, URL host and port. Model info calls, such as `endpoints()`, go there too.
     ///
     /// - Parameters:
     ///   - baseURL: The server's URL, which stands in for `https://openrouter.ai/api/v1/`.
@@ -274,6 +274,8 @@ public struct OpenRouterAuthentication: Sendable {
 ///     auth: .apiKey { try await keyStore.openRouterKey() }
 /// )
 /// ```
+///
+/// OpenRouter credits an app only when its ``url`` is set; the name alone changes nothing.
 public struct OpenRouterApp: Sendable, Hashable {
     /// The most categories OpenRouter takes on one request.
     static let categoryLimit = 2
@@ -442,27 +444,28 @@ extension OpenRouterLanguageModel {
 ///     auth: .apiKey { try await keyStore.openRouterKey() }
 /// )
 ///
-/// // Prices that are never more than 10 seconds old.
+/// // Prices kept for 10 seconds, not a minute.
 /// var pricing = model
 /// pricing.configuration.infoCacheLifetime = .seconds(10)
 /// ```
 public struct OpenRouterConfiguration: Sendable, Hashable {
     /// The longest time to wait for the next data, from sending the request to the end of the answer, or `nil` for
     /// the URL session's own timeout. OpenRouter sends keep-alive comments while a model thinks, so this doesn't limit
-    /// a long answer.
+    /// a long answer. Model info calls always use the URL session's own timeout.
     public var idleTimeout: Duration?
 
     /// How a request that fails before any data arrives is sent again: after a failed connection or any status from
-    /// 500 up, or whatever status when `x-should-retry` is `true`, but never when it's `false`. Model info calls retry
-    /// the same way.
+    /// 500 to 599, or whatever status when `x-should-retry` is `true`, but never when it's `false`. Model info calls
+    /// retry the same way.
     public var retries: RequestRetries
 
     /// How image attachments are encoded before they're sent.
     public var images: ImageEncoding
 
-    /// How long an answer of a model info call, such as ``OpenRouterLanguageModel/endpoints()``, is reused before it's
-    /// fetched again. Answers are shared by every model that calls with the same authentication. Zero or less fetches
-    /// every time.
+    /// How long an answer of a model info call, such as ``OpenRouterLanguageModel/endpoints()``, is kept once it's
+    /// fetched. Answers are shared by every model that calls with the same authentication, and an answer lasts as long
+    /// as the call that fetched it said, so a shorter lifetime here doesn't drop one already kept. Zero or less keeps
+    /// nothing.
     public var infoCacheLifetime: Duration
 
     /// Creates a configuration.
@@ -471,7 +474,7 @@ public struct OpenRouterConfiguration: Sendable, Hashable {
     ///   - idleTimeout: The longest time to wait for the next data, or `nil` for the URL session's own timeout.
     ///   - retries: How a failed request is sent again. The default retries up to twice.
     ///   - images: How image attachments are encoded.
-    ///   - infoCacheLifetime: How long an answer of a model info call is reused. The default is a minute.
+    ///   - infoCacheLifetime: How long an answer of a model info call is kept. The default is a minute.
     public init(
         idleTimeout: Duration? = nil,
         retries: RequestRetries = .standard,
@@ -513,7 +516,7 @@ extension OpenRouterLanguageModel {
             }
         }
 
-        /// Where requests go, how they name the app and how long they wait, which the model reads as a Chat Completions
+        /// Where requests go, how they name the app and how they're sent, which the model reads as a Chat Completions
         /// model.
         private let configuration: Configuration
 
@@ -526,10 +529,12 @@ extension OpenRouterLanguageModel {
 
         /// Sends one request and streams its answer.
         ///
-        /// A failed request is retried up to twice, only before any data arrives: after a failed connection, any status
-        /// from 500 up, or any status whose `x-should-retry` is `true`, unless its `x-should-retry` is `false` or its
-        /// `retry-after-ms` or `Retry-After` asks for more than 2 minutes. A request whose schema has a constraint the host
-        /// rejects is sent once more with the portable schema, which carries its constraints in descriptions.
+        /// A failed request is retried as ``OpenRouterConfiguration/retries`` says, by default up to twice, only before
+        /// any data arrives: after a failed connection, any status from 500 to 599, or any status whose
+        /// `x-should-retry` is `true`, unless its `x-should-retry` is `false` or its `retry-after-ms` or `Retry-After`
+        /// asks for more than ``RequestRetries/longestServerWait``, by default 2 minutes. A request whose schema has a
+        /// constraint the host rejects is sent once more with the portable schema, which carries its constraints in
+        /// descriptions.
         ///
         /// A model the request may reach that OpenRouter stopped listing is reported first, and the answer is checked
         /// against the schema's guides last, as ``DetailedLanguageModel/reportRemovedModels(for:)`` and
@@ -540,9 +545,10 @@ extension OpenRouterLanguageModel {
         ///   - model: The model to answer with.
         ///   - channel: Where the answer's events go.
         /// - Throws: `LanguageModelError` for failures Foundation Models has a case for, `OpenRouterError` for the rest,
-        ///   `GeneratedContent.ParsingError` when a value of the answer breaks a guide of the request's schema or an object or
-        ///   array answer isn't complete JSON, and `CancellationError` when the task is cancelled. An error that the model's authentication throws passes through
-        ///   as it is, unless it's a `URLError`, which maps as a failed connection's does.
+        ///   a `URLError` for a failed connection, `GeneratedContent.ParsingError` when a value of the answer breaks a
+        ///   guide of the request's schema, an object or array answer isn't complete JSON or a guided answer reaches its
+        ///   token limit, and `CancellationError` when the task is cancelled. An error that the model's authentication
+        ///   throws passes through as it is, unless it's a `URLError`, which maps as a failed connection's does.
         public func respond(
             to request: LanguageModelExecutorGenerationRequest,
             model: OpenRouterLanguageModel,
@@ -562,8 +568,8 @@ extension OpenRouterLanguageModel {
 }
 
 extension Connection {
-    /// A connection to OpenRouter, which a model's requests and a catalog model's calls, which aren't tied to a language
-    /// model, both go through. It retries any status from 500 to 599, which OpenRouter or a host returns while it's
+    /// A connection to OpenRouter. A model's requests go through it, and so do a catalog model's calls, which aren't
+    /// tied to a language model. It retries any status from 500 to 599, which OpenRouter or a host returns while it's
     /// failing or overloaded.
     ///
     /// - Parameters:

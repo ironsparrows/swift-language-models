@@ -181,8 +181,8 @@ extension OpenRouterModel where Effort == ContextOptions.ReasoningLevel {
 
 extension OpenRouterModel where Effort == ContextOptions.ReasoningLevel {
     /// The details narrowed to what another model also supports: the parameters, input and output kinds and efforts
-    /// both take, the smaller limits, reasoning only when both reason, and caching only marked prompts only when both
-    /// do. The id, name and dates stay these.
+    /// both take, the smaller limits, the default effort only when both have the same one, reasoning only when both
+    /// reason, and caching only marked prompts only when both do. The id, name and dates stay these.
     func sharing(_ other: Self) -> Self {
         Self(
             id: id,
@@ -235,8 +235,8 @@ extension OpenRouterModelID {
     /// Whether the id names an Anthropic model, or an alias of one, such as `~anthropic/claude-haiku-latest`.
     var isAnthropic: Bool { vendor == Self.anthropic }
 
-    /// The vendors whose structured outputs, by their own documentation, reject schema constraints such as `minimum`
-    /// and `maxItems`, so a request that may reach one of their models sends the portable schema from the start.
+    /// The vendors whose structured outputs reject schema constraints such as `minimum` and `maxItems`, so a request
+    /// that may reach one of their models sends the portable schema from the start.
     private static let vendorsRejectingSchemaConstraints: Set<Substring> = [anthropic]
 
     /// Whether the id names a model whose structured outputs reject schema constraints, or an alias of one.

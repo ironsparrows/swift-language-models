@@ -72,7 +72,7 @@ extension CatalogSnapshot {
     /// Models whose ids give the same name take turns by release, earliest first, then by id, whether they're listed
     /// or removed. The first keeps the name, and each next one gets the lowest numbered suffix from `_2` that no model
     /// before it took, such as `xM1_5_2`. The names depend only on the snapshot, and removing a model doesn't change
-    /// its release, so a removal renames nothing, and neither does a new model, which the source lists last.
+    /// its release, so a removal renames nothing, and neither does a new model, whose release comes last.
     var namedModels: [(model: CatalogModel, name: SwiftIdentifier)] {
         let inTurn = (models + removed.map(\.model)).sorted { lhs, rhs in
             lhs.releasedAt != rhs.releasedAt ? lhs.releasedAt < rhs.releasedAt : lhs.id < rhs.id

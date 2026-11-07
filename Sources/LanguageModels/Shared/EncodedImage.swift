@@ -8,12 +8,12 @@ import UniformTypeIdentifiers
 
 // MARK: - Encoding
 
-/// An image as JPEG bytes for a request: upright, on white, and no larger than a provider's limit.
+/// An image as JPEG bytes for a request: upright, on white, and no larger than the limit it's given.
 ///
 /// The pixels are drawn upright, so the JPEG needs no orientation tag, and on white, so transparent areas don't turn
 /// black. An image whose longer side is over the limit is scaled down to it, never up. Only the pixels reach the bytes,
 /// never the source's metadata, such as where a photo was taken. The same image gives the same bytes every time, so a
-/// provider's prompt cache stays valid when a later request sends it again.
+/// host's prompt cache stays valid when a later request sends it again.
 struct EncodedImage: Sendable, Equatable {
     /// The image kinds ImageIO reads, which ``init(data:maximumSide:quality:)`` takes.
     static let readableTypes: Set<UTType> = Set(
@@ -164,7 +164,7 @@ extension ImageEncoding {
         max(maximumSide, 1)
     }
 
-    /// The JPEG quality the encoder uses, from 0 to 1.
+    /// The JPEG quality the encoder uses, from 0 to 1, or the standard quality for NaN.
     var encodedQuality: Double {
         quality.isNaN ? Self.standard.quality : min(max(quality, 0), 1)
     }
@@ -381,7 +381,7 @@ final class EncodedImageCache: Sendable {
         return data
     }
 
-    /// The JPEG kept for a key, now the most recently used, or `nil` when there's none.
+    /// The JPEG kept for a key, which counts as just used, or `nil` when there's none.
     private func cached(_ key: Key) -> Data? {
         storage.withLock { storage in
             guard let data = storage.entries[key]?.data else { return nil }

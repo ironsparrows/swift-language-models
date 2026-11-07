@@ -17,7 +17,7 @@ package final class LoopbackServer: Sendable {
     /// The server's base URL, such as `http://127.0.0.1:52014`.
     package let baseURL: URL
 
-    /// An element for each reply the server has written, so a test can act while a reply kept open is in flight.
+    /// An element for each reply the server has written.
     private let sentReplies: AsyncStream<Void>
 
     /// An element each time a client closes a connection that a reply kept open.
@@ -117,11 +117,11 @@ package struct LoopbackReply: Sendable {
         self.ending = ending
     }
 
-    /// A stream of server-sent events, written a few bytes at a time.
+    /// A stream of server-sent events, written in pieces of one size.
     ///
     /// - Parameters:
     ///   - body: The whole body.
-    ///   - size: The bytes in each write.
+    ///   - size: The most bytes in one write. The default writes the whole body at once.
     ///   - ending: What happens to the connection after the last write.
     /// - Returns: The reply.
     package static func eventStream(_ body: String, writing size: Int = .max, ending: Ending = .closes) -> Self {

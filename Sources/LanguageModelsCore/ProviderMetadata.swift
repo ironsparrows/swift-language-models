@@ -276,8 +276,8 @@ public struct ProviderUsageMetadata: Sendable, Hashable {
         webSearchCount = values.integer(Key.webSearchCount)
     }
 
-    /// The facts as the metadata of an answer's usage, to pass to the channel's `updateUsage` action. A fact that's `nil`
-    /// is left out.
+    /// The facts as the metadata of an answer's usage, to pass to the channel's `updateUsage` action. A fact that's
+    /// `nil` is left out.
     public var channelMetadata: [String: any ConvertibleToGeneratedContent] {
         var metadata: [String: any ConvertibleToGeneratedContent] = [:]
         metadata[Key.cost] = cost?.metadataNumber
@@ -313,8 +313,8 @@ public struct ProviderUsageMetadata: Sendable, Hashable {
 /// `LanguageModelError` it throws. Foundation Models 2.1.14, in Xcode 27.2, drops the `metadata` argument of
 /// `LanguageModelError.ContextSizeExceeded`'s initializer, so set `metadata` after creating it.
 public struct ProviderErrorMetadata: Sendable, Hashable {
-    /// The HTTP status of the response that failed, such as 429 for a rate limit, or `nil` for a failure in the stream,
-    /// which arrives after the response's HTTP 200.
+    /// The HTTP status of the response that failed, such as 429 for a rate limit. A failure in the stream arrives after
+    /// the response's HTTP 200, so this is `nil` unless the failure names a status of its own.
     public let status: Int?
 
     /// The provider module's code for the failure, in the provider's own words, such as `rate_limit_exceeded`.
@@ -482,7 +482,8 @@ extension Decimal {
 // MARK: - Keys
 
 /// The keys of the facts that every provider module reports the same way, on the entries of an answer and on the errors
-/// it ends in. A provider module's own facts use keys of its own, with a prefix that names the module, such as `vendor.`.
+/// it ends in. A provider module's own facts use keys of its own, with a prefix that names the provider, such as
+/// `openRouter.`.
 ///
 /// Saved transcripts keep the keys, so their spellings never change.
 private enum Key {

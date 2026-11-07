@@ -12,10 +12,9 @@ import UniformTypeIdentifiers
 /// they name. Reasoning text that arrives after the answer's text starts isn't shown. For a format that reads tagged
 /// reasoning, a block in `<think>` or `<thinking>` tags that opens the answer's text is reasoning too, in arrival order
 /// with the provider's reasoning; the reasoning entry keeps the block as the model wrote it, so it goes back where the
-/// model put it. Tool-call fragments
-/// are routed by index into one tool-calls entry, so parallel calls form one round. Each piece of data the model
-/// generates becomes a data entry of its own. The answer ends with its metadata and usage on the entry that finishes
-/// it, and with the pages it cites on its response entry.
+/// model put it. Tool-call fragments are routed by index into one tool-calls entry, so parallel calls form one round.
+/// Each piece of data the model generates becomes a data entry of its own. The answer ends with its metadata and usage
+/// on the entry that finishes it, and with the pages it cites on its response entry.
 struct AnswerChannel {
     private let channel: LanguageModelExecutorGenerationChannel
 
@@ -189,7 +188,8 @@ struct AnswerChannel {
         if let signature {
             await channel.send(.reasoning(entryID: reasoningEntryID, action: .updateSignature(signature, tokenCount: 0)))
         }
-        // The model may arrive after the reasoning started, and the block is known only now; replay needs both.
+        // The model may arrive after the reasoning started, and the block is known only at the end; sending the entry
+        // back needs both.
         await channel.send(.reasoning(entryID: reasoningEntryID, action: .updateMetadata(reasoningMetadata(model: model))))
     }
 
@@ -225,7 +225,8 @@ struct AnswerChannel {
                     .response(
                         entryID: responseEntryID, action: .updateMetadata(ProviderResponseMetadata(citations: citations).channelMetadata)))
             }
-            // Foundation Models gives the tool-calls entry no readable metadata, so the round's facts go on its first call.
+            // Foundation Models gives the tool-calls entry no readable metadata, so the round's facts go on its first
+            // call.
             if let first = toolCalls.firstCall {
                 await channel.send(
                     .toolCalls(
@@ -306,7 +307,7 @@ struct ToolCallAssembler {
         return arguments
     }
 
-    /// The id and tool name of the first call to start, in index order, which carries the round's facts, or `nil`
+    /// The id and tool name of the first started call, in index order, which carries the round's facts, or `nil`
     /// before any call has started.
     fileprivate var firstCall: (id: String, toolName: String)? {
         for (_, call) in calls.sorted(by: { $0.key < $1.key }) {

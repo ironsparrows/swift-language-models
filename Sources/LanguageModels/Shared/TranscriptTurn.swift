@@ -138,8 +138,8 @@ struct SegmentReader<Part> {
     /// Text, structure and attachment segments as parts, in their order.
     ///
     /// - Throws: The exchange's errors for an attachment a model doesn't take, what the format throws for content it has
-    ///   no part for, and `LanguageModelError.unsupportedTranscriptContent` for an attachment that can't be read or a kind
-    ///   of segment the format can't take.
+    ///   no part for, and `LanguageModelError.unsupportedTranscriptContent` for an attachment that can't be read or a
+    ///   kind of segment the format can't take.
     mutating func parts(_ segments: [Transcript.Segment], of entry: Transcript.Entry) throws -> [Part] {
         var parts: [Part] = []
         for segment in segments {
@@ -157,8 +157,8 @@ struct SegmentReader<Part> {
 
     /// Text and structure segments as text parts.
     ///
-    /// - Throws: `LanguageModelError.unsupportedTranscriptContent` for attachments, which instructions don't take, and for
-    ///   a kind of segment the format can't take.
+    /// - Throws: `LanguageModelError.unsupportedTranscriptContent` for attachments, which instructions don't take, and
+    ///   for a kind of segment the format can't take.
     func textParts(_ segments: [Transcript.Segment], of entry: Transcript.Entry) throws -> [Part] {
         try segments.map { segment in
             if let text = segment.text { return try makePart(.text(text), entry) }
@@ -184,23 +184,23 @@ struct SegmentReader<Part> {
 
 // MARK: - Reasoning entries
 
-/// The provider and API format that wrote a reasoning entry, as the entry's metadata names it.
+/// The provider and format that wrote a reasoning entry, as the entry's metadata names them.
 ///
 /// Each provider tags the reasoning entries it writes, and sends back only reasoning with its own tag: a session can
 /// switch models, and reasoning that another provider wrote, in its own format, means nothing to this one. A provider
-/// that answers through more than one API format, such as Chat Completions and Responses, gives each format its own
-/// value, since each sends reasoning back in another shape. Saved transcripts keep the tag, so its key and each
-/// value never change.
+/// that answers through more than one format, such as Chat Completions and Responses, gives each format its own value,
+/// since each sends reasoning back in another shape. Saved transcripts keep the tag, so its key and each value never
+/// change.
 struct ReasoningOrigin: RawRepresentable, Hashable, Sendable {
-    /// The provider's name, as the metadata spells it.
+    /// The tag, as the metadata spells it.
     let rawValue: String
 
     init(rawValue: String) {
         self.rawValue = rawValue
     }
 
-    /// The provider that wrote a reasoning entry, or `nil` when the entry names none, such as one from a model outside
-    /// this package.
+    /// The origin a reasoning entry names, or `nil` when the entry names none, such as one from a model outside this
+    /// package.
     ///
     /// - Parameter reasoning: The entry whose metadata is read.
     init?(of reasoning: Transcript.Reasoning) {
@@ -210,7 +210,7 @@ struct ReasoningOrigin: RawRepresentable, Hashable, Sendable {
 }
 
 extension Transcript.Reasoning {
-    /// The provider and API format that wrote the entry, as its metadata names them, or `nil` when the entry names none,
+    /// The provider and format that wrote the entry, as its metadata names them, or `nil` when the entry names none,
     /// such as one from a model outside this package.
     package var origin: String? {
         ReasoningOrigin(of: self)?.rawValue
@@ -249,7 +249,7 @@ extension TaggedReasoning {
 
 /// The keys of a reasoning entry's metadata. Saved transcripts keep them, so they never change.
 private enum ReasoningKey {
-    /// Names the provider that wrote the entry.
+    /// Names the provider and format that wrote the entry.
     static let origin = "reasoningOrigin"
 
     /// Names the model that wrote the entry.

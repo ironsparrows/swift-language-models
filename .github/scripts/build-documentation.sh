@@ -2,12 +2,13 @@
 # Builds the documentation site that GitHub Pages serves into ./site. Arguments go on to the documentation plugin.
 set -euo pipefail
 
-# Clients don't fetch the plugin: it is added to the manifest only here, for this build. The version is exact because the
-# stand-in below depends on how this one runs docc.
+# Clients don't fetch the plugin: it is added to the manifest only here, for this build. The version is exact because
+# the stand-in below depends on how this one runs docc.
 echo 'package.dependencies.append(.package(url: "https://github.com/swiftlang/swift-docc-plugin", exact: "1.5.0"))' >> Package.swift
 
 # The contract's pages are built from `LanguageModels`, which re-exports the core, and its symbol graphs lack the core's
-# doc comments. A stand-in for docc puts them back. The plugin reads docc's features from beside what it runs, so they go there.
+# doc comments. A stand-in for docc puts them back. The plugin reads docc's features from beside what it runs, so they
+# go there.
 stand_in=$(mktemp -d)
 mkdir "$stand_in/bin"
 ln -s "$PWD/.github/scripts/docc-with-core-comments.py" "$stand_in/bin/docc"

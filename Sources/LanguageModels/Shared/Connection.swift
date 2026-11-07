@@ -9,8 +9,8 @@ import os
 /// How a provider's requests reach it: the URL session that sends them, how they authenticate, how long they wait
 /// for data and when a request that fails is sent again.
 ///
-/// A provider builds one from its model and its executor's configuration, or for a call that has no model, such
-/// as a catalog entry's info call. The shared models and the provider's info calls send requests through it.
+/// A provider builds one from its model and its executor's configuration, or for a read-only call on model details,
+/// which no language model makes. The shared models and the provider's info calls send requests through it.
 package struct Connection: Sendable {
     /// The URL session that sends the requests.
     private let session: URLSession
@@ -89,8 +89,8 @@ extension Connection {
             Self(baseURL: nil) { [:] }
         }
 
-        /// An API key, sent in the header it makes, such as `Authorization: Bearer …` or `x-api-key`. An empty key sends no
-        /// header, as a local server without keys needs.
+        /// An API key, sent in the header it makes, such as `Authorization: Bearer …` or `x-api-key`. An empty key sends
+        /// no header, as a local server without keys needs.
         ///
         /// - Parameters:
         ///   - key: Returns the key. It's called for every request and never stored.
@@ -139,7 +139,7 @@ extension Connection {
     ///   - log: The request's log.
     /// - Returns: The stream, and the headers of its response.
     /// - Throws: ``HTTPClient/Failure`` for a response whose status isn't a success, after the retries, which the
-    ///   model turns into the provider's error; what the authentication throws; and a failed connection's error.
+    ///   shared model turns into the provider's error; what the authentication throws; and a failed connection's error.
     func openEventStream(
         _ body: RequestBody,
         headers: [String: String],
@@ -194,9 +194,9 @@ private enum SchemaConstraint {
 // MARK: - Cached calls
 
 extension Connection {
-    /// A read-only call about a model, answered from the cache while its entry is fresh: a `GET` with the authentication's
-    /// headers, retried as the connection says and logged under the provider's category. The idle timeout doesn't apply
-    /// to it: the session's own timeout does.
+    /// A read-only call about a model, answered from the cache while its entry is fresh: a `GET` with the
+    /// authentication's headers, retried as the connection says and logged under the provider's category. The idle
+    /// timeout doesn't apply to it: the session's own timeout does.
     ///
     /// - Parameters:
     ///   - path: The path under the URL, which names the call in the log.

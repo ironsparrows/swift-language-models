@@ -5,8 +5,8 @@ import LanguageModelsTestSupport
 
 @testable import OpenRouterLanguageModels
 
-/// The body OpenRouter sends for Foundation Models' request, straight from the model, without the checks a session makes
-/// first.
+/// The body a model sends to OpenRouter for Foundation Models' request, straight from the model, without the checks a
+/// session makes first.
 ///
 /// - Parameters:
 ///   - request: Foundation Models' request.

@@ -24,8 +24,9 @@ working: its metadata is stored under the same keys.
 ```
 
 Each value comes typed: a cost is a `Decimal`, a finish reason a ``FinishReason`` and a citation a ``Citation``, so the
-code that decoded them goes too. `answer` here is a `Transcript.Response`; ``FoundationModels/Transcript/ToolCalls/providerMetadata``
-reads the same facts for a request that ended in tool calls, and `openRouter` and `openAI` read them there too.
+code that decoded them goes too. `answer` here is a `Transcript.Response`;
+``FoundationModels/Transcript/ToolCalls/providerMetadata`` reads the same facts for a request that ended in tool calls,
+and `openRouter` and `openAI` read them there too.
 
 | `LanguageModelMetadataKey` | Read it as |
 |---|---|

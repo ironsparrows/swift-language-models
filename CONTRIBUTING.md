@@ -112,9 +112,10 @@ In this repository:
 - Throw Foundation Models' error wherever it has a case, from `error(for:)`, and the module's own for the rest. Say what
   each status stands for in a `switch` over `HTTPStatus` with no `default`, as `OpenRouterFailure` and `OpenAIFailure` do,
   so a status named later stops the module's build until it decides. A status without a name is `.other`. Naming one also
-  takes a row in `HTTPStatus.init(code:)` and in `HTTPStatusTests`, which no compiler checks. Read
-  facts through `ProviderResponseMetadata`, `ProviderUsageMetadata` and `ProviderErrorMetadata`, and give apps a reader
-  named for the provider, such as `openRouter`. Its keys are private to the module's metadata file.
+  takes a row in `HTTPStatus.init(code:)` and in `HTTPStatusTests`, which no compiler checks. Read facts through
+  `ProviderResponseMetadata`, `ProviderUsageMetadata` and `ProviderErrorMetadata`, and give apps a reader named for the
+  provider, such as `openRouter`. Its keys live in the module's metadata file, private to it, apart from a `phasesKey`
+  the shared model takes.
 - Log through a `PackageLogger` with a category named after the module, which writes only at the levels the app's
   `LanguageModelsLogging.minimumLevel` lets through. Where the module works around a likely mistake, such as a setting
   the model doesn't take, log it at the info level and call `runtimeWarning(_:)`, which shows a runtime warning in a
@@ -143,7 +144,7 @@ Code lives in the narrowest place that every user of it can reach:
 | File | Owns |
 |---|---|
 | `Connection.swift` | How requests reach a provider: session, authentication, timeout, retries; opening a stream, with one more attempt in the portable schema; cached read-only calls about a model. |
-| `HTTPClient.swift` | Sending: the retry loop and policy, waits a server asks for, redirects to the same URL host only, the user agent, statuses, header and media-type names. |
+| `HTTPClient.swift` | Sending: the retry loop and policy, waits a server asks for, redirects to the same scheme, URL host and port only, the user agent, statuses, header and media-type names. |
 | `ServerSentEvent.swift` | Events of a byte stream, and the byte-level line splitter under them. |
 | `RequestLog.swift` | The log of one request: what it sends, retries, adjustments, how it ended, and what the log says of an error. |
 | `TranscriptTurn.swift` | The transcript as provider APIs take it: turns, a turn's segments as a format's parts, the first prompt's id, and which reasoning goes back. |
@@ -216,7 +217,8 @@ else needs:
   "Helpers", "Extensions" or a protocol list.
 - Files of one kind use the same titles in the same order, word for word. A section that doesn't apply is left out, and
   the order of the rest doesn't change.
-- "Wire" is always the last section: the private `Encodable` and `Decodable` types and their coding keys.
+- "Wire" is always the last section: the `Encodable` and `Decodable` types and their coding keys, `private` unless
+  another file of the module reads them.
 - A file with one section has no mark. Tests have none: suites structure them.
 
 | Kind | Files | Sections, in order |
@@ -249,8 +251,8 @@ doesn't check again how tool-call fragments are joined. Each test target links w
 `LanguageModelsTestSupport`, nothing more, and a provider's tests don't import `LanguageModels` with `@testable`.
 
 - **Layout.** One root suite per area, with a file per behavior that extends it, such as
-  `ChatCompletionsModelTests+ToolCalls.swift`. `LanguageModelsTests` mirrors `Sources/LanguageModels/`. Use Swift Testing only, with names as sentences
-  in backticks and one suite per file.
+  `ChatCompletionsModelTests+ToolCalls.swift`. `LanguageModelsTests` mirrors `Sources/LanguageModels/`. Use Swift Testing
+  only, with names as sentences in backticks and one suite per file.
 - **Traits.** Put `.timeLimit` on the root suite, once, where nested suites inherit it. Live roots add `.tags(.live)` and
   their key condition. The only tags are `live`, `liveSweep` and `loopback`, since `swift test` selects by name.
 - **Arguments.** Use `arguments:` in place of a loop over cases, so a failure names its input.

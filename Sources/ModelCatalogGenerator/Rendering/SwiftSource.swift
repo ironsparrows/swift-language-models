@@ -2,7 +2,7 @@ import Foundation
 
 // MARK: - Source text
 
-/// Helpers for laying out generated Swift so `swift format` leaves it unchanged.
+/// Lays out generated Swift so `swift format` leaves it unchanged.
 enum SourceText {
     /// The length a line must stay under.
     static let lineLength = 140
@@ -264,8 +264,8 @@ enum SwiftExpression {
 // MARK: - Printable scalars
 
 extension Unicode.Scalar {
-    /// Whether the scalar shows as itself in source text: not a control, format or separator character, and not
-    /// unassigned or private.
+    /// Whether the scalar shows as itself in source text: not a control or format character, not a line or paragraph
+    /// separator, and not a surrogate, unassigned or private.
     ///
     /// Format characters include the ones that reorder text, so source can't display differently from what it does.
     fileprivate var isPrintable: Bool {

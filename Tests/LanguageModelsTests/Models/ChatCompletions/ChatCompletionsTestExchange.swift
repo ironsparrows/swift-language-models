@@ -114,7 +114,7 @@ extension ChatCompletionsModelTests {
         ["choices": [["delta": ["content": .string(text)], "finish_reason": finishReason.map(JSONValue.string)]]]
     }
 
-    /// A chunk with one tool-call fragment. A fragment without an index leaves the field out.
+    /// A chunk with one tool-call fragment. A fragment without an index leaves the member out.
     static func toolCallChunk(_ index: Int? = 0, id: String? = nil, name: String? = nil, arguments: String? = nil) -> JSONValue {
         let function: JSONValue = ["name": name.map(JSONValue.string), "arguments": arguments.map(JSONValue.string)]
         let fragment: JSONValue = ["index": index.map(JSONValue.integer), "id": id.map(JSONValue.string), "function": function]

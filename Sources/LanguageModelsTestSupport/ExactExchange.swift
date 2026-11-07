@@ -7,11 +7,12 @@ import UniformTypeIdentifiers
 /// A session that the exact-exchange tests run against a stub, and what it sent and got back, read through Foundation
 /// Models' public API.
 ///
-/// Each part is text, so a test compares the whole exchange at once: every request body as its bytes spell it, the
-/// session's transcript after the answer, the answer's usage, a streamed answer's last snapshot, and the error
-/// it ended in. Entry ids that the framework makes up are left out; tool call ids, which the host sends, are kept.
+/// Each part is text, so a test compares the whole exchange at once: each request's recorded headers, every request
+/// body as its bytes spell it, the session's transcript after the answer, the answer's usage, a streamed answer's last
+/// snapshot, and the error it ended in. Ids that the framework makes up and a JPEG's bytes are left out; tool call ids,
+/// which the host sends, are kept.
 package struct ExactExchange {
-    /// The request bodies the host received, in order.
+    /// The request bodies the stub received, in order.
     package var bodies: [String] = []
 
     /// The headers of each request that the exchange records, sorted by name.
@@ -36,7 +37,7 @@ extension ExactExchange {
     /// Runs a session against a stub and reads what it sent and got back.
     ///
     /// - Parameters:
-    ///   - stub: The host, which records each request.
+    ///   - stub: The stub the session sends to, which records each request.
     ///   - session: The session to run.
     ///   - headerNames: The names of the headers of each request that the exchange records, such as the provider's
     ///     own headers.

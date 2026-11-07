@@ -34,8 +34,8 @@ and reasoning levels. Provider modules plug other providers' models into it. Cla
 and Mistral then run in the same session as Apple's on-device model, and switching changes only `model:`.
 
 - **Apple's API, any model.** Sessions, streaming, tools, `@Generable` and Dynamic Profiles work unchanged.
-- **Typed model catalogs.** Every OpenRouter and OpenAI model is a static member, with its context size, levels and
-  capabilities.
+- **Typed model catalogs.** Each model of OpenRouter's and OpenAI's catalogs is a static member, with its context size,
+  levels and capabilities.
 - **Typed reasoning levels.** Each model takes only the levels it accepts, checked when the code compiles.
 - **Routing, fallbacks and caching.** Hosts picked by price or data policy, backup models, and cached prompts.
 - **Server tools.** Web search, web fetch, advisors and subagents run on OpenRouter while the model answers.
@@ -360,9 +360,8 @@ print(luna.reasoningEfforts.map(\.rawValue))   // The levels it accepts, highest
 let picked = OpenAIModel(catalogID: "gpt-5.5")  // A model picked at runtime, with its efforts in their open form
 ```
 
-The catalog lists the models OpenAI's API description names for the Responses API and its model list still serves, with
-what models.dev says each one takes. A model with a shutdown date stays, marked deprecated, until OpenAI shuts it down.
-See [Choosing a model][openai-choosing-a-model].
+The catalog lists the models OpenAI still serves that work with the Responses API, with what models.dev says each one
+takes. Models OpenAI retires or stops serving stay, marked deprecated. See [Choosing a model][openai-choosing-a-model].
 
 ### Reasoning and storage
 
@@ -424,9 +423,9 @@ model keeps unit tests offline.
 
 ## Documentation
 
-The [documentation][docs] is on the Swift Package Index, for [`OpenRouterLanguageModels`][openrouter-docs],
-[`OpenAILanguageModels`][openai-docs] and [`LanguageModels`][core-docs], the core every provider module shares. For
-sessions, tools and profiles, see Apple's
+The [documentation][docs] is on GitHub Pages, updated with each release, for
+[`OpenRouterLanguageModels`][openrouter-docs], [`OpenAILanguageModels`][openai-docs] and [`LanguageModels`][core-docs],
+the core every provider module shares. For sessions, tools and profiles, see Apple's
 [Foundation Models documentation](https://developer.apple.com/documentation/foundationmodels).
 
 New to Foundation Models? [Foundation Models Academy](https://github.com/dioKaratzas/foundation-models-academy)

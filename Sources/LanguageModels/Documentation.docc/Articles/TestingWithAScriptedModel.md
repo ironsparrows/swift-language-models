@@ -7,9 +7,7 @@ Test a feature offline, with a model that gives the same answers on every run.
 A unit test of a model feature needs answers it can predict. A model of the test's own, whose executor replays a
 script of text, tool calls and usage, drives a real `LanguageModelSession` with no network, API key or Apple
 Intelligence. The session does what it does with any model: it checks the model's capabilities, runs tools, parses
-guided generation and keeps the transcript, so the test exercises the app's code around the model. Apple's
-[Foundation Models utilities](https://github.com/apple/foundation-models-utilities) test their own code with a model
-like this.
+guided generation and keeps the transcript, so the test exercises the app's code around the model.
 
 The model belongs in the app's test target. It conforms to Foundation Models' `LanguageModel` directly, with an
 executor of its own that reads a script. A provider module's model instead conforms to ``DetailedLanguageModel``,

@@ -8,12 +8,12 @@ extension ChatCompletions {
     /// One request in the format: what the format read of Foundation Models' request, and what a provider adds or
     /// chooses.
     ///
-    /// The format writes its members in a fixed order: `model`, `messages`, `stream`, the session's `tools` and
-    /// `tool_choice`, `response_format`, `temperature`, `top_p`, `seed`, the token limit and `metadata`, each only when the
-    /// request sets it, then adds the provider's own, puts them all in the model's order and leaves out the ones its models
-    /// don't list. An exchange's `prepare(_:)` adds the provider's headers and members and makes the few choices a provider
-    /// has about the format's: it can't change the messages or the settings the app asked for. Every part is written the
-    /// same way each time, so a provider's prompt cache stays valid across requests.
+    /// The format writes its members in a fixed order: `model`, `messages`, `stream`, `tools`, `tool_choice`,
+    /// `response_format`, `temperature`, `top_p`, `seed`, the token limit and `metadata`, each only when the request sets
+    /// it, then adds the provider's own, puts them all in the model's order and leaves out the ones its models don't
+    /// list. An exchange's `prepare(_:)` adds the provider's headers and members and makes the few choices a provider has
+    /// about the format's: it can't change what the messages say or the settings the app asked for. Every part is written
+    /// the same way each time, so a host's prompt cache stays valid across requests.
     package struct Request {
         // MARK: What the format read
 
@@ -185,7 +185,7 @@ extension ChatCompletions.Request {
 
 extension ChatCompletions.Request {
     /// The request's body, with the exchange's members and choices. Its adjustments are, in the log's order, settings
-    /// the models don't list, then metadata past the limits, then a moved reasoning effort.
+    /// the models don't list, then metadata it leaves out, then a moved reasoning effort.
     ///
     /// - Throws: An error when a member can't be encoded.
     func body() throws -> RequestBody {
@@ -203,7 +203,8 @@ extension ChatCompletions.Request {
             ChatCompletions.Member.temperature.rawValue: sampling.temperature.map(JSONValue.number),
             ChatCompletions.Member.topP.rawValue: sampling.topP.map(JSONValue.number),
             ChatCompletions.Member.seed.rawValue: sampling.seed.map(Sampling.json(seed:)),
-            // The token limit goes out as the request asks: a host that routes it picks a model that answers that long.
+            // The token limit goes out as the request asks: a provider that routes the request picks a host that answers
+            // that long.
             tokenLimitMember.rawValue: options.maximumResponseTokens.map(JSONValue.integer),
             ChatCompletions.Member.metadata.rawValue: metadata.json,
         ]

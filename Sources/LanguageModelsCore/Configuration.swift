@@ -2,9 +2,9 @@
 
 /// How a request that fails before any data arrives is sent again: how many times, and how long it waits first.
 ///
-/// A provider's configuration holds one, such as `OpenAIConfiguration`'s `retries`, and the provider decides which
-/// failures are worth retrying, such as a failed connection or a server error. A request is never retried once its
-/// answer starts arriving, or after it's cancelled:
+/// A provider's configuration holds one, such as `OpenAIConfiguration`'s `retries`. A failed connection is retried for
+/// every provider, and each provider decides which failed responses are, such as a server error. A request is never
+/// retried once its answer starts arriving, or after it's cancelled:
 ///
 /// ```swift
 /// // Fail fast on an interactive screen.
@@ -31,9 +31,11 @@ public struct RequestRetries: Sendable, Hashable {
     /// Creates retry settings.
     ///
     /// - Parameters:
-    ///   - limit: The most times a request is sent again. The default is 2, as in OpenAI's own SDKs.
-    ///   - initialDelay: The wait before the first retry, which doubles for each retry after it.
-    ///   - longestServerWait: The longest wait a server can ask for and still have the request retried.
+    ///   - limit: The most times a request is sent again. The default is 2.
+    ///   - initialDelay: The wait before the first retry, which doubles for each retry after it. The default is half a
+    ///     second.
+    ///   - longestServerWait: The longest wait a server can ask for and still have the request retried. The default is
+    ///     2 minutes.
     public init(limit: Int = 2, initialDelay: Duration = .milliseconds(500), longestServerWait: Duration = .seconds(120)) {
         self.limit = limit
         self.initialDelay = initialDelay
@@ -65,7 +67,7 @@ public struct ImageEncoding: Sendable, Hashable {
     public var maximumSide: Int
 
     /// The JPEG quality, from 0 for the smallest file to 1 for the best image. A value outside that range counts as
-    /// the nearest end of it.
+    /// the nearest end of it, and NaN as the default.
     public var quality: Double
 
     /// Creates encoding settings.

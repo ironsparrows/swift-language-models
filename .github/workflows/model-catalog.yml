@@ -52,7 +52,7 @@ jobs:
         # Each run starts from main, so while the pull request waits, a model, word or effort it removed would get
         # today as its removal day again on every run. Fetching onto the pull request's catalogs keeps the day it
         # first left. Only the working tree changes: HEAD stays on main, so `diff --base HEAD` still compares against
-        # main. A branch that no longer builds on main may lack main's newer catalog changes, so it's left alone.
+        # main. A branch that doesn't build on main may lack main's newer catalog changes, so it's left alone.
         env:
           GH_TOKEN: ${{ steps.app.outputs.token }}
         run: |

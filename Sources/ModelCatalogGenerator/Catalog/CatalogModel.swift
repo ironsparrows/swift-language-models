@@ -18,15 +18,15 @@ struct CatalogModel: Codable, Equatable, Sendable {
     let outputModalities: [String]
     /// Sorted.
     let supportedParameters: [String]
-    /// Highest first, as the provider lists them; empty when the model's effort can't be chosen.
+    /// Highest first, as the fetch reads them; empty when the model's effort can't be chosen.
     let reasoningEfforts: [String]
     let defaultReasoningEffort: String?
     /// Whether and when the model reasons.
     let reasoning: CatalogReasoning
     /// Whether the model's hosts cache a prompt only when the request marks it.
     let cachesOnlyMarkedPrompts: Bool
-    /// The effort words the model accepted before and no longer does, sorted, each with the day it stopped. Its effort
-    /// type keeps them as deprecated members.
+    /// The effort words the model stopped accepting, sorted, each with the day it stopped. Its effort type keeps them
+    /// as deprecated members.
     var removedReasoningEfforts: [CatalogWord] = []
 
     /// The modality that every catalog model outputs.
@@ -43,14 +43,14 @@ extension CatalogModel {
         case cachesOnlyMarkedPrompts, removedReasoningEfforts
     }
 
-    /// The two flags that snapshots stored before `reasoning`, when OpenRouter was the only source.
+    /// OpenRouter's two flags, read for a model that has no `reasoning`.
     private enum FlagCodingKeys: String, CodingKey {
         case isReasoningMandatory
         case reasonsByDefault
     }
 
-    /// Decodes a model, including one from an older snapshot: without `reasoning`, it's decided from OpenRouter's
-    /// flags and parameters, as a fetch did then, without `cachesOnlyMarkedPrompts`, it's `false`, and without
+    /// Decodes a model, including one from a snapshot that leaves fields out: without `reasoning`, it's decided from
+    /// OpenRouter's flags and parameters, without `cachesOnlyMarkedPrompts`, it's `false`, and without
     /// `removedReasoningEfforts`, it has none.
     init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)

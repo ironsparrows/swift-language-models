@@ -62,12 +62,12 @@ enum CatalogJSON {
 
 // MARK: - API shape
 
-/// The shape of a source's API: every field its raw model list uses, and the words of its vocabulary fields.
+/// The shape of a source's API: every field its raw model lists use, and the words of its vocabulary fields.
 ///
 /// `Catalogs/<source>.schema.json` stores it. The file changes only when the source adds or drops a field or a
 /// vocabulary word, so its diff flags API changes the decoder would otherwise ignore.
 struct CatalogSchema: Codable, Equatable, Sendable {
-    /// Every path that holds a value somewhere in the list, sorted. Array elements are written `[]`, as in
+    /// Every path that holds a value somewhere in the lists, sorted. Array elements are written `[]`, as in
     /// `data[].pricing.prompt`. Fields that are only ever `null` don't count.
     let fields: [String]
 

@@ -22,6 +22,7 @@ struct GenerateModelCatalog: CommandPlugin {
         "HOME", "TMPDIR", "HTTPS_PROXY", "https_proxy", "NO_PROXY", "no_proxy", "OPENAI_API_KEY",
     ]
 
+    /// Runs `fetch` with the command's arguments and then `render`, or shows the generator's help for `--help` or `-h`.
     func performCommand(context: PluginContext, arguments: [String]) async throws {
         let tool = try context.tool(named: "ModelCatalogGenerator")
         guard !arguments.contains("--help"), !arguments.contains("-h") else {

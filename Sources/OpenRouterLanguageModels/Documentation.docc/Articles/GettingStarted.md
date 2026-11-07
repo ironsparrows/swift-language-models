@@ -45,16 +45,16 @@ request:
   `X-OpenRouter-Title`, `X-OpenRouter-Categories` and `X-OpenRouter-App-Visibility` headers, `User-Agent`,
   `Content-Type`, `Accept`, and the headers of the response cache and router metadata. Each replaces a header of the
   same name in the configuration's `httpAdditionalHeaders`.
-- The timeout: with ``OpenRouterConfiguration/idleTimeout`` set, each request waits that long for the next data,
-  instead of the configuration's `timeoutIntervalForRequest`. It limits the wait for the next data, not the whole
-  answer.
-- Redirects only to the same URL host, through a delegate of each request's own. A background session doesn't support a
-  request's own delegate, so there the session's own redirect policy applies.
+- The timeout: with ``OpenRouterConfiguration/idleTimeout`` set, each request for an answer waits that long for the
+  next data, instead of the configuration's `timeoutIntervalForRequest`. It limits the wait for the next data, not the
+  whole answer. The calls of <doc:ModelAndProviderInfo> keep the configuration's own timeout.
+- Redirects only to the same scheme, URL host and port, through a delegate of each request's own. A background session
+  doesn't support a request's own delegate, so there the session's own redirect policy applies.
 
 The model's ``OpenRouterLanguageModel/configuration``, an ``OpenRouterConfiguration``, holds how the package sends
 requests, apart from what they ask OpenRouter for: the idle timeout, the ``RequestRetries`` of a request that fails
 before any data arrives, the ``ImageEncoding`` of image attachments, and how long the answers of
-<doc:ModelAndProviderInfo> are reused. Set it when creating the model, or change it later; a change applies to the
+<doc:ModelAndProviderInfo> are kept. Set it when creating the model, or change it later; a change applies to the
 next request:
 
 ```swift

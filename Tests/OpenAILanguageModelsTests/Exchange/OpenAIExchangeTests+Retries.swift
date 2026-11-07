@@ -6,7 +6,7 @@ import Testing
 
 @testable import OpenAILanguageModels
 
-/// OpenAI's requests retry as the official SDKs do, with the stubs' models waiting for nothing between retries.
+/// How OpenAI's requests retry, with the stubs' models waiting for nothing between retries.
 
 extension OpenAIExchangeTests {
     @Suite("Retries")

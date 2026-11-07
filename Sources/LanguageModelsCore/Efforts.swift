@@ -14,7 +14,7 @@ extension Efforts {
     /// `init(rawValue:)`, and to list them, with `allCases`.
     ///
     /// A provider module's catalog gives each model an empty enum that conforms to this protocol, under the catalog's
-    /// namespace, such as `VendorCatalog.ModelName`, so each model has an effort type of its own. The catalog also
+    /// namespace, such as `OpenAICatalog.ModelName`, so each model has an effort type of its own. The catalog also
     /// writes an extension of `Efforts.Of` for the model, with a static member for each level.
     public protocol List: Sendable {
         /// The words of the levels the model accepts, highest first.
@@ -127,8 +127,8 @@ extension ContextOptions.ReasoningLevel {
     /// The effort word the level asks a provider for, such as `high`: `low`, `medium` and `high` for `light`,
     /// `moderate` and `deep`, and a custom level's own word, such as `xhigh` or `none`.
     ///
-    /// A typed effort's word is its `rawValue`; this reads the word back from a level in its open form, such as one an
-    /// app picked at run time, so the app can show it or store it. `nil` for a level this package doesn't know yet.
+    /// A typed effort's word is its `rawValue`. This reads the word from a level itself, such as one an app picked at
+    /// run time, so the app can show it or store it. It's `nil` for a level the package doesn't know.
     public var effortWord: String? {
         switch self {
         case .light: "low"
@@ -200,8 +200,8 @@ extension ContextOptions.ReasoningLevel {
         return Self.nearest(to: effortWord, among: supported.compactMap(\.reasoningLevel.effortWord), ranking: ranking)
     }
 
-    /// The effort to send for this level to a model that accepts the given levels, and the level with the effort sent
-    /// when that effort isn't the level's own or none is, which the request logs.
+    /// The effort to send for this level to a model that accepts the given levels, and, for the request to log, the
+    /// ``MovedEffort`` when that effort isn't the level's own word or none is sent.
     ///
     /// - Parameter supported: The levels the model accepts.
     /// - Returns: The provider's word for the level, or `nil` to leave it out, and the moved effort, if any.
@@ -215,7 +215,7 @@ extension ContextOptions.ReasoningLevel {
     ///
     /// A word the model accepts is sent as is. Otherwise the nearest accepted word in `ranking` is sent, the lower one
     /// on a tie, but never `none`: a model asked to reason keeps reasoning, so only a request for `none` turns it off.
-    /// A model that lists no words takes none, and a word missing from `ranking` has no nearest word; both give `nil`,
+    /// A model that lists no word but `none`, and a word missing from `ranking`, have no nearest word; both give `nil`,
     /// so the provider uses its default.
     ///
     /// - Parameters:

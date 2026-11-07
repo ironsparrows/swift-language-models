@@ -10,7 +10,7 @@ import os
 /// The identifier is the provider's model id, in a ``ProviderVocabulary`` type of the provider's own, so one
 /// provider's id can't be passed where another's belongs. Values the provider doesn't report are `nil`.
 public protocol ModelDetails: Identifiable, Sendable where ID: ProviderVocabulary {
-    /// The reasoning levels this model accepts.
+    /// The type of the reasoning levels this model accepts.
     associatedtype Effort: ModelEffort
 
     /// The model's human-readable name.
@@ -30,7 +30,7 @@ public protocol ModelDetails: Identifiable, Sendable where ID: ProviderVocabular
     /// Empty when the model's reasoning level can't be chosen, which includes a model that doesn't reason.
     var reasoningEfforts: [Effort] { get }
 
-    /// The level the provider uses when a request doesn't set one.
+    /// The level the details record as the default when a request doesn't set one. The model's own default can differ.
     var defaultReasoningEffort: Effort? { get }
 
     /// The day the provider stopped listing the model, as the provider module's catalog records it, or `nil` for a
@@ -148,7 +148,7 @@ extension Optional where Wrapped: Comparable {
 /// The models a provider stopped listing, which its catalog keeps as deprecated members, each with the day it left.
 ///
 /// The model catalog generator writes one for each provider module, as a static member such as
-/// `ModelRemovals.vendor`, which the module's details read for their ``ModelDetails/removalDate``.
+/// `ModelRemovals.openAI`, which the module's details read for their ``ModelDetails/removalDate``.
 package struct ModelRemovals: Sendable {
     /// Midnight UTC at the start of the day the provider stopped listing each model, by id.
     package let dates: [String: Date]
@@ -170,8 +170,8 @@ package struct ModelRemovals: Sendable {
 }
 
 extension ModelRemovals {
-    /// A model a request may reach, as its model or a fallback, that its provider stopped listing, so the request may
-    /// fail, to report before the request is sent.
+    /// A model a request may reach, as its model or a fallback, that its provider stopped listing. The request may
+    /// fail, so the model is reported before the request is sent.
     package struct Report: Equatable, Sendable {
         /// The model's id.
         let id: String
@@ -189,7 +189,7 @@ extension ModelRemovals {
         /// - Parameter request: The start of the request's id, which names the request in the log.
         fileprivate func report(request: String) {
             PackageLogger.languageModels(.error)?.error("Request \(request, privacy: .public): \(message, privacy: .public)")
-            // The issue is filed under `LanguageModels`, the module apps import, and the module in `fileID` is its category.
+            // The module in `fileID` is the warning's category: `LanguageModels`, the log's category for the core.
             runtimeWarning(message, fileID: "LanguageModels/ModelDetails.swift")
         }
     }

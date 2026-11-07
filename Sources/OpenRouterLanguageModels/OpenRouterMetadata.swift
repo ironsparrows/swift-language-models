@@ -21,9 +21,9 @@ public import LanguageModels
 /// }
 /// ```
 ///
-/// The facts ``model``, ``provider``, ``responseID``, ``finishReason``, ``serviceTier`` and ``citations`` are shared, so
-/// another language model's answer reads too, in that model's own words. The routing facts come from the router's report,
-/// which ``OpenRouterOptions/includesRouterMetadata`` asks for.
+/// The facts ``model``, ``provider``, ``responseID``, ``finishReason``, ``serviceTier`` and ``citations`` use keys
+/// every provider shares, so they also read from another provider's answer, in that provider's words. The routing facts
+/// come from the router's report, which the answer keeps when ``OpenRouterOptions/includesRouterMetadata`` is `true`.
 public struct OpenRouterResponseMetadata: Sendable, Hashable {
     /// The model that answered, which can differ from the one asked for when OpenRouter routes the request or a
     /// fallback answers. The request is billed at this model's price.
@@ -81,7 +81,7 @@ public struct OpenRouterResponseMetadata: Sendable, Hashable {
     /// The endpoints OpenRouter could pick from.
     public let routingEndpoints: [RoutingEndpoint]
 
-    /// The plugins that changed the request or the answer, such as context compression or a guardrail.
+    /// The plugins that changed the request or the answer, such as the engine that reads PDFs or a guardrail.
     public let routingPipeline: [PipelineStage]
 
     /// The OpenRouter edge region that handled the request, such as `iad`.
@@ -99,7 +99,7 @@ public struct OpenRouterResponseMetadata: Sendable, Hashable {
     /// entry that ends a request gives what the whole response cost.
     public let usage: OpenRouterUsageMetadata
 
-    /// The facts in a response entry's metadata.
+    /// The facts in the metadata of a response entry, or of the first call of a tool-calls entry.
     init(_ metadata: [String: GeneratedContent]) {
         let shared = ProviderResponseMetadata(metadata)
         let values = MetadataValues(metadata)
@@ -331,8 +331,8 @@ extension OpenRouterResponseMetadata {
 /// }
 /// ```
 ///
-/// The facts ``cost``, ``cacheWriteTokenCount`` and ``webSearchCount`` are shared, so another language model's usage reads
-/// too.
+/// The facts ``cost``, ``cacheWriteTokenCount`` and ``webSearchCount`` use keys every provider shares, so they also
+/// read from another provider's usage.
 public struct OpenRouterUsageMetadata: Sendable, Hashable {
     /// What the answer cost, in US dollars, from the account's OpenRouter credits.
     ///
@@ -392,8 +392,8 @@ public struct OpenRouterUsageMetadata: Sendable, Hashable {
 }
 
 extension OpenRouterChunkExtras.Usage {
-    /// What only OpenRouter reports about the usage, as metadata of the answer's usage: the parts of the cost, whether the
-    /// account's own key paid and the server tools' calls.
+    /// What only OpenRouter reports about the usage, as metadata of the answer's usage: the parts of the cost, whether
+    /// the account's own key paid and the server tools' calls.
     var metadata: [String: any ConvertibleToGeneratedContent] {
         var metadata: [String: any ConvertibleToGeneratedContent] = [:]
         metadata[Key.isBYOK] = isBYOK
@@ -427,8 +427,9 @@ extension OpenRouterChunkExtras.Usage {
 ///
 /// Its facts are the shared ones that `providerMetadata` also reads, as OpenRouter's types, and ``limitSource``.
 public struct OpenRouterErrorMetadata: Sendable, Hashable {
-    /// The HTTP status of the response that failed, such as 429 for a rate limit, or `nil` for a failure in the stream,
-    /// which arrives after the response's HTTP 200.
+    /// The HTTP status of the response that failed, such as 429 for a rate limit, or for an error in the stream, which
+    /// arrives after the response's HTTP 200, the status its code names. `nil` for a failure in the stream whose code
+    /// isn't a number.
     public let status: Int?
 
     /// The code the failure would have as an ``OpenRouterError``, such as ``OpenRouterError/Code/budgetExceeded``.
@@ -516,13 +517,13 @@ extension LanguageModelError {
 
 // MARK: - Keys
 
-/// The keys of the facts that only OpenRouter reports, which start with `openRouter.`, so they never collide with another
-/// provider's keys.
+/// The keys of the facts that only OpenRouter reports, which start with `openRouter.`, so they never collide with
+/// another provider's keys.
 ///
-/// The response or tool-calls entry that ends an answer carries what the response cache did, and the router's report when
-/// ``OpenRouterOptions/includesRouterMetadata`` asks for it. The answer's usage carries the parts of its cost, whether the
-/// account's own key paid the host, and the server tools' calls. A key is left out when OpenRouter didn't report its
-/// value.
+/// The response or tool-calls entry that ends an answer carries what the response cache did, and the router's report
+/// when ``OpenRouterOptions/includesRouterMetadata`` is `true`. The answer's usage carries the parts of its cost,
+/// whether the account's own key paid the host, and the server tools' calls. A key is left out when OpenRouter didn't
+/// report its value.
 ///
 /// Saved transcripts keep the keys, so their spellings never change.
 private enum Key {

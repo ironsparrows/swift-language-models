@@ -7,7 +7,7 @@ import UniformTypeIdentifiers
 
 @testable import OpenRouterLanguageModels
 
-/// A signed reasoning detail, which a provider checks when it comes back.
+/// A signed reasoning detail, which a host checks when it comes back.
 private let signedDetail: JSONValue = [
     "type": "reasoning.text", "text": "Eggs are light.", "signature": "sig-1", "format": "anthropic-claude-v1",
 ]

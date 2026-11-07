@@ -13,7 +13,7 @@ extension Responses {
     /// request sets it, then the provider's own in the order they're written, and leaves out the ones its models don't
     /// list or don't take with the request. An exchange's `prepare(_:)` adds the provider's members and makes the few
     /// choices a provider has about the format's: it can't change the input or the settings the app asked for. Every
-    /// part is written the same way each time, so a provider's prompt cache stays valid across requests.
+    /// part is written the same way each time, so a host's prompt cache stays valid across requests.
     package struct Request {
         // MARK: What the format read
 
@@ -37,7 +37,7 @@ extension Responses {
         /// Whether the session's tools, and with them `tool_choice`, go out.
         package var sendsSessionTools = true
 
-        /// Tools that run on the provider's side, which go after the session's in `tools`.
+        /// Tools that run on the provider's servers, sent after the session's in `tools`.
         package var serverTools: [JSONValue] = []
 
         /// The `reasoning` member, or `nil` to leave it out, so the model reasons as it does by default.
@@ -193,8 +193,8 @@ extension Responses.Request {
 
 extension Responses.Request {
     /// The request's body, with the exchange's members and choices. Its adjustments are, in the log's order, settings
-    /// the models don't list or the provider doesn't take, then a token limit below the fewest the format takes, then
-    /// metadata past the limits, then a moved reasoning effort.
+    /// the models don't list, the provider doesn't take or the format has no member for, then a token limit below the
+    /// fewest the format takes, then metadata it leaves out, then a moved reasoning effort.
     ///
     /// - Throws: An error when a member can't be encoded.
     func body() throws -> RequestBody {
@@ -260,6 +260,7 @@ extension Responses.Request {
         return text.members.isEmpty ? nil : .object(text)
     }
 
+    /// The value of `store`, or `nil` when it stays out of the body.
     private static func store(_ storage: Storage) -> JSONValue? {
         switch storage {
         case .automatic: nil

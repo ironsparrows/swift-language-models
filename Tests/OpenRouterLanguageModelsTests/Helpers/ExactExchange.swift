@@ -12,7 +12,7 @@ extension ExactExchange {
     /// and `HTTP-Referer`.
     ///
     /// - Parameters:
-    ///   - stub: The host, which records each request.
+    ///   - stub: The stub that stands in for OpenRouter, which records each request.
     ///   - session: The session to run.
     ///   - answer: Sends the prompt and returns the answer's usage, keeping the last snapshot of a streamed answer.
     init(

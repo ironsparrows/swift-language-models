@@ -38,7 +38,7 @@ Run a new judge on a few samples and read its rationales before a full run; `jud
 prompt the judge gets.
 
 Always pass `judge:`. Without it, a `ModelJudgeEvaluator` uses `SystemLanguageModel()`, Apple's on-device model, which
-goes against that advice when it judges a larger remote model, and isn't available on every Mac or CI host.
+goes against that advice when it judges a larger remote model, and isn't available on every Mac or CI machine.
 
 Keep the judge the same from run to run, as the model under test: a dated snapshot rather than the name it belongs
 to, and the same reasoning level, so the same model rates every sample. <doc:RepeatableRuns> describes how.
@@ -56,9 +56,7 @@ to, and the same reasoning level, so the same model rates every sample. <doc:Rep
 
 A test that runs the evaluation skips itself without the key, and checks the run's errors as well as its scores,
 because a sample whose request fails is left out of the scores. `swift test` passes the environment to tests as it
-is, while `xcodebuild test` needs a `TEST_RUNNER_` prefix, as
-<doc:/LanguageModels/EvaluatingAcrossModels>
-describes.
+is, while `xcodebuild test` needs a `TEST_RUNNER_` prefix, as <doc:/LanguageModels/EvaluatingAcrossModels> describes.
 
 ### Compare two answers
 
@@ -89,7 +87,7 @@ parallel tool calls are one round in the transcript, as ``OpenAIOptions/parallel
 dataset reaches `targetCount`, which counts the seeds. With a `sessionProvider`, it uses the model and instructions of
 the session it returns, such as one on an OpenAI model.
 
-The generator calls the provider when it starts, and again whenever the session runs out of context. The new session
+The generator calls `sessionProvider` when it starts, and again whenever the session runs out of context. The new session
 knows nothing of the earlier exchange, so its instructions stand alone: what the feature does, what a sample holds and
 the rules each sample follows. A validator rejects samples that break a rule, and `invalidSamples` keeps them for
 review. A validator checks one sample at a time, so it can't catch near-duplicates or a lopsided mix; read the

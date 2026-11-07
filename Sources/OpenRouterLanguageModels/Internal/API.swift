@@ -6,11 +6,11 @@ enum API {
     /// OpenRouter's name, as the log and error messages name it.
     static let name = "OpenRouter"
 
-    /// The origin of reasoning that a model wrote through OpenRouter's Chat Completions API, which goes back as the text
-    /// and `reasoning_details` of an assistant message.
+    /// The origin of reasoning that a model wrote through OpenRouter's Chat Completions API, which goes back as the
+    /// text and `reasoning_details` of an assistant message.
     ///
-    /// Saved transcripts keep this value, so it stays `openrouter`, although it names the format too. Reasoning that
-    /// OpenRouter returns in another format gets an origin of its own, so it isn't sent back in this shape.
+    /// Saved transcripts keep this value, so it never changes, and only reasoning with this origin goes back in this
+    /// shape.
     static let reasoningOrigin = "openrouter"
 
     /// Where OpenRouter's API lives. `URL(string:)` makes it optional, although it never fails.
@@ -63,6 +63,7 @@ extension PackageLogger {
     /// The OpenRouter model's messages: what each request sends and leaves out, retries, which model and host
     /// answered, failures and timings.
     ///
-    /// It's the same category as a request's log, for code that runs outside a request, such as an option's initializer.
+    /// It's the same category as a request's log, for code that runs outside a request, such as an option's
+    /// initializer.
     static let openRouter = PackageLogger(category: API.name)
 }

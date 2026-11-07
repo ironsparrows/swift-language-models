@@ -5,7 +5,7 @@ import LanguageModelsTestSupport
 import OpenRouterLanguageModels
 import Testing
 
-/// Requests to real models through OpenRouter, for what only a provider can show: which schemas it accepts, how it
+/// Requests to real models through OpenRouter, for what only a host can show: which schemas it accepts, how it
 /// caches, what it needs replayed and how it fails. A full run costs about three cents.
 ///
 /// The executor risks suite probes the ways the executor may break on some models, each named after its risk. A probe

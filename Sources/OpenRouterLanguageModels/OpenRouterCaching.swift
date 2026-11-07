@@ -7,25 +7,25 @@ import os
 
 /// How requests mark prompts for caching, and how long a cached prompt lasts.
 ///
-/// Some providers, Anthropic for Claude and Alibaba for Qwen, cache a prompt only when the request marks it. Others,
-/// such as OpenAI, Google, DeepSeek and xAI, cache long prompts on their own, with or without marks. A marked request
-/// asks for caching of the whole prompt and marks the end of the instructions.
+/// Some hosts, Anthropic for Claude and Alibaba for Qwen, cache a prompt only when the request marks it. Others, such
+/// as OpenAI, Google, DeepSeek and xAI, cache long prompts on their own, with or without marks. A marked request asks
+/// for caching of the whole prompt and marks the end of the instructions.
 ///
 /// ``automatic``, the model's default, marks a request only when every model it may reach, fallbacks included, caches
 /// only marked prompts. ``always`` marks every request, such as for Claude with another vendor's fallback, or for
 /// Gemini, where a mark switches implicit caching to explicit caching, which bills storage.
 ///
 /// Writing a marked cache costs more than a normal prompt, and reading it costs much less. A prompt shorter than the
-/// provider's minimum, such as 1,024 tokens, isn't cached at all.
+/// host's minimum, such as 1,024 tokens, isn't cached at all.
 public struct OpenRouterCacheControl: Sendable, Hashable {
     /// How long a cached prompt lasts after its last use, as OpenRouter's `ttl` spells it.
     ///
     /// Any lifetime OpenRouter offers is valid too, written as its `ttl` value.
     public struct TimeToLive: ProviderVocabulary {
-        /// Five minutes, the providers' default.
+        /// Five minutes, the hosts' default.
         public static let fiveMinutes: Self = "5m"
 
-        /// One hour, which costs more to write. Providers without it use their default.
+        /// One hour, which costs more to write. Hosts without it use their default.
         public static let oneHour: Self = "1h"
 
         /// The lifetime as OpenRouter's `ttl` spells it.

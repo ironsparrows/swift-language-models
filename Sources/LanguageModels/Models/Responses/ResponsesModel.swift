@@ -133,18 +133,18 @@ extension Responses.Model {
     /// Runs one exchange: reads the request, sends it and streams its answer.
     ///
     /// A request is retried as the connection says, only before any data arrives, such as after a timeout, a server
-    /// error or a briefly unavailable gateway or host, never when its `x-should-retry` is `false`, and once with the
-    /// portable schema when the host rejects a constraint of the full one. The answer streams into the channel, and its
-    /// `reasoning` items go back on later turns in the order they came. Every failure becomes what the exchange's
-    /// ``Responses/Exchange/error(for:)`` makes of it.
+    /// error or a briefly unavailable gateway or host, never when a response's `x-should-retry` is `false`, and once with
+    /// the portable schema when the host rejects a constraint of the full one. The answer streams into the channel, and
+    /// its `reasoning` items go back on later turns in the order they came. A rejected response and a failure in the
+    /// stream become what the exchange's ``Responses/Exchange/error(for:)`` makes of them.
     ///
     /// - Parameters:
     ///   - generation: The transcript, tools, schema and options to send.
     ///   - channel: Where the answer's events go.
     /// - Returns: The answer's response text, or empty text when the answer ends in tool calls.
-    /// - Throws: `LanguageModelError` for failures Foundation Models has a case for, what the exchange makes of the
-    ///   rest, a failed connection's error as `URLError` maps it, what the authentication throws, and
-    ///   `CancellationError` when the task is cancelled.
+    /// - Throws: `LanguageModelError` for failures Foundation Models has a case for, `GeneratedContent.ParsingError` when
+    ///   a guided answer reaches its token limit, what the exchange makes of the rest, a failed connection's error as
+    ///   `URLError` maps it, what the authentication throws, and `CancellationError` when the task is cancelled.
     private func run(
         _ generation: LanguageModelExecutorGenerationRequest,
         streamingInto channel: LanguageModelExecutorGenerationChannel
@@ -231,8 +231,8 @@ extension Responses {
     /// ``error(for:)``, which says what a failure becomes. Implement the methods that have a default in the type that
     /// declares the conformance: only there does a misspelled one draw a warning instead of silently keeping the default.
     package protocol Exchange: Sendable {
-        /// The `error` object of the provider's failed responses, `{"error": {…}}`. The default is the one OpenAI's formats
-        /// send.
+        /// The `error` object of the provider's failed responses, `{"error": {…}}`. The default is the one OpenAI's
+        /// formats send.
         associatedtype ErrorBody: Decodable & Sendable = APIErrorBody
 
         // MARK: While the request is read
@@ -262,11 +262,11 @@ extension Responses {
         /// - Returns: What the provider adds.
         func additions(header: (String) -> String?) -> AnswerAdditions
 
-        /// What a failure becomes: Foundation Models' error when it has a case for it, otherwise the provider's own. What each
-        /// status stands for reads best as a `switch` over ``HTTPStatus`` with no `default`, so a status named later has to
-        /// be decided.
+        /// What a failure becomes: Foundation Models' error when it has a case for it, otherwise the provider's own. A
+        /// provider's table of what each status stands for switches over ``HTTPStatus`` with no `default`, so naming
+        /// another status stops its build until it decides.
         ///
-        /// - Parameter failure: The failure.
+        /// - Parameter failure: A rejected response or a failure in the stream. A failed connection never gets here.
         /// - Returns: The error a session throws.
         func error(for failure: RequestFailure<ErrorBody>) -> any Error
     }
@@ -286,7 +286,7 @@ extension Responses {
 
 extension Responses.Model where Exchange == Responses.PlainExchange {
     /// Creates a model that speaks the plain format: to a server that needs no credentials, with no idle timeout of its
-    /// own, retrying transient failures, with every capability Foundation Models names. The URL's host stands
+    /// own, retrying transient failures, with every capability Foundation Models names. The URL host stands
     /// for the provider's name, which the log, error messages, and the tags on its answers' reasoning and messages use.
     ///
     /// - Parameters:

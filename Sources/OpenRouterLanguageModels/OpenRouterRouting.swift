@@ -350,12 +350,12 @@ extension OpenRouterRouting {
         return member.isEmpty ? nil : member
     }
 
-    /// The `provider` object of OpenRouter's request: each setting that doesn't keep OpenRouter's default, in the
-    /// order OpenRouter's requests have always sent them.
+    /// The `provider` object of OpenRouter's request: each setting that doesn't keep OpenRouter's default, always in
+    /// the same order, since a host's prompt cache and OpenRouter's response cache depend on it.
     struct Member: Encodable {
         fileprivate let routing: OpenRouterRouting
 
-        /// Whether hosts must take every parameter the request sends, after the request's own needs.
+        /// Whether hosts must take every parameter the request sends, with the request's own needs applied.
         fileprivate let parameterSupport: Requirement
 
         private var sort: SortMember? { SortMember(sort: routing.sort, partition: routing.sortPartition) }

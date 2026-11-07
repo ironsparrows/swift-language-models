@@ -397,8 +397,7 @@ extension OpenRouterPricing.Override {
         return .seconds(hours * 3_600 + minutes * 60)
     }
 
-    /// The day an override names, such as `monday`, or `nil` for a name OpenRouter didn't use before, which no request
-    /// matches.
+    /// The day an override names, such as `monday`, or `nil` for any other name, which no request matches.
     private static func weekday(_ name: String) -> Locale.Weekday? {
         switch name {
         case "sunday": .sunday

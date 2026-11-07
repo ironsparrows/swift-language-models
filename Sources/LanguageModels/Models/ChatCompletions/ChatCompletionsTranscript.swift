@@ -13,7 +13,7 @@ extension ChatCompletions {
     /// back at the start of that text, and each tool output a `tool` message. The exchange adds the reasoning it sends
     /// back to the assistant message. Prompts and tool outputs carry their attachments as content parts; generated
     /// data and an answer's attachments aren't sent back. Every entry turns into the same JSON each time, so a
-    /// provider's prompt cache stays valid from one request to the next.
+    /// host's prompt cache stays valid from one request to the next.
     struct Messages {
         private var messages: [Message] = []
 
@@ -174,14 +174,14 @@ extension ChatCompletions.Messages {
     /// or movie it conforms to.
     ///
     /// Images go as JPEG data URLs, or as their web address when they have one. Data attachments go by kind: text as
-    /// text, images as images, PDFs as `file` parts, WAV and MP3 audio as `input_audio` with its format, and the kinds of
-    /// audio and movies the model adds as their parts. The same attachment gives the same bytes every time.
+    /// text, images as images, PDFs as `file` parts, WAV and MP3 audio as `input_audio`, and the kinds of audio and movies
+    /// the model adds as their parts. The same attachment gives the same bytes every time.
     ///
     /// - Parameters:
     ///   - content: The content.
     ///   - entry: The entry that carries it, which the error names.
-    ///   - media: The kinds of audio and movies the format takes, then the ones the model adds, in the order they're
-    ///     matched.
+    ///   - media: The kinds of audio the format takes, then the kinds of audio and movies the model adds, in the order
+    ///     they're matched.
     ///   - provider: The provider's name, for the error.
     /// - Returns: The part.
     /// - Throws: `LanguageModelError.unsupportedTranscriptContent` for data that neither the format nor the model has a
@@ -216,7 +216,7 @@ extension ChatCompletions {
     package struct MediaPart: Sendable {
         /// The part a kind of data goes in.
         fileprivate enum Part: Sendable {
-            /// An `input_audio` part, with the provider's name for the format.
+            /// An `input_audio` part, with the provider's name for the kind of audio.
             case audio(format: String)
 
             /// A `video_url` part, holding the movie as a data URL of the media type.
@@ -228,7 +228,7 @@ extension ChatCompletions {
 
         fileprivate let part: Part
 
-        /// Audio of a kind, sent as `input_audio` with the format's name.
+        /// Audio of a kind, sent as `input_audio` with the provider's name for it.
         package static func audio(_ contentType: UTType, format: String) -> Self {
             Self(contentType: contentType, part: .audio(format: format))
         }
@@ -334,7 +334,7 @@ private enum Part: Encodable {
     /// A file, such as a PDF, in a data URL.
     case file(name: String, data: String)
 
-    /// Audio as Base64, with its format's name.
+    /// Audio as Base64, with the name of its kind.
     case audio(data: String, format: String)
 
     /// A movie in a data URL.
@@ -397,7 +397,7 @@ private struct ToolCall: Encodable {
     }
 }
 
-/// Who wrote a message: the instructions, the person, the model or a tool.
+/// Who a message comes from: the app's instructions, the person, the model or a tool.
 private struct Role: ProviderVocabulary {
     static let system: Self = "system"
     static let user: Self = "user"

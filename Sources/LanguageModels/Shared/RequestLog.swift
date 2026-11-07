@@ -8,8 +8,8 @@ import os
 /// The timing, retry and failure messages of one request to a provider, a generation or a call for a model's info, under
 /// a label that names it, such as `Request 1A2B3C4D`.
 ///
-/// It logs retries at `info`, a cancellation at `debug` and any other failure at `error`, with the error's message
-/// kept private, since it may quote the request.
+/// It logs retries at `info`, a cancellation at `debug` and any other failure at `error`, never with the error's
+/// message, which may quote the request.
 struct RequestLog {
     /// What names the request in each message.
     let label: String
@@ -83,8 +83,8 @@ struct RequestLog {
         )
     }
 
-    /// Logs a failed exchange, and returns the error it throws: a failed connection's as `URLError` maps it, and any other
-    /// as it is.
+    /// Logs a failed exchange, and returns the error it throws: a failed connection's as `URLError` maps it, and any
+    /// other as it is.
     func recordFailure(_ error: any Error) -> any Error {
         let thrown = (error as? URLError)?.thrownError ?? error
         failed(thrown)
@@ -172,7 +172,7 @@ struct LoggedError: Equatable {
     let code: String?
     let host: String?
 
-    /// Where the error came from, such as `HTTP 429, rate_limit_exceeded, host Vendor`, with only the parts known.
+    /// Where the error came from, such as `HTTP 429, rate_limit_exceeded, host Anthropic`, with only the parts known.
     var origin: String {
         [status.map { "HTTP \($0)" }, code, host.map { "host \($0)" }].compactMap(\.self).joined(separator: ", ")
     }

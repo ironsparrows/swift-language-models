@@ -32,8 +32,8 @@ public struct GuideViolation: Sendable, Equatable, CustomStringConvertible {
     /// The value that breaks the guide.
     public let value: GeneratedContent
 
-    /// The guide's limit, as the schema states it: the bound of a minimum, a maximum or a count, the pattern, the
-    /// constant, or the allowed values.
+    /// The guide's limit, as the schema states it: the bound of a minimum, a maximum, a count or a length, the pattern,
+    /// the constant, or the allowed values.
     public let limit: GeneratedContent
 
     /// What's wrong with the value, such as `is 0, below the minimum of 1`.
@@ -80,10 +80,10 @@ extension GuideViolation {
         /// The most elements allowed, which `.maximumCount` and `.count` become.
         public static let maxItems: Self = "maxItems"
 
-        /// The fewest characters allowed.
+        /// The fewest characters allowed, counted as Unicode scalars.
         public static let minLength: Self = "minLength"
 
-        /// The most characters allowed.
+        /// The most characters allowed, counted as Unicode scalars.
         public static let maxLength: Self = "maxLength"
 
         /// A pattern the text must match, which `.pattern` becomes.
@@ -122,11 +122,12 @@ public struct GuideViolations: Error, Sendable, Equatable, CustomStringConvertib
 extension GuideViolations {
     /// Checks an answer's text against the guides of the request's schema.
     ///
-    /// A request without a schema passes, as does a schema that can't be encoded, and a response that isn't JSON when the
-    /// schema's root isn't an object or an array, such as a string Foundation Models decodes from plain text.
+    /// A request without a schema passes, as does a schema that can't be encoded, and a response that isn't JSON when
+    /// the schema's root isn't an object or an array, such as a string Foundation Models decodes from plain text.
     ///
     /// - Parameters:
-    ///   - responseText: The text of the answer's response entry, or empty when the answer ended in tool calls.
+    ///   - responseText: The text of the answer's response entry, or empty when the answer ended in tool calls, which
+    ///     passes.
     ///   - generation: The request, with its schema, and its id, whose start names the request in the log.
     /// - Throws: `GeneratedContent.ParsingError`, naming each value that breaks a guide, with the ``GuideViolations``
     ///   as its `underlyingError`, when one does, or when an object or array answer isn't complete JSON, since
@@ -172,9 +173,10 @@ extension JSONValue {
     private struct SchemaChecker {
         let root: JSONValue
 
-        /// How deep references may nest, so a schema that refers to itself ends.
+        /// How deep a check goes through references, properties and items, so a schema that refers to itself ends.
         private static let maximumDepth = 64
 
+        /// The constraints that a value and what it holds break, following the schema's references, `anyOf` and `allOf`.
         func violations(of value: JSONValue, against schema: JSONValue, at path: String, depth: Int) -> [GuideViolation] {
             guard case .object(let keywords) = schema, depth < Self.maximumDepth else { return [] }
             var found: [GuideViolation] = []

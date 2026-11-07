@@ -117,7 +117,7 @@ struct InfoCacheTests {
     }
 
     /// A connection to a stub that retries a server failure at once. It shares the cache of every connection, and the
-    /// stub's own host keeps its answers apart from other tests'.
+    /// stub's own URL host keeps its answers apart from other tests'.
     private func connection(_ stub: HTTPStub, headers: [String: String] = [:]) -> Connection {
         Connection(
             session: stub.session, authentication: Connection.Authentication(baseURL: stub.baseURL) { headers }, idleTimeout: nil,

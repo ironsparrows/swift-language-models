@@ -5,29 +5,28 @@ import LanguageModels
 
 extension OpenRouterLanguageModel {
     /// The endpoints of the model's ``details``, as ``OpenRouterModel/endpoints(auth:session:configuration:)`` lists
-    /// them, with the model's authentication and session.
+    /// them, with the model's authentication, session and ``configuration``.
     ///
     /// With an API key, OpenRouter reports each endpoint's latency and throughput too.
     ///
     /// - Returns: The endpoints, in OpenRouter's order.
-    /// - Throws: What ``OpenRouterModel/endpoints(auth:session:configuration:)`` throws, and any error the model's
-    ///   authentication throws.
+    /// - Throws: What ``OpenRouterModel/endpoints(auth:session:configuration:)`` throws.
     public func endpoints() async throws -> [OpenRouterEndpoint] {
         try await connection(configuration).endpoints(of: details.id, for: configuration.infoCacheLifetime)
     }
 
     /// What OpenRouter lists for the model's ``details`` now, as
-    /// ``OpenRouterModel/currentDetails(auth:session:configuration:)`` reads it, with the model's authentication and
-    /// session.
+    /// ``OpenRouterModel/currentDetails(auth:session:configuration:)`` reads it, with the model's authentication,
+    /// session and ``configuration``.
     ///
     /// - Returns: The model's current details.
-    /// - Throws: What ``OpenRouterModel/currentDetails(auth:session:configuration:)`` throws, and any error the model's
-    ///   authentication throws.
+    /// - Throws: What ``OpenRouterModel/currentDetails(auth:session:configuration:)`` throws.
     public func currentDetails() async throws -> OpenRouterCurrentDetails {
         try await connection(configuration).currentDetails(of: details.id, for: configuration.infoCacheLifetime)
     }
 
-    /// What OpenRouter charges for the model's ``details`` now, with the model's authentication and session.
+    /// What OpenRouter charges for the model's ``details`` now, with the model's authentication, session and
+    /// ``configuration``.
     ///
     /// - Returns: The prices, or `nil` when the price depends on the request, as for a router.
     /// - Throws: What ``currentDetails()`` throws.
@@ -51,7 +50,7 @@ extension OpenRouterModel {
     /// call's own:
     ///
     /// ```swift
-    /// // Health that's never more than 10 seconds old, without retries.
+    /// // Health kept for 10 seconds, without retries.
     /// let configuration = OpenRouterConfiguration(retries: .disabled, infoCacheLifetime: .seconds(10))
     /// let endpoints = try await OpenRouterModel.anthropicClaudeHaiku5_5.endpoints(configuration: configuration)
     /// ```
@@ -59,7 +58,7 @@ extension OpenRouterModel {
     /// - Parameters:
     ///   - auth: How the call authenticates, and where it goes, or `nil` to call OpenRouter without a key.
     ///   - session: The URL session that sends the request.
-    ///   - configuration: How the call waits, retries and reuses earlier answers.
+    ///   - configuration: How the call retries and reuses earlier answers.
     /// - Returns: The endpoints, in OpenRouter's order; none for an alias, such as `~anthropic/claude-haiku-latest`,
     ///   whose endpoints are those of the model it points to.
     /// - Throws: `OpenRouterError` with `notFound` for a model OpenRouter doesn't list, any error the authentication
@@ -81,7 +80,7 @@ extension OpenRouterModel {
     /// - Parameters:
     ///   - auth: How the call authenticates, and where it goes, or `nil` to call OpenRouter without a key.
     ///   - session: The URL session that sends the request.
-    ///   - configuration: How the call waits, retries and reuses earlier answers.
+    ///   - configuration: How the call retries and reuses earlier answers.
     /// - Returns: The model's current details.
     /// - Throws: `OpenRouterError` with `notFound` for a model OpenRouter doesn't list, any error the authentication
     ///   throws, and otherwise what a session's request throws when OpenRouter can't be reached or fails.
@@ -105,7 +104,7 @@ extension OpenRouterModel {
     /// - Parameters:
     ///   - auth: How the call authenticates, and where it goes, or `nil` to call OpenRouter without a key.
     ///   - session: The URL session that sends the request.
-    ///   - configuration: How the call waits, retries and reuses earlier answers.
+    ///   - configuration: How the call retries and reuses earlier answers.
     /// - Returns: The prices, or `nil` when the price depends on the request, as for a router.
     /// - Throws: What ``currentDetails(auth:session:configuration:)`` throws.
     public func currentPricing(
@@ -205,22 +204,25 @@ extension Connection {
         OpenRouterCurrentDetails(try await value(at: API.Path.model(model), as: OpenRouterCurrentDetails.Payload.self, for: lifetime))
     }
 
-    /// Reads a path under the base URL, or OpenRouter's own API, and decodes the `data` of the answer's body, or reuses a
-    /// fresh answer from the cache, with a failure thrown as a chat request's would be.
+    /// Reads a path under the base URL, or OpenRouter's own API, and decodes the `data` of the answer's body, or reuses
+    /// a fresh answer from the cache, with a failure thrown as a chat request's would be.
     ///
     /// - Parameters:
     ///   - path: The path under the base URL, such as `models/anthropic/claude-haiku-5.5/endpoints`.
     ///   - type: The type of the body's `data`.
     ///   - lifetime: How long an answer stays fresh in the cache.
     /// - Returns: The decoded `data`.
-    /// - Throws: `OpenRouterError` with `invalidResponse` when the body doesn't decode, and otherwise what
-    ///   ``OpenRouterFailure``, the authentication and a failed connection throw.
+    /// - Throws: `OpenRouterError` with `invalidResponse` when the body doesn't decode, and otherwise the error a
+    ///   rejected response becomes, what the authentication throws, and a failed connection's error.
     func value<Value: Decodable & Sendable>(at path: String, as type: Value.Type, for lifetime: Duration) async throws -> Value {
         try await cachedValue(
             at: path, under: API.baseURL(authentication.baseURL), for: lifetime, provider: API.name, decode: Self.decode,
             failure: { (rejected: RequestFailure<OpenRouterErrorResponse>) in OpenRouterFailure(rejected).error(contextSize: nil) })
     }
 
+    /// The `data` of an answer's body.
+    ///
+    /// - Throws: `OpenRouterError` with `invalidResponse` when the body doesn't decode.
     private static func decode<Value: Decodable>(_ data: Data) throws -> Value {
         do {
             return try JSONDecoder().decode(DataEnvelope<Value>.self, from: data).data
@@ -271,6 +273,7 @@ extension OpenRouterCurrentDetails {
 }
 
 extension OpenRouterCurrentDetails {
+    /// A model's current details from OpenRouter's answer.
     fileprivate init(_ payload: OpenRouterCurrentDetails.Payload) {
         self.init(
             id: OpenRouterModelID(rawValue: payload.id),

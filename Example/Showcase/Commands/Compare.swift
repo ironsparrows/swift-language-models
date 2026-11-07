@@ -7,8 +7,8 @@ import OpenRouterLanguageModels
 /// and how long they take.
 ///
 /// Apple's on-device model joins when it's available. A request that fails is counted apart rather than as a wrong
-/// answer, as Apple's Evaluations framework does, which this command doesn't import because a command-line tool needs
-/// Xcode's developer frameworks to load it.
+/// answer. This command doesn't import Apple's Evaluations framework, because a command-line tool needs Xcode's developer
+/// frameworks to load it.
 struct Compare: Command {
     let name = "compare"
     let summary = "Run the same requests on several models, and compare right answers, cost and time"

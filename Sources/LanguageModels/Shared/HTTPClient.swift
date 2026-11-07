@@ -4,8 +4,8 @@ import LanguageModelsCore
 
 // MARK: - Client
 
-/// Sends a provider's HTTP requests: with the package's `User-Agent`, following redirects only to the same host, and
-/// sending a request that fails again as the provider's ``RetryPolicy`` says.
+/// Sends a provider's HTTP requests: with the package's `User-Agent`, following redirects only to the same scheme, URL
+/// host and port, and sending a request that fails again as the provider's ``RetryPolicy`` says.
 ///
 /// A request is sent again only before any of its response is read: after a failed connection or a response that the
 /// policy retries. A response that asks for a longer wait than the policy allows fails the request at once instead,
@@ -369,7 +369,8 @@ extension RequestRetries {
 // MARK: - Waits a server asks for
 
 extension Duration {
-    /// The longest wait a header can ask for. A longer one, or one too large to represent, is cut to this.
+    /// The longest wait a header can ask for, in seconds: one day. A longer one, or one too large to represent, is cut
+    /// to this.
     private static let longestRetryDelay = 86_400.0
 
     /// The delay in a `Retry-After` header: a number of seconds, or an HTTP date.
@@ -414,7 +415,7 @@ extension Duration {
 
 // MARK: - Redirects
 
-/// Follows a redirect only to the scheme, host and port the request went to, so its credentials never reach another
+/// Follows a redirect only to the scheme, URL host and port the request went to, so its credentials never reach another
 /// server. A followed redirect keeps the request's credentials.
 ///
 /// A redirect elsewhere isn't followed, and the redirect response itself comes back, as a failed request.
@@ -443,7 +444,7 @@ final class SameHostRedirects: NSObject, URLSessionTaskDelegate, Sendable {
 }
 
 extension SameHostRedirects {
-    /// A URL's scheme, host and port, compared without case and with the scheme's default port filled in.
+    /// A URL's scheme, URL host and port, compared without case and with the scheme's default port filled in.
     private struct Origin: Equatable {
         let scheme: String?
         let host: String?
@@ -550,7 +551,7 @@ package enum HTTPStatus: Hashable, Sendable {
     case serviceUnavailable
     case gatewayTimeout
 
-    /// 524: a gateway's timeout waiting for the host behind it, as Cloudflare sends it.
+    /// 524: a gateway's timeout waiting for the server behind it, as Cloudflare sends it.
     case originTimeout
 
     /// 529: an overloaded host.
@@ -560,6 +561,7 @@ package enum HTTPStatus: Hashable, Sendable {
     /// ``notFound``.
     case other(Int)
 
+    /// The status with a number: by name when it has one, and ``other(_:)`` otherwise.
     package init(code: Int) {
         self =
             switch code {
@@ -584,6 +586,7 @@ package enum HTTPStatus: Hashable, Sendable {
             }
     }
 
+    /// The status's number, such as 404.
     package var code: Int {
         switch self {
         case .badRequest: 400

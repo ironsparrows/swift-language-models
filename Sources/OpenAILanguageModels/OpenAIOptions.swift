@@ -9,12 +9,12 @@ public struct OpenAIOptions: Sendable, Hashable {
     public var serviceTier: OpenAIServiceTier?
 
     /// How long and detailed the answers are, such as `low` for concise ones, or `nil` for the model's default. It goes
-    /// out as set, as the official SDKs send it: GPT-5 and later models take every value, while older ones, such as
-    /// o3 and GPT-4.1, take only `medium` and fail the request with an error that names `text.verbosity`.
+    /// out as set: GPT-5 and later models take every value, while older ones, such as o3 and GPT-4.1, take only
+    /// `medium` and fail the request with an error that names `text.verbosity`.
     public var verbosity: Verbosity?
 
-    /// The summary of its reasoning a model writes, which the answer's reasoning entry shows, or `nil` for none. A
-    /// model that reasons without one still sends its reasoning back on later turns, encrypted.
+    /// The summary of its reasoning a model writes, which the answer's reasoning entry shows, or `nil` for none. The
+    /// reasoning of a model that writes no summary still goes back on later turns, encrypted.
     public var reasoningSummary: ReasoningSummary?
 
     /// Whether the model may ask for several of the session's tools in one answer.
@@ -27,7 +27,7 @@ public struct OpenAIOptions: Sendable, Hashable {
     public var cacheKey: CacheKey?
 
     /// A stable id for the app's end user, such as a hash of their account, so OpenAI can tell users apart for abuse
-    /// checks. It goes out as `safety_identifier`.
+    /// checks, or `nil` for none. It goes out as `safety_identifier`.
     public var endUserID: String?
 
     /// Whether OpenAI keeps each response, as its `store` setting says.
@@ -106,6 +106,7 @@ extension OpenAIOptions {
             Self(kind: .named(key))
         }
 
+        /// Where the key's text comes from.
         enum Kind: Sendable, Hashable {
             case session
             case named(String)

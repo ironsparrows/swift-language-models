@@ -44,8 +44,8 @@ let package = Package(
             dependencies: ["LanguageModels", "LanguageModelsTestSupport"],
             swiftSettings: swiftSettings
         ),
-        // What the test targets share: HTTP stubs, a loopback server, fixtures, exact exchanges, the snapshot strategy for
-        // request bodies and live-test tools.
+        // What the test targets share: HTTP stubs, a loopback server, fixtures, exact exchanges, the checks every
+        // provider has to pass, the snapshot strategy for request bodies and live-test tools.
         .target(
             name: "LanguageModelsTestSupport",
             dependencies: ["LanguageModelsCore", .product(name: "InlineSnapshotTesting", package: "swift-snapshot-testing")],
@@ -57,6 +57,8 @@ let package = Package(
             resources: [.copy("Fixtures")],
             swiftSettings: swiftSettings
         ),
+        // Reads the providers' model lists into `Catalogs/`, and turns the catalogs into the Swift sources of the
+        // `Generated/` folders.
         .executableTarget(
             name: "ModelCatalogGenerator",
             swiftSettings: swiftSettings
@@ -67,6 +69,7 @@ let package = Package(
             resources: [.copy("Fixtures")],
             swiftSettings: swiftSettings
         ),
+        // Runs the generator's `fetch` and then its `render`, as `swift package plugin generate-model-catalog`.
         .plugin(
             name: "GenerateModelCatalog",
             capability: .command(

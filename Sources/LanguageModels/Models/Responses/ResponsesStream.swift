@@ -15,9 +15,9 @@ extension Responses {
     /// answer's `reasoning` items become its reasoning entry's signature, with the places of its messages and calls when
     /// they came between them, and the `phase` of each of its messages, with the length of the message's text, goes in its
     /// metadata, so both go back on later turns in their order. A cited page's offsets count from the start of the
-    /// answer's text. In a guided answer, as the official SDKs parse
-    /// it, only the first message with no phase or the `final_answer` phase holds the answer: the text of the others, such
-    /// as `commentary`, stays out of the response text, so the answer decodes, and goes in the metadata with its phase.
+    /// answer's text. In a guided answer, only the first message with no phase or the `final_answer` phase holds the
+    /// answer: the text of the others, such as `commentary`, stays out of the response text, so the answer decodes, and
+    /// goes in the metadata with its phase.
     struct Stream<Exchange: Responses.Exchange> {
         private let exchange: Exchange
         private let headers: ResponseHeaders
@@ -143,6 +143,10 @@ extension Responses.Stream {
         }
     }
 
+    /// Takes the facts of the event's response, then acts on the event by its kind.
+    ///
+    /// - Returns: Whether the event ends the answer.
+    /// - Throws: The exchange's error for an `error` event, a failed response, or an error object that can't be read.
     private mutating func receive(_ event: ResponseEvent, data: Data) async throws -> Bool {
         if let response = event.response { report.update(with: response) }
         switch event.type {
@@ -182,8 +186,8 @@ extension Responses.Stream {
         return false
     }
 
-    /// Starts an output item: a reasoning item starts the reasoning entry, a message its text, and a function call its
-    /// call.
+    /// Starts an output item: a reasoning item starts the reasoning entry, a message takes its phase and, in a guided
+    /// answer, whether it's held out, and a function call starts its call.
     private mutating func startItem(_ event: ResponseEvent) async {
         guard let item = event.item else { return }
         switch item.itemType {
@@ -258,6 +262,8 @@ extension Responses.Stream {
         index.flatMap { callIDs[$0] } ?? lastCallID
     }
 
+    /// Sends more of a function call's arguments and keeps them with what was sent. Text with no output index goes
+    /// without the id, so it continues the last call to start.
     private mutating func addArguments(_ text: String, callID: String?, index: Int?) async {
         guard !text.isEmpty else { return }
         if let callID { sentArguments[callID, default: ""] += text }
@@ -361,7 +367,7 @@ extension Responses.Stream {
     }
 
     /// The answer's output items in their order: its `reasoning` items, the messages that have text and the function
-    /// calls, by output index. A `reasoning` item without an index goes first, as when the order wasn't kept.
+    /// calls, by output index. A `reasoning` item whose event has no index goes first.
     private var outputOrder: [OutputItem] {
         let placed: [(index: Int, item: OutputItem)] =
             reasoningItems.map { ($0.index ?? -1, .reasoning($0.item)) }
@@ -417,7 +423,7 @@ private struct ResponseEvent: Decodable {
     let summaryIndex: Int?
     let contentIndex: Int?
 
-    /// The next part of a text, a refusal, a reasoning summary or a function call's arguments.
+    /// The next part of a text, a refusal, a reasoning summary, reasoning text or a function call's arguments.
     let delta: String?
 
     /// The output item of `response.output_item.added` and `response.output_item.done`, as JSON, so that a reasoning

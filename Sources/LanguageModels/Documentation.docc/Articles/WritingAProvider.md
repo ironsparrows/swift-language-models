@@ -84,7 +84,7 @@ module does these too:
 - Send every kind of transcript entry and attachment the provider takes.
 - Check the response text exactly as the response entry got it, without reasoning, so the check sees what Foundation
   Models decodes.
-- Follow redirects only to the same URL host, so credentials never reach another server.
+- Follow redirects only to the same scheme, URL host and port, so credentials never reach another server.
 
 ### Report what happened
 

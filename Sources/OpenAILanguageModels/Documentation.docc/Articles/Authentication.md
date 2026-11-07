@@ -8,9 +8,8 @@ Send requests with an API key, a key each person brings, or through a server of 
 ``OpenAIAuthentication/apiKey(organization:project:_:)`` sends them to OpenAI with a key,
 ``OpenAIAuthentication/apiKey(baseURL:organization:project:_:)`` sends them with a key to another server that speaks
 OpenAI's API, such as a gateway, and ``OpenAIAuthentication/proxied(baseURL:headers:)`` sends them to your own server,
-which adds the key.
-<doc:/LanguageModels/KeepingAPIKeysOutOfTheApp>
-compares the ways to ship without a key; this article covers what's particular to OpenAI.
+which adds the key. <doc:/LanguageModels/KeepingAPIKeysOutOfTheApp> compares the ways to ship without a key; this
+article covers what's particular to OpenAI.
 
 ### Use an API key
 
@@ -37,7 +36,8 @@ Leave either `nil` for the key's default:
 ``OpenAIAuthentication/apiKey(baseURL:organization:project:_:)`` sends the key the same way to another server that
 speaks OpenAI's API, such as your company's gateway or a test server. Its URL stands in for
 `https://api.openai.com/v1/`: requests go to the same path under it, `responses`, and follow redirects only to the
-same URL host. The key is still in the app, so to ship without one, send requests through your server instead.
+same scheme, URL host and port. The key is still in the app, so to ship without one, send requests through your server
+instead.
 
 ### Send requests through your server
 
@@ -46,14 +46,13 @@ it to OpenAI. The headers let the server authorize the caller:
 
 @Snippet(path: "swift-language-models/Snippets/OpenAIAuthentication", slice: "proxy")
 
-Requests go to the same path under the server's URL, `responses`, and follow redirects only to the same URL host, so the
-headers never reach another one. The headers are read for every request, so a token can refresh, and the package's own
-headers, `Content-Type`, `Accept` and `User-Agent`, take precedence over one of the same name. Return `[:]` when the
-server needs none.
+Requests go to the same path under the server's URL, `responses`, and follow redirects only to the same scheme, URL
+host and port, so the headers never reach another server. The headers are read for every request, so a token can
+refresh, and the package's own headers, `Content-Type`, `Accept` and `User-Agent`, take precedence over one of the same
+name. Return `[:]` when the server needs none.
 
-The proxy in
-<doc:/LanguageModels/KeepingAPIKeysOutOfTheApp>,
-in Swift, Node.js or Python, takes these settings for OpenAI:
+The proxy in <doc:/LanguageModels/KeepingAPIKeysOutOfTheApp>, in Swift, Node.js or Python, takes these settings for
+OpenAI:
 
 | Setting | Value |
 |---|---|

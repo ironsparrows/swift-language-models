@@ -3,8 +3,8 @@ public import LanguageModels
 
 /// Request settings that only OpenRouter has, beyond Foundation Models' generation options.
 ///
-/// Each sampling setting reaches the model only if the model lists its parameter, such as `frequency_penalty`, so a
-/// setting a model doesn't take is left out instead of failing the request. Router settings reach only the router
+/// Each sampling setting goes out only if the model and each fallback list its parameter, such as `frequency_penalty`,
+/// so a setting a model doesn't take is left out instead of failing the request. Router settings reach only the router
 /// model that reads them. Every setting left `nil` keeps the model's default.
 public struct OpenRouterOptions: Sendable, Hashable {
     /// Lowers the chance of a token by how often it already appeared, from -2 to 2.
@@ -61,9 +61,9 @@ public struct OpenRouterOptions: Sendable, Hashable {
     /// attempt, the edge region, the generation time and the plugins that changed the request or answer.
     ///
     /// ``OpenRouterResponseMetadata`` reads them from the entry that ends the answer, such as
-    /// ``OpenRouterResponseMetadata/routingStrategy``. An answer from the response cache never has them. Every request asks
-    /// OpenRouter for this report, since only the report says a guardrail blocked a request, and this decides whether
-    /// the answer keeps it.
+    /// ``OpenRouterResponseMetadata/routingStrategy``. An answer from the response cache never has them. Every request
+    /// asks OpenRouter for this report, since only the report says a guardrail blocked a request, and this decides
+    /// whether the answer keeps it.
     public var includesRouterMetadata: Bool
 
     /// Creates request settings.
@@ -225,8 +225,9 @@ extension OpenRouterOptions {
     ///
     /// Without one, OpenRouter passes a PDF to a model that reads PDFs itself, and has `mistral-ocr` read it for any
     /// other model. `mistral-ocr` reads scanned pages and images, and costs extra per page, from the account's
-    /// OpenRouter credits, also with the account's own provider keys. `cloudflare-ai` turns the PDF into text for free.
-    /// `native` passes the PDF to the model, billed as input tokens, and only models that read PDFs themselves take it.
+    /// OpenRouter credits, also with the account's own keys for hosts. `cloudflare-ai` turns the PDF into text for
+    /// free. `native` passes the PDF to the model, billed as input tokens, and only models that read PDFs themselves
+    /// take it.
     ///
     /// An engine other than `native` reads the PDF before the model sees it, also for a model that could read it
     /// itself, and the service it uses keeps what it's sent under its own policy.

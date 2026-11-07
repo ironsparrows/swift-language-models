@@ -4,14 +4,14 @@ package import Foundation
 
 /// A JSON value that writes the same bytes every time.
 ///
-/// Providers reuse a cached prompt only when the request starts with the same bytes as before, and `JSONEncoder`
-/// orders keys differently on every launch. Objects built in code keep the order they're written in; objects decoded
+/// Hosts reuse a cached prompt only when the request starts with the same bytes as before, and `JSONEncoder` orders
+/// keys differently on every launch. Objects built in code keep the order they're written in; objects decoded
 /// from JSON are sorted by key, so they come out the same however they arrived.
 package enum JSONValue: Sendable, Hashable {
     case null
     case bool(Bool)
     case integer(Int)
-    /// An integer too large for `Int`, kept digit for digit.
+    /// A number kept digit for digit: an integer too large for `Int`, or a `Decimal` that ``JSONValueEncoder`` encodes.
     case largeInteger(Decimal)
     case number(Double)
     case string(String)
@@ -72,7 +72,7 @@ package enum JSONValue: Sendable, Hashable {
         }
     }
 
-    /// A number without a fraction as an integer, and any other number in its shortest exact form. JSON has no
+    /// A number that `Int` holds exactly as an integer, and any other number in its shortest exact form. JSON has no
     /// infinity or NaN, so those become `null`.
     private static func text(of number: Double) -> String {
         guard number.isFinite else { return "null" }
@@ -104,6 +104,7 @@ package enum JSONValue: Sendable, Hashable {
 extension JSONValue: ExpressibleByDictionaryLiteral, ExpressibleByArrayLiteral, ExpressibleByStringLiteral,
     ExpressibleByIntegerLiteral, ExpressibleByFloatLiteral, ExpressibleByBooleanLiteral
 {
+    /// An object with the members that have a value, in the order written, so an optional member can be `nil`.
     package init(dictionaryLiteral elements: (String, JSONValue?)...) {
         self = .object(JSONObject(optionalMembers: elements))
     }
@@ -174,6 +175,7 @@ extension JSONValue: Decodable {
 
 /// A JSON object whose members keep their order when written.
 package struct JSONObject: Sendable, Hashable {
+    /// One key of the object and its value.
     package struct Member: Sendable, Hashable {
         package let key: String
         package fileprivate(set) var value: JSONValue
@@ -184,6 +186,7 @@ package struct JSONObject: Sendable, Hashable {
         }
     }
 
+    /// The members, in the order they're written.
     package private(set) var members: [Member]
 
     package init(_ members: [Member] = []) {
@@ -191,6 +194,8 @@ package struct JSONObject: Sendable, Hashable {
     }
 
     /// The value of the first member with the given key.
+    ///
+    /// Setting a value replaces that member's value in place, or adds a member at the end, and setting `nil` removes it.
     package subscript(key: String) -> JSONValue? {
         get { members.first { $0.key == key }?.value }
         set {
@@ -214,13 +219,13 @@ package struct JSONObject: Sendable, Hashable {
         hasher.combine(sortedByKey().members)
     }
 
-    /// The object with its members in a new order.
+    /// The object with its members in the given order.
     func sorted(by areInIncreasingOrder: (Member, Member) -> Bool) -> JSONObject {
         JSONObject(members.sorted(by: areInIncreasingOrder))
     }
 
     /// The object with the members of the given keys first, in that order, then the others in their own order, so a
-    /// body keeps the bytes it has always had however it was built.
+    /// body gives the same bytes however it was built.
     ///
     /// - Parameter keys: The keys in the order their members go.
     /// - Returns: The object.
@@ -237,7 +242,7 @@ package struct JSONObject: Sendable, Hashable {
 }
 
 extension JSONObject: ExpressibleByDictionaryLiteral {
-    /// An object with the members that have a value, in the order written, so an optional field can be `nil`.
+    /// An object with the members that have a value, in the order written, so an optional member can be `nil`.
     package init(dictionaryLiteral elements: (String, JSONValue?)...) {
         self.init(optionalMembers: elements)
     }
@@ -325,7 +330,8 @@ extension JSONValueEncoder {
             content = .value(value)
         }
 
-        /// The node of the member with the given key, added at the end unless the object already has it.
+        /// The node of the member with the given key, added at the end unless the object already has it. A member it
+        /// already has is emptied, so the value encoded last replaces the earlier one.
         func member(_ key: String) -> Node {
             var members: [(key: String, node: Node)] = if case .object(let members) = content { members } else { [] }
             if let existing = members.first(where: { $0.key == key }) {

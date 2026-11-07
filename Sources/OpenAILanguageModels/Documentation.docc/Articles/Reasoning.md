@@ -5,15 +5,14 @@ See which models reason, what a reasoning level becomes, and how reasoning comes
 ## Overview
 
 Foundation Models sets how much a model reasons with `ContextOptions.ReasoningLevel`, as
-<doc:/LanguageModels/ReasoningLevels>
-describes. An OpenAI model's ``OpenAIModel/reasoning`` says whether it reasons at all, and its
-``OpenAIModel/reasoningEfforts`` which levels it accepts:
+<doc:/LanguageModels/ReasoningLevels> describes. An OpenAI model's ``OpenAIModel/reasoning`` says whether it reasons at
+all, and its ``OpenAIModel/reasoningEfforts`` which levels it accepts:
 
 @Snippet(path: "swift-language-models/Snippets/OpenAIReasoning", slice: "level")
 
 ### Which models reason
 
-``OpenAIModel/reasoning`` is one of these `ModelReasoning` values:
+``OpenAIModel/reasoning`` is one of these ``ModelReasoning`` values:
 
 - `unsupported`: the model doesn't reason, such as GPT-4.1, and a request sends no `reasoning`.
 - `onByDefault`: the model accepts `none`, so a request can turn its reasoning off, such as GPT-6 Luna and GPT-5.5.
@@ -42,10 +41,10 @@ model that accepts it, and not always the effort the model uses when a request d
 
 A model that reasons takes `temperature` and `top_p` only while its effort is `none`. A request that sets another
 level leaves them out, even when the model lists them, as GPT-5.4 does, and so does any request to a model that always
-reasons, such as GPT-5 nano. A request that sets no level sends them to a model that can stop reasoning, as the
-official SDKs do, since the catalog's ``OpenAIModel/defaultReasoningEffort`` doesn't always match the model's own:
-GPT-5.4 mini takes them, although its catalog default is `medium`. OpenAI rejects them when the model's default isn't
-`none`. Each setting left out is logged, and a debug build shows a runtime warning for it.
+reasons, such as GPT-5 nano. A request that sets no level sends them to a model that can stop reasoning, since the
+catalog's ``OpenAIModel/defaultReasoningEffort`` doesn't always match the model's own: GPT-5.4 mini takes them, although
+its catalog default is `medium`. OpenAI rejects them when the model's default isn't `none`. Each setting left out is
+logged, and a debug build shows a runtime warning for it.
 
 ### Instructions
 
@@ -56,10 +55,9 @@ doesn't.
 
 The model's reasoning arrives in the transcript as a reasoning entry, before the answer's text. Reasoning that arrives
 after the answer's text starts, as between a `commentary` message and the final answer, isn't shown, but its
-`reasoning` items still go back on later turns. The entry's text is the summary
-of its reasoning that the model writes, when ``OpenAIOptions/reasoningSummary`` asks for one, or the model's reasoning
-text, when the model sends it. Each part of a summary starts after a blank line. The answer's usage counts the reasoning
-tokens in `output.reasoningTokenCount`.
+`reasoning` items still go back on later turns. The entry's text is the summary of its reasoning that the model writes,
+when ``OpenAIOptions/reasoningSummary`` asks for one, or the model's reasoning text, when the model sends it. Each part
+of a summary starts after a blank line. The answer's usage counts the reasoning tokens in `output.reasoningTokenCount`.
 
 ``OpenAIOptions/reasoningSummary`` has no default: without one, the request asks for no summary, and the reasoning entry
 has no text, but still carries the reasoning, encrypted, so it goes back on later turns.
@@ -104,8 +102,8 @@ goes back as an `assistant` message of its own, with its `phase`, as OpenAI asks
 answer's text, as when the text changed, the messages held out of the text go back first, then the whole text as one
 message with the phase of the last message shown in it.
 
-A guided answer decodes only its first message with no phase or the `final_answer` phase, as the official SDKs parse
-it. The text of its other messages, such as a `commentary` preamble, stays out of the answer's text, and
+A guided answer decodes only its first message with no phase or the `final_answer` phase. The text of its other
+messages, such as a `commentary` preamble, stays out of the answer's text, and
 ``OpenAIResponseMetadata/Message/heldText`` keeps it, with a ``OpenAIResponseMetadata/Message/length`` of 0, so it goes
 back in its place.
 

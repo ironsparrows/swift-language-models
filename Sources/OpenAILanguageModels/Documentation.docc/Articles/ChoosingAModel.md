@@ -43,8 +43,8 @@ run, name a dated snapshot, as <doc:RepeatableRuns> describes.
 The catalog comes from three lists:
 
 - OpenAI's OpenAPI description, which names the effort words, and the default effort, `medium`, which the catalog
-  records for every model that accepts it. A model's own default, which it uses
-  when a request doesn't set a level, can differ, as GPT-5.4 mini's does.
+  records for every model that accepts it. A model's own default, which it uses when a request doesn't set a level, can
+  differ, as GPT-5.4 mini's does.
 - OpenAI's list of the models it serves, `GET /v1/models`, with the day each one shuts down.
 - [models.dev](https://models.dev), which describes each model: its name, context size, input kinds and knowledge
   cutoff, whether it calls tools, holds its answers to a schema and takes a temperature, and whether it reasons, with
@@ -61,9 +61,8 @@ this model on" that day, so code that names it warns before it stops working. Me
 and `.gpt5_5`, aren't. A model that leaves the catalog keeps its member, marked `deprecated` with "Removed from OpenAI"
 and the day, which ``OpenAIModel/removalDate`` gives, and ``OpenAIModel/catalogModels`` and
 ``OpenAIModel/init(catalogID:)`` leave it out. A request that still names it logs an error and, in a debug build, shows
-a runtime warning.
-<doc:/LanguageModels/ModelCatalogs>
-says how every provider module's catalog changes, and which release each change needs.
+a runtime warning. <doc:/LanguageModels/ModelCatalogs> says how every provider module's catalog changes, and which
+release each change needs.
 
 ### What a model supports
 

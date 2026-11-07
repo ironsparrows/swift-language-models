@@ -115,8 +115,8 @@ struct AttachmentReader {
         }
     }
 
-    /// A data attachment's content: text decoded, an image as JPEG, a PDF named by its label, and any other kind as its
-    /// data.
+    /// A data attachment's content: text decoded, an image as JPEG, a PDF named by its label, or `document.pdf` without
+    /// one, and any other kind as its data.
     ///
     /// - Throws: `LanguageModelError.unsupportedTranscriptContent` for text or an image that can't be read.
     func content(of data: Data, type: UTType, label: String?, in entry: Transcript.Entry) throws -> Content {
@@ -190,7 +190,7 @@ extension AttachmentKind {
 
 // MARK: - Data URLs
 
-/// Bytes written inline as a URL, `data:<media type>;base64,<bytes>`, as chat APIs take attachments and return
+/// Bytes written inline as a URL, `data:<media type>;base64,<bytes>`, as provider APIs take attachments and return
 /// generated images.
 struct DataURL: Sendable, Equatable {
     /// The media type of the bytes, such as `image/png`, without parameters.

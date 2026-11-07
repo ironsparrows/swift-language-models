@@ -25,7 +25,7 @@ for images.
 |---|---|
 | Instructions | `system` message |
 | Prompt | `user` message |
-| Reasoning, response and tool calls of one answer | One `assistant` message, with `reasoning_details` and `tool_calls` |
+| Reasoning, response and tool calls of one answer | One `assistant` message, with `reasoning`, `reasoning_details` and `tool_calls` |
 | Tool output | `tool` message, matched by call id |
 | Attachment label | A text part just before the attachment |
 | Image attachment | An `image_url` part with a JPEG data URL: upright, on white, scaled down to at most 2,048 pixels on its longer side, without the image's metadata; an image at an http or https address goes as that address |
@@ -38,7 +38,7 @@ for images.
 | An image attachment when the model or a fallback doesn't take images | `LanguageModelError.unsupportedCapability` with `.vision`, before any request, as Foundation Models throws |
 | A data attachment the model or a fallback doesn't take, an image file included; an attachment in the instructions | `LanguageModelError.unsupportedTranscriptContent`, before any request |
 | An answer's attachments, generated data entries | Left out |
-| A request without a schema when every model generates images, from OS 27.2 | `modalities`: `["image", "text"]` |
+| A request without a schema when every model generates images, from OS 27.2 | `modalities`: `["image", "text"]`, or `["image"]` when a model generates no text |
 | Response schema | `response_format` `json_schema` with `strict`; a request is refused before it's sent unless every model lists `structured_outputs` |
 | Guides on a schema for a request that may reach an Anthropic model, whose structured outputs reject constraints, as the model or a fallback | The portable schema: constraints that some hosts reject, such as `minimum`, `maxItems` and `pattern`, move into the description, which every host takes |
 | Guides on a schema for any other request | The full schema; when the host rejects one of its constraints, with a 400 whose message names a constraint keyword and says it isn't supported, permitted or allowed, the request goes once more with the portable schema |
@@ -50,7 +50,7 @@ for images.
 | `maximumResponseTokens` | `max_completion_tokens` when every model lists it, otherwise `max_tokens` when every model lists that; left out, and logged, when neither is. OpenRouter picks a host that supports an answer that long, and still answers a limit above every host's |
 | `toolCallingMode` | `tool_choice`: `auto` or `required`, sent only with the session's tools; when disallowed, no tools at all, server tools included. When required, `LanguageModelError.unsupportedCapability` before any request if the model or a fallback doesn't list `tool_choice` |
 | `reasoningLevel` | `reasoning.effort`, moved to the nearest level that the model and every fallback accept, but only `.off` moves to `none`; `reasoning.enabled` when there's no such level, and `reasoning.enabled: false` for `.off` when `none` isn't among them and no model always reasons |
-| Request metadata | `metadata`, string values within OpenRouter's limits |
+| Request metadata | `metadata`: up to 16 string values, with keys of up to 64 characters and values of up to 512; the rest is left out and logged |
 | The transcript's first prompt | `session_id`, so requests of one session reach the host that cached their prompt; the `X-Session-Id` header instead while the response cache is on, since the cache compares the whole body |
 | The whole transcript | `plugins` with `context-compression` turned off, so OpenRouter never drops the middle of a transcript that doesn't fit |
 
@@ -70,7 +70,7 @@ for images.
 | ``OpenRouterRouting/maximumPrice`` | `provider.max_price`, each price a decimal string in US dollars |
 | ``OpenRouterRouting/preferredMinimumThroughput`` | `provider.preferred_min_throughput` in tokens per second: one number when only `p50` is set, otherwise an object of `p50`, `p75`, `p90` and `p99` |
 | ``OpenRouterRouting/preferredMaximumLatency`` | `provider.preferred_max_latency` in seconds, in the same forms |
-| ``OpenRouterLanguageModel/serverTools`` | `tools` entries after the session's tools, in order: `openrouter:web_search`, `openrouter:web_fetch`, `openrouter:datetime`, `openrouter:advisor` and `openrouter:subagent`, each with the `parameters` that are set, a reasoning level as the nearest effort OpenRouter lists; left out when tool calls are disallowed, and `LanguageModelError.unsupportedCapability` before any request when the model or a fallback doesn't list `tools`. They never set `tool_choice`. An advisor's or a subagent's exchange isn't returned |
+| ``OpenRouterLanguageModel/serverTools`` | `tools` entries after the session's tools, in the order given: `openrouter:web_search`, `openrouter:web_fetch`, `openrouter:datetime`, `openrouter:advisor` and `openrouter:subagent`, each with the `parameters` that are set, a reasoning level as the nearest effort OpenRouter lists; left out when tool calls are disallowed, and `LanguageModelError.unsupportedCapability` before any request when the model or a fallback doesn't list `tools`. They never set `tool_choice`. An advisor's or a subagent's exchange isn't returned |
 | ``OpenRouterLanguageModel/fallbacks`` | `models`, the ids after `model` in the order OpenRouter tries them |
 | ``OpenRouterRouting/variant`` | The variant as a suffix, such as `:nitro` or `:floor`, on `model` and on each id in `models`; everything else comes from the catalog models |
 | ``OpenRouterOptions/frequencyPenalty``, ``OpenRouterOptions/presencePenalty``, ``OpenRouterOptions/repetitionPenalty``, ``OpenRouterOptions/minP``, ``OpenRouterOptions/topA``, ``OpenRouterOptions/stopSequences``, ``OpenRouterOptions/logitBias`` | `frequency_penalty`, `presence_penalty`, `repetition_penalty`, `min_p`, `top_a`, `stop`, `logit_bias`, each when the model lists it |
@@ -92,9 +92,10 @@ for images.
 | ``OpenRouterAuthentication/apiKey(_:)`` | `Authorization: Bearer` header, to `https://openrouter.ai/api/v1/`; none for an empty key |
 | ``OpenRouterAuthentication/apiKey(baseURL:_:)`` | `Authorization: Bearer` header, to the same paths under its base URL; none for an empty key |
 | ``OpenRouterAuthentication/proxied(baseURL:headers:)`` | Its headers, to the same paths under its base URL, such as `chat/completions`, instead of `https://openrouter.ai/api/v1/` |
-| ``OpenRouterConfiguration/idleTimeout`` | The request's `timeoutInterval` |
+| ``OpenRouterConfiguration/idleTimeout`` | The `timeoutInterval` of a request for an answer; a model info call keeps the URL session's own timeout |
 | ``OpenRouterConfiguration/retries`` | Nothing OpenRouter sees: how many times, and after what wait, a failed request is sent again |
 | ``OpenRouterConfiguration/images`` | The longest side and JPEG quality of each `image_url` data URL |
+| ``OpenRouterConfiguration/infoCacheLifetime`` | Nothing OpenRouter sees: how long an answer of a model info call is kept |
 
 ### Answers
 
@@ -148,10 +149,12 @@ the same way for every provider module, as <doc:/LanguageModels/ReadingWhatAProv
 | A 403 for a spending budget that never resets | ``OpenRouterError`` with ``OpenRouterError/Code/budgetExceeded`` |
 | `content_policy_violation`, `finish_reason: content_filter`, a moderation 403, a 403 whose `openrouter_metadata.pipeline` has a `guardrail` stage with `data.action` `blocked` | `LanguageModelError.guardrailViolation` |
 | `refusal`, `delta.refusal` | `LanguageModelError.refusal` |
-| An answer with a value that breaks a guide of its schema, whichever schema was sent | `GeneratedContent.ParsingError`, which names the value and the guide, with a `GuideViolations` as its `underlyingError` |
+| An answer with a value that breaks a guide of its schema, whichever schema was sent | `GeneratedContent.ParsingError`, which names the value and the guide, with a ``GuideViolations`` as its `underlyingError` |
 | 408, 504, 524, `timeout`, a timed-out connection | `LanguageModelError.timeout` |
 | `unsupported_image_format`, `invalid_image`, `image_too_large`, `image_too_small` | `LanguageModelError.unsupportedTranscriptContent`, naming the entries with images |
 | A connection that fails otherwise, such as without a network | Its `URLError`, unchanged |
+| `finish_reason: error`, a host that failed while it generated | ``OpenRouterError`` with ``OpenRouterError/Code/server`` |
+| A stream cut off before `[DONE]` and any finish reason, an event that can't be read, a tool call without a name, with arguments that aren't a whole JSON object, or that reached the token limit | ``OpenRouterError`` with ``OpenRouterError/Code/invalidResponse`` |
 | Anything else | ``OpenRouterError``, with its status, code, host and retry delay |
 
 An error without `error_type` takes its code from the HTTP status, such as `authentication` for a 401 or
@@ -159,7 +162,7 @@ An error without `error_type` takes its code from the HTTP status, such as `auth
 own `code`: a number is the status, text such as `server_error` is the code, and without either the code is `server`.
 Its host is the one its metadata names, or else the chunk's `provider`.
 
-A failed connection, such as a timeout or a lost connection, and any status from 500 up are retried before any data
+A failed connection, such as a timeout or a lost connection, and any status from 500 to 599 are retried before any data
 arrives, and so is any status whose `x-should-retry` is `true`; `x-should-retry: false` throws without a retry. With the
 standard ``RequestRetries``, a request is retried up to twice, and a retry waits the `retry-after-ms` or `Retry-After`
 that OpenRouter asks for when that's more than zero and at most 2 minutes, and otherwise half a second, doubled for
@@ -183,7 +186,9 @@ The calls of <doc:ModelAndProviderInfo> read OpenRouter's lists with `GET`, and 
 | ``OpenRouterEndpoint/uptimeLast5Minutes``, ``OpenRouterEndpoint/uptimeLast30Minutes``, ``OpenRouterEndpoint/uptimeLastDay`` | `uptime_last_5m`, `uptime_last_30m`, `uptime_last_1d`, as percentages |
 | ``OpenRouterEndpoint/latencyLast30Minutes`` | `latency_last_30m`, its `p50`, `p75`, `p90` and `p99` read as milliseconds |
 | ``OpenRouterEndpoint/throughputLast30Minutes`` | `throughput_last_30m`, in tokens per second |
+| ``OpenRouterEndpoint/supportedParameters``, ``OpenRouterEndpoint/supportsImplicitCaching`` | `supported_parameters`, `supports_implicit_caching` |
 | ``OpenRouterPricing/discount`` | `pricing.discount`, of an endpoint or of the model's current details |
+| ``OpenRouterCurrentDetails/id``, ``OpenRouterCurrentDetails/displayName``, ``OpenRouterCurrentDetails/contextSize``, ``OpenRouterCurrentDetails/supportedParameters`` | `id`, `name`, `context_length`, `supported_parameters` |
 | ``OpenRouterCurrentDetails/maximumOutputTokens``, ``OpenRouterCurrentDetails/isModerated`` | `top_provider.max_completion_tokens`, `top_provider.is_moderated` |
 | ``OpenRouterCurrentDetails/aliasTarget`` | `alias_target.slug` |
 | ``OpenRouterCurrentDetails/expirationDate`` | `expiration_date`, at midnight UTC |

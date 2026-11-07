@@ -18,10 +18,10 @@ A `LanguageModelError` that a failure becomes carries the HTTP status, OpenRoute
 the request ran into in its metadata, which its `openRouter` reads as ``OpenRouterErrorMetadata``, in OpenRouter's
 types, and its `providerMetadata` reads as ``ProviderErrorMetadata``, the same way for every provider.
 
-A failed connection and any status from 500 up are retried up to twice, before any data arrives, and so is any status
-whose `x-should-retry` is `true`. A failure whose `x-should-retry` is `false` isn't retried, and one that asks for a
-wait longer than 2 minutes throws at once, with the wait on its error. <doc:Mapping#Errors> lists what each failure
-becomes.
+A failed connection and any status from 500 to 599 are retried up to twice, before any data arrives, and so is any
+status whose `x-should-retry` is `true`. A failure whose `x-should-retry` is `false` isn't retried, and one that asks
+for a wait longer than 2 minutes throws at once, with the wait on its error. <doc:Mapping#Errors> lists what each
+failure becomes.
 
 ### Read an answer's metadata
 
@@ -44,10 +44,10 @@ entry, so they sit on its first call, and `openRouter` on the `Transcript.ToolCa
 
 Saved transcripts keep these facts. The ones any provider can report, such as the model, the host and the cost, also
 read through `providerMetadata`, as ``ProviderResponseMetadata`` and ``ProviderUsageMetadata``, so code that reads them
-works with any language model in this package, as <doc:/LanguageModels/ReadingWhatAProviderReports> shows. OpenRouter calls the host that serves a model its provider, so
-``OpenRouterResponseMetadata/provider`` names the host. The model and host that answered depend on routing and
-fallbacks, as <doc:RoutingAndFallbacks> describes, and the response cache's facts on
-<doc:Caching#Answer-repeated-requests-from-the-response-cache>.
+works with any language model in this package, as <doc:/LanguageModels/ReadingWhatAProviderReports> shows. OpenRouter
+calls the host that serves a model its provider, so ``OpenRouterResponseMetadata/provider`` names the host. The model
+and host that answered depend on routing and fallbacks, as <doc:RoutingAndFallbacks> describes, and the response cache's
+facts on <doc:Caching#Answer-repeated-requests-from-the-response-cache>.
 
 ### Add up what a response cost
 
@@ -86,4 +86,4 @@ The strategy is an ``OpenRouterResponseMetadata/RoutingStrategy``, such as
 
 - [Errors and Debugging](https://openrouter.ai/docs/api_reference/errors-and-debugging)
 - [Router Metadata](https://openrouter.ai/docs/guides/features/router-metadata)
-- [BYOK](https://openrouter.ai/docs/guides/overview/auth/byok), for requests that the account's own provider keys pay
+- [BYOK](https://openrouter.ai/docs/guides/overview/auth/byok), for requests that the account's own keys for hosts pay

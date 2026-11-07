@@ -46,6 +46,7 @@ extension JSONValue {
         }
     }
 
+    /// The schema with `x-order` applied and removed at every level, and in strict mode every property required.
     private func adaptedSchema(strict: Bool) -> JSONValue {
         switch self {
         case .array(let elements):
@@ -109,8 +110,8 @@ extension GeneratedContent {
 // MARK: - Schema names and prompts
 
 extension GenerationSchema {
-    /// The schema's name as APIs that name a response schema take it: letters, digits, `_` and `-`, up to 64
-    /// characters, with `response` for a name that keeps none.
+    /// The schema's name as APIs that name a response schema take it: letters, digits, `_` and `-`, with `_` for any
+    /// other character, up to 64 characters, and `response` for an empty name.
     package var wireName: String {
         let allowed = Set("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-")
         let name = String(name.map { allowed.contains($0) ? $0 : "_" }.prefix(64))
@@ -136,8 +137,8 @@ extension JSONValue {
         "required", "title", "type",
     ]
 
-    /// The schema with every keyword outside the portable ones moved into its description, as `{key: value, …}` after
-    /// a blank line, so the model still reads the constraint.
+    /// The schema with every keyword outside the portable ones moved into its description, as `{key: value, …}`, after a
+    /// blank line when it has a description, so the model still reads the constraint.
     package var portableSchema: JSONValue {
         guard case .object(let schema) = self else { return self }
         var kept = JSONObject()

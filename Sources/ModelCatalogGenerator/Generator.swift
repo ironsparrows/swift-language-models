@@ -14,6 +14,7 @@ enum Generator {
         let skippedEntryIDs: [String]
     }
 
+    /// Runs the command line's subcommand, or prints the usage for `--help`, and exits with the code of a failure.
     static func main() async {
         do {
             let currentDirectory = URL(filePath: FileManager.default.currentDirectoryPath, directoryHint: .isDirectory)
@@ -35,8 +36,8 @@ enum Generator {
     ///   - command: The parsed command.
     ///   - session: The session for `fetch`.
     ///   - baseURL: Where every source's documents live, replacing each source's own addresses.
-    ///   - environment: The environment variables, which hold the API keys some sources' model lists need.
-    ///   - today: The day recorded for removed models.
+    ///   - environment: The environment variables, which hold the API key a source's list of served models needs.
+    ///   - today: The day of a fetch, in UTC, which it records for what a source stopped listing.
     ///   - log: Where progress messages go.
     /// - Throws: The ``GeneratorError`` that ended the run.
     static func run(
@@ -352,7 +353,7 @@ enum GeneratorError: Error, Equatable, CustomStringConvertible {
     /// The command line couldn't be parsed.
     case usage(String)
 
-    /// A source failed or returned data that looks broken, so nothing was written.
+    /// A source failed or returned data that looks broken, so its files weren't written.
     case brokenSource(String)
 
     /// The generated files differ from the ones in the package.

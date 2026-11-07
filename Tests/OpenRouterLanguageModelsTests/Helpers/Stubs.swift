@@ -10,7 +10,7 @@ let chatParameters: Set<OpenRouterParameter> = [
     .maxTokens, .reasoning, .responseFormat, .seed, .structuredOutputs, .temperature, .toolChoice, .tools, .topK, .topP,
 ]
 
-/// A model served by a stub, with the shared retry policy without its waits.
+/// A model served by a stub, with the standard retries without their waits.
 func model<Effort: ModelEffort>(
     _ stub: HTTPStub,
     id: OpenRouterModelID = "vendor/model",
@@ -174,7 +174,7 @@ func chunk(_ delta: JSONValue, finishReason: String? = nil, usage: JSONValue? = 
     return ["id": "gen-1", "model": "vendor/model", "provider": "Vendor", "choices": [choice], "usage": usage]
 }
 
-/// The chunk with the given top-level fields added or replaced, such as `service_tier`.
+/// The chunk with the given top-level members added or replaced, such as `service_tier`.
 func adding(_ fields: [String: JSONValue], to chunk: JSONValue) -> JSONValue {
     guard case .object(var object) = chunk else { return chunk }
     for (key, value) in fields { object[key] = value }
@@ -186,7 +186,7 @@ func text(_ text: String, finishReason: String? = nil) -> JSONValue {
     chunk(["content": .string(text)], finishReason: finishReason)
 }
 
-/// A chunk with one tool-call fragment. A fragment without an index leaves the field out.
+/// A chunk with one tool-call fragment. A fragment without an index leaves the member out.
 func toolCall(_ index: Int?, id: String? = nil, name: String? = nil, arguments: String? = nil) -> JSONValue {
     let function: JSONValue = ["name": name.map(JSONValue.string), "arguments": arguments.map(JSONValue.string)]
     let fragment: JSONValue = [

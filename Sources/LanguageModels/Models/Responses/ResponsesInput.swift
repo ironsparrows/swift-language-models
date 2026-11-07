@@ -16,7 +16,7 @@ extension Responses {
     /// back, since a reasoning item needs an item after it. Each tool output becomes a `function_call_output` item,
     /// matched to its call by `call_id`. Prompts and tool outputs carry their attachments as input parts;
     /// generated data and an answer's attachments aren't sent back. Every entry turns into the same JSON each time, so
-    /// a provider's prompt cache stays valid from one request to the next.
+    /// a host's prompt cache stays valid from one request to the next.
     struct Input {
         private var items: [Item] = []
 
@@ -120,7 +120,8 @@ extension Responses {
                     text += response.segments.compactMap(\.text).joined()
                     phases += MetadataValues(response.metadata).structures(phasesKey).compactMap(MessagePhase.init)
                 case .toolCalls(let toolCalls):
-                    // An answer that ends in tool calls keeps its facts, its messages' phases among them, on its first call.
+                    // An answer that ends in tool calls keeps its facts, its messages' phases among them, on its first
+                    // call.
                     if phases.isEmpty, let first = toolCalls.first {
                         phases = MetadataValues(first.metadata).structures(phasesKey).compactMap(MessagePhase.init)
                     }
@@ -282,7 +283,7 @@ private enum Part: Encodable {
     }
 }
 
-/// The role of a message: the person's, the model's, or the instructions' role that the model picks.
+/// The role of a message: `user`, `assistant`, or the one ``Responses/Model/instructionsRole`` gives the instructions.
 private struct MessageRole: ProviderVocabulary {
     static let user: Self = "user"
     static let assistant: Self = "assistant"

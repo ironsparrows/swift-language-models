@@ -10,7 +10,7 @@ extension LiveTests {
     @Suite("Caching")
     struct Caching {
         /// Models that cache on their own, or with the marks that automatic caching sends, but don't promise a hit.
-        /// Gemini is marked too, which switches it to explicit caching.
+        /// Gemini also runs marked, with `.always`, which switches it to explicit caching.
         static let bestEffortModels = [
             LiveModel(.openaiGpt4_1Nano),
             LiveModel(.googleGemini2_5FlashLite),

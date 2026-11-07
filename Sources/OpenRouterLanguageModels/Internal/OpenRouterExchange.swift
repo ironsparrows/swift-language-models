@@ -29,9 +29,9 @@ extension OpenRouterLanguageModel {
 
 // MARK: - Exchange
 
-/// OpenRouter's part in one exchange: the fallback models, routing, plugins, server tools, session id and cache marks its
-/// requests add, the parameters its models list, the headers that name the app, and the reasoning, images, costs and
-/// errors its chunks carry.
+/// OpenRouter's part in one exchange: the fallback models, routing, plugins, server tools, session id and cache marks
+/// its requests add, the parameters its models list, the headers that name the app, and the reasoning, images, costs
+/// and errors its chunks carry.
 ///
 /// Every method with a default is here, in the type that declares the conformance, so a misspelled one draws a warning
 /// instead of silently keeping the default.
@@ -47,9 +47,9 @@ struct OpenRouterExchange: ChatCompletions.Exchange {
 
     /// The host that served the answer.
     ///
-    /// This and the three values after it are what OpenRouter's chunks report about one answer beyond the format's facts.
-    /// Chunks repeat some facts and leave out others, so a fact that a chunk reports replaces the earlier one, and one it
-    /// leaves out keeps its earlier value.
+    /// This and the three values after it are what OpenRouter's chunks report about one answer beyond the format's
+    /// facts. Chunks repeat some facts and leave out others, so a fact that a chunk reports replaces the earlier one,
+    /// and one it leaves out keeps its earlier value.
     private var host: OpenRouterProviderName?
 
     /// What OpenRouter added to the usage the last chunk with usage reported.
@@ -62,8 +62,8 @@ struct OpenRouterExchange: ChatCompletions.Exchange {
     /// expect it back.
     private var reasoningDetails: ReasoningDetails?
 
-    /// The order OpenRouter's requests have always sent their members in, which a host's prompt cache and OpenRouter's
-    /// response cache depend on.
+    /// The order of a request's members, which never changes, since a host's prompt cache and OpenRouter's response
+    /// cache depend on it.
     fileprivate static let memberOrder: [ChatCompletions.Member] = [
         .model, .models, .messages, .modalities, .stream, .tools, .toolChoice, .parallelToolCalls, .responseFormat, .reasoning,
         .temperature, .topP, .topK, .seed, .maxCompletionTokens, .maxTokens, .frequencyPenalty, .presencePenalty, .repetitionPenalty,
@@ -116,7 +116,8 @@ struct OpenRouterExchange: ChatCompletions.Exchange {
         }
     }
 
-    /// Whether OpenRouter's reasoning goes back: only to the model that wrote it.
+    /// Whether OpenRouter's reasoning goes back: to the model that wrote it, and when it names no writer or one that
+    /// neither the model nor a fallback names.
     func replays(_ reasoning: Transcript.Reasoning) -> Bool {
         model.replaysReasoning(writtenBy: reasoning.writer)
     }
@@ -128,10 +129,12 @@ struct OpenRouterExchange: ChatCompletions.Exchange {
 
     // MARK: Before it is sent
 
-    /// OpenRouter's headers and members, and each setting that the model or a fallback doesn't list left out.
+    /// Adds OpenRouter's headers and members to the request, and picks what goes out of the format's own: the session's
+    /// tools, the token limit's member and the form of the schema.
     ///
-    /// A model's list holds every parameter any of its hosts takes, so with tools or a schema, when the request asks
-    /// for hosts that take all it sends, each setting sent also narrows its hosts.
+    /// The request then leaves out each setting that the model or a fallback doesn't list. A model's list holds every
+    /// parameter any of its hosts takes, so with tools or a schema, when the request asks for hosts that take all it
+    /// sends, each setting sent also narrows its hosts.
     ///
     /// - Throws: `LanguageModelError.unsupportedCapability` when tool calls are required and a model doesn't take
     ///   `tool_choice`, when there are server tools and a model doesn't take tools, and for a schema when a model
@@ -180,8 +183,8 @@ struct OpenRouterExchange: ChatCompletions.Exchange {
                 user: options.endUserID,
                 provider: model.routing.member(needsParameters: needsParameters),
                 plugins: Self.plugins(for: model.modelIDs, options: options, carriesPDF: request.carriesPDF),
-                // The response cache compares the whole body, and the session id differs for every session, so it goes in a
-                // header while the cache is on, and new sessions can repeat an earlier request.
+                // The response cache compares the whole body, and the session id differs for every session, so it goes
+                // in a header while the cache is on, and new sessions can repeat an earlier request.
                 sessionID: model.responseCache == nil ? Self.sessionID(request.firstPromptID) : nil,
                 cacheControl: model.requestCacheControl?.directive
             ))
@@ -201,8 +204,8 @@ struct OpenRouterExchange: ChatCompletions.Exchange {
         }
     }
 
-    /// The response cache's settings, the session id while the cache is on, the request for router metadata, which every
-    /// request sends because only the router's report says a guardrail blocked it, and the app's name, address,
+    /// The response cache's settings, the session id while the cache is on, the request for router metadata, which
+    /// every request sends because only the router's report says a guardrail blocked it, and the app's name, address,
     /// categories and visibility.
     private func headers(firstPromptID: String?) -> [String: String] {
         var headers = model.responseCache?.headers(sessionID: Self.sessionID(firstPromptID)) ?? [:]
@@ -260,8 +263,9 @@ struct OpenRouterExchange: ChatCompletions.Exchange {
         return (effort.map(Members.Reasoning.effort), moved)
     }
 
-    /// The output kinds to ask for: images and text when every model generates images and the request has no schema,
-    /// so their images come back as data entries; otherwise none, which means text.
+    /// The output kinds to ask for. When every model generates images and the request has no schema, that's images,
+    /// with text when every model generates it too, so the images come back as data entries. Otherwise it's none,
+    /// which means text.
     ///
     /// Before the OS version that has data entries, and in a build with an SDK before Xcode 27.2's, images aren't
     /// asked for, since they couldn't reach the session.
@@ -348,9 +352,10 @@ struct OpenRouterExchange: ChatCompletions.Exchange {
             reasoningSignature: reasoningDetails?.signature)
     }
 
-    /// `LanguageModelError` for a failure Foundation Models has a case for, and `OpenRouterError` for the rest: with
-    /// `invalidResponse` for a response the format couldn't use, naming the host unless an event couldn't be read, and
-    /// with `server` for an answer that ended in the host's failure.
+    /// What a failure becomes. A rejected response or an error event becomes `LanguageModelError` when Foundation
+    /// Models has a case for it, and `OpenRouterError` otherwise. Any other failure becomes `OpenRouterError`: with
+    /// `server` for an answer that ended in the host's failure, and with `invalidResponse` for an answer the format
+    /// can't use, each naming the host, or for an event it can't read, which names none.
     func error(for failure: RequestFailure<OpenRouterErrorResponse>) -> any Error {
         switch failure.kind {
         case .rejected:
@@ -451,7 +456,7 @@ struct OpenRouterChunkExtras: Decodable {
     }
 
     /// What OpenRouter's router did for the request, on the last chunk or beside the error of a failed response. Every
-    /// field is optional, since OpenRouter adds fields over time and leaves some out.
+    /// member is optional, since OpenRouter adds members over time and leaves some out.
     struct RouterMetadata: Decodable {
         struct Endpoints: Decodable {
             struct Endpoint: Decodable {
@@ -701,16 +706,17 @@ extension OpenRouterOptions.ParallelToolCalls {
 }
 
 extension OpenRouterInputModality {
-    /// The kinds of audio and movies OpenRouter takes beyond the format's, each with its part: audio in the formats only
-    /// OpenRouter takes, as `input_audio` with its format, then movies, as `video_url` data URLs, each in the order
-    /// OpenRouter's kinds are matched.
+    /// The kinds of audio and movies OpenRouter takes beyond Chat Completions' WAV and MP3, each with its part: audio
+    /// as `input_audio` with its `format` value, then movies as `video_url` data URLs, each in the order OpenRouter's
+    /// kinds are matched.
     fileprivate static var media: [ChatCompletions.MediaPart] {
         let audio = audioTypes.compactMap { type in audioNames[type].map { ChatCompletions.MediaPart.audio(type, format: $0) } }
         let video = videoTypes.compactMap { type in videoNames[type].map { ChatCompletions.MediaPart.video(type, mediaType: $0) } }
         return audio + video
     }
 
-    /// OpenRouter's `input_audio` format for each kind of audio it takes beyond WAV and MP3, which the format names.
+    /// The `input_audio` `format` value of each kind of audio OpenRouter takes beyond WAV and MP3, which Chat
+    /// Completions names itself.
     private static var audioNames: [UTType?: String] {
         [
             .aiff: "aiff", .mpeg4Audio: "m4a", UnnamedType.aacAudio: "aac", UnnamedType.flacAudio: "flac", UnnamedType.oggAudio: "ogg",

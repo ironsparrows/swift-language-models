@@ -26,8 +26,8 @@ cancellation `CancellationError`, as for a failed connection.
 
 ``OpenRouterAuthentication/apiKey(baseURL:_:)`` sends the key the same way to another server that speaks OpenRouter's
 API, such as your company's gateway or a test server. Requests go to the same paths under its URL, such as
-`chat/completions`, and follow redirects only to the same URL host. Model info calls go there too. The key is still in the
-app, so to ship without one, send requests through your server instead.
+`chat/completions`, and follow redirects only to the same scheme, URL host and port. Model info calls go there too. The
+key is still in the app, so to ship without one, send requests through your server instead.
 
 ### Let each person sign in
 
@@ -51,9 +51,9 @@ forwards it to OpenRouter. The headers let the server authorize the caller:
 @Snippet(path: "swift-language-models/Snippets/QuickStart", slice: "proxy")
 
 Requests go to the same paths under the server's URL, such as `chat/completions`, and follow redirects only to the
-same URL host, so the headers never reach another one. The headers are read for every request, so a token can refresh,
-and the package's own headers, such as `Content-Type`, take precedence over one of the same name. Model info calls,
-such as ``OpenRouterLanguageModel/endpoints()``, go to the server too.
+same scheme, URL host and port, so the headers never reach another server. The headers are read for every request, so a
+token can refresh, and the package's own headers, such as `Content-Type`, take precedence over one of the same name.
+Model info calls, such as ``OpenRouterLanguageModel/endpoints()``, go to the server too.
 
 With the `AppToken` from
 <doc:/LanguageModels/KeepingAPIKeysOutOfTheApp>,
@@ -78,7 +78,7 @@ The headers it passes:
   `X-OpenRouter-Metadata`, `X-OpenRouter-Cache`, `X-OpenRouter-Cache-TTL`, `X-OpenRouter-Cache-Clear` and
   `X-Session-Id`, which carries the session id while the response cache is on.
 - **Back to the app:** `X-OpenRouter-Cache-Status`, `X-OpenRouter-Cache-Age`, `X-OpenRouter-Cache-Source-Id`,
-  `Retry-After` and `X-RateLimit-Reset`.
+  `retry-after-ms`, `Retry-After`, `x-should-retry` and `X-RateLimit-Reset`.
 
 The module sends `chat/completions` as a `POST`, whose answer streams as server-sent events, and the other two paths as
 `GET`s.

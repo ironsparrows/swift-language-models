@@ -7,9 +7,9 @@ struct CatalogSnapshot: Codable, Equatable, Sendable {
     let source: CatalogSource
     let models: [CatalogModel]
     let removed: [RemovedModel]
-    /// Every word of each vocabulary, sorted, including the words the source no longer uses.
+    /// Every word of each vocabulary, sorted, including the words the source stopped using.
     let vocabularies: [CatalogVocabulary: [CatalogWord]]
-    /// Every effort word, highest first, including the words the source no longer uses.
+    /// Every effort word, highest first, including the words the source stopped using.
     let efforts: [CatalogWord]
 
     /// The largest share of the earlier snapshot's models that one fetch can lose. Losing more at once more likely
@@ -20,9 +20,9 @@ struct CatalogSnapshot: Codable, Equatable, Sendable {
     /// The snapshot after a fetch: new and changed models replace old ones, and missing models move to `removed`.
     ///
     /// Each of the source's vocabularies, and the efforts, hold the words the source lists and the words its models
-    /// use. A word that's in neither any more stays, marked removed. A model keeps each effort it accepted before and
-    /// no longer does, marked removed. The source's own order of efforts decides the order of its words; the models'
-    /// lists place the others.
+    /// use. A word of the earlier snapshot that's in neither stays, marked removed, unless the provider's module names
+    /// it in its own code. A model keeps each effort it stopped accepting, marked removed. The source's own order of
+    /// efforts decides the order of its words; the models' lists place the others.
     ///
     /// - Parameters:
     ///   - source: The source the models came from.
@@ -92,7 +92,7 @@ struct CatalogSnapshot: Codable, Equatable, Sendable {
         }
     }
 
-    /// The earlier snapshot's models that the fetch no longer lists.
+    /// The earlier snapshot's models that the fetch doesn't list.
     private static func lostModels(_ fetched: FetchedCatalog, previous: CatalogSnapshot?) -> [CatalogModel] {
         let fetchedIDs = fetched.modelIDs
         return (previous?.models ?? []).filter { !fetchedIDs.contains($0.id) }
@@ -147,8 +147,8 @@ struct CatalogSnapshot: Codable, Equatable, Sendable {
         return ranking.words.compactMap { effortsByWord[$0] }
     }
 
-    /// The fetched models, each with the efforts it accepted in the earlier snapshot, listed or removed, and no longer
-    /// does, marked removed. An effort the model accepts again stops being removed.
+    /// The fetched models, each with the efforts it accepted in the earlier snapshot, listed or removed, and stopped
+    /// accepting, marked removed. An effort the model accepts again stops being removed.
     private static func withRemovedEfforts(
         _ models: [CatalogModel],
         previous: CatalogSnapshot?,
@@ -171,7 +171,7 @@ struct CatalogSnapshot: Codable, Equatable, Sendable {
     }
 
     /// The words a source lists, then the other words its models use, then the words of an earlier snapshot that are
-    /// in neither any more: kept as they were when the module's code names them, and otherwise marked removed.
+    /// in neither: kept as they were when the module's code names them, and otherwise marked removed.
     private static func words(
         listed: [CatalogWord],
         used: [String],
@@ -278,7 +278,8 @@ enum CatalogVocabulary: String, Codable, CodingKeyRepresentable, Sendable {
     case webSearchEngines
     case webSearchModes
 
-    /// The vocabulary's words that a model uses, which are none for a vocabulary of request settings.
+    /// The vocabulary's words that a model uses, which are none for a vocabulary a model doesn't list, such as the web
+    /// search engines.
     fileprivate func words(of model: CatalogModel) -> [String] {
         switch self {
         case .inputModalities: model.inputModalities

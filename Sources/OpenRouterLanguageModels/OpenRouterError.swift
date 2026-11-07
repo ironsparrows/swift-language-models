@@ -16,7 +16,7 @@ public struct OpenRouterError: Error, Sendable, Equatable, LocalizedError {
     /// code that isn't a number.
     public let status: Int?
 
-    /// What went wrong: the model host's own message when it gave one, otherwise OpenRouter's.
+    /// What went wrong: the host's own message when it gave one, otherwise OpenRouter's.
     public let message: String
 
     /// What kind of failure it was, such as `authentication` or `paymentRequired`: OpenRouter's error type, or when
@@ -136,7 +136,7 @@ extension OpenRouterError {
         /// OpenRouter or the host failed.
         public static let server: Self = "server"
 
-        /// A failure that neither OpenRouter's error type nor the HTTP status classifies.
+        /// A failure that neither OpenRouter's error type, the HTTP status nor the host's own code classifies.
         public static let unmapped: Self = "unmapped"
 
         /// The package's own code for a request that ran into a spending budget that never resets, such as a key's
@@ -162,7 +162,7 @@ extension OpenRouterError {
 
 /// The `error` object OpenRouter sends in a failed response's body, or in a stream event with HTTP 200.
 struct OpenRouterErrorResponse: Decodable, Sendable {
-    /// The HTTP status as a number, or a provider's code as text.
+    /// The HTTP status as a number, or a host's code as text.
     private(set) var code: JSONValue? = nil
     let message: String
     private(set) var metadata: JSONValue? = nil
@@ -209,12 +209,12 @@ struct OpenRouterErrorResponse: Decodable, Sendable {
         return text
     }
 
-    /// The host's own message when it gave one, since OpenRouter's is often only "Provider returned error".
+    /// The host's own message when it gave one, otherwise OpenRouter's, which is often only "Provider returned error".
     fileprivate var bestMessage: String {
         Self.message(in: metadata?["raw"]) ?? message
     }
 
-    /// A message in a host's raw error: a string, a string of JSON, or an object with a message field.
+    /// A message in a host's raw error: a string, a string of JSON, or an object with a message member.
     private static func message(in raw: JSONValue?) -> String? {
         switch raw {
         case .string(let text)?:
@@ -255,7 +255,7 @@ struct OpenRouterFailure: Sendable {
     /// The `error` object, or one with the status's own text when the response had none, such as a gateway's HTML
     /// page.
     private let body: OpenRouterErrorResponse
-    /// How long OpenRouter asks to wait, from the `Retry-After` or `X-RateLimit-Reset` header.
+    /// How long OpenRouter asks to wait, from the `retry-after-ms`, `Retry-After` or `X-RateLimit-Reset` header.
     private let retryAfter: Duration?
     /// The kind of failure.
     let code: OpenRouterError.Code
@@ -284,7 +284,7 @@ struct OpenRouterFailure: Sendable {
         isGuardrailBlock = routerReport?.isGuardrailBlock == true
     }
 
-    /// A failed response, with the delay its `Retry-After` or `X-RateLimit-Reset` header asks for.
+    /// A failed response, with the delay its `retry-after-ms`, `Retry-After` or `X-RateLimit-Reset` header asks for.
     init(_ rejected: RequestFailure<OpenRouterErrorResponse>) {
         self.init(
             status: rejected.status ?? .other(0),
@@ -328,8 +328,8 @@ struct OpenRouterFailure: Sendable {
     }
 
     /// The `LanguageModelError` case the failure becomes: the one for its code, or for a 402 or 403 that the response
-    /// shows to be a rate limit, a moderation flag or a guardrail's block, or `nil` when it becomes an `OpenRouterError`.
-    /// A status that stands for one of these cases already gave the failure its code.
+    /// shows to be a rate limit, a moderation flag or a guardrail's block, or `nil` when it becomes an
+    /// `OpenRouterError`. A status that stands for one of these cases already gave the failure its code.
     private func providerFailure(
         message: String, contextSize: Int?, imageEntries: [Transcript.Entry], now: Date
     ) -> LanguageModelError.ProviderFailure? {
@@ -360,7 +360,8 @@ struct OpenRouterFailure: Sendable {
 
     /// The kind of failure: the error type the body names, then the type its status stands for, then the code the body
     /// names as text, such as a host's `server_error`. A 400 whose message names the context's length or window is an
-    /// oversized prompt, which OpenRouter rejects itself before any host sees it.
+    /// oversized prompt, which OpenRouter rejects itself before any host sees it, and a 403 that names a limit source
+    /// is a spending budget that ran out.
     ///
     /// - Returns: The code, or `nil` when neither the body nor the status names one.
     private static func code(of body: OpenRouterErrorResponse, status: HTTPStatus?) -> OpenRouterError.Code? {
@@ -371,9 +372,9 @@ struct OpenRouterFailure: Sendable {
         return body.textCode.map(OpenRouterError.Code.init(rawValue:))
     }
 
-    /// The error type a status stands for, for a body that doesn't name one, or `nil` for a status that stands for none.
-    /// OpenRouter's own 502 and 503 mean no host could serve the request, a 504 or 524 is a gateway that timed out, and a
-    /// 529 is an overloaded host.
+    /// The error type a status stands for, for a body that doesn't name one, or `nil` for a status that stands for
+    /// none. OpenRouter's own 502 and 503 mean no host could serve the request, a 504 or 524 is a gateway that timed
+    /// out, and a 529 is an overloaded host.
     private static func code(for status: HTTPStatus) -> OpenRouterError.Code? {
         switch status {
         case .badRequest: .invalidRequest
