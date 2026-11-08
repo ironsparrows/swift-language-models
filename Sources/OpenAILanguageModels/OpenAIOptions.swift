@@ -22,6 +22,11 @@ public struct OpenAIOptions: Sendable, Hashable {
     /// Calls that arrive in one answer run as one round either way.
     public var parallelToolCalls: ParallelToolCalls
 
+    /// The most calls to ``OpenAILanguageModel/serverTools`` in one request, of every tool together, or `nil` for no
+    /// limit. Each round of the session's tool calls is a request of its own. OpenAI ignores the calls the model asks for
+    /// past it. It goes out as `max_tool_calls`, only with the server tools.
+    public var maximumServerToolCalls: Int?
+
     /// The key that groups requests whose prompts start the same, so OpenAI's cache serves their shared start more
     /// often, or `nil` for none.
     public var cacheKey: CacheKey?
@@ -40,6 +45,7 @@ public struct OpenAIOptions: Sendable, Hashable {
     ///   - verbosity: How long and detailed the answers are.
     ///   - reasoningSummary: The summary of its reasoning a model writes.
     ///   - parallelToolCalls: Whether the model may ask for several of the session's tools in one answer.
+    ///   - maximumServerToolCalls: The most calls to server tools in one request.
     ///   - cacheKey: The key that groups requests whose prompts start the same.
     ///   - endUserID: A stable id for the app's end user.
     ///   - storage: Whether OpenAI keeps each response.
@@ -48,6 +54,7 @@ public struct OpenAIOptions: Sendable, Hashable {
         verbosity: Verbosity? = nil,
         reasoningSummary: ReasoningSummary? = nil,
         parallelToolCalls: ParallelToolCalls = .automatic,
+        maximumServerToolCalls: Int? = nil,
         cacheKey: CacheKey? = nil,
         endUserID: String? = nil,
         storage: Storage = .automatic
@@ -56,6 +63,7 @@ public struct OpenAIOptions: Sendable, Hashable {
         self.verbosity = verbosity
         self.reasoningSummary = reasoningSummary
         self.parallelToolCalls = parallelToolCalls
+        self.maximumServerToolCalls = maximumServerToolCalls
         self.cacheKey = cacheKey
         self.endUserID = endUserID
         self.storage = storage
@@ -78,7 +86,8 @@ extension OpenAIOptions {
     /// Whether OpenAI keeps a response.
     ///
     /// The package sends each request's whole transcript, and every reasoning item goes back encrypted, so later turns
-    /// work the same whether or not OpenAI keeps the response.
+    /// work the same whether or not OpenAI keeps the response, apart from a generated image, whose call goes back only
+    /// while OpenAI keeps the responses.
     public enum Storage: Sendable, Hashable {
         /// OpenAI's own default, which keeps responses, with no `store` in the request.
         case automatic

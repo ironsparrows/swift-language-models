@@ -230,7 +230,7 @@ else needs:
 | A transcript reader | `ChatCompletionsTranscript.swift`, `ResponsesInput.swift` | Turns · Attachments · Wire |
 | A stream | `ChatCompletionsStream.swift`, `ResponsesStream.swift` | Stream · Receiving · Finishing · Wire |
 | A provider's error | `OpenRouterError.swift`, `OpenAIError.swift` | Error · Codes · Response body · What a failure becomes · Logging |
-| A module's metadata | `ProviderMetadata.swift`, `OpenRouterMetadata.swift`, `OpenAIMetadata.swift` | Response · Usage · Error · Reading · Keys |
+| A module's metadata | `ProviderMetadata.swift`, `OpenRouterMetadata.swift`, `OpenAIMetadata.swift` | Response · Usage · Generated data · Error · Reading · Keys |
 
 The groups inside an exchange are the marks of the protocol, so the protocol and each provider's conformance read alike
 in the jump bar.

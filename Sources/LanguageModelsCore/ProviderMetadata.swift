@@ -417,8 +417,8 @@ package struct MetadataValues {
         self.values = values
     }
 
-    /// The properties of a structure, or `nil` when the content isn't one.
-    private init?(_ content: GeneratedContent) {
+    /// The properties of a structure, such as a data entry's metadata, or `nil` when the content isn't one.
+    package init?(_ content: GeneratedContent) {
         guard case .structure(let properties, _) = content.kind else { return nil }
         self.init(properties)
     }

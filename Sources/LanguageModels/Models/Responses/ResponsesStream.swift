@@ -1,7 +1,6 @@
 import Foundation
 import FoundationModels
 import LanguageModelsCore
-import UniformTypeIdentifiers
 
 // MARK: - Stream
 
@@ -48,6 +47,15 @@ extension Responses {
         /// The files the answer's text cites, when the request keeps file searches.
         private var fileCitations: [Responses.FileCitation] = []
 
+        /// The billable web searches the answer's response reported, once it reports them.
+        private var webSearchCount: Int?
+
+        /// Whether the provider keeps the answer's response, once the response says.
+        private var isStored: Bool?
+
+        /// Whether the request asked the provider to keep the response, which stands in when the response doesn't say.
+        private let storage: Responses.Request.Storage
+
         /// The answer's messages, by output index.
         private var messages: [Int: Message] = [:]
 
@@ -71,13 +79,14 @@ extension Responses {
         ///   - exchange: The provider's part in the exchange.
         ///   - headers: The headers of the response whose stream carries the answer.
         ///   - keptCalls: The kinds of server tool call the request keeps.
+        ///   - storage: Whether the request asked the provider to keep the response.
         ///   - imageEntries: The request's entries that carry an image, which an error for an image the host rejects names.
         ///   - requiresCompleteAnswer: Whether an answer cut off at its token limit is an error, as for guided generation,
         ///     where a partial answer would decode as a wrong value.
         init(
             channel: LanguageModelExecutorGenerationChannel, model: Responses.Model<Exchange>, exchange: Exchange,
-            headers: ResponseHeaders, keeping keptCalls: Set<Responses.ServerToolCall>, imageEntries: [Transcript.Entry],
-            requiresCompleteAnswer: Bool
+            headers: ResponseHeaders, keeping keptCalls: Set<Responses.ServerToolCall>, storage: Responses.Request.Storage,
+            imageEntries: [Transcript.Entry], requiresCompleteAnswer: Bool
         ) {
             self.exchange = exchange
             self.headers = headers
@@ -85,6 +94,7 @@ extension Responses {
             phasesKey = model.phasesKey
             serverToolsKey = model.serverToolsKey
             self.keptCalls = keptCalls
+            self.storage = storage
             self.imageEntries = imageEntries
             self.requiresCompleteAnswer = requiresCompleteAnswer
             output = AnswerChannel(channel: channel, origin: ReasoningOrigin(rawValue: model.reasoningOrigin), readsTaggedReasoning: false)
@@ -165,7 +175,11 @@ extension Responses.Stream {
     /// - Returns: Whether the event ends the answer.
     /// - Throws: The exchange's error for an `error` event, a failed response, or an error object that can't be read.
     private mutating func receive(_ event: ResponseEvent, data: Data) async throws -> Bool {
-        if let response = event.response { report.update(with: response) }
+        if let response = event.response {
+            report.update(with: response)
+            webSearchCount = response.toolUsage?.webSearch?.requestCount ?? webSearchCount
+            isStored = response.store ?? isStored
+        }
         switch event.type {
         case .error:
             // The error is nested in the event's `error` member, or is the event's own members.
@@ -275,11 +289,9 @@ extension Responses.Stream {
     private func sendImage(of item: JSONValue, kept: JSONValue) async {
         guard let base64 = item["result"]?.stringValue, let image = Data(base64Encoded: base64), !image.isEmpty else { return }
         // A call that names no format made a PNG, the default.
-        let format = item["output_format"]?.stringValue ?? "png"
+        let type = Responses.ServerToolCall.imageType(ofFormat: item["output_format"]?.stringValue ?? "png")
         let metadata = GeneratedContent(properties: [serverToolsKey: Responses.ServerToolOutput(calls: [kept]).metadataValue])
-        await output.sendData(
-            GeneratedData(
-                contentType: UTType(filenameExtension: format, conformingTo: .image) ?? .image, content: image, metadata: metadata))
+        await output.sendData(GeneratedData(contentType: type, content: image, metadata: metadata))
     }
 
     /// Sends the next part of a message's text, unless the message is held out of the answer's text, and keeps it with
@@ -424,9 +436,16 @@ extension Responses.Stream {
         if phases.contains(where: { $0.phase != nil || $0.heldText != nil }) {
             answerAdditions.metadata[phasesKey] = phases.map(\.metadataValue)
         }
-        let serverTools = Responses.ServerToolOutput(calls: serverToolCalls.map(\.item), fileCitations: fileCitations)
+        // By output index, as the signature places them, whatever order they ended in.
+        let calls = serverToolCalls.enumerated().sorted { ($0.element.index ?? -1, $0.offset) < ($1.element.index ?? -1, $1.offset) }
+        let serverTools = Responses.ServerToolOutput(
+            calls: calls.map(\.element.item), fileCitations: fileCitations, isStored: isStored ?? (storage != .notStored))
         if !serverTools.isEmpty {
             answerAdditions.metadata[serverToolsKey] = serverTools.metadataValue
+        }
+        // A response reports zero searches when none ran, which adds nothing.
+        if let webSearchCount, webSearchCount > 0 {
+            answerAdditions.webSearchCount = webSearchCount
         }
         return answerAdditions
     }
@@ -545,6 +564,25 @@ extension ResponseEvent {
         /// The `error` object of a failed response.
         let error: JSONValue?
 
+        /// What the built-in tools used, such as the web searches that ran.
+        let toolUsage: ToolUsage?
+
+        /// Whether the provider keeps the response.
+        let store: Bool?
+
+        init(from decoder: any Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            id = try container.decodeIfPresent(String.self, forKey: .id)
+            model = try container.decodeIfPresent(String.self, forKey: .model)
+            serviceTier = try container.decodeIfPresent(String.self, forKey: .serviceTier)
+            usage = try container.decodeIfPresent(Usage.self, forKey: .usage)
+            incompleteDetails = try container.decodeIfPresent(IncompleteDetails.self, forKey: .incompleteDetails)
+            error = try container.decodeIfPresent(JSONValue.self, forKey: .error)
+            // Read leniently, so a value of another shape can't make the event unreadable.
+            toolUsage = try? container.decodeIfPresent(ToolUsage.self, forKey: .toolUsage)
+            store = try? container.decodeIfPresent(Bool.self, forKey: .store)
+        }
+
         private enum CodingKeys: String, CodingKey {
             case id
             case model
@@ -552,6 +590,26 @@ extension ResponseEvent {
             case usage
             case incompleteDetails = "incomplete_details"
             case error
+            case toolUsage = "tool_usage"
+            case store
+        }
+    }
+
+    /// What a response's built-in tools used, such as its web searches.
+    struct ToolUsage: Decodable {
+        struct WebSearch: Decodable {
+            /// The billable searches, which leave out opening a page.
+            let requestCount: Int?
+
+            private enum CodingKeys: String, CodingKey {
+                case requestCount = "num_requests"
+            }
+        }
+
+        let webSearch: WebSearch?
+
+        private enum CodingKeys: String, CodingKey {
+            case webSearch = "web_search"
         }
     }
 

@@ -1,0 +1,146 @@
+{
+  "transcript" : {
+    "entries" : [
+      {
+        "contents" : [
+          {
+            "id" : "CC5C9D23-4E26-482E-AA20-7799CFE17847",
+            "text" : "Draw a small red circle on a white background.",
+            "type" : "text"
+          }
+        ],
+        "contextOptions" : {
+
+        },
+        "id" : "5FEE9210-D6E7-401E-BD61-DAE801F22DB9",
+        "options" : {
+          "maximumResponseTokens" : 2000
+        },
+        "role" : "user"
+      },
+      {
+        "data" : {
+          "content" : "iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAD0lEQVR4nGNgiDoBQhAKABymBImcIySdAAAAAElFTkSuQmCC",
+          "contentType" : "public.png",
+          "metadata" : {
+            "openAI.serverTools" : {
+              "calls" : [
+                "{\"action\":\"generate\",\"background\":\"opaque\",\"id\":\"ig_10b349fa4eb3ec0767faeb2628eae9067277d0d2c007ba6ae6\",\"output_format\":\"png\",\"quality\":\"low\",\"result\":null,\"revised_prompt\":\"A clean minimalist graphic: one small solid red circle centered on a plain pure white background. No shadow, no outline, no texture, no text. Square canvas.\",\"size\":\"1024x1024\",\"status\":\"completed\",\"type\":\"image_generation_call\"}"
+              ]
+            }
+          }
+        },
+        "id" : "8A79AD9E-532D-483C-BA79-6F3E1AC33B02",
+        "role" : "data"
+      },
+      {
+        "contents" : [
+          {
+            "id" : "DE819A49-342B-45DE-BE16-21A3E3F45222",
+            "text" : "",
+            "type" : "text"
+          }
+        ],
+        "id" : "31AF6672-20A8-490B-8A16-9976429E4C7A",
+        "metadata" : {
+          "cacheWriteTokenCount" : 0,
+          "finishReason" : "stop",
+          "model" : "gpt-6-luna",
+          "openAI.phases" : [
+            {
+              "length" : 0,
+              "phase" : "final_answer"
+            }
+          ],
+          "openAI.serverTools" : {
+            "calls" : [
+              "{\"action\":\"generate\",\"background\":\"opaque\",\"id\":\"ig_10b349fa4eb3ec0767faeb2628eae9067277d0d2c007ba6ae6\",\"output_format\":\"png\",\"quality\":\"low\",\"result\":null,\"revised_prompt\":\"A clean minimalist graphic: one small solid red circle centered on a plain pure white background. No shadow, no outline, no texture, no text. Square canvas.\",\"size\":\"1024x1024\",\"status\":\"completed\",\"type\":\"image_generation_call\"}"
+            ]
+          },
+          "requestID" : "req_1",
+          "responseID" : "resp_ae79c0d2d30b9ce28bd0da6dcf50cf3eef2c22b18f408c38c6",
+          "serviceTier" : "default"
+        },
+        "role" : "response"
+      },
+      {
+        "contents" : [
+          {
+            "id" : "B246D31A-D32F-49FF-949F-03B83DA5C609",
+            "text" : "Now make the circle blue.",
+            "type" : "text"
+          }
+        ],
+        "contextOptions" : {
+
+        },
+        "id" : "A079E9F0-26C5-4EB2-877E-696A42424683",
+        "options" : {
+          "maximumResponseTokens" : 2000
+        },
+        "role" : "user"
+      },
+      {
+        "data" : {
+          "content" : "iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAD0lEQVR4nGNgiDoBQhAKABymBImcIySdAAAAAElFTkSuQmCC",
+          "contentType" : "public.png",
+          "metadata" : {
+            "openAI.serverTools" : {
+              "calls" : [
+                "{\"action\":\"edit\",\"background\":\"opaque\",\"id\":\"ig_c0c99597050c57a3b30da8fde91091f529adfe31b1bf7b8e94\",\"output_format\":\"png\",\"quality\":\"low\",\"result\":null,\"revised_prompt\":\"Edit the previous minimalist graphic: keep the exact same plain pure white square background and the same small solid circle in the same centered position and size, but change its fill color from red to a vivid blue. No shadow, no outline, no texture, no text.\",\"size\":\"1024x1024\",\"status\":\"completed\",\"type\":\"image_generation_call\"}"
+              ]
+            }
+          }
+        },
+        "id" : "8AA1E319-65C6-43AB-80DE-70C2EF33933C",
+        "role" : "data"
+      },
+      {
+        "id" : "3639E823-7E64-4C0D-847E-0508CEBD49D1",
+        "metadata" : {
+          "model" : "gpt-6-luna",
+          "reasoningOrigin" : "openai-responses"
+        },
+        "reasoning" : {
+          "contents" : [
+
+          ],
+          "signature" : "W3sidHlwZSI6ImltYWdlX2dlbmVyYXRpb25fY2FsbCJ9LHsiY29udGVudCI6W10sImVuY3J5cHRlZF9jb250ZW50IjoiZ0FBQUFBQnE4RnVhWHFsRVNydkRDMjV1SjBEMWk4YzdpZlhIVjNmT193d2lZSm5kVEpEUzhLOURMY09ZVUJBUDVtdXZNLUxMcFM3Yl8zb1g4TXNreVVJTFROU2NfMU5oM2RITjNtMWRLZW9rTkp1b3FCT0VBUDJoVkgtM0owQ3lhVzltdVVwNTE1UDFPRjBOVkhGMmp5QkRGRkVDRVkxT0dkRUhjckxCYmtWRjZ0VFZYbU9lV01lalBkcTMyRzRBci0xYTlJQnp4dzh6eVY5QzlBdEl4azVuVlI5M0JKZHNjWGdlWndmNWVCdmh5VHlaVk03VXZoQi1kN3ZQTUpELUJIaGFpQ25GeldsS2x4MktBU3JNQi1HU2RHVVVGbWx0Y1lZTV8tRVRGU0dYUmlRQWJxbjg3V0xTbVAyclFaOEFjbmd3NlJ1QkpYTUM4YmRPREFvckNZdGlDYUdUOG5oTUl4MjJzOFlkN3BiS1lReWZRU2U3YjFVZjd1T3o4YzlCVXN2SHNxaUduY3NsTXpONDhqV0lHb1o1R19uaWc5eXViajdJVUNQMW4tcGxLZkN2VmFvTTZmT2xudWY2SkMtakdibU9oZ1hQWHhOdGZrc3RRUi05TGlWcDY1SVpkU2N0allEY213NWNyVmluSElZTEFQc3dCQ3ZXcGlpaEVkc2toWTBrc3huUHlOWkdFUjl5eE5yWHBFS3ZYd25velJRRks0NGR3UFRWOWI5dnhuTlhoQzU1V3dBVTBSRXl6NDdRWTk0QklpVE9UeHQ1ME1MTlZSRjlVWXBnaVBxekE4QkhGUDJMTVkyOFRJeVJvNm4zREllZ3EycWQzcmMzWlczQmVRUUVDdWpmRmQ1UTc4b045RDh1cEhwbVk2QUdRNE9SXzBYaFctQnZ3ZjdNLTRCMmF1VFprQ1l4c1ZHQVBxekFHdjFtZkJPcE9NSTEwZzdPYUVuTlJLWm53d0RTdmV0ckxnYzViOGZROGhCdHdSQ21ES2NfR2ZQeE9IRUpGVWV4RW5RYVZMckJReWZoMDljU2pIY25uMzlOTXlFbHVOQmhYRWpwUXNZOXE2dXU2LWVtSlZmb3dISEFuNjkyTENHRG5Vbk9RX05WbWU5cjJJaWFKejhZdHYyaE16RmlXTy0wYVNEQXE0RGRxTUYwbkhXSzRSQmJpcGpLWlBKZ0ppeXlzOVE2NEJfTGVyNXdyNERfOXVkZS1ISE5WdGpIdTl0cHRfU2dpRWpBQWlMM2hPS2UyMDc5Zm9sM2NtSnlRdEE0ZGdEMl80TUN1alluQ1JHOFVMZDk0OEV6UEVrdF9VaVE4UXNxeF9ualR4eUJ6b19rUGVkbEFsZlR4dm9FRURkaFBFRXFSUTRpSV9pZ3hHcDlhRW1vWmlNbkNrR3ZIMU5TRklGUEo1M0NETHNPVjluVldzcGdTLWhtWWNwSThPLXFnVVZlNXAxdE40cGFhYl9GWmFBXy1JdmJmNXNET1VCVXBUZnpodVlpSGh0ODdMeF9JYjNJRW9ySVQ5QTJiZTk1UFYtTUdLWm56TjI0MlJyaUtKSXdEanN0R0FQR3JUczFCWDV6SWZybS1qQ2Q4VGpVWXlpZktiNXlWNl84NFlpVm1sNzhiX2JiTWFJSTR4Z2JZcDhUZHQ5SGI4bXMyTXhaMXRJRFFsWHJZdTBBZkJfeE9WajRkbl9QN0tyZ1czVmR1cWJfZTVlek5YV3d6eXY0MFRicUJoaXVDaEFsbGdOVXZfQnhsYnAzdzROOGhuZkpwaG5mQ2lOYkJHeDVQb0QyNDJOdnFJRW54MjlGc1BmQXo4Wk1iSmVnQWlaT1F2NGVoQ3hxQjNrMEFYdUFpR0luNXl3N2V5UmY2WFBTZGJZOGhlc0h3MHAzdERFRHM2QlBBOXc4bXdrLTJRNHBzT0lzV0p6eDBnUUU0WFJKN0RIOWkybElpQTQ3MEFqNDlYYklKaExRNU1YeXNIMjI0dXVoLXpmV3YxTXFrV1gxRDBrYjdBS2dkU3JIYzFlYVdwZy1GMjltVE91WFp5MUNzRW85MzlOMkNEZy1XN1pIcHB2dE1jR2pGb1Itb1ZvbmU3bDUzbnp0R2pEQl9FMDZieDJlWTlLSHVVY2k1YkFfcVNzVXdab3Q1TV9MU2pyMUF6akJodTZrSk5yUzEtVHZrR3JaZmZkNmtpNjF1OXJGdS05NUNXV0xlSE41cmptdXdkM1F4Q0pUcHBwWGRnc29lbHNoeXNjeEh3bVVrREpXMDRHWkFkT2Z4emp3VnQxRjh1cFMyYU1JSWZTQ3JSU2lNWVdDc2lEYmtfbU1ZeDRJTUxjNXhHV0UzNGI1QWhnOThTaEVCLW1MVllyclUyc1RpeE85ZXMxZFJjdXA0UWRaZGRTaExfbnZJWHA3dEkzN0JYSW83NDhTZ1ZJSlVRaXFQTG1vT215ampYdTYzaXJLSFVYcDJ1ZHlYUUxaVHFwZ0NmY0ZKdXFSZFN0X2JUSlYiLCJpZCI6InJzX2JkNGMxMDY5ZmE3MWZkYmZhNDM1MDc5NDgzNTczMGMzM2E3MzU0Y2EyMTJkNjI4ZDI4Iiwic3VtbWFyeSI6W10sInR5cGUiOiJyZWFzb25pbmcifV0="
+        },
+        "role" : "reasoning"
+      },
+      {
+        "contents" : [
+          {
+            "id" : "CA9D5335-FFE8-41F4-9B9B-9B67EA3903BC",
+            "text" : "",
+            "type" : "text"
+          }
+        ],
+        "id" : "3C1C4114-1DFD-408A-8587-A0988C3E3D1B",
+        "metadata" : {
+          "cacheWriteTokenCount" : 0,
+          "finishReason" : "stop",
+          "model" : "gpt-6-luna",
+          "openAI.phases" : [
+            {
+              "length" : 0,
+              "phase" : "final_answer"
+            }
+          ],
+          "openAI.serverTools" : {
+            "calls" : [
+              "{\"action\":\"edit\",\"background\":\"opaque\",\"id\":\"ig_c0c99597050c57a3b30da8fde91091f529adfe31b1bf7b8e94\",\"output_format\":\"png\",\"quality\":\"low\",\"result\":null,\"revised_prompt\":\"Edit the previous minimalist graphic: keep the exact same plain pure white square background and the same small solid circle in the same centered position and size, but change its fill color from red to a vivid blue. No shadow, no outline, no texture, no text.\",\"size\":\"1024x1024\",\"status\":\"completed\",\"type\":\"image_generation_call\"}"
+            ]
+          },
+          "requestID" : "req_1",
+          "responseID" : "resp_eecb54d15323721f327d2c04d38c1d7feac25542b4213db93b",
+          "serviceTier" : "default"
+        },
+        "role" : "response"
+      }
+    ]
+  },
+  "type" : "FoundationModels.Transcript",
+  "version" : "1.1"
+}

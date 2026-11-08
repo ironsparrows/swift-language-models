@@ -172,7 +172,7 @@ extension Responses.Model {
             // 5. Events into the answer's output. The stream owns the exchange from here.
             var stream = Responses.Stream(
                 channel: channel, model: self, exchange: exchange, headers: headers, keeping: request.serverToolCalls,
-                imageEntries: request.imageEntries, requiresCompleteAnswer: generation.schema != nil)
+                storage: request.storage, imageEntries: request.imageEntries, requiresCompleteAnswer: generation.schema != nil)
             for try await event in ServerSentEvent.Events(bytes) {
                 try Task.checkCancellation()
                 if try await stream.receive(event) { break }

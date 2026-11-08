@@ -3,6 +3,7 @@ public import FoundationModels
 // Re-exports `LanguageModels`, and through it the core every provider shares, so `import OpenAILanguageModels` is all an
 // app needs: typed reasoning efforts, `FileAttachment`, the model details and logging come with it.
 @_exported public import LanguageModels
+
 #if canImport(FoundationModels, _version: 2.1.14)
 public import UniformTypeIdentifiers
 #endif
@@ -23,13 +24,17 @@ public import UniformTypeIdentifiers
 /// takes it, and a debug build shows a runtime warning in Xcode for each setting left out.
 ///
 /// What only OpenAI has is in the articles: authentication in <doc:GettingStarted> and <doc:Authentication>, then
-/// <doc:Reasoning>, <doc:Caching>, <doc:Attachments> and <doc:ErrorsAndMetadata>.
+/// <doc:ServerTools>, <doc:Reasoning>, <doc:Caching>, <doc:Attachments> and <doc:ErrorsAndMetadata>.
 public struct OpenAILanguageModel<Effort: ModelEffort>: DetailedLanguageModel {
     /// What the catalog records about the model.
     public let details: OpenAIModel<Effort>
 
     /// The models OpenAI tries when this one fails: none, since OpenAI has no fallbacks.
     public var fallbacks: [OpenAIModel<ContextOptions.ReasoningLevel>] { [] }
+
+    /// Tools that OpenAI runs for the model while it answers, such as a web search, listed after the session's own
+    /// tools in each request.
+    public var serverTools: [OpenAIServerTool]
 
     /// Request settings that only OpenAI has.
     public var options: OpenAIOptions
@@ -53,6 +58,7 @@ public struct OpenAILanguageModel<Effort: ModelEffort>: DetailedLanguageModel {
     ///
     /// - Parameters:
     ///   - details: The model, usually from the catalog, such as `.gpt6Luna`.
+    ///   - serverTools: Tools that OpenAI runs for the model while it answers, such as `.webSearch()`.
     ///   - options: Request settings that only OpenAI has.
     ///   - session: The URL session that sends requests. Its configuration applies, but the package still sets each
     ///     request's headers and, when the configuration's `idleTimeout` is set, its timeout, and follows redirects
@@ -63,22 +69,26 @@ public struct OpenAILanguageModel<Effort: ModelEffort>: DetailedLanguageModel {
     ///     its API, or ``OpenAIAuthentication/proxied(baseURL:headers:)`` to a server of your own.
     public init(
         _ details: OpenAIModel<Effort>,
+        serverTools: [OpenAIServerTool] = [],
         options: OpenAIOptions = OpenAIOptions(),
         session: URLSession = .shared,
         configuration: OpenAIConfiguration = OpenAIConfiguration(),
         auth: OpenAIAuthentication
     ) {
-        self.init(details: details, options: options, session: session, auth: auth, configuration: configuration)
+        self.init(
+            details: details, serverTools: serverTools, options: options, session: session, auth: auth, configuration: configuration)
     }
 
     init(
         details: OpenAIModel<Effort>,
+        serverTools: [OpenAIServerTool],
         options: OpenAIOptions,
         session: URLSession,
         auth: OpenAIAuthentication,
         configuration: OpenAIConfiguration
     ) {
         self.details = details
+        self.serverTools = serverTools
         self.options = options
         self.session = session
         self.auth = auth
@@ -95,6 +105,7 @@ extension OpenAILanguageModel where Effort == ContextOptions.ReasoningLevel {
     public init(_ typed: OpenAILanguageModel<some ModelEffort>) {
         self.init(
             details: OpenAIModel(typed.details),
+            serverTools: typed.serverTools,
             options: typed.options,
             session: typed.session,
             auth: typed.auth,
@@ -224,13 +235,15 @@ extension OpenAILanguageModel {
         details.supportsDataAttachmentType(type)
     }
 
-    /// Whether the model generates the kind of data: never, since the catalog lists only models that answer in text.
+    /// Whether the model generates the kind of data: an image in the format of its image generation tool, PNG unless
+    /// the tool asks for another, and nothing else, since the catalog lists only models that answer in text.
     ///
     /// - Parameter type: The kind of data, such as `UTType.png`.
     /// - Returns: Whether the model generates the kind.
     /// - Throws: Nothing; the method throws only because Foundation Models declares it so.
     public func supportsDataEntryType(_ type: UTType) async throws -> Bool {
         details.supportsDataEntryType(type)
+            || serverTools.contains { tool in tool.entry.generatedFormat.map { type.conforms(to: $0.contentType) } ?? false }
     }
 }
 #endif

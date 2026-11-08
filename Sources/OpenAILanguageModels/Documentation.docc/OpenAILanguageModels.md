@@ -26,7 +26,8 @@ profiles and reasoning levels work as they do with Apple's own models:
 
 Each request is a `POST` to OpenAI's Responses API, `responses`, and its answer streams back as server-sent events.
 Every request sends the whole transcript, and a model's reasoning goes back on later turns encrypted, so a session
-works the same whether or not OpenAI keeps its responses.
+works the same whether or not OpenAI keeps its responses, apart from a generated image, as <doc:ServerTools>
+describes.
 
 Every model in the catalog is a static member of ``OpenAIModel``, with its context size, request settings, input kinds
 and reasoning levels. Its effort type lists exactly the levels the model accepts, so `model.reasoningLevel(_:)` offers
@@ -59,6 +60,19 @@ this module re-exports.
 - <doc:ToolsAndGuidedGeneration>
 - <doc:Reasoning>
 
+### Server tools
+
+- <doc:ServerTools>
+- ``OpenAIServerTool``
+- ``OpenAISearchContextSize``
+- ``OpenAIImageModel``
+- ``OpenAIImageQuality``
+- ``OpenAIImageComplexity``
+- ``OpenAIImageSize``
+- ``OpenAIImageFormat``
+- ``OpenAIImageBackground``
+- ``OpenAIImageModeration``
+
 ### Caching
 
 - <doc:Caching>
@@ -87,6 +101,10 @@ this module re-exports.
 - ``OpenAIResponseMetadata``
 - ``OpenAIResponseMetadata/Message``
 - ``OpenAIResponseMetadata/Phase``
+- ``OpenAIServerToolCall``
+- ``OpenAIFileCitation``
+- ``FoundationModels/Transcript/DataEntry/openAI``
+- ``OpenAIDataMetadata``
 - ``OpenAIUsageMetadata``
 - ``OpenAIErrorMetadata``
 - ``OpenAIError``

@@ -26,8 +26,9 @@ SDKs lack them. Built with an earlier Xcode, the package takes no data attachmen
 |---|---|
 | Instructions | A `developer` message for a model that reasons, and a `system` message for one that doesn't |
 | Prompt | A `user` message with `input_text` parts |
-| One answer | Its `reasoning` items, an `assistant` message for each of its messages, with its text and `phase`, and a `function_call` item for each tool call, in the order they came |
-| An answer's reasoning | The `reasoning` items it came as, with their encrypted reasoning, sent back only to the model that wrote them, or to the model it's a dated snapshot of. An answer with neither text nor tool calls sends no reasoning back |
+| One answer | Its `reasoning` items, an `assistant` message for each of its messages, with its text and `phase`, a `function_call` item for each tool call, and its server tools' calls whole, in the order they came; without reasoning, the server tools' calls go before the messages |
+| A server tool's call | The `web_search_call`, `image_generation_call` or `file_search_call` item as it came, right after the reasoning items before it, when it completed and the model still has its tool; an image's call without its image, as `result` `null`, so only when OpenAI kept the response that made it and keeps this one. A call that doesn't go back takes the reasoning before it along |
+| An answer's reasoning | The `reasoning` items it came as, with their encrypted reasoning, sent back only to the model that wrote them, or to the model it's a dated snapshot of. An answer with nothing after its reasoning, such as one cut off while it reasoned, sends no reasoning back |
 | Tool output | A `function_call_output` item, matched to its call by `call_id` |
 | Attachment label | An `input_text` part just before the attachment |
 | Image attachment | An `input_image` part with a JPEG data URL: upright, on white, scaled down to at most 2,048 pixels on its longer side, without the image's metadata, and `detail` `auto`; an image at an http or https address goes as that address |
@@ -37,7 +38,7 @@ SDKs lack them. Built with an earlier Xcode, the package takes no data attachmen
 | A tool output with attachments | The `function_call_output` item's `output` as parts |
 | An image attachment when the model doesn't take images | `LanguageModelError.unsupportedCapability` with `.vision`, before any request, as Foundation Models throws |
 | A data attachment the model doesn't take, such as audio or video; an attachment in the instructions | `LanguageModelError.unsupportedTranscriptContent`, before any request |
-| An answer's attachments, generated data entries | Left out |
+| An answer's attachments, generated data entries | Left out; a generated image goes back as its call |
 | Response schema | `text.format`: `json_schema` with `strict` set to `true`; a request is refused before it's sent, with `LanguageModelError.unsupportedCapability` and `.guidedGeneration`, unless the model lists `structured_outputs`, as Foundation Models checks the model's capabilities |
 | Guides on a schema | The full schema; when OpenAI rejects one of its constraints, with a 400 whose message names a constraint keyword and says it isn't supported, permitted or allowed, the request goes once more with the portable schema, whose constraints move into the description |
 | `includeSchemaInPrompt` | The schema also goes in the prompt that asked for it |
@@ -47,7 +48,7 @@ SDKs lack them. Built with an earlier Xcode, the package takes no data attachmen
 | `samplingMode` `.random(top:seed:)` | Nothing; `top_k` and `seed` are left out and logged |
 | `samplingMode` `.random(probabilityThreshold:seed:)` | `top_p`, clamped to 0–1; `seed` is left out and logged |
 | `maximumResponseTokens` | `max_output_tokens`, at least 16, the fewest OpenAI takes; a lower limit is raised and logged |
-| `toolCallingMode` | `tool_choice`: `auto` or `required`, sent only with the session's tools. A session with tools on a model that doesn't take them throws `LanguageModelError.unsupportedCapability` with `.toolCalling` before any request, as Foundation Models checks the model's capabilities |
+| `toolCallingMode` | `tool_choice`: `auto` or `required`, sent only with the session's tools; when disallowed, no tools at all, server tools included. A session with tools on a model that doesn't take them throws `LanguageModelError.unsupportedCapability` with `.toolCalling` before any request, as Foundation Models checks the model's capabilities |
 | `reasoningLevel` | `reasoning.effort`, moved to the nearest effort the model accepts, and logged when it moves; `.off` goes as `none` where the model takes it. Every request of a model that reasons also sends `include` with `reasoning.encrypted_content` |
 | Request metadata | `metadata`, string values within OpenAI's limits; the keys past them are left out and logged |
 
@@ -60,6 +61,8 @@ SDKs lack them. Built with an earlier Xcode, the package takes no data attachmen
 | ``OpenAIOptions/verbosity`` | `text.verbosity`, as set, to every model; models older than GPT-5, such as o3 and GPT-4.1, take only `medium` and reject any other value with a 400 |
 | ``OpenAIOptions/serviceTier`` | `service_tier` |
 | ``OpenAIOptions/parallelToolCalls`` | `parallel_tool_calls`, `true` or `false`, with the session's tools when the model lists it; left out with ``OpenAIOptions/ParallelToolCalls/automatic`` |
+| ``OpenAILanguageModel/serverTools`` | `tools` entries after the session's tools, in the order given: `web_search` with `filters.allowed_domains`, `search_context_size`, `user_location` of type `approximate` and `external_web_access`; `image_generation` with `model`, `quality`, `complexity`, `size`, `output_format`, `output_compression`, `background` and `moderation`; `file_search` with `vector_store_ids` and `max_num_results`. Each member only when it's set. A web search with `listsSources` adds `web_search_call.action.sources` to `include`, after the encrypted reasoning. Left out when tool calls are disallowed; `LanguageModelError.unsupportedCapability` with `.toolCalling` before any request when the model doesn't list `tools`, or for an image generator before OS 27.2 or in an app built without Xcode 27.2's SDK. They never set `tool_choice` |
+| ``OpenAIOptions/maximumServerToolCalls`` | `max_tool_calls`, only with the server tools |
 | ``OpenAIOptions/cacheKey`` | `prompt_cache_key`: the id of the session's first prompt for ``OpenAIOptions/CacheKey/session``, or the app's own key for ``OpenAIOptions/CacheKey/named(_:)`` |
 | ``OpenAIOptions/endUserID`` | `safety_identifier` |
 | ``OpenAIAuthentication/apiKey(organization:project:_:)`` | `Authorization: Bearer` header, with `OpenAI-Organization` and `OpenAI-Project` when they're set, to `https://api.openai.com/v1/` |
@@ -81,8 +84,12 @@ SDKs lack them. Built with an earlier Xcode, the package takes no data attachmen
 | The messages of a guided answer | Only the first message with no phase or the `final_answer` phase is the answer that decodes. The others, such as `commentary`, stay out of the response text, and ``OpenAIResponseMetadata/Message/heldText`` keeps their text, with their phase, so they go back on later turns in their places |
 | `function_call` items and `response.function_call_arguments.delta` | One tool-calls entry per answer, so parallel calls make one round; a call whose arguments arrive only in `response.output_item.done` gets them from there |
 | `response.output_text.annotation.added` of type `url_citation` | ``Citation`` values on the response entry, which ``OpenAIResponseMetadata/citations`` reads, once each, with offsets that count from the start of the answer's text, or none when the cited message is held out of the text or text that isn't ASCII comes before it; they aren't sent back |
+| `response.output_text.annotation.added` of type `file_citation`, with a file search | ``OpenAIResponseMetadata/fileCitations``, on the entry that ends the answer, once each, with the `index` moved to count from the start of the answer's text, as for a cited page; they aren't sent back |
+| `web_search_call`, `image_generation_call` and `file_search_call` items of the request's server tools, as `response.output_item.done` carries them | Kept in the metadata of the entry that ends the answer, whole, an image's without its image, with whether OpenAI keeps the response and their places in the reasoning entry's signature, which ``OpenAIResponseMetadata/serverToolCalls`` and ``OpenAIResponseMetadata/sources`` read; the calls of a tool the request doesn't send are passed over |
+| An `image_generation_call`'s `result`, base64 | A data entry of the kind `output_format` names, PNG when it names none, from OS 27.2, whose metadata keeps the call, which `Transcript.DataEntry.openAI` reads; no entry for a call without an image |
 | `response.refusal.delta` | `LanguageModelError.refusal`, with the refusal's text |
 | `usage` | Usage: `input_tokens`, `input_tokens_details.cached_tokens`, `output_tokens` and `output_tokens_details.reasoning_tokens`; in its metadata, the prompt tokens written to the cache when OpenAI reports them |
+| `tool_usage.web_search.num_requests` | In the usage's metadata, the billable searches, which ``OpenAIUsageMetadata/webSearchCount`` reads; zero adds nothing |
 | The response's `id`, `model` and `service_tier`, and the `x-request-id` header | Metadata of the entry that ends the answer, which ``OpenAIResponseMetadata`` reads; `model` also goes on the reasoning entry |
 | `response.completed` | Finish reason `stop`, or `tool_calls` when the answer ends in tool calls |
 | `response.incomplete` with `incomplete_details.reason` `max_output_tokens` | Finish reason `length`: an answer cut short at its token limit, which ends without an error; a guided answer cut short throws `GeneratedContent.ParsingError`, and one cut short inside its tool calls throws ``OpenAIError`` with ``OpenAIError/Code/invalidResponse`` instead, so no tool runs with partial arguments |
@@ -106,6 +113,10 @@ the ones any provider can report, the same way for every provider module, as
 | `service_tier` | ``OpenAIResponseMetadata/serviceTier`` |
 | `url_citation` annotations | ``OpenAIResponseMetadata/citations``, on the response entry |
 | `usage.input_tokens_details.cache_write_tokens` | ``OpenAIUsageMetadata/cacheWriteTokenCount`` |
+| `tool_usage.web_search.num_requests` | ``OpenAIUsageMetadata/webSearchCount`` |
+| The server tools' calls, and a web search's `action.sources` | ``OpenAIResponseMetadata/serverToolCalls`` and ``OpenAIResponseMetadata/sources``, on the entry that ends the answer |
+| `file_citation` annotations | ``OpenAIResponseMetadata/fileCitations``, on the entry that ends the answer |
+| A generated image's call | `Transcript.DataEntry.openAI`, on its data entry, with its id and revised prompt |
 | Each message's `phase`, and the text of a guided answer's messages that don't decode | ``OpenAIResponseMetadata/messages``, on the entry that ends the answer |
 | A failure's HTTP status, the code an ``OpenAIError`` would have, and the request id | ``OpenAIErrorMetadata/status``, ``OpenAIErrorMetadata/code`` and ``OpenAIErrorMetadata/requestID``, on the `LanguageModelError` it becomes |
 

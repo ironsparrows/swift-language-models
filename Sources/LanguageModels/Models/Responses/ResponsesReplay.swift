@@ -1,6 +1,7 @@
 import Foundation
 import FoundationModels
 import LanguageModelsCore
+package import UniformTypeIdentifiers
 
 // MARK: - Output items
 
@@ -98,6 +99,11 @@ extension Responses {
             }
         }
 
+        /// The kind of a generated image in a format, such as `png`, as an image's call names it.
+        package static func imageType(ofFormat format: String) -> UTType {
+            UTType(filenameExtension: format, conformingTo: .image) ?? .image
+        }
+
         /// The item as the answer keeps it: whole, but an image's call without its image, whose `result` becomes `null`.
         /// The answer sends the image as a data entry of its own.
         func kept(_ item: JSONValue) -> JSONValue {
@@ -115,9 +121,10 @@ extension Responses {
     /// What a provider's server tools left on an entry, as its metadata keeps it under the model's
     /// ``Model/serverToolsKey``: their calls, in their order, and the files the answer cites.
     ///
-    /// The entry that ends an answer keeps the answer's calls and cited files, and the data entry of a generated image
-    /// keeps the image's own call. A call is kept as the JSON text of its item, so it goes back as it came, apart from
-    /// what ``ServerToolCall/kept(_:)`` leaves out. Saved transcripts keep this shape, so it never changes.
+    /// The entry that ends an answer keeps the answer's calls and cited files, and whether the provider kept the response
+    /// that made them; the data entry of a generated image keeps the image's own call. A call is kept as the JSON text of
+    /// its item, so it goes back as it came, apart from what ``ServerToolCall/kept(_:)`` leaves out. Saved transcripts
+    /// keep this shape, so it never changes.
     package struct ServerToolOutput {
         /// The calls, in their order.
         package private(set) var calls: [JSONValue] = []
@@ -125,9 +132,14 @@ extension Responses {
         /// The files the answer's text cites, in the order they came.
         package private(set) var fileCitations: [FileCitation] = []
 
-        init(calls: [JSONValue] = [], fileCitations: [FileCitation] = []) {
+        /// Whether the provider kept the response that made the calls, as its `store` said, or as the request asked when
+        /// it didn't say, so it can look an image's call up by its id.
+        private(set) var isStored = true
+
+        init(calls: [JSONValue] = [], fileCitations: [FileCitation] = [], isStored: Bool = true) {
             self.calls = calls
             self.fileCitations = fileCitations
+            self.isStored = isStored
         }
 
         /// What an entry's metadata keeps under a key; empty when the key is missing.
@@ -139,6 +151,7 @@ extension Responses {
             guard let output = values.structure(key) else { return }
             calls = output.strings(Field.calls).compactMap { try? JSONValue(json: Data($0.utf8)) }
             fileCitations = output.structures(Field.fileCitations).compactMap(FileCitation.init)
+            isStored = output.bool(Field.unstored) != true
         }
 
         /// Whether nothing was left.
@@ -151,6 +164,7 @@ extension Responses {
             var properties: [(String, any ConvertibleToGeneratedContent)] = []
             if !calls.isEmpty { properties.append((Field.calls, calls.map(\.text))) }
             if !fileCitations.isEmpty { properties.append((Field.fileCitations, fileCitations.map(\.metadataValue))) }
+            if !isStored { properties.append((Field.unstored, true)) }
             return GeneratedContent(properties: properties) { first, _ in first }
         }
 
@@ -158,6 +172,7 @@ extension Responses {
         private enum Field {
             static let calls = "calls"
             static let fileCitations = "fileCitations"
+            static let unstored = "unstored"
         }
     }
 

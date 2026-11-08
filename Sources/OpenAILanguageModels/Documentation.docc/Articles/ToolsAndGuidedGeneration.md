@@ -48,7 +48,8 @@ It goes out only with the session's tools, and a model that can't be made to cal
 
 @Snippet(path: "swift-language-models/Snippets/OpenAITools", slice: "required")
 
-When tool calls are disallowed, the request sends no tools at all.
+When tool calls are disallowed, the request sends no tools at all, server tools included. Tools that OpenAI runs
+itself, such as a web search, are <doc:ServerTools>.
 
 ### How the schema is sent
 

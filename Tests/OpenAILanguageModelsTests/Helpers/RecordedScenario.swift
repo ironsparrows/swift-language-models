@@ -17,6 +17,7 @@ struct RecordedScenario: Sendable {
 
     let name: String
     let details: OpenAIModel<ContextOptions.ReasoningLevel>
+    var serverTools: [OpenAIServerTool] = []
     var options = OpenAIOptions()
     var tools: [any Tool] = []
     var replies: [Reply] = [.stream]
@@ -34,6 +35,11 @@ extension RecordedScenario {
     private static let mini: OpenAIModel<ContextOptions.ReasoningLevel> = OpenAILanguageModelsTests.details(
         id: "gpt-4o-mini", parameters: plainParameters, reasoning: .unsupported, efforts: [])
     private static let quick = ContextOptions(reasoningLevel: .minimal)
+    private static let luna: OpenAIModel<ContextOptions.ReasoningLevel> = OpenAILanguageModelsTests.details(
+        id: "gpt-6-luna", parameters: [.maxOutputTokens, .parallelToolCalls, .reasoning, .structuredOutputs, .toolChoice, .tools],
+        efforts: [.max, .xhigh, .high, .medium, .low, .off])
+    /// The least reasoning a web search takes.
+    private static let light = ContextOptions(reasoningLevel: .light)
 
     /// A streamed answer with the least reasoning.
     static let text = RecordedScenario(name: "text", details: nano) { session, lastSnapshot in
@@ -132,6 +138,78 @@ extension RecordedScenario {
     )
     #endif
 
+    /// Two turns of web searches that list their sources, at the model's own effort with a reasoning summary, so
+    /// reasoning comes between the calls, the second turn sending the first's calls back with it.
+    static let webSearch = RecordedScenario(
+        name: "web-search", details: luna, serverTools: [.webSearch(listsSources: true)],
+        options: OpenAIOptions(reasoningSummary: .auto, maximumServerToolCalls: 2), replies: [.stream, .stream]
+    ) { session, _ in
+        let options = GenerationOptions(maximumResponseTokens: 4_000)
+        _ = try await session.respond(to: "Search the web: what is the latest stable release of Swift? One sentence.", options: options)
+        return try await session.respond(to: "When was it released? One sentence.", options: options).usage
+    }
+
+    /// Two turns of web searches OpenAI doesn't keep, at the model's own effort, the second sending the first's call back
+    /// whole and ending with reasoning before its call.
+    static let webSearchNotStored = RecordedScenario(
+        name: "web-search-not-stored", details: luna, serverTools: [.webSearch()],
+        options: OpenAIOptions(reasoningSummary: .auto, maximumServerToolCalls: 2, storage: .notStored), replies: [.stream, .stream]
+    ) { session, _ in
+        let options = GenerationOptions(maximumResponseTokens: 4_000)
+        _ = try await session.respond(to: "Search the web: what is the tallest building in Lisbon? One sentence.", options: options)
+        return try await session.respond(to: "How tall is it? One sentence.", options: options).usage
+    }
+
+    /// Two turns of web searches by a model that doesn't reason, whose calls go back before its messages.
+    static let webSearchPlain = RecordedScenario(
+        name: "web-search-plain", details: mini, serverTools: [.webSearch()], options: OpenAIOptions(maximumServerToolCalls: 1),
+        replies: [.stream, .stream]
+    ) { session, _ in
+        let options = GenerationOptions(maximumResponseTokens: 300)
+        _ = try await session.respond(to: "Search the web: who designed the Eiffel Tower? One sentence.", options: options)
+        return try await session.respond(to: "In which year was it finished? One sentence.", options: options).usage
+    }
+
+    /// A web search and a call of the session's tool in one answer, a second round of calls, then the answer.
+    static let webSearchWithSessionTool = RecordedScenario(
+        name: "web-search-with-session-tool", details: luna, serverTools: [.webSearch()],
+        options: OpenAIOptions(maximumServerToolCalls: 1), tools: [FoodTool()], replies: [.stream, .stream, .stream]
+    ) { session, _ in
+        try await session.respond(
+            to: "Search the web for the calories in a boiled egg, and look up rice with the tool. Give both in one sentence.",
+            options: GenerationOptions(maximumResponseTokens: 3_000), contextOptions: light
+        )
+        .usage
+    }
+
+    /// Two turns with an image at the model's own effort, the second asking for a change, which sends the first image's
+    /// call back by its id. An image tool's complexity follows a `low` effort, which the image models refuse.
+    static let imageGeneration = RecordedScenario(
+        name: "image-generation", details: luna, serverTools: [.imageGeneration(quality: .low, size: .square1024)],
+        replies: [.stream, .stream]
+    ) { session, _ in
+        let options = GenerationOptions(maximumResponseTokens: 2_000)
+        _ = try await session.respond(to: "Draw a small red circle on a white background.", options: options)
+        return try await session.respond(to: "Now make the circle blue.", options: options).usage
+    }
+
+    /// Two turns of file searches in a vector store the recording made, with the files the answers cite.
+    static let fileSearch = fileSearch(in: "vs_recordedvectorstore0000000000")
+
+    /// Two turns of file searches in a vector store.
+    static func fileSearch(in vectorStoreID: String) -> RecordedScenario {
+        RecordedScenario(
+            name: "file-search", details: luna, serverTools: [.fileSearch(vectorStoreIDs: [vectorStoreID], maximumResults: 3)],
+            replies: [.stream, .stream]
+        ) { session, _ in
+            let options = GenerationOptions(maximumResponseTokens: 2_000)
+            _ = try await session.respond(
+                to: "Search the files: what does Harbor Kitchen serve on Tuesday? One sentence.", options: options, contextOptions: light)
+            return try await session.respond(to: "And when does the kitchen close? One sentence.", options: options, contextOptions: light)
+                .usage
+        }
+    }
+
     /// A key OpenAI doesn't know.
     static let invalidKey = RecordedScenario(
         name: "invalid-key", details: mini, replies: [.failure(status: 401, contentType: "text/plain")]
@@ -180,7 +258,7 @@ extension ExactExchange {
             try reply.response("\(scenario.name).\(index + 1)")
         }
         let stub = HTTPStub(responses: responses)
-        let languageModel = model(stub, scenario.details, options: scenario.options)
+        let languageModel = model(stub, scenario.details, serverTools: scenario.serverTools, options: scenario.options)
         await self.init(stub, try scenario.session(with: languageModel), answer: scenario.answer)
     }
 }

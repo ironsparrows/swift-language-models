@@ -64,10 +64,11 @@ extension Responses {
 
         /// The `input` member: the items a request with this storage sends, with the server tools' calls it keeps.
         ///
-        /// A server tool's call goes back only while the request keeps its kind and, to a provider that doesn't keep
-        /// the response, only when its kind goes back unstored; the `reasoning` items right before it go back with it,
-        /// or neither does. A request the provider doesn't store also leaves out every other `reasoning` item that
-        /// carries no encrypted reasoning, since the provider can't look it up by its id.
+        /// A server tool's call goes back only when it completed, while the request keeps its kind and, for a kind that
+        /// doesn't go back unstored, only when the provider keeps both this request's response and the one that made the
+        /// call; the `reasoning` items right before it go back with it, or neither does. A request the provider doesn't
+        /// store also leaves out every other `reasoning` item that carries no encrypted reasoning, since the provider
+        /// can't look it up by its id.
         ///
         /// - Parameters:
         ///   - storage: Whether the provider keeps the response.
@@ -83,10 +84,11 @@ extension Responses {
                 switch item {
                 case .reasoning(let reasoningItem):
                     reasoning.append(reasoningItem)
-                case .serverToolCall(let call, _):
-                    let goesBack =
-                        calls.contains(call) && (isStored || call.goesBackUnstored && reasoning.allSatisfy(\.hasEncryptedContent))
-                    if goesBack { sent += reasoning.map(Item.reasoning) + [item] }
+                case .serverToolCall(let call, let json, let fromStoredResponse):
+                    let completed = json["status"].map { $0 == "completed" } ?? true
+                    let lookedUp =
+                        call.goesBackUnstored ? isStored || reasoning.allSatisfy(\.hasEncryptedContent) : isStored && fromStoredResponse
+                    if completed, calls.contains(call), lookedUp { sent += reasoning.map(Item.reasoning) + [item] }
                     reasoning = []
                 case .message, .functionCall, .functionCallOutput:
                     sent += reasoning.filter { isStored || $0.hasEncryptedContent }.map(Item.reasoning) + [item]
@@ -126,12 +128,13 @@ extension Responses {
         /// order its signatures keep, with any message or function call they don't place after them, and any server
         /// tool's call they don't place before the messages.
         private mutating func appendAnswer(_ entries: [Transcript.Entry]) throws {
+            let start = items.count
             var order: [OutputItem] = []
             var block = ""
             var text = ""
             var phases: [MessagePhase] = []
             var calls: [Item] = []
-            var serverToolCalls: [(call: ServerToolCall, item: JSONValue)] = []
+            var serverToolCalls: [(call: ServerToolCall, item: JSONValue, fromStoredResponse: Bool)] = []
             // The server tools' calls that reasoning which doesn't go back placed, which don't go back either.
             var skippedCalls: [ServerToolCall] = []
             for entry in entries {
@@ -169,6 +172,7 @@ extension Responses {
             for call in skippedCalls {
                 if let index = serverToolCalls.firstIndex(where: { $0.call == call }) { serverToolCalls.remove(at: index) }
             }
+            let hasServerToolCalls = !serverToolCalls.isEmpty
             var messages = MessagePhase.split(text, into: phases).enumerated().map { index, message in
                 Item.message(role: .assistant, content: .text(index == 0 ? block + message.text : message.text), phase: message.phase)
             }[...]
@@ -186,21 +190,25 @@ extension Responses {
                 case .serverToolCall(let call):
                     if let index = serverToolCalls.firstIndex(where: { $0.call == call }) {
                         let placed = serverToolCalls.remove(at: index)
-                        items.append(.serverToolCall(placed.call, placed.item))
+                        items.append(.serverToolCall(placed.call, placed.item, fromStoredResponse: placed.fromStoredResponse))
                     }
                 }
             }
-            items += serverToolCalls.map { .serverToolCall($0.call, $0.item) }
+            items += serverToolCalls.map { .serverToolCall($0.call, $0.item, fromStoredResponse: $0.fromStoredResponse) }
             items += messages
             items += rest
+            // Reasoning whose following item doesn't go back, such as the empty message of an answer that is only an
+            // image, would have nothing after it.
+            while hasServerToolCalls, items.count > start, case .reasoning? = items.last { items.removeLast() }
         }
 
-        /// The server tools' calls an entry's metadata keeps, each with its kind, leaving out a kind the format doesn't
-        /// know.
-        private func kept(in metadata: [String: GeneratedContent]) -> [(call: ServerToolCall, item: JSONValue)] {
-            ServerToolOutput(MetadataValues(metadata), key: serverToolsKey).calls.compactMap { item in
+        /// The server tools' calls an entry's metadata keeps, each with its kind and whether the provider kept the
+        /// response that made it, leaving out a kind the format doesn't know.
+        private func kept(in metadata: [String: GeneratedContent]) -> [(call: ServerToolCall, item: JSONValue, fromStoredResponse: Bool)] {
+            let output = ServerToolOutput(MetadataValues(metadata), key: serverToolsKey)
+            return output.calls.compactMap { item in
                 let type = item["type"]?.stringValue.map(ItemType.init(rawValue:))
-                return type.flatMap(ServerToolCall.init).map { ($0, item) }
+                return type.flatMap(ServerToolCall.init).map { ($0, item, output.isStored) }
             }
         }
     }
@@ -253,8 +261,9 @@ private enum Item: Encodable {
     /// One of an answer's `reasoning` items, as the provider sent it.
     case reasoning(ReasoningItem)
 
-    /// One of an answer's server tools' calls, as the answer keeps it.
-    case serverToolCall(Responses.ServerToolCall, JSONValue)
+    /// One of an answer's server tools' calls, as the answer keeps it, and whether the provider kept the response that
+    /// made it.
+    case serverToolCall(Responses.ServerToolCall, JSONValue, fromStoredResponse: Bool)
 
     func encode(to encoder: any Encoder) throws {
         switch self {
@@ -276,7 +285,7 @@ private enum Item: Encodable {
             try container.encode(output, forKey: "output")
         case .reasoning(let item):
             try item.encode(to: encoder)
-        case .serverToolCall(_, let item):
+        case .serverToolCall(_, let item, _):
             try item.encode(to: encoder)
         }
     }

@@ -1,3 +1,4 @@
+public import Foundation
 public import FoundationModels
 public import LanguageModels
 
@@ -21,7 +22,8 @@ public import LanguageModels
 /// ```
 ///
 /// The facts ``model``, ``responseID``, ``requestID``, ``finishReason``, ``serviceTier`` and ``citations`` are the shared
-/// ones that `providerMetadata` also reads, as OpenAI's types.
+/// ones that `providerMetadata` also reads, as OpenAI's types. What the ``OpenAIServerTool``s did is in ``sources``,
+/// ``serverToolCalls`` and ``fileCitations``.
 public struct OpenAIResponseMetadata: Sendable, Hashable {
     /// The model that answered, as OpenAI names it, such as the dated snapshot `gpt-5-nano-2025-08-07` for
     /// `gpt-5-nano`.
@@ -49,6 +51,18 @@ public struct OpenAIResponseMetadata: Sendable, Hashable {
     /// Citations point into the answer's text, so they're on the response entry even when tool calls end the answer.
     public let citations: [Citation]
 
+    /// Every page the answer's web searches consulted, each once, in the order they came, when the web search lists its
+    /// sources; empty otherwise. They're usually more pages than the answer cites.
+    public let sources: [URL]
+
+    /// The answer's calls to ``OpenAILanguageModel/serverTools``, in their order, such as each web search.
+    public let serverToolCalls: [OpenAIServerToolCall]
+
+    /// The files the answer cites, from a file search, in the order OpenAI listed them.
+    ///
+    /// Unlike ``citations``, they're on the entry that ends the answer: the first tool call when tool calls end it.
+    public let fileCitations: [OpenAIFileCitation]
+
     /// The answer's messages, in their order, each with its phase, such as a ``Phase/commentary`` preamble before the
     /// ``Phase/finalAnswer``, or empty when the model names no phases and the answer holds no message out of its text.
     public let messages: [Message]
@@ -68,6 +82,11 @@ public struct OpenAIResponseMetadata: Sendable, Hashable {
         finishReason = shared.finishReason
         serviceTier = shared.serviceTier.map(OpenAIServiceTier.init(rawValue:))
         citations = shared.citations
+        let serverTools = Responses.ServerToolOutput(MetadataValues(metadata), key: Self.serverToolsKey)
+        serverToolCalls = serverTools.calls.compactMap(OpenAIServerToolCall.init)
+        var seen: Set<URL> = []
+        sources = serverToolCalls.flatMap(\.sources).filter { seen.insert($0).inserted }
+        fileCitations = serverTools.fileCitations.map(OpenAIFileCitation.init)
         messages = MetadataValues(metadata).structures(Self.phasesKey).compactMap(Message.init)
         usage = OpenAIUsageMetadata(metadata)
     }
@@ -119,6 +138,155 @@ extension OpenAIResponseMetadata {
     }
 }
 
+/// One call the model made to a server tool while it answered, as OpenAI reported it.
+///
+/// Each kind fills its own facts: a web search its ``action``, ``queries`` and ``url``, a file search its ``queries``, and
+/// an image generation its ``revisedPrompt``. The rest stay empty or `nil`.
+public struct OpenAIServerToolCall: Sendable, Hashable {
+    /// OpenAI's id for the call, such as `ws_…`.
+    public let id: String
+
+    /// The kind of call, such as ``Kind/webSearch``.
+    public let kind: Kind
+
+    /// How the call ended, such as ``Status/completed``, or `nil` when OpenAI didn't say.
+    public let status: Status?
+
+    /// What a web search did: searched, opened a page, or looked for text in one.
+    public let action: Action?
+
+    /// What a web search or a file search searched for, in order.
+    public let queries: [String]
+
+    /// The page a web search opened or looked in.
+    public let url: URL?
+
+    /// The text a web search looked for in a page.
+    public let pattern: String?
+
+    /// The prompt an image was drawn from, as the model revised it.
+    public let revisedPrompt: String?
+
+    /// The pages a web search consulted, when it lists its sources.
+    fileprivate let sources: [URL]
+
+    /// A call read from its output item, or `nil` for an item without an id or a type.
+    fileprivate init?(_ item: JSONValue) {
+        guard let id = item["id"]?.stringValue, let type = item["type"]?.stringValue else { return nil }
+        self.id = id
+        kind = Kind(rawValue: type)
+        status = item["status"]?.stringValue.map(Status.init(rawValue:))
+        let action = item["action"]
+        self.action = action?["type"]?.stringValue.map(Action.init(rawValue:))
+        let queries = Self.elements(of: action?["queries"] ?? item["queries"]).compactMap(\.stringValue)
+        self.queries = queries.isEmpty ? (action?["query"]?.stringValue).map { [$0] } ?? [] : queries
+        url = action?["url"]?.stringValue.flatMap(URL.init(string:))
+        pattern = action?["pattern"]?.stringValue
+        revisedPrompt = item["revised_prompt"]?.stringValue
+        sources = Self.elements(of: action?["sources"]).compactMap { $0["url"]?.stringValue.flatMap(URL.init(string:)) }
+    }
+
+    /// The elements of a list, or none for another value.
+    private static func elements(of value: JSONValue?) -> [JSONValue] {
+        if case .array(let elements)? = value { elements } else { [] }
+    }
+}
+
+extension OpenAIServerToolCall {
+    /// A kind of server tool call, by the type of its output item.
+    ///
+    /// Kinds are an open vocabulary: a kind OpenAI adds reads too, with or without a static member.
+    public struct Kind: ProviderVocabulary {
+        /// A web search's call.
+        public static let webSearch: Self = "web_search_call"
+
+        /// An image generation's call.
+        public static let imageGeneration: Self = "image_generation_call"
+
+        /// A file search's call.
+        public static let fileSearch: Self = "file_search_call"
+
+        /// The type of the call's output item in OpenAI's API.
+        public let rawValue: String
+
+        /// Creates a kind from the type of the call's output item.
+        ///
+        /// - Parameter rawValue: The type, such as `"web_search_call"`.
+        public init(rawValue: String) {
+            self.rawValue = rawValue
+        }
+    }
+
+    /// How a server tool call ended.
+    ///
+    /// Statuses are an open vocabulary: any status OpenAI reports reads, with or without a static member.
+    public struct Status: ProviderVocabulary {
+        /// The call finished.
+        public static let completed: Self = "completed"
+
+        /// The call failed, such as an image that a moderation check stopped.
+        public static let failed: Self = "failed"
+
+        /// The call stopped before it finished.
+        public static let incomplete: Self = "incomplete"
+
+        /// The status's name in OpenAI's API.
+        public let rawValue: String
+
+        /// Creates a status from its name in OpenAI's API.
+        ///
+        /// - Parameter rawValue: The name, such as `"completed"`.
+        public init(rawValue: String) {
+            self.rawValue = rawValue
+        }
+    }
+
+    /// What a web search did.
+    ///
+    /// Actions are an open vocabulary: any action OpenAI reports reads, with or without a static member.
+    public struct Action: ProviderVocabulary {
+        /// It searched the web for its ``OpenAIServerToolCall/queries``.
+        public static let search: Self = "search"
+
+        /// It opened the page at its ``OpenAIServerToolCall/url``.
+        public static let openPage: Self = "open_page"
+
+        /// It looked for its ``OpenAIServerToolCall/pattern`` in the page at its ``OpenAIServerToolCall/url``.
+        public static let findInPage: Self = "find_in_page"
+
+        /// The action's name in OpenAI's API.
+        public let rawValue: String
+
+        /// Creates an action from its name in OpenAI's API.
+        ///
+        /// - Parameter rawValue: The name, such as `"search"`.
+        public init(rawValue: String) {
+            self.rawValue = rawValue
+        }
+    }
+}
+
+/// A file that an answer cites, from a file search.
+public struct OpenAIFileCitation: Sendable, Hashable {
+    /// OpenAI's id for the file, such as `file-…`.
+    public let fileID: String
+
+    /// The file's name.
+    public let filename: String?
+
+    /// Where the citation goes in the answer's text, in characters from its start, or `nil` when that isn't known, as
+    /// in a guided answer's held-out text, or after text that isn't ASCII, since OpenAI doesn't say what its offsets
+    /// count.
+    public let offset: Int?
+
+    /// A citation as the answer keeps it.
+    fileprivate init(_ citation: Responses.FileCitation) {
+        fileID = citation.fileID
+        filename = citation.filename
+        offset = citation.offset
+    }
+}
+
 // MARK: - Usage
 
 /// What OpenAI reported about an answer's counts beyond Foundation Models' own, read from its usage's metadata.
@@ -140,11 +308,48 @@ public struct OpenAIUsageMetadata: Sendable, Hashable {
     /// The prompt tokens written to OpenAI's prompt cache.
     public let cacheWriteTokenCount: Int?
 
+    /// The billable searches of the answer's ``OpenAIServerTool`` web search, or `nil` when none ran. Opening a page
+    /// isn't a search.
+    public let webSearchCount: Int?
+
     /// The facts in a usage's metadata.
     fileprivate init(_ metadata: [String: GeneratedContent]) {
-        cacheWriteTokenCount = ProviderUsageMetadata(metadata).cacheWriteTokenCount
+        let shared = ProviderUsageMetadata(metadata)
+        cacheWriteTokenCount = shared.cacheWriteTokenCount
+        webSearchCount = shared.webSearchCount
     }
 }
+
+// MARK: - Generated data
+
+#if canImport(FoundationModels, _version: 2.1.14)
+/// What OpenAI reported about data the model generated, such as an image, read from its data entry's metadata.
+///
+/// `Transcript.DataEntry.openAI` reads it. A fact OpenAI didn't report is `nil`:
+///
+/// ```swift
+/// for case .data(let image) in session.transcript {
+///     print(image.openAI.revisedPrompt ?? "No revised prompt.")
+/// }
+/// ```
+@available(iOS 27.2, macOS 27.2, visionOS 27.2, watchOS 27.2, *)
+public struct OpenAIDataMetadata: Sendable, Hashable {
+    /// OpenAI's id for the call that generated the data, such as `ig_…`, as ``OpenAIServerToolCall/id`` names it.
+    public let callID: String?
+
+    /// The prompt the image was drawn from, as the model revised it.
+    public let revisedPrompt: String?
+
+    /// The facts in a data entry's metadata.
+    fileprivate init(_ metadata: GeneratedContent) {
+        let call = MetadataValues(metadata).flatMap { values in
+            Responses.ServerToolOutput(values, key: OpenAIResponseMetadata.serverToolsKey).calls.first
+        }
+        callID = call?["id"]?.stringValue
+        revisedPrompt = call?["revised_prompt"]?.stringValue
+    }
+}
+#endif
 
 // MARK: - Error
 
@@ -204,6 +409,16 @@ extension Transcript.ToolCalls {
         OpenAIResponseMetadata(first?.metadata ?? [:])
     }
 }
+
+#if canImport(FoundationModels, _version: 2.1.14)
+@available(iOS 27.2, macOS 27.2, visionOS 27.2, watchOS 27.2, *)
+extension Transcript.DataEntry {
+    /// What OpenAI reported about the data, such as the revised prompt of a generated image.
+    public var openAI: OpenAIDataMetadata {
+        OpenAIDataMetadata(metadata)
+    }
+}
+#endif
 
 extension LanguageModelSession.Usage {
     /// What OpenAI reported about the answer's counts, such as the prompt tokens written to its cache.

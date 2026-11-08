@@ -40,12 +40,14 @@ func details<Effort: ModelEffort>(
 func model<Effort: ModelEffort>(
     _ stub: HTTPStub,
     _ details: OpenAIModel<Effort>,
+    serverTools: [OpenAIServerTool] = [],
     options: OpenAIOptions = OpenAIOptions(),
     configuration: OpenAIConfiguration = .stubbed,
     auth: (URL) -> OpenAIAuthentication = { url in .apiKey(baseURL: url) { "sk-test" } }
 ) -> OpenAILanguageModel<Effort> {
     OpenAILanguageModel(
         details: details,
+        serverTools: serverTools,
         options: options,
         session: stub.session,
         // The stub stands in for OpenAI, so the authentication goes to the stub's URL.

@@ -46,9 +46,11 @@ entry, so they sit on its first call, and `openAI` on the `Transcript.ToolCalls`
 
 Saved transcripts keep these facts. The ones any provider can report, such as the model and the request id, also read
 through `providerMetadata`, as ``ProviderResponseMetadata`` and ``ProviderUsageMetadata``, so code that reads them
-works with any language model in this package, as <doc:/LanguageModels/ReadingWhatAProviderReports> shows. The only fact
-OpenAI reports that other providers don't is the `phase` of each of an answer's messages, which
-``OpenAIResponseMetadata/messages`` reads and <doc:Reasoning> describes.
+works with any language model in this package, as <doc:/LanguageModels/ReadingWhatAProviderReports> shows. The facts
+OpenAI reports that other providers don't are the `phase` of each of an answer's messages, which
+``OpenAIResponseMetadata/messages`` reads and <doc:Reasoning> describes, and what its server tools did:
+``OpenAIResponseMetadata/serverToolCalls``, ``OpenAIResponseMetadata/sources`` and
+``OpenAIResponseMetadata/fileCitations``, which <doc:ServerTools> describes.
 
 ### Add up a response's usage
 

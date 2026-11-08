@@ -5,7 +5,7 @@
 ### Creating a model
 
 - <doc:GettingStarted>
-- ``init(_:options:session:configuration:auth:)``
+- ``init(_:serverTools:options:session:configuration:auth:)``
 - ``init(_:)``
 
 ### Describing the model
@@ -19,6 +19,7 @@
 
 ### Setting requests
 
+- ``serverTools``
 - ``options``
 
 ### Sending requests

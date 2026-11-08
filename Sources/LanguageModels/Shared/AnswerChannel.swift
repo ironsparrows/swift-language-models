@@ -657,7 +657,7 @@ package struct AnswerAdditions {
     fileprivate var cost: Decimal?
 
     /// The web searches the provider ran for the answer.
-    fileprivate var webSearchCount: Int?
+    var webSearchCount: Int?
 
     /// The provider's own facts, as its typed value writes them, for the metadata of the entry that ends the answer.
     var metadata: [String: any ConvertibleToGeneratedContent]

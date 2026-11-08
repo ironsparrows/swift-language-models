@@ -28,9 +28,9 @@ extension OpenAILanguageModel {
 
 // MARK: - Exchange
 
-/// OpenAI's part in one exchange: the reasoning effort and summary, the storage, the options only OpenAI has, the
-/// settings each model takes, the reasoning items that go back on later turns, the request id, and what OpenAI's
-/// failures become.
+/// OpenAI's part in one exchange: the reasoning effort and summary, the storage, the options only OpenAI has, the server
+/// tools, the settings each model takes, the reasoning items that go back on later turns, the request id, and what
+/// OpenAI's failures become.
 ///
 /// Every method with a default is here, in the type that declares the conformance, so a misspelled one draws a warning
 /// instead of silently keeping the default.
@@ -78,8 +78,8 @@ struct OpenAIExchange: Responses.Exchange {
 
     // MARK: Before it is sent
 
-    /// Adds OpenAI's members, sets the format's reasoning, storage and `text` members, and leaves out each setting the
-    /// model doesn't take with the request.
+    /// Adds OpenAI's members and server tools, sets the format's reasoning, storage, `include` and `text` members, and
+    /// leaves out each setting the model doesn't take with the request.
     ///
     /// A model that reasons takes `temperature` and `top_p` only while its effort is `none`, so a request that sets
     /// another effort, or goes to a model that always reasons, leaves them out. A request that sets no effort for a
@@ -88,8 +88,13 @@ struct OpenAIExchange: Responses.Exchange {
     /// model that reasons asks for its reasoning encrypted, so its reasoning items go back on later turns whether or
     /// not OpenAI keeps the response.
     ///
+    /// The server tools go after the session's tools, unless tool calls are disallowed, and the answer keeps their calls,
+    /// so they go back on later turns. A web search that lists its sources asks for them in `include`, after the
+    /// encrypted reasoning.
+    ///
     /// - Throws: `LanguageModelError.unsupportedCapability` when tool calls are required and the model doesn't take
-    ///   tools, or when the request has a response schema and the model doesn't take structured outputs.
+    ///   tools, when there are server tools to send and the model doesn't take tools, when one generates images where
+    ///   no image could arrive, or when the request has a response schema and the model doesn't take structured outputs.
     func prepare(_ request: inout Responses.Request) throws {
         let options = model.options
         let generation = request.generation
@@ -97,6 +102,7 @@ struct OpenAIExchange: Responses.Exchange {
         if request.hasSessionTools, !sendsSessionTools, generation.generationOptions.toolCallingMode?.kind == .required {
             throw LanguageModelError.unsupported(.toolCalling, "The model doesn't take tools, so it can't be made to call one.")
         }
+        let serverTools = try serverTools(toolCallingMode: generation.generationOptions.toolCallingMode)
         if generation.schema != nil, !details.supportedParameters.contains(.structuredOutputs) {
             throw LanguageModelError.unsupported(
                 .guidedGeneration, "The model doesn't take structured outputs, so it can't hold its answer to a schema.")
@@ -108,9 +114,13 @@ struct OpenAIExchange: Responses.Exchange {
                 parallelToolCalls: sendsSessionTools ? options.parallelToolCalls.value : nil,
                 serviceTier: options.serviceTier,
                 promptCacheKey: options.cacheKey.flatMap { Self.cacheKey($0, firstPromptID: request.firstPromptID) },
-                safetyIdentifier: options.endUserID
+                safetyIdentifier: options.endUserID,
+                // The limit concerns only the server tools.
+                maximumToolCalls: serverTools.isEmpty ? nil : options.maximumServerToolCalls
             ))
         request.sendsSessionTools = sendsSessionTools
+        request.serverTools = try serverTools.map { try JSONValueEncoder.encode($0) }
+        request.serverToolCalls = Set(serverTools.map(\.call))
         request.storage = options.storage.storage
         if let verbosity = options.verbosity {
             request.textMembers = try JSONValueEncoder.members(of: TextMembers(verbosity: verbosity))
@@ -122,6 +132,38 @@ struct OpenAIExchange: Responses.Exchange {
             let reasons = effort.map { $0 != ContextOptions.ReasoningLevel.off.effortWord } ?? (details.reasoning == .mandatory)
             if reasons { request.leftOutMembers = [.temperature, .topP] }
         }
+        for value in serverTools.flatMap(\.include) where !request.include.contains(value) {
+            request.include.append(value)
+        }
+    }
+
+    /// The server tools' entries, or none when tool calls are disallowed.
+    ///
+    /// - Throws: `LanguageModelError.unsupportedCapability` when there are server tools to send and the model doesn't
+    ///   take tools, or when one generates images where no image could arrive: before OS 27.2, or in an app built
+    ///   without Xcode 27.2's SDK.
+    private func serverTools(toolCallingMode: GenerationOptions.ToolCallingMode?) throws(LanguageModelError)
+        -> [OpenAIServerTool.Entry]
+    {
+        guard !model.serverTools.isEmpty, toolCallingMode?.kind != .disallowed else { return [] }
+        guard lists(.tools) else {
+            throw LanguageModelError.unsupported(.toolCalling, "The model doesn't take tools, so it can't call server tools.")
+        }
+        let entries = model.serverTools.map(\.entry)
+        if !Self.receivesGeneratedData, entries.contains(where: { $0.generatedFormat != nil }) {
+            throw LanguageModelError.unsupported(
+                .toolCalling, "Generated images arrive as data entries, which need OS 27.2 and an app built with Xcode 27.2's SDK.")
+        }
+        return entries
+    }
+
+    /// Whether an answer can carry data the model generates, such as an image: from OS 27.2, in an app built with Xcode
+    /// 27.2's SDK.
+    private static var receivesGeneratedData: Bool {
+        #if canImport(FoundationModels, _version: 2.1.14)
+        if #available(iOS 27.2, macOS 27.2, visionOS 27.2, watchOS 27.2, *) { return true }
+        #endif
+        return false
     }
 
     /// The effort to send for a reasoning level, which is the nearest the model accepts, and the move the request logs
@@ -172,12 +214,14 @@ private struct Members: Encodable {
     let serviceTier: OpenAIServiceTier?
     let promptCacheKey: String?
     let safetyIdentifier: String?
+    let maximumToolCalls: Int?
 
     private enum CodingKeys: String, CodingKey {
         case parallelToolCalls = "parallel_tool_calls"
         case serviceTier = "service_tier"
         case promptCacheKey = "prompt_cache_key"
         case safetyIdentifier = "safety_identifier"
+        case maximumToolCalls = "max_tool_calls"
     }
 
     /// The key of `parallel_tool_calls`, which goes out only to models that take tools.

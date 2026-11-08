@@ -73,7 +73,8 @@ code that works with any model, and a provider's reader in code that works with 
   how OpenRouter routed the request, the hosts it tried, the response cache, the host's charge and the server tools'
   calls.
 - [`openAI`](https://ironsparrows.github.io/swift-language-models/documentation/openailanguagemodels/errorsandmetadata):
-  the phase of each of an answer's messages.
+  the phase of each of an answer's messages, and what the server tools did: their calls, the pages a web search
+  consulted, the files an answer cites, and a generated image's revised prompt.
 
 ### Apple's guides
 

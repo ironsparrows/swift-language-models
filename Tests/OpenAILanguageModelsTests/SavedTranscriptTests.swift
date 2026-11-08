@@ -102,6 +102,25 @@ struct SavedTranscriptTests {
             model: \(text(metadata.model?.rawValue)), responseID: \(text(metadata.responseID)), requestID: \(text(metadata.requestID)), \
             finishReason: \(text(metadata.finishReason?.rawValue)), serviceTier: \(text(metadata.serviceTier?.rawValue)), \
             citations: \(citations), messages: \(messages), cacheWriteTokenCount: \(text(metadata.usage.cacheWriteTokenCount))
-            """
+            """ + serverToolFacts(metadata)
+    }
+
+    /// What the server tools left, only when they left something, so the facts of an answer without them read as before.
+    private static func serverToolFacts(_ metadata: OpenAIResponseMetadata) -> String {
+        func text(_ value: (some Any)?) -> String { value.map { String(describing: $0) } ?? "nil" }
+        var facts: [String] = []
+        if !metadata.sources.isEmpty { facts.append("sources: \(metadata.sources.count), first \(metadata.sources[0])") }
+        if !metadata.serverToolCalls.isEmpty {
+            let calls = metadata.serverToolCalls.map { call in
+                "\(call.kind.rawValue) \(call.id) \(text(call.status?.rawValue)) \(text(call.action?.rawValue)) \(call.queries) "
+                    + "\(text(call.url)) \(text(call.pattern)) \(text(call.revisedPrompt))"
+            }
+            facts.append("serverToolCalls: \(calls)")
+        }
+        if !metadata.fileCitations.isEmpty {
+            facts.append("fileCitations: \(metadata.fileCitations.map { "\($0.fileID) \(text($0.filename)) \(text($0.offset))" })")
+        }
+        if let count = metadata.usage.webSearchCount { facts.append("webSearchCount: \(count)") }
+        return facts.map { ", \($0)" }.joined()
     }
 }

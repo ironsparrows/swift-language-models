@@ -38,7 +38,8 @@ struct AuthenticationTests {
     @Test func `requests go to the responses path under the base URL, with the proxy's headers`() async throws {
         let stub = HTTPStub(responseStream([created()], [textDelta("Hi."), completed()]))
         let languageModel = OpenAILanguageModel(
-            details: details(efforts: [ContextOptions.ReasoningLevel.low]), options: OpenAIOptions(), session: stub.session,
+            details: details(efforts: [ContextOptions.ReasoningLevel.low]), serverTools: [], options: OpenAIOptions(),
+            session: stub.session,
             auth: .proxied(baseURL: stub.baseURL) { ["X-App-Token": "app-1"] },
             configuration: .stubbed)
 
@@ -55,7 +56,7 @@ struct AuthenticationTests {
 private func sentRequest(_ auth: (URL) -> OpenAIAuthentication) async throws -> URLRequest {
     let stub = HTTPStub(responseStream([created()], [textDelta("Hi."), completed()]))
     let languageModel = OpenAILanguageModel(
-        details: details(efforts: [ContextOptions.ReasoningLevel.low]), options: OpenAIOptions(), session: stub.session,
+        details: details(efforts: [ContextOptions.ReasoningLevel.low]), serverTools: [], options: OpenAIOptions(), session: stub.session,
         auth: auth(stub.baseURL), configuration: .stubbed)
 
     _ = try await LanguageModelSession(model: languageModel).respond(to: "Hi")

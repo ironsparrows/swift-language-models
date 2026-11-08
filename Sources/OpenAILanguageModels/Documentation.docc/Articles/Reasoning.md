@@ -90,7 +90,8 @@ signature. Each request sends the transcript, and with it the reasoning of earli
   left out of the request, since OpenAI can't look it up by its id.
 
 The package sends the whole transcript, and every reasoning item goes back encrypted, so later turns work the same
-whether or not OpenAI keeps the response. A session that moves from stored to not stored responses keeps answering.
+whether or not OpenAI keeps the response, apart from a generated image, whose call goes back only while OpenAI keeps
+the responses, as <doc:ServerTools> describes. A session that moves from stored to not stored responses keeps answering.
 
 ### Message phases
 

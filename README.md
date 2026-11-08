@@ -38,7 +38,8 @@ and Mistral then run in the same session as Apple's on-device model, and switchi
   levels and capabilities.
 - **Typed reasoning levels.** Each model takes only the levels it accepts, checked when the code compiles.
 - **Routing, fallbacks and caching.** Hosts picked by price or data policy, backup models, and cached prompts.
-- **Server tools.** Web search, web fetch, advisors and subagents run on OpenRouter while the model answers.
+- **Server tools.** Web search, web fetch, advisors and subagents run on OpenRouter, and web search, image generation
+  and file search on OpenAI, while the model answers.
 - **Attachments.** Images, and from OS 27.2 PDFs and text, plus audio and video through OpenRouter; generated images
   come back as data.
 - **Errors to switch on.** Rate limits, oversized contexts, guardrails and refusals throw Apple's `LanguageModelError`.
@@ -377,6 +378,21 @@ let model = OpenAILanguageModel(.gpt6Luna, options: options, auth: .apiKey { try
 
 See [Reasoning][openai-reasoning] and [Caching][openai-caching].
 
+### Server tools
+
+Server tools run on OpenAI while the model answers, and their calls go back on later turns:
+
+```swift
+let model = OpenAILanguageModel(
+    .gpt6Luna,
+    serverTools: [.webSearch(listsSources: true), .imageGeneration(quality: .low), .fileSearch(vectorStoreIDs: ["vs_menus"])],
+    auth: .apiKey { try await keyStore.openAIKey() }
+)
+```
+
+A web search's cited pages are `answer.openAI.citations`, and each generated image is a data entry of its own, from OS
+27.2. See [Server tools][openai-server-tools].
+
 ### Metadata and errors
 
 ```swift
@@ -509,3 +525,4 @@ Licensed under the Apache License 2.0. See [LICENSE](LICENSE).
 [openai-tools]: https://ironsparrows.github.io/swift-language-models/documentation/openailanguagemodels/toolsandguidedgeneration
 [openai-attachments]: https://ironsparrows.github.io/swift-language-models/documentation/openailanguagemodels/attachments
 [openai-repeatable-runs]: https://ironsparrows.github.io/swift-language-models/documentation/openailanguagemodels/repeatableruns
+[openai-server-tools]: https://ironsparrows.github.io/swift-language-models/documentation/openailanguagemodels/servertools

@@ -1,0 +1,95 @@
+{
+  "transcript" : {
+    "entries" : [
+      {
+        "contents" : [
+          {
+            "id" : "AF0AE694-4D13-4DA9-B7D2-0395C18E9200",
+            "text" : "Search the web: who designed the Eiffel Tower? One sentence.",
+            "type" : "text"
+          }
+        ],
+        "contextOptions" : {
+
+        },
+        "id" : "D0ADC33C-75EC-4B39-BFD4-472027C133E6",
+        "options" : {
+          "maximumResponseTokens" : 300
+        },
+        "role" : "user"
+      },
+      {
+        "contents" : [
+          {
+            "id" : "135FC103-6918-4608-B1F4-4990CEEC1023",
+            "text" : "The Eiffel Tower was designed by engineers Maurice Koechlin and Émile Nouguier, with architectural enhancements by Stephen Sauvestre, under the leadership of Gustave Eiffel. ([en.wikipedia.org](https://en.wikipedia.org/wiki/Eiffel_Tower?utm_source=openai)) ",
+            "type" : "text"
+          }
+        ],
+        "id" : "90297078-CB49-41ED-9B77-7101E6F0D4DC",
+        "metadata" : {
+          "cacheWriteTokenCount" : 0,
+          "citations" : [
+            {
+              "endOffset" : 256,
+              "excerpt" : null,
+              "startOffset" : 174,
+              "title" : "Eiffel Tower",
+              "url" : "https://en.wikipedia.org/wiki/Eiffel_Tower?utm_source=openai"
+            }
+          ],
+          "finishReason" : "stop",
+          "model" : "gpt-4o-mini-2024-07-18",
+          "openAI.serverTools" : {
+            "calls" : [
+              "{\"action\":{\"queries\":[\"who designed the Eiffel Tower?\"],\"query\":\"who designed the Eiffel Tower?\",\"type\":\"search\"},\"id\":\"ws_634b68a79cff993cd60d633b4f2bd261c0c2726ab76578852a\",\"status\":\"completed\",\"type\":\"web_search_call\"}"
+            ]
+          },
+          "requestID" : "req_1",
+          "responseID" : "resp_a9e730bf4aabdea72cb13110ede0d391681c84a5531c7e432e",
+          "serviceTier" : "default",
+          "webSearchCount" : 1
+        },
+        "role" : "response"
+      },
+      {
+        "contents" : [
+          {
+            "id" : "ABE525EF-4574-4E51-8786-FAA889982DBB",
+            "text" : "In which year was it finished? One sentence.",
+            "type" : "text"
+          }
+        ],
+        "contextOptions" : {
+
+        },
+        "id" : "8F63BD35-D53A-4654-9110-B5C95B5C537B",
+        "options" : {
+          "maximumResponseTokens" : 300
+        },
+        "role" : "user"
+      },
+      {
+        "contents" : [
+          {
+            "id" : "C1C49095-70E0-41B4-AFF3-8BABC82FB26A",
+            "text" : "The Eiffel Tower was completed in 1889.",
+            "type" : "text"
+          }
+        ],
+        "id" : "89EE5071-C626-4699-8E22-B12612500ACB",
+        "metadata" : {
+          "cacheWriteTokenCount" : 0,
+          "finishReason" : "stop",
+          "model" : "gpt-4o-mini-2024-07-18",
+          "requestID" : "req_1",
+          "responseID" : "resp_e3089e59d45249fa65328d971a75af87e8442a443c28cc5b72",
+          "serviceTier" : "default"
+        },
+        "role" : "response"
+      }
+    ]
+  },
+  "type" : "FoundationModels.Transcript",
+  "version" : "1.1"
+}

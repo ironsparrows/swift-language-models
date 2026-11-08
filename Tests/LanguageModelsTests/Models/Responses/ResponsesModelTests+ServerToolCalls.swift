@@ -36,7 +36,8 @@ extension ResponsesModelTests {
         }
 
         @Test func `an image's call keeps its place after reasoning that came first`() async throws {
-            let call: JSONValue = ["type": "image_generation_call", "id": "ig_1", "status": "failed", "result": JSONValue.null]
+            // Without an image, so the test model, which takes no data entries, can answer.
+            let call: JSONValue = ["type": "image_generation_call", "id": "ig_1", "status": "completed", "result": JSONValue.null]
             let stub = HTTPStub(
                 events(done(0, reasoning("rs_1")), done(1, call), textDelta("No image.", at: 2), lifecycle("response.completed")),
                 events(textDelta("Done."), lifecycle("response.completed")))
@@ -68,11 +69,30 @@ extension ResponsesModelTests {
             #expect(exchange.transcript.last?.contains("test.serverTools") == false)
         }
 
-        @Test func `a cited file keeps its place in the answer's text, only while the request keeps file searches`() async throws {
+        @Test func `kept calls go in the metadata in the order of their places, whatever order they ended in`() async throws {
+            let stub = HTTPStub(
+                events(
+                    done(0, reasoning("rs_1")), done(3, search("ws_2")), done(1, search("ws_1")), done(2, reasoning("rs_2")),
+                    textDelta("Found.", at: 4), lifecycle("response.completed")))
+            let exchange = await ExactExchange(
+                stub, LanguageModelSession(model: modelKeeping(stub: stub, [.webSearch])), recordingHeaders: /^X-/
+            ) {
+                session, _ in
+                try await session.respond(to: "Search twice.").usage
+            }
+
+            let response = try #require(exchange.transcript.first { $0.hasPrefix("response ") })
+            let first = try #require(response.range(of: #"\"id\":\"ws_1\""#))
+            let second = try #require(response.range(of: #"\"id\":\"ws_2\""#))
+            #expect(first.lowerBound < second.lowerBound)
+        }
+
+        @Test func `a cited file keeps its place in the answer's text, once, only while the request keeps file searches`() async throws {
             func respond(keeping calls: Set<Responses.ServerToolCall>) async -> ExactExchange {
                 let stub = HTTPStub(
                     events(
                         textDelta("Plan: ", at: 0), textDelta("see the menu.", at: 1),
+                        annotation(at: 1, ["type": "file_citation", "file_id": "file_1", "filename": "menu.pdf", "index": 13]),
                         annotation(at: 1, ["type": "file_citation", "file_id": "file_1", "filename": "menu.pdf", "index": 13]),
                         lifecycle("response.completed")))
                 return await ExactExchange(stub, LanguageModelSession(model: modelKeeping(stub: stub, calls)), recordingHeaders: /^X-/) {
@@ -88,6 +108,47 @@ extension ResponsesModelTests {
                 kept.transcript.last?.contains(
                     #""test.serverTools":{"fileCitations":[{"fileID":"file_1","filename":"menu.pdf","offset":19}]}"#) == true)
             #expect(passedOver.transcript.last?.contains("test.serverTools") == false)
+        }
+
+        @Test(arguments: [(2, #""webSearchCount":2"#), (0, nil)] as [(Int, String?)])
+        func `the web searches a response reports fill the usage's count, and none add nothing`(
+            searches: Int, count: String?
+        ) async throws {
+            let usage: JSONValue = ["input_tokens": 9, "output_tokens": 3]
+            let stub = HTTPStub(
+                events(
+                    textDelta("Found."),
+                    lifecycle(
+                        "response.completed",
+                        [
+                            "usage": usage,
+                            "tool_usage": ["web_search": ["num_requests": .integer(searches)], "image_gen": ["input_tokens": 0]],
+                        ])))
+            let exchange = await ExactExchange(stub, LanguageModelSession(model: modelKeeping(stub: stub, [])), recordingHeaders: /^X-/) {
+                session, _ in
+                try await session.respond(to: "Search.").usage
+            }
+
+            let usageLine = try #require(exchange.usage)
+            #expect(usageLine.contains("webSearchCount") == (count != nil))
+            if let count { #expect(usageLine.contains(count)) }
+        }
+
+        @Test func `a tool usage, a storage or a cited file's member of another shape leaves the answer readable`() async throws {
+            let stub = HTTPStub(
+                events(
+                    textDelta("Found."), annotation(at: 0, ["type": "file_citation", "file_id": 7, "index": "start"]),
+                    lifecycle(
+                        "response.completed", ["usage": ["input_tokens": 9, "output_tokens": 3], "tool_usage": "none", "store": "yes"])))
+            let exchange = await ExactExchange(
+                stub, LanguageModelSession(model: modelKeeping(stub: stub, [.fileSearch])), recordingHeaders: /^X-/
+            ) { session, _ in
+                try await session.respond(to: "Search.").usage
+            }
+
+            #expect(exchange.error == nil)
+            #expect(exchange.transcript.last?.hasPrefix(#"response ["Found."]"#) == true)
+            #expect(exchange.transcript.last?.contains("test.serverTools") == false)
         }
 
         @Test func `without reasoning, an answer's calls go back before its messages`() throws {
@@ -125,6 +186,18 @@ extension ResponsesModelTests {
             let sent = input(try ResponsesSentRequest(generationRequest(entries), model: modelKeeping([.imageGeneration])).body)
 
             #expect(sent == [["role": "user", "content": "Draw."], reasoning("rs_1"), call, ["role": "user", "content": "Again."]])
+        }
+
+        @Test func `reasoning after the call of an answer that is only an image stays out, since nothing follows it`() throws {
+            let call: JSONValue = ["type": "image_generation_call", "id": "ig_1", "status": "completed", "result": JSONValue.null]
+            let entries: [Transcript.Entry] = [
+                prompt(text("Draw.")), reasoningEntry(["type": "image_generation_call"], reasoning("rs_1"), ["type": "message"]),
+                .response(Transcript.Response(metadata: kept(call), segments: [])), prompt(text("Again.")),
+            ]
+
+            let sent = input(try ResponsesSentRequest(generationRequest(entries), model: modelKeeping([.imageGeneration])).body)
+
+            #expect(sent == [["role": "user", "content": "Draw."], call, ["role": "user", "content": "Again."]])
         }
 
         @Test func `an answer that ends in tool calls keeps its server tools' calls on its first call`() throws {
@@ -165,6 +238,44 @@ extension ResponsesModelTests {
 
             #expect(sent.compactMap { $0["id"]?.stringValue } == replayed.ids)
             #expect(sent.last == ["role": "assistant", "content": "Here."])
+        }
+
+        @Test func `a call that didn't complete stays out, and so does the reasoning before it`() throws {
+            let failed: JSONValue = ["type": "web_search_call", "id": "ws_1", "status": "failed", "action": ["type": "search"]]
+            // A call that names no status counts as completed.
+            let unnamed: JSONValue = ["type": "web_search_call", "id": "ws_3", "action": ["type": "search"]]
+            let entries: [Transcript.Entry] = [
+                prompt(text("Search three times.")),
+                reasoningEntry(
+                    reasoning("rs_1"), ["type": "web_search_call"], reasoning("rs_2"), ["type": "web_search_call"], reasoning("rs_3"),
+                    ["type": "web_search_call"], ["type": "message"]),
+                .response(Transcript.Response(metadata: kept(failed, search("ws_2"), unnamed), segments: [text("Found.")])),
+            ]
+
+            let sent = input(try ResponsesSentRequest(generationRequest(entries), model: modelKeeping([.webSearch])).body)
+
+            #expect(sent.compactMap { $0["id"]?.stringValue } == ["rs_2", "ws_2", "rs_3", "ws_3"])
+        }
+
+        @Test func `an image's call from a response the provider didn't keep stays out, and a search's goes back`() throws {
+            let image: JSONValue = ["type": "image_generation_call", "id": "ig_1", "status": "completed", "result": JSONValue.null]
+            let unstored = GeneratedContent(properties: ["calls": [search("ws_1").text, image.text], "unstored": true])
+            let entries: [Transcript.Entry] = [
+                prompt(text("Search, then draw.")),
+                reasoningEntry(
+                    reasoning("rs_1"), ["type": "web_search_call"], reasoning("rs_2"), ["type": "image_generation_call"],
+                    ["type": "message"]),
+                .response(Transcript.Response(metadata: ["test.serverTools": unstored], segments: [text("Here.")])),
+            ]
+            var model = Responses.Model<ResponsesTestExchange>.test()
+            model.exchange.prepares = { request in
+                request.serverToolCalls = [.webSearch, .imageGeneration]
+                request.storage = .stored
+            }
+
+            let sent = input(try ResponsesSentRequest(generationRequest(entries), model: model).body)
+
+            #expect(sent.compactMap { $0["id"]?.stringValue } == ["rs_1", "ws_1"])
         }
 
         @Test func `to a provider that doesn't keep the response, a call goes back only with all the reasoning before it`() throws {
