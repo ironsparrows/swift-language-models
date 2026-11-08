@@ -30,14 +30,16 @@ private let searchToolEntries: [(OpenAIServerTool, JSONValue)] = [
     ),
 ]
 
-/// Each server tool with its entry in a request's tools. An image generator goes out only with Xcode 27.2's SDK, where
-/// its images can arrive.
-private let serverToolEntries: [(OpenAIServerTool, JSONValue)] = {
+/// Each server tool with its entry in a request's tools. An image generator goes out only where its images can arrive.
+private let serverToolEntries: [(OpenAIServerTool, JSONValue)] =
+    imagesArrive ? searchToolEntries + imageToolEntries : searchToolEntries
+
+/// Whether a generated image can arrive: from OS 27.2, with Xcode 27.2's SDK.
+private let imagesArrive: Bool = {
     #if canImport(FoundationModels, _version: 2.1.14)
-    return searchToolEntries + imageToolEntries
-    #else
-    return searchToolEntries
+    if #available(iOS 27.2, macOS 27.2, visionOS 27.2, watchOS 27.2, *) { return true }
     #endif
+    return false
 }()
 
 /// Each image generator with its entry in a request's tools.
@@ -199,8 +201,10 @@ extension OpenAIOptionsTests {
             #expect(try await webp.supportsDataEntryType(.webP))
             #expect(try await webp.supportsDataEntryType(.png) == false)
         }
-        #else
-        @Test func `image generation is refused before any request in a build without data entries`() async throws {
+        #endif
+
+        @Test(.disabled(if: imagesArrive, "Images can arrive here: OS 27.2, with Xcode 27.2's SDK"))
+        func `image generation is refused before any request where no image could arrive`() async throws {
             let stub = HTTPStub(responseStream([created()], [textDelta("Hi."), completed()]))
 
             let error = try await #require(throws: LanguageModelError.self) {
@@ -214,7 +218,6 @@ extension OpenAIOptionsTests {
             #expect(unsupported.capability == .toolCalling)
             #expect(stub.requests.isEmpty)
         }
-        #endif
     }
 }
 

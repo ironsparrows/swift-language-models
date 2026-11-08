@@ -20,7 +20,7 @@ extension LiveTests {
         ]
 
         @Test(arguments: models)
-        func `the provider accepts the schema and its answer decodes`(model: LiveModel) async throws {
+        func `the host accepts the schema and its answer decodes`(model: LiveModel) async throws {
             let session = LanguageModelSession(model: model.languageModel)
 
             let trip = try await session.respond(to: "Plan a short trip to Lisbon.", generating: Trip.self).content
@@ -128,7 +128,7 @@ extension LiveTests {
         }
 
         @Test func `a model with neither structured outputs nor JSON mode is refused before any request`() async throws {
-            let session = LanguageModelSession(model: LiveModel(.metaLlamaLlama3_2_1bInstruct).languageModel)
+            let session = LanguageModelSession(model: LiveModel(.metaLlamaLlama3_1_70bInstruct).languageModel)
 
             let error = try await #require(throws: LanguageModelError.self) {
                 try await session.respond(to: "Plan a short trip to Lisbon.", generating: Trip.self)

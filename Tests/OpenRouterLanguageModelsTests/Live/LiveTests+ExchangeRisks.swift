@@ -112,7 +112,7 @@ extension LiveTests {
 
         /// Tool-call ids from another host go back as they are, though Mistral takes only 9 letters and digits.
         /// Mistral's own host accepts them through OpenRouter all the same.
-        @Test func `another provider's tool-call ids work on Mistral's own host`() async throws {
+        @Test func `another host's tool-call ids work on Mistral's own host`() async throws {
             let first = LanguageModelSession(model: LiveModel(.openaiGpt4_1Nano).languageModel, tools: [WeatherTool()])
             _ = try await first.respond(to: "How warm is it in Lisbon right now? Use the tool.")
             try #require(!first.transcript.toolCalls.isEmpty)
