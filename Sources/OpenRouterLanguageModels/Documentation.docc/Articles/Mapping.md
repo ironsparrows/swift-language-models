@@ -48,7 +48,7 @@ for images.
 | `samplingMode` `.random(top:seed:)` | `top_k` and `seed` |
 | `samplingMode` `.random(probabilityThreshold:seed:)` | `top_p` and `seed` |
 | `maximumResponseTokens` | `max_completion_tokens` when every model lists it, otherwise `max_tokens` when every model lists that; left out, and logged, when neither is. OpenRouter picks a host that supports an answer that long, and still answers a limit above every host's |
-| `toolCallingMode` | `tool_choice`: `auto` or `required`, sent only with the session's tools; when disallowed, no tools at all, server tools included. When required, `LanguageModelError.unsupportedCapability` before any request if the model or a fallback doesn't list `tool_choice` |
+| `toolCallingMode` | `tool_choice`: `auto` or `required`, sent only with the session's tools; when disallowed, no tools at all, server tools included. When required, `LanguageModelError.unsupportedCapability` before any request if the model or a fallback doesn't list `tools` or `tool_choice` |
 | `reasoningLevel` | `reasoning.effort`, moved to the nearest level that the model and every fallback accept, but only `.off` moves to `none`; `reasoning.enabled` when there's no such level, and `reasoning.enabled: false` for `.off` when `none` isn't among them and no model always reasons |
 | Request metadata | `metadata`: up to 16 string values, with keys of up to 64 characters and values of up to 512; the rest is left out and logged |
 | The transcript's first prompt | `session_id`, so requests of one session reach the host that cached their prompt; the `X-Session-Id` header instead while the response cache is on, since the cache compares the whole body |

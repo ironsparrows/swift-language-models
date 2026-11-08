@@ -41,7 +41,7 @@ and sends their outputs back, and the last answer is the `Generable` value:
 
 `toolCallingMode` becomes `tool_choice`: `auto` when tools are allowed, and `required` when the model must call one.
 Only `tool_choice` makes a model call a tool, so a required mode throws `LanguageModelError.unsupportedCapability`
-before sending anything when the model or a fallback doesn't list it:
+before sending anything when the model or a fallback doesn't list `tools`, or lists it without `tool_choice`:
 
 @Snippet(path: "swift-language-models/Snippets/ToolsAndGuidedGeneration", slice: "required")
 

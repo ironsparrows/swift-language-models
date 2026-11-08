@@ -162,17 +162,20 @@ struct OpenRouterExchange: ChatCompletions.Exchange {
     /// parameter any of its hosts takes, so with tools or a schema, when the request asks for hosts that take all it
     /// sends, each setting sent also narrows its hosts.
     ///
-    /// - Throws: `LanguageModelError.unsupportedCapability` when a call to the session's tools is required and the
-    ///   models take tools but a model doesn't take `tool_choice`, when there are server tools and a model doesn't take
-    ///   tools, and for a schema when a model doesn't take structured outputs. A model that doesn't take tools gets none
-    ///   of the session's tools, and no error, even when a call is required.
+    /// - Throws: `LanguageModelError.unsupportedCapability` when a call to the session's tools is required and a model
+    ///   doesn't take tools or `tool_choice`, when there are server tools and a model doesn't take tools, and for a
+    ///   schema when a model doesn't take structured outputs.
     func prepare(_ request: inout ChatCompletions.Request) throws {
         let options = model.options
         let toolCallingMode = request.generation.generationOptions.toolCallingMode
         let hasSchema = request.generation.schema != nil
-        // A model that doesn't take tools gets none of the session's, and requiring a call needs `tool_choice`, the
-        // only way to require one.
+        // A model that doesn't take tools gets none of the session's, so it can't be made to call one, and requiring a
+        // call needs `tool_choice`, the only way to require one.
         let sendsSessionTools = request.hasSessionTools && lists(.tools)
+        if request.hasSessionTools, !sendsSessionTools, toolCallingMode?.kind == .required {
+            let description = "The model or one of its fallbacks doesn't take tools, so it can't be made to call one."
+            throw LanguageModelError.unsupported(.toolCalling, description)
+        }
         if sendsSessionTools, toolCallingMode?.kind == .required, !lists(.toolChoice) {
             let description = "The model or one of its fallbacks doesn't take tool_choice, so it can't be made to call a tool."
             throw LanguageModelError.unsupported(.toolCalling, description)

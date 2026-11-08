@@ -67,6 +67,35 @@ extension OpenRouterExchangeTests {
             #expect(stub.requests.isEmpty)
         }
 
+        /// Foundation Models refuses a session's tools for a model without tool calling before the model sees the
+        /// request, so the test asks the model directly.
+        @Test(arguments: [
+            (chatParameters.subtracting([.tools]), chatParameters),
+            (chatParameters, chatParameters.subtracting([.tools])),
+        ])
+        func `required tool calls are refused before any request when the model or a fallback doesn't take tools`(
+            parameters: Set<OpenRouterParameter>,
+            fallbackParameters: Set<OpenRouterParameter>
+        ) async throws {
+            let stub = HTTPStub(events(text("Hi"), done()))
+            let model = model(stub, parameters: parameters, fallbacks: [fallback(parameters: fallbackParameters)])
+            let request = generationRequest(
+                [prompt(.text(.init(content: "Hi")))], tools: [Transcript.ToolDefinition(tool: FoodTool())],
+                options: GenerationOptions(toolCallingMode: .required))
+
+            let error = try await #require(throws: LanguageModelError.self) {
+                try await requestBody(request, model: model, stub: stub)
+            }
+
+            guard case .unsupportedCapability(let unsupported) = error else {
+                Issue.record("Expected an unsupported capability, got \(error)")
+                return
+            }
+            #expect(unsupported.capability == .toolCalling)
+            #expect(unsupported.debugDescription.contains("doesn't take tools"))
+            #expect(stub.requests.isEmpty)
+        }
+
         @Test(arguments: [GenerationOptions.ToolCallingMode?.none, .allowed])
         func `without a tool choice, other modes still send the tools, with no tool choice`(
             mode: GenerationOptions.ToolCallingMode?

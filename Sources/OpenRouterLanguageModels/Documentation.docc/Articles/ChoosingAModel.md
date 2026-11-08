@@ -63,8 +63,8 @@ A sampling or output setting, such as `temperature`, `stop` or `verbosity`, goes
 parameter in ``OpenRouterModel/supportedParameters``, so a host never rejects one, and a debug build shows a runtime
 warning in Xcode for each setting left out. Required tool calls are the exception: only `tool_choice` makes a model
 call a tool, so with `toolCallingMode` set to `.required`, a request throws `LanguageModelError.unsupportedCapability`
-before sending anything when the model or a fallback doesn't list it, as Amazon's Nova 1.0 models don't. <doc:Mapping>
-lists what each setting becomes.
+before sending anything when the model or a fallback doesn't list `tools`, or lists it without `tool_choice`, as
+Amazon's Nova 1.0 models do. <doc:Mapping> lists what each setting becomes.
 
 ### What a request costs
 

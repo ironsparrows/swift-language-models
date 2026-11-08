@@ -65,12 +65,15 @@ extension OpenRouterExchangeTests {
             #expect(response.usage.metadata["cost"] == nil)
         }
 
-        @Test func `a model that doesn't take tools gets none of the session's, nor a tool choice`() async throws {
+        @Test(arguments: [GenerationOptions.ToolCallingMode?.none, .allowed])
+        func `a model that doesn't take tools gets none of the session's, nor a tool choice`(
+            mode: GenerationOptions.ToolCallingMode?
+        ) async throws {
             let stub = HTTPStub(events(text("Hi"), done()))
             let model: OpenRouterLanguageModel<Efforts.Unsupported> = model(stub, parameters: chatParameters.subtracting([.tools]))
             let request = generationRequest(
                 [.prompt(Transcript.Prompt(segments: [.text(.init(content: "Hi"))]))], tools: [Transcript.ToolDefinition(tool: FoodTool())],
-                options: GenerationOptions(toolCallingMode: .required))
+                options: GenerationOptions(toolCallingMode: mode))
 
             let body = try await requestBody(request, model: model, stub: stub)
 

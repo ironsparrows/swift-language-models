@@ -5,8 +5,9 @@ Update your code from 1.x of this package to 2.0.
 ## Overview
 
 2.0 reads what a provider reports through typed values, and a provider module of your own writes Foundation Models'
-executor itself. Requests, answers, retries, errors and logs stay as they were, apart from usage out of range, which no
-longer stops your app. A transcript you saved with 1.x keeps working: its metadata is stored under the same keys.
+executor itself. Requests, answers, retries, errors and logs stay as they were, apart from two changes: usage out of
+range no longer stops your app, and an OpenRouter model's executor refuses a required tool call that the model can't
+make. A transcript you saved with 1.x keeps working: its metadata is stored under the same keys.
 
 ### Reading what a provider reports
 
@@ -201,6 +202,14 @@ A provider can report usage that doesn't add up. In 1.x, an answer that reported
 tokens stopped your app. 2.0 clamps the prompt's counts instead, which changes behavior: `usage.input.totalTokenCount`
 is never below zero, and `usage.input.cachedTokenCount` lies between zero and it. Usage within range reads as before,
 and the output's counts stay as the provider reports them.
+
+### A required tool call on OpenRouter
+
+When a request requires a tool call and the OpenRouter model, or one of its fallbacks, doesn't list `tools`, the model's
+`Executor` now throws `LanguageModelError.unsupportedCapability` with `.toolCalling` before sending anything, as an
+OpenAI model's `Executor` does. In 1.x, the request went out without the session's tools, so the model couldn't call
+one. A session never reaches this: Foundation Models refuses a session's tools for a model without `.toolCalling` before
+the model sees the request. Only code that calls the `Executor` itself sees the change.
 
 ### The contract's module
 
