@@ -902,6 +902,8 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.CohereCom
                 .stop,
                 .structuredOutputs,
                 .temperature,
+                .toolChoice,
+                .tools,
                 .topK,
                 .topP,
             ]
@@ -929,6 +931,7 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.CohereCom
                 .stop,
                 .structuredOutputs,
                 .temperature,
+                .toolChoice,
                 .tools,
                 .topK,
                 .topP,
@@ -1010,6 +1013,8 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.CohereCom
                 .stop,
                 .structuredOutputs,
                 .temperature,
+                .toolChoice,
+                .tools,
                 .topK,
                 .topP,
             ]
@@ -2631,10 +2636,8 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.IbmGranit
 
 extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.InceptionMercury2> {
     /// Inception: Mercury 2
-    @available(*, deprecated, message: "OpenRouter retires this model on 2026-11-08")
-    public static var inceptionMercury2: Self { inceptionMercury2Entry }
-
-    fileprivate static var inceptionMercury2Entry: Self {
+    @available(*, deprecated, message: "Removed from OpenRouter on 2026-11-08")
+    public static var inceptionMercury2: Self {
         Self(
             id: "inception/mercury-2",
             displayName: "Inception: Mercury 2",
@@ -2662,10 +2665,8 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.Inception
 
 extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.InceptionMercury2_5> {
     /// Inception: Mercury 2.5
-    @available(*, deprecated, message: "OpenRouter retires this model on 2026-11-08")
-    public static var inceptionMercury2_5: Self { inceptionMercury2_5Entry }
-
-    fileprivate static var inceptionMercury2_5Entry: Self {
+    @available(*, deprecated, message: "Removed from OpenRouter on 2026-11-08")
+    public static var inceptionMercury2_5: Self {
         Self(
             id: "inception/mercury-2.5",
             displayName: "Inception: Mercury 2.5",
@@ -2693,10 +2694,8 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.Inception
 
 extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.InceptionMercury3> {
     /// Inception: Mercury 3
-    @available(*, deprecated, message: "OpenRouter retires this model on 2026-11-08")
-    public static var inceptionMercury3: Self { inceptionMercury3Entry }
-
-    fileprivate static var inceptionMercury3Entry: Self {
+    @available(*, deprecated, message: "Removed from OpenRouter on 2026-11-08")
+    public static var inceptionMercury3: Self {
         Self(
             id: "inception/mercury-3",
             displayName: "Inception: Mercury 3",
@@ -2908,11 +2907,15 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.Inference
 
 extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.LiquidLfm2_5_2_6b> {
     /// LiquidAI: LFM2.5-2.6B
-    public static var liquidLfm2_5_2_6b: Self {
+    @available(*, deprecated, message: "OpenRouter retires this model on 2026-11-13")
+    public static var liquidLfm2_5_2_6b: Self { liquidLfm2_5_2_6bEntry }
+
+    fileprivate static var liquidLfm2_5_2_6bEntry: Self {
         Self(
             id: "liquid/lfm-2.5-2.6b",
             displayName: "LiquidAI: LFM2.5-2.6B",
             releaseDate: Date(timeIntervalSince1970: 1_786_470_519),
+            expirationDate: Date(timeIntervalSince1970: 1_794_528_000),
             contextSize: 128_000,
             supportedParameters: [
                 .frequencyPenalty,
@@ -2942,11 +2945,15 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.LiquidLfm
 
 extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.LiquidLfm2_5_2_6bFree> {
     /// LiquidAI: LFM2.5-2.6B (free)
-    public static var liquidLfm2_5_2_6bFree: Self {
+    @available(*, deprecated, message: "OpenRouter retires this model on 2026-11-13")
+    public static var liquidLfm2_5_2_6bFree: Self { liquidLfm2_5_2_6bFreeEntry }
+
+    fileprivate static var liquidLfm2_5_2_6bFreeEntry: Self {
         Self(
             id: "liquid/lfm-2.5-2.6b:free",
             displayName: "LiquidAI: LFM2.5-2.6B (free)",
             releaseDate: Date(timeIntervalSince1970: 1_786_470_519),
+            expirationDate: Date(timeIntervalSince1970: 1_794_528_000),
             contextSize: 65_536,
             supportedParameters: [
                 .frequencyPenalty,
@@ -2982,6 +2989,74 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.LiquidLfm
             displayName: "LiquidAI: LFM2.5-24B-A2B",
             releaseDate: Date(timeIntervalSince1970: 1_791_912_025),
             contextSize: 128_000,
+            supportedParameters: [
+                .frequencyPenalty,
+                .includeReasoning,
+                .logprobs,
+                .maxCompletionTokens,
+                .maxTokens,
+                .minP,
+                .presencePenalty,
+                .reasoning,
+                .repetitionPenalty,
+                .responseFormat,
+                .seed,
+                .stop,
+                .structuredOutputs,
+                .temperature,
+                .toolChoice,
+                .tools,
+                .topK,
+                .topLogprobs,
+                .topP,
+            ],
+            reasoning: .mandatory
+        )
+    }
+}
+
+extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.LiquidLfm3_1_7b> {
+    /// LiquidAI: LFM3-1.7B
+    public static var liquidLfm3_1_7b: Self {
+        Self(
+            id: "liquid/lfm-3-1.7b",
+            displayName: "LiquidAI: LFM3-1.7B",
+            releaseDate: Date(timeIntervalSince1970: 1_794_009_477),
+            contextSize: 262_144,
+            supportedParameters: [
+                .frequencyPenalty,
+                .includeReasoning,
+                .logprobs,
+                .maxCompletionTokens,
+                .maxTokens,
+                .minP,
+                .presencePenalty,
+                .reasoning,
+                .repetitionPenalty,
+                .responseFormat,
+                .seed,
+                .stop,
+                .structuredOutputs,
+                .temperature,
+                .toolChoice,
+                .tools,
+                .topK,
+                .topLogprobs,
+                .topP,
+            ],
+            reasoning: .mandatory
+        )
+    }
+}
+
+extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.LiquidLfm3_1_7bFree> {
+    /// LiquidAI: LFM3-1.7B (free)
+    public static var liquidLfm3_1_7bFree: Self {
+        Self(
+            id: "liquid/lfm-3-1.7b:free",
+            displayName: "LiquidAI: LFM3-1.7B (free)",
+            releaseDate: Date(timeIntervalSince1970: 1_794_009_477),
+            contextSize: 262_144,
             supportedParameters: [
                 .frequencyPenalty,
                 .includeReasoning,
@@ -3146,16 +3221,12 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.MetaLlama
 
 extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.MetaLlamaLlama3_2_3bInstruct> {
     /// Meta: Llama 3.2 3B Instruct
-    @available(*, deprecated, message: "OpenRouter retires this model on 2026-11-20")
-    public static var metaLlamaLlama3_2_3bInstruct: Self { metaLlamaLlama3_2_3bInstructEntry }
-
-    fileprivate static var metaLlamaLlama3_2_3bInstructEntry: Self {
+    public static var metaLlamaLlama3_2_3bInstruct: Self {
         Self(
             id: "meta-llama/llama-3.2-3b-instruct",
             displayName: "Meta: Llama 3.2 3B Instruct",
             releaseDate: Date(timeIntervalSince1970: 1_727_222_400),
             knowledgeCutoff: Date(timeIntervalSince1970: 1_703_980_800),
-            expirationDate: Date(timeIntervalSince1970: 1_795_132_800),
             contextSize: 131_072,
             supportedParameters: [
                 .frequencyPenalty,
@@ -4448,6 +4519,7 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.Moonshota
             contextSize: 262_144,
             supportedParameters: [
                 .frequencyPenalty,
+                .logprobs,
                 .maxTokens,
                 .presencePenalty,
                 .repetitionPenalty,
@@ -4459,6 +4531,7 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.Moonshota
                 .toolChoice,
                 .tools,
                 .topK,
+                .topLogprobs,
                 .topP,
             ]
         )
@@ -4497,11 +4570,15 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.Moonshota
 
 extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.MoonshotaiKimiK2_5> {
     /// MoonshotAI: Kimi K2.5
-    public static var moonshotaiKimiK2_5: Self {
+    @available(*, deprecated, message: "OpenRouter retires this model on 2026-11-18")
+    public static var moonshotaiKimiK2_5: Self { moonshotaiKimiK2_5Entry }
+
+    fileprivate static var moonshotaiKimiK2_5Entry: Self {
         Self(
             id: "moonshotai/kimi-k2.5",
             displayName: "MoonshotAI: Kimi K2.5",
             releaseDate: Date(timeIntervalSince1970: 1_769_487_076),
+            expirationDate: Date(timeIntervalSince1970: 1_794_960_000),
             contextSize: 262_144,
             inputModalities: [.image, .text],
             supportedParameters: [
@@ -8862,11 +8939,11 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.RelaceRel
 }
 
 extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.RicursiveaiRipple65bPreview> {
-    /// ricursiveAI/Ripple-65B-Preview
+    /// Ricursive: Ripple 65B Preview
     public static var ricursiveaiRipple65bPreview: Self {
         Self(
             id: "ricursiveai/ripple-65b-preview",
-            displayName: "ricursiveAI/Ripple-65B-Preview",
+            displayName: "Ricursive: Ripple 65B Preview",
             releaseDate: Date(timeIntervalSince1970: 1_793_818_990),
             contextSize: 1_048_576,
             supportedParameters: [.logprobs, .maxTokens, .responseFormat, .seed, .temperature, .toolChoice, .tools, .topLogprobs, .topP]
@@ -11604,12 +11681,6 @@ extension OpenRouterModel where Effort == ContextOptions.ReasoningLevel {
             self.init(OpenRouterModel<_>.grypheMythomaxL2_13b)
         case "ibm-granite/granite-4.2-8b":
             self.init(OpenRouterModel<_>.ibmGraniteGranite4_2_8b)
-        case "inception/mercury-2":
-            self.init(OpenRouterModel<_>.inceptionMercury2Entry)
-        case "inception/mercury-2.5":
-            self.init(OpenRouterModel<_>.inceptionMercury2_5Entry)
-        case "inception/mercury-3":
-            self.init(OpenRouterModel<_>.inceptionMercury3Entry)
         case "inclusionai/ling-3.0-flash":
             self.init(OpenRouterModel<_>.inclusionaiLing3_0Flash)
         case "inclusionai/ling-3.0-flash-vl":
@@ -11623,11 +11694,15 @@ extension OpenRouterModel where Effort == ContextOptions.ReasoningLevel {
         case "inference-net/schematron-v2-turbo":
             self.init(OpenRouterModel<_>.inferenceNetSchematronV2Turbo)
         case "liquid/lfm-2.5-2.6b":
-            self.init(OpenRouterModel<_>.liquidLfm2_5_2_6b)
+            self.init(OpenRouterModel<_>.liquidLfm2_5_2_6bEntry)
         case "liquid/lfm-2.5-2.6b:free":
-            self.init(OpenRouterModel<_>.liquidLfm2_5_2_6bFree)
+            self.init(OpenRouterModel<_>.liquidLfm2_5_2_6bFreeEntry)
         case "liquid/lfm-2.5-24b-a2b":
             self.init(OpenRouterModel<_>.liquidLfm2_5_24bA2b)
+        case "liquid/lfm-3-1.7b":
+            self.init(OpenRouterModel<_>.liquidLfm3_1_7b)
+        case "liquid/lfm-3-1.7b:free":
+            self.init(OpenRouterModel<_>.liquidLfm3_1_7bFree)
         case "mancer/weaver":
             self.init(OpenRouterModel<_>.mancerWeaver)
         case "meituan/longcat-2.0":
@@ -11639,7 +11714,7 @@ extension OpenRouterModel where Effort == ContextOptions.ReasoningLevel {
         case "meta-llama/llama-3.2-1b-instruct":
             self.init(OpenRouterModel<_>.metaLlamaLlama3_2_1bInstructEntry)
         case "meta-llama/llama-3.2-3b-instruct":
-            self.init(OpenRouterModel<_>.metaLlamaLlama3_2_3bInstructEntry)
+            self.init(OpenRouterModel<_>.metaLlamaLlama3_2_3bInstruct)
         case "meta-llama/llama-3.3-70b-instruct":
             self.init(OpenRouterModel<_>.metaLlamaLlama3_3_70bInstruct)
         case "meta-llama/llama-4-maverick":
@@ -11727,7 +11802,7 @@ extension OpenRouterModel where Effort == ContextOptions.ReasoningLevel {
         case "moonshotai/kimi-k2-thinking":
             self.init(OpenRouterModel<_>.moonshotaiKimiK2Thinking)
         case "moonshotai/kimi-k2.5":
-            self.init(OpenRouterModel<_>.moonshotaiKimiK2_5)
+            self.init(OpenRouterModel<_>.moonshotaiKimiK2_5Entry)
         case "moonshotai/kimi-k2.6":
             self.init(OpenRouterModel<_>.moonshotaiKimiK2_6)
         case "moonshotai/kimi-k2.7-code":
@@ -12289,24 +12364,23 @@ private let openRouterCatalogModels: [OpenModel] = [
     OpenModel(OpenRouterModel<_>.googleLyria3ProPreview),
     OpenModel(OpenRouterModel<_>.grypheMythomaxL2_13b),
     OpenModel(OpenRouterModel<_>.ibmGraniteGranite4_2_8b),
-    OpenModel(OpenRouterModel<_>.inceptionMercury2Entry),
-    OpenModel(OpenRouterModel<_>.inceptionMercury2_5Entry),
-    OpenModel(OpenRouterModel<_>.inceptionMercury3Entry),
     OpenModel(OpenRouterModel<_>.inclusionaiLing3_0Flash),
     OpenModel(OpenRouterModel<_>.inclusionaiLing3_0FlashVl),
     OpenModel(OpenRouterModel<_>.inclusionaiLing3_0Tiny),
     OpenModel(OpenRouterModel<_>.inclusionaiLing3_1Flash),
     OpenModel(OpenRouterModel<_>.inferenceNetSchematronV2Small),
     OpenModel(OpenRouterModel<_>.inferenceNetSchematronV2Turbo),
-    OpenModel(OpenRouterModel<_>.liquidLfm2_5_2_6b),
-    OpenModel(OpenRouterModel<_>.liquidLfm2_5_2_6bFree),
+    OpenModel(OpenRouterModel<_>.liquidLfm2_5_2_6bEntry),
+    OpenModel(OpenRouterModel<_>.liquidLfm2_5_2_6bFreeEntry),
     OpenModel(OpenRouterModel<_>.liquidLfm2_5_24bA2b),
+    OpenModel(OpenRouterModel<_>.liquidLfm3_1_7b),
+    OpenModel(OpenRouterModel<_>.liquidLfm3_1_7bFree),
     OpenModel(OpenRouterModel<_>.mancerWeaver),
     OpenModel(OpenRouterModel<_>.meituanLongcat2_0),
     OpenModel(OpenRouterModel<_>.metaLlamaLlama3_1_70bInstruct),
     OpenModel(OpenRouterModel<_>.metaLlamaLlama3_1_8bInstruct),
     OpenModel(OpenRouterModel<_>.metaLlamaLlama3_2_1bInstructEntry),
-    OpenModel(OpenRouterModel<_>.metaLlamaLlama3_2_3bInstructEntry),
+    OpenModel(OpenRouterModel<_>.metaLlamaLlama3_2_3bInstruct),
     OpenModel(OpenRouterModel<_>.metaLlamaLlama3_3_70bInstruct),
     OpenModel(OpenRouterModel<_>.metaLlamaLlama4Maverick),
     OpenModel(OpenRouterModel<_>.metaLlamaLlama4Scout),
@@ -12350,7 +12424,7 @@ private let openRouterCatalogModels: [OpenModel] = [
     OpenModel(OpenRouterModel<_>.moonshotaiKimiK2),
     OpenModel(OpenRouterModel<_>.moonshotaiKimiK2_0905),
     OpenModel(OpenRouterModel<_>.moonshotaiKimiK2Thinking),
-    OpenModel(OpenRouterModel<_>.moonshotaiKimiK2_5),
+    OpenModel(OpenRouterModel<_>.moonshotaiKimiK2_5Entry),
     OpenModel(OpenRouterModel<_>.moonshotaiKimiK2_6),
     OpenModel(OpenRouterModel<_>.moonshotaiKimiK2_7Code),
     OpenModel(OpenRouterModel<_>.moonshotaiKimiK3),
