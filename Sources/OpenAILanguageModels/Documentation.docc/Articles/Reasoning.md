@@ -16,13 +16,13 @@ all, and its ``OpenAIModel/reasoningEfforts`` which levels it accepts:
 
 - `unsupported`: the model doesn't reason, such as GPT-4.1, and a request sends no `reasoning`.
 - `onByDefault`: the model accepts `none`, so a request can turn its reasoning off, such as GPT-6 Luna and GPT-5.5.
-  The catalog records it as reasoning by default, since OpenAI's API description gives `medium` as the default effort,
-  although a model's own default can differ, as GPT-5.4 mini's does.
+  The catalog records every such model as reasoning by default, which assumes its default effort isn't `none`.
+  GPT-5.4 mini's is `none`, so its record is wrong: it reasons only when a request sets a level other than `off`.
 - `mandatory`: the model always reasons, since it doesn't accept `none`, such as GPT-6 Astra and GPT-5.5 Pro.
 
 A model that reasons has `.reasoning` in its ``OpenAIModel/capabilities``. Its
-``OpenAIModel/defaultReasoningEffort`` is the default effort that OpenAI's API description gives, `medium` for every
-model that accepts it, and not always the effort the model uses when a request doesn't set one.
+``OpenAIModel/defaultReasoningEffort`` is `nil` in the catalog, which doesn't know the effort a model uses when a
+request doesn't set one.
 
 ### What a level becomes
 
@@ -42,9 +42,9 @@ model that accepts it, and not always the effort the model uses when a request d
 A model that reasons takes `temperature` and `top_p` only while its effort is `none`. A request that sets another
 level leaves them out, even when the model lists them, as GPT-5.4 does, and so does any request to a model that always
 reasons, such as GPT-5 nano. A request that sets no level sends them to a model that can stop reasoning, since the
-catalog's ``OpenAIModel/defaultReasoningEffort`` doesn't always match the model's own: GPT-5.4 mini takes them, although
-its catalog default is `medium`. OpenAI rejects them when the model's default isn't `none`. Each setting left out is
-logged, and a debug build shows a runtime warning for it.
+catalog doesn't record the model's default effort: GPT-5.4 mini, whose default is `none`, takes them. OpenAI rejects
+them when the model's default isn't `none`. Each setting left out is logged, and a debug build shows a runtime warning
+for it.
 
 ### Instructions
 

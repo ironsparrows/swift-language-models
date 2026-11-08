@@ -182,8 +182,7 @@ enum CatalogSource: String, Codable, CaseIterable, Sendable {
                         + "description lists, don't decode: \(listedUndescribed.joined(separator: ", ")).")
             }
             return FetchedCatalog(
-                models: served.catalogModels(
-                    describedBy: descriptions, everyEffort: efforts, defaultEffort: description.defaultEffort, today: today),
+                models: served.catalogModels(describedBy: descriptions, everyEffort: efforts, today: today),
                 vocabularies: [:],
                 efforts: efforts,
                 skippedEntryIDs: descriptions.undecodedIDs,

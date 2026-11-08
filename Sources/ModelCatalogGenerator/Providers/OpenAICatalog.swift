@@ -72,20 +72,17 @@ extension OpenAIModelList {
     /// ``undescribedModelIDs(describedBy:today:)`` lists.
     ///
     /// A model that reasons and takes `none` is recorded as reasoning unless a request turns it off, which assumes its
-    /// default effort isn't `none`; one that doesn't take `none` always reasons. Neither models.dev nor the API
-    /// description gives a model's own default effort, so each model that takes the description's default, which it
-    /// gives for every model, records it as its default, although the model's own may differ.
+    /// default effort isn't `none`; one that doesn't take `none` always reasons. No model records a default effort:
+    /// neither models.dev nor OpenAI's lists give a model's own.
     ///
     /// - Parameters:
     ///   - descriptions: What models.dev says about OpenAI's models.
     ///   - everyEffort: Every effort word, highest first, which orders each model's efforts.
-    ///   - defaultEffort: The default effort the API description gives for every model, which may not be a model's own.
     ///   - today: The day of the fetch, in UTC.
     /// - Returns: The models, sorted by id.
     func catalogModels(
         describedBy descriptions: ModelsDevCatalog,
         everyEffort: [String],
-        defaultEffort: String?,
         today: CatalogDay
     ) -> [CatalogModel] {
         candidates(today: today).compactMap { model in
@@ -112,8 +109,7 @@ extension OpenAIModelList {
                 outputModalities: [CatalogModel.textModality],
                 supportedParameters: parameters.sorted(),
                 reasoningEfforts: efforts,
-                // The description's default for every model, not one OpenAI gives for this model.
-                defaultReasoningEffort: defaultEffort.flatMap { efforts.contains($0) ? $0 : nil },
+                defaultReasoningEffort: nil,
                 reasoning: Self.reasoning(reasons: reasons, efforts: efforts),
                 cachesOnlyMarkedPrompts: false
             )
@@ -197,8 +193,7 @@ extension OpenAIModelList {
 /// OpenAI's OpenAPI description, reduced to what the catalog reads: the ids of the models its text APIs list, and the
 /// effort words.
 struct OpenAIAPIDescription: OpenAPIDescription {
-    /// A schema, reduced to the string `enum` values of its `anyOf` choices, and the default of the choice that has
-    /// one.
+    /// A schema, reduced to the string `enum` values of its `anyOf` choices.
     struct Schema: OpenAPIWordSchema {
         fileprivate let choices: [Choice]
 
@@ -217,20 +212,17 @@ struct OpenAIAPIDescription: OpenAPIDescription {
         }
     }
 
-    /// One choice of a schema's `anyOf`: its string values and its default.
+    /// One choice of a schema's `anyOf`: its string values.
     fileprivate struct Choice: Decodable {
         let values: [String]
-        let defaultValue: String?
 
         private enum CodingKeys: String, CodingKey {
             case values = "enum"
-            case defaultValue = "default"
         }
 
         init(from decoder: any Decoder) throws {
             let container = try decoder.container(keyedBy: CodingKeys.self)
             values = container.decodeStringValues(forKey: .values)
-            defaultValue = try? container.decodeIfPresent(String.self, forKey: .defaultValue)
         }
     }
 
@@ -253,12 +245,6 @@ struct OpenAIAPIDescription: OpenAPIDescription {
     /// Every effort word, highest first, as the description lists them lowest first.
     func efforts() throws(MissingSchema) -> [String] {
         try words(ofSchema: Self.effortSchemaName).reversed()
-    }
-
-    /// The effort the description gives as the default for every model, or `nil` when it doesn't say. It isn't
-    /// per model, so it may not be a model's own default.
-    var defaultEffort: String? {
-        components.schemas[Self.effortSchemaName]?.choices.lazy.compactMap(\.defaultValue).first
     }
 }
 

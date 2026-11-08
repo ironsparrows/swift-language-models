@@ -55,8 +55,7 @@ extension OpenAIModel where Effort == Efforts.Of<OpenAICatalog.Gpt6Astra> {
             inputModalities: [.image, .pdf, .text],
             supportedParameters: [.maxOutputTokens, .parallelToolCalls, .reasoning, .structuredOutputs, .toolChoice, .tools],
             reasoning: .mandatory,
-            reasoningEfforts: [.max, .xhigh, .high, .medium, .low],
-            defaultReasoningEffort: .medium
+            reasoningEfforts: [.max, .xhigh, .high, .medium, .low]
         )
     }
 }
@@ -73,8 +72,7 @@ extension OpenAIModel where Effort == Efforts.Of<OpenAICatalog.Gpt6Luna> {
             inputModalities: [.image, .pdf, .text],
             supportedParameters: [.maxOutputTokens, .parallelToolCalls, .reasoning, .structuredOutputs, .toolChoice, .tools],
             reasoning: .onByDefault,
-            reasoningEfforts: [.max, .xhigh, .high, .medium, .low, .off],
-            defaultReasoningEffort: .medium
+            reasoningEfforts: [.max, .xhigh, .high, .medium, .low, .off]
         )
     }
 }
@@ -91,8 +89,7 @@ extension OpenAIModel where Effort == Efforts.Of<OpenAICatalog.O3> {
             inputModalities: [.image, .pdf, .text],
             supportedParameters: [.maxOutputTokens, .parallelToolCalls, .reasoning, .structuredOutputs, .toolChoice, .tools],
             reasoning: .mandatory,
-            reasoningEfforts: [.high, .medium, .low],
-            defaultReasoningEffort: .medium
+            reasoningEfforts: [.high, .medium, .low]
         )
     }
 }

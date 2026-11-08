@@ -211,6 +211,13 @@ OpenAI model's `Executor` does. In 1.x, the request went out without the session
 one. A session never reaches this: Foundation Models refuses a session's tools for a model without `.toolCalling` before
 the model sees the request. Only code that calls the `Executor` itself sees the change.
 
+### OpenAI's default efforts
+
+`OpenAIModel.defaultReasoningEffort` is `nil` for every model in OpenAI's catalog. In 1.x, the catalog recorded `medium`
+for each model that accepts it: the one default OpenAI's API description gives for every model, which isn't always a
+model's own, as GPT-5.4 mini's is `none`. No list the catalog comes from gives a model's own default. Requests don't
+change: one that sets no level still sends no effort, and the model uses its own default.
+
 ### The contract's module
 
 `import LanguageModels` and every provider module's import work as before. The contract is now declared in a module

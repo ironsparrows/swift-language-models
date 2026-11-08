@@ -294,7 +294,6 @@
     {
       "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 400000,
-      "defaultReasoningEffort" : "medium",
       "displayName" : "GPT-5",
       "expirationDate" : "2026-12-11",
       "id" : "gpt-5",
@@ -326,7 +325,6 @@
     {
       "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 400000,
-      "defaultReasoningEffort" : "medium",
       "displayName" : "GPT-5 (2025-08-07)",
       "expirationDate" : "2026-12-11",
       "id" : "gpt-5-2025-08-07",
@@ -358,7 +356,6 @@
     {
       "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 400000,
-      "defaultReasoningEffort" : "medium",
       "displayName" : "GPT-5 Mini",
       "expirationDate" : "2026-12-11",
       "id" : "gpt-5-mini",
@@ -390,7 +387,6 @@
     {
       "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 400000,
-      "defaultReasoningEffort" : "medium",
       "displayName" : "GPT-5 Mini (2025-08-07)",
       "expirationDate" : "2026-12-11",
       "id" : "gpt-5-mini-2025-08-07",
@@ -422,7 +418,6 @@
     {
       "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 400000,
-      "defaultReasoningEffort" : "medium",
       "displayName" : "GPT-5 Nano",
       "expirationDate" : "2026-12-11",
       "id" : "gpt-5-nano",
@@ -454,7 +449,6 @@
     {
       "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 400000,
-      "defaultReasoningEffort" : "medium",
       "displayName" : "GPT-5 Nano (2025-08-07)",
       "expirationDate" : "2026-12-11",
       "id" : "gpt-5-nano-2025-08-07",
@@ -542,7 +536,6 @@
     {
       "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 400000,
-      "defaultReasoningEffort" : "medium",
       "displayName" : "GPT-5.1",
       "expirationDate" : "2027-04-01",
       "id" : "gpt-5.1",
@@ -576,7 +569,6 @@
     {
       "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 400000,
-      "defaultReasoningEffort" : "medium",
       "displayName" : "GPT-5.1 (2025-11-13)",
       "expirationDate" : "2027-04-01",
       "id" : "gpt-5.1-2025-11-13",
@@ -610,7 +602,6 @@
     {
       "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 400000,
-      "defaultReasoningEffort" : "medium",
       "displayName" : "GPT-5.2",
       "id" : "gpt-5.2",
       "inputModalities" : [
@@ -644,7 +635,6 @@
     {
       "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 400000,
-      "defaultReasoningEffort" : "medium",
       "displayName" : "GPT-5.2 (2025-12-11)",
       "id" : "gpt-5.2-2025-12-11",
       "inputModalities" : [
@@ -678,7 +668,6 @@
     {
       "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 400000,
-      "defaultReasoningEffort" : "medium",
       "displayName" : "GPT-5.2 Pro",
       "id" : "gpt-5.2-pro",
       "inputModalities" : [
@@ -707,7 +696,6 @@
     {
       "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 400000,
-      "defaultReasoningEffort" : "medium",
       "displayName" : "GPT-5.2 Pro (2025-12-11)",
       "id" : "gpt-5.2-pro-2025-12-11",
       "inputModalities" : [
@@ -736,7 +724,6 @@
     {
       "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 400000,
-      "defaultReasoningEffort" : "medium",
       "displayName" : "GPT-5.3 Codex",
       "expirationDate" : "2027-04-01",
       "id" : "gpt-5.3-codex",
@@ -772,7 +759,6 @@
     {
       "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 1050000,
-      "defaultReasoningEffort" : "medium",
       "displayName" : "GPT-5.4",
       "id" : "gpt-5.4",
       "inputModalities" : [
@@ -807,7 +793,6 @@
     {
       "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 1050000,
-      "defaultReasoningEffort" : "medium",
       "displayName" : "GPT-5.4 (2026-03-05)",
       "id" : "gpt-5.4-2026-03-05",
       "inputModalities" : [
@@ -842,7 +827,6 @@
     {
       "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 400000,
-      "defaultReasoningEffort" : "medium",
       "displayName" : "GPT-5.4 mini",
       "id" : "gpt-5.4-mini",
       "inputModalities" : [
@@ -876,7 +860,6 @@
     {
       "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 400000,
-      "defaultReasoningEffort" : "medium",
       "displayName" : "GPT-5.4 mini (2026-03-17)",
       "id" : "gpt-5.4-mini-2026-03-17",
       "inputModalities" : [
@@ -910,7 +893,6 @@
     {
       "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 400000,
-      "defaultReasoningEffort" : "medium",
       "displayName" : "GPT-5.4 nano",
       "expirationDate" : "2027-04-01",
       "id" : "gpt-5.4-nano",
@@ -945,7 +927,6 @@
     {
       "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 400000,
-      "defaultReasoningEffort" : "medium",
       "displayName" : "GPT-5.4 nano (2026-03-17)",
       "expirationDate" : "2027-04-01",
       "id" : "gpt-5.4-nano-2026-03-17",
@@ -980,7 +961,6 @@
     {
       "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 1050000,
-      "defaultReasoningEffort" : "medium",
       "displayName" : "GPT-5.4 Pro",
       "id" : "gpt-5.4-pro",
       "inputModalities" : [
@@ -1009,7 +989,6 @@
     {
       "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 1050000,
-      "defaultReasoningEffort" : "medium",
       "displayName" : "GPT-5.4 Pro (2026-03-05)",
       "id" : "gpt-5.4-pro-2026-03-05",
       "inputModalities" : [
@@ -1038,7 +1017,6 @@
     {
       "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 1050000,
-      "defaultReasoningEffort" : "medium",
       "displayName" : "GPT-5.5",
       "id" : "gpt-5.5",
       "inputModalities" : [
@@ -1071,7 +1049,6 @@
     {
       "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 1050000,
-      "defaultReasoningEffort" : "medium",
       "displayName" : "GPT-5.5 (2026-04-23)",
       "id" : "gpt-5.5-2026-04-23",
       "inputModalities" : [
@@ -1104,7 +1081,6 @@
     {
       "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 1050000,
-      "defaultReasoningEffort" : "medium",
       "displayName" : "GPT-5.5 Pro",
       "id" : "gpt-5.5-pro",
       "inputModalities" : [
@@ -1135,7 +1111,6 @@
     {
       "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 1050000,
-      "defaultReasoningEffort" : "medium",
       "displayName" : "GPT-5.5 Pro (2026-04-23)",
       "id" : "gpt-5.5-pro-2026-04-23",
       "inputModalities" : [
@@ -1166,7 +1141,6 @@
     {
       "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 1050000,
-      "defaultReasoningEffort" : "medium",
       "displayName" : "GPT-5.6 Luna",
       "id" : "gpt-5.6-luna",
       "inputModalities" : [
@@ -1200,7 +1174,6 @@
     {
       "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 1050000,
-      "defaultReasoningEffort" : "medium",
       "displayName" : "GPT-5.6 Sol",
       "id" : "gpt-5.6-sol",
       "inputModalities" : [
@@ -1234,7 +1207,6 @@
     {
       "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 1050000,
-      "defaultReasoningEffort" : "medium",
       "displayName" : "GPT-5.6 Terra",
       "id" : "gpt-5.6-terra",
       "inputModalities" : [
@@ -1268,7 +1240,6 @@
     {
       "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 1050000,
-      "defaultReasoningEffort" : "medium",
       "displayName" : "GPT-6 Astra",
       "id" : "gpt-6-astra",
       "inputModalities" : [
@@ -1301,7 +1272,6 @@
     {
       "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 1050000,
-      "defaultReasoningEffort" : "medium",
       "displayName" : "GPT-6 Luna",
       "id" : "gpt-6-luna",
       "inputModalities" : [
@@ -1335,7 +1305,6 @@
     {
       "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 1050000,
-      "defaultReasoningEffort" : "medium",
       "displayName" : "GPT-6 Sol",
       "id" : "gpt-6-sol",
       "inputModalities" : [
@@ -1369,7 +1338,6 @@
     {
       "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 1050000,
-      "defaultReasoningEffort" : "medium",
       "displayName" : "GPT-6.1 Sol",
       "id" : "gpt-6.1-sol",
       "inputModalities" : [
@@ -1402,7 +1370,6 @@
     {
       "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 1050000,
-      "defaultReasoningEffort" : "medium",
       "displayName" : "GPT-6.1 Terra",
       "id" : "gpt-6.1-terra",
       "inputModalities" : [
@@ -1436,7 +1403,6 @@
     {
       "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 200000,
-      "defaultReasoningEffort" : "medium",
       "displayName" : "o3",
       "expirationDate" : "2026-12-11",
       "id" : "o3",
@@ -1468,7 +1434,6 @@
     {
       "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 200000,
-      "defaultReasoningEffort" : "medium",
       "displayName" : "o3 (2025-04-16)",
       "expirationDate" : "2026-12-11",
       "id" : "o3-2025-04-16",

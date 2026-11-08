@@ -9,9 +9,9 @@ Each request is a `POST` to `responses` with `stream` set to `true`. A setting t
 model only when the model lists it in ``OpenAIModel/supportedParameters``; otherwise it's left out, so a model that
 doesn't take it isn't sent it. A model that reasons takes `temperature` and `top_p` only while its effort is `none`,
 so a request that sets another effort, or goes to a model that always reasons, leaves them out. A request that sets no
-effort sends them to a model that can stop reasoning, since the catalog's default effort doesn't always match the
-model's own: GPT-5.4 mini takes them, although its catalog default is `medium`. The tables say which settings go out
-whatever the model lists, such as `service_tier` and `text.verbosity`.
+effort sends them to a model that can stop reasoning, since the catalog doesn't record the model's default effort:
+GPT-5.4 mini, whose default is `none`, takes them. The tables say which settings go out whatever the model lists, such
+as `service_tier` and `text.verbosity`.
 
 A setting left out is logged, and a debug build shows a runtime warning for it. The Responses API has no `top_k` and
 no `seed`, so `.random(top:seed:)` and the seeds of sampling modes never reach OpenAI, as <doc:RepeatableRuns>

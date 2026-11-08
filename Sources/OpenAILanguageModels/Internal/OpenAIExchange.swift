@@ -83,10 +83,9 @@ struct OpenAIExchange: Responses.Exchange {
     ///
     /// A model that reasons takes `temperature` and `top_p` only while its effort is `none`, so a request that sets
     /// another effort, or goes to a model that always reasons, leaves them out. A request that sets no effort for a
-    /// model that can stop reasoning sends them as the app set them, since the catalog's default effort doesn't always
-    /// match the model's own: GPT-5.4 mini takes them, although its catalog default is `medium`. Every request of a
-    /// model that reasons asks for its reasoning encrypted, so its reasoning items go back on later turns whether or
-    /// not OpenAI keeps the response.
+    /// model that can stop reasoning sends them as the app set them, since the catalog doesn't record the model's
+    /// default effort, which can be `none`. Every request of a model that reasons asks for its reasoning encrypted, so
+    /// its reasoning items go back on later turns whether or not OpenAI keeps the response.
     ///
     /// The server tools go after the session's tools, unless tool calls are disallowed, and the answer keeps their calls,
     /// so they go back on later turns. A web search that lists its sources asks for them in `include`, after the
