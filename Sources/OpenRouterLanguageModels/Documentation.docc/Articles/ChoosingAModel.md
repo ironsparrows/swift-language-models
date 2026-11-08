@@ -37,6 +37,11 @@ warning.
 <doc:/LanguageModels/ModelCatalogs>
 says how every provider module's catalog changes, and which release each change needs.
 
+A catalog model keeps images among its ``OpenRouterModel/outputModalities`` only when the list names OpenRouter's images
+path, `/api/v1/images`, among the paths that serve it. A router such as `openrouter/auto` lists images but isn't served
+on that path, so its catalog member records only text, and a request to it doesn't ask for images, nor does one with it
+as a fallback.
+
 ### Aliases and routers
 
 An alias, such as `~anthropic/claude-haiku-latest`, follows a vendor's newest model, and ``OpenRouterModel/aliasTarget``
@@ -63,15 +68,15 @@ A sampling or output setting, such as `temperature`, `stop` or `verbosity`, goes
 parameter in ``OpenRouterModel/supportedParameters``, so a host never rejects one, and a debug build shows a runtime
 warning in Xcode for each setting left out. Required tool calls are the exception: only `tool_choice` makes a model
 call a tool, so with `toolCallingMode` set to `.required`, a request throws `LanguageModelError.unsupportedCapability`
-before sending anything when the model or a fallback doesn't list it, as Amazon's Nova v1 models don't. <doc:Mapping>
-lists what each setting becomes.
+before sending anything when the model or a fallback doesn't list `tools`, or lists it without `tool_choice`, as
+Amazon's Nova 1.0 models do. <doc:Mapping> lists what each setting becomes.
 
 ### What a request costs
 
 OpenRouter bills each request from the account's credits, at the price of the model that answered, which the answer's
 ``OpenRouterResponseMetadata/model`` names. The catalog keeps no prices, since OpenRouter changes them often.
-``OpenRouterModel/currentPricing(auth:session:)`` reads today's, as <doc:ModelAndProviderInfo> shows, and the
-answer's usage reports what the request cost, in ``OpenRouterUsageMetadata/cost``, as <doc:ErrorsAndMetadata> shows.
+``OpenRouterModel/currentPricing(auth:session:configuration:)`` reads today's, as <doc:ModelAndProviderInfo> shows, and
+the answer's usage reports what the request cost, in ``OpenRouterUsageMetadata/cost``, as <doc:ErrorsAndMetadata> shows.
 What else a request costs:
 
 - **Tool calls.** Each round of tool calls is a request of its own, billed on its own, and the answer's usage reports

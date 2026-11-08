@@ -3,7 +3,7 @@ import FoundationModels
 import OpenRouterLanguageModels
 import UniformTypeIdentifiers
 
-/// The typed catalog: every model OpenRouter listed when the package was generated, with its context size, output
+/// The typed catalog: every model OpenRouter listed when the catalog was generated, with its context size, output
 /// limit and capabilities, offline and without a key.
 ///
 /// Each catalog model is also a static member, such as `.anthropicClaudeHaiku5_5`, and `catalogModels` lists them all

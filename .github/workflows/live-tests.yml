@@ -1,6 +1,6 @@
 name: Live tests
 
-# Requests to real models cost money and need the key, so this runs only when started by hand.
+# Requests to real models cost money and need the keys, so this runs only when started by hand.
 on:
   workflow_dispatch:
     inputs:

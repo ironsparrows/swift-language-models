@@ -7,17 +7,21 @@ import Testing
 
 @testable import OpenRouterLanguageModels
 
-@Suite("Authentication")
+@Suite("Authentication", .timeLimit(.minutes(1)))
 struct AuthenticationTests {
-    @Test func `an API key goes to OpenRouter as a bearer token`() async throws {
-        let auth = OpenRouterAuthentication.apiKey { "sk-or-key" }
-
-        #expect(auth.baseURL == nil)
-        #expect(try await auth.requestHeaders() == ["Authorization": "Bearer sk-or-key"])
+    @Test func `an API key goes to OpenRouter's own URL`() {
+        #expect(OpenRouterAuthentication.apiKey { "sk-or-key" }.baseURL == nil)
     }
 
-    @Test func `an empty API key sends no headers`() async throws {
-        #expect(try await OpenRouterAuthentication.apiKey { "" }.requestHeaders().isEmpty)
+    @Test(arguments: [("sk-or-key", "Bearer sk-or-key"), ("", nil)] as [(String, String?)])
+    func `an API key goes as a bearer token, and an empty one sends none`(key: String, authorization: String?) async throws {
+        let stub = HTTPStub(events(text("Hi"), done()))
+        let model = OpenRouterLanguageModel(
+            fallback("openai/gpt-4.1-nano"), session: stub.session, auth: .apiKey(baseURL: stub.baseURL) { key })
+
+        _ = try await LanguageModelSession(model: model).respond(to: "Hi")
+
+        #expect(stub.requests.first?.request.value(forHTTPHeaderField: "Authorization") == authorization)
     }
 
     @Test func `a proxied model sends its headers, and no Authorization of its own, to its base URL`() async throws {

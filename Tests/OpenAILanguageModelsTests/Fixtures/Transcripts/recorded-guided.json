@@ -1,0 +1,85 @@
+{
+  "transcript" : {
+    "entries" : [
+      {
+        "contents" : [
+          {
+            "id" : "C663116C-BA54-477E-9A50-2AA19C7E47CC",
+            "text" : "Name a food.",
+            "type" : "text"
+          }
+        ],
+        "contextOptions" : {
+          "reasoningLevel" : "minimal"
+        },
+        "id" : "93E6627B-A116-43D2-A839-60203E2CB144",
+        "options" : {
+          "maximumResponseTokens" : 300
+        },
+        "responseFormat" : {
+          "jsonSchema" : {
+            "name" : "Arguments",
+            "schema" : {
+              "additionalProperties" : false,
+              "properties" : {
+                "food" : {
+                  "type" : "string"
+                }
+              },
+              "required" : [
+                "food"
+              ],
+              "title" : "Arguments",
+              "type" : "object",
+              "x-order" : [
+                "food"
+              ]
+            }
+          },
+          "type" : "jsonSchema"
+        },
+        "role" : "user"
+      },
+      {
+        "id" : "DAB30379-C37A-4D49-9FEF-321E03E54514",
+        "metadata" : {
+          "model" : "gpt-5-nano-2025-08-07",
+          "reasoningOrigin" : "openai-responses"
+        },
+        "reasoning" : {
+          "contents" : [
+
+          ],
+          "signature" : "W3siY29udGVudCI6W10sImVuY3J5cHRlZF9jb250ZW50IjoiZ0FBQUFBQnE3a21jT3k0dUtXc2N5MmxXUVZRUmtTU2V5aWdCZjhjNU00UTZvQWxhMWp1Xy1Gd0hrLWI4MTM3N1I3NnN0SVphUzRjZXA0aG9MRFAzWHA4bUxuc1dKQy1xbkprdG9jZzFCUk5MNGZDaEFoVXc0NnBNN2hydkhteE9sYzFaRGRZS0J6RFlkUnAtMWlRU2dCLTBTS05WR292YnlKNmd3VmtZTE12VkdxZzVKUXdic0hWVUtiR1phVkRMZGFyTGNNX3NiNDM2bFBkUUxNWU1aOEFHZFphdWNhZk0wTy11cm9OQkNnanFtZHdMMWNrZVAzOEdqRjUyX3MzM3RiVXViendrS3hHNUJVdmtMMHlxSGdPWXNnbVRYcUx6T3dFbXdtXzU2a2Z6OXFzSDVjeE9qaklEbjdIQTZPelpsb3dQTFNaQkt3ZkVHd0NnY1BVWGVUVS1VaEJmWVlNTXVRZUJZUlRnWU5PeW5yRlpUSk5SenRGMDY2NFpycDhYRHhlTXpwSlVfUjE0dWhtUjMtRHNLamVqT0pTcEdXZ3JKWWItQjI2a2VJcFZmX0h3eVV2T25fdG8tOWh6eFc2WGpIRUlpRktDY2Vma05ienVSandLWE1maUwzLUhWUTR1X2xDaEZmZllEenBkTGhGSDQ0SFNUSHVfRmlSeGI4SDNudjhrRS03TFhkbFpfWnNfXzhrUHZ6Z0Uyc2Z4TzlLRjNOcXItSE9sYml3MFdzMFJLRFE1Y2YzSWJ2NXE4Y0xBNDlCMWNZbHVKLUFoTVRYelZVSEhFM2FlVHJvd2VrVzl1ZmFOdzdBV2cwX0hqZzd5ODZPVmhiNkZXTmN0TnNSV0JCZm9RLWt1blpEclRQM3NmclVLbE56Mnp2RjRaT0hNLUtZYmYzQmtCRG5YSS1oX2haRmdyYm9rclI4djVWbjlMazdkMlg4Qnpnd2ZxdnE1cHpHN1UtQ2U4WjRaWVZvSlZGUVJTSFQ4OHhQdk5PRXVDMFlrbjNyQlB0Wm9Na2lIZVU4REJIVHlIZDd5UzlTQ0tScXo4MEh1OUVzVWlIRWFXcGEyTkF2ZTNhbHhQaUtfbDVzMDlOQ0NfUTd3dmJEZmhJWmM0NGV0NTdKSlp3b1lLSnEtcVpfYUpHcVZvTWRManBmTElTRzVIU2U1TDhPQ3RtR2NUWmd4QUsxdXpleGtpQmEyYktfcmF0TVgzajZaYjJuczJBbVl4SzgwOTY2NTdzMFg1SFBOZlV1d3VfS212Qm1Bam5rUGRXMVhVSk9MaDcyY0NKWkhRZG15RG50YWZLVDBveWlIY0VMbkdqbzNMSzY5RjF5Mm93WVU4QmtWX1RkQi1lY2pQZWpERUJUNUtMRUJuS1Bvc3hBSmFiam5jT3RpZFI5d0ZMUjlnOXFGelZiUDhsV2l4QTJONHpJSEhnT3ZkU0VYT1Z2NXJ6amlpOWR2dDlYcXNFbE5BWVZqTDN2c0h5UGR4QVdpSFN4SHktcHF2Und0TVZyb1Q5SklDbHQ1NjB4U1A3WHNJWllneWQzT0ZVd2paUV9IQ3gtdms1WENRX1phVU9vb3FoVnZxZnZUTEhaLWZmMXZfb0p3ZWdmZ1BFQmNfeDA1dFdpcjNvc2dUdV9pbDktM0VJd3JyOTJZdHVwa1ZVc1ktTWtYTmM3a1l0bm8tX2U4Yl9LZ3N3TWFCNjYtVWNnVEdFR09OYi1NWGNrX2tsbjZmVmJMcTltbzRUWHY5YVhxaFhXeFIzQnRQdldLLTc1SVNMTjBhcUo3YXZDajJWd0FLX3hCR2xYR1pldm8wZUpucHRyLUZwLXloX0FyY1JuRkpYWHdRNHV4Z3ZWTEs5NHQtLU9DLVlqYURWcXo3QS1IV3p3OVdrbGRLN1RMOGhlbEJZb3VBbVZiWnpuc01lRHBRT3EzWnUtTnF5QVhfQWRMTHhiZUdRNEwtMnhjYXVOc3BfY1FaclpEaXZQdXFJc3VQa1M4LS1KZHA0M3Vvc19fVjJ6Q3dmMF9ySHJrOGZCc3NGcU9YN2VLWWZHeUYzNkhfQlZSYlFzLUctekI2cTU1ZE54U3VvWU1BTkNZcldRaHVTX3hjSUd6a2RaanY1TG5qWE9tYmRKblZ4aGoweGlUZ2NOT3dEMlRRcTlKZ0RfYU5QWWlYbHJHTWJlYnVJZzl2WklKbmk5bE9uTmxScC13aDl1Mmw4c2Q2Y1BHNG9odm1jc2xXYi1XUTFBWmJUMU9GVW9UakVVWFZ4akdWZnNIbHBndm1vd0dzM2lMWVVEV05oMzRxTnpMbjN0S0dYamVyX2FDUFN1bDdxYU9FZUFCZkpoYzFCZ3ZSR3FKLTJET3BQLVc1V1lSbldpYlA5cWRENEY1cC1UYUxlTGVtUFRFc0pOTkZpNkk4SVlEZ2RDOG9uT0NwTjduVllmOXlZZE9SaWdnMVE9PSIsImlkIjoicnNfZWNkNDc2ZGFkNWE0YjI4NzcwYTUzMTAyYmJlOTk0YmVmZjgxZGY0ZjhkYWU2NWRlNTkiLCJzdW1tYXJ5IjpbXSwidHlwZSI6InJlYXNvbmluZyJ9XQ=="
+        },
+        "role" : "reasoning"
+      },
+      {
+        "contents" : [
+          {
+            "id" : "422E48CC-D5E1-47BF-A348-30B341CA0C23",
+            "structure" : {
+              "content" : {
+                "food" : "Pizza"
+              },
+              "source" : "Arguments"
+            },
+            "type" : "structure"
+          }
+        ],
+        "id" : "D33A9181-530C-41AB-B327-7E06F6CB5E42",
+        "metadata" : {
+          "cacheWriteTokenCount" : 0,
+          "finishReason" : "stop",
+          "model" : "gpt-5-nano-2025-08-07",
+          "requestID" : "req_1",
+          "responseID" : "resp_3f970c12be062f690f8bbb90ce6389fbfb0ecb3b7b21b9ecef",
+          "serviceTier" : "default"
+        },
+        "role" : "response"
+      }
+    ]
+  },
+  "type" : "FoundationModels.Transcript",
+  "version" : "1.1"
+}

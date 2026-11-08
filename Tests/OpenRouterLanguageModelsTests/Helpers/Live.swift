@@ -19,7 +19,7 @@ struct LiveModel: Sendable, CustomTestStringConvertible {
     /// A level that keeps the model reasoning at little cost.
     let reasoningLevel: ContextOptions.ReasoningLevel
 
-    /// Whether the model's reasoning comes back signed or encrypted, for the provider to check when it's replayed.
+    /// Whether the model's reasoning comes back signed or encrypted, for the host to check when it's replayed.
     let signsReasoning: Bool
 
     /// The OpenRouter settings the model's requests use, such as a PDF engine.
@@ -108,10 +108,13 @@ enum HostUnavailability {
                 self = .excludedByAccountSettings
                 return
             }
+            // A 404 because no endpoint returns the output kinds the request asks for, "No endpoints found that support
+            // the requested output modalities", fails the test.
             let isBrief =
                 [OpenRouterError.Code.providerUnavailable, .providerOverloaded].contains(error.code)
                 || error.status.map(transientStatuses.contains) == true
-                || (error.status == 404 && error.message.localizedCaseInsensitiveContains("no endpoints"))
+                || (error.status == 404 && error.message.localizedCaseInsensitiveContains("no endpoints")
+                    && !error.message.localizedCaseInsensitiveContains("output modalities"))
             guard isBrief else { return nil }
             self = .brief
         default:

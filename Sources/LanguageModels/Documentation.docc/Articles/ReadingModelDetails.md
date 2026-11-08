@@ -6,7 +6,7 @@ kinds.
 ## Overview
 
 A provider module's model conforms to ``DetailedLanguageModel``, so it carries ``ModelDetails`` in
-``DetailedLanguageModelBase/details``. Foundation Models reads the model's capabilities from them, and an app reads the
+``DetailedLanguageModel/details``. Foundation Models reads the model's capabilities from them, and an app reads the
 rest, such as to show a model's context size or to offer only models that call tools:
 
 @Snippet(path: "swift-language-models/Snippets/Catalog", slice: "details")
@@ -16,8 +16,8 @@ accepts.
 
 ### Identify models
 
-A model's id is the service's id, in a type of the provider module's own that conforms to ``ProviderVocabulary``, so
-one module's id can't be passed where another's belongs. Other words from a service's API, such as parameter names,
+A model's id is the provider's id, in a type of the provider module's own that conforms to ``ProviderVocabulary``, so
+one module's id can't be passed where another's belongs. Other words from a provider's API, such as parameter names,
 have types of their own too. A string literal creates any of them, and each encodes as its raw string.
 
 ### Check data kinds
@@ -31,8 +31,9 @@ From OS 27.2, Foundation Models asks the model itself, with `supportsDataAttachm
 
 @Snippet(path: "swift-language-models/Snippets/Catalog", slice: "dataKinds")
 
-``DetailedLanguageModel`` answers from the details. A provider module's model can answer for more than its details
-describe, such as for every model a request may reach.
+``DetailedLanguageModel`` answers from the details of every model a request may reach: the model and its fallbacks. A
+provider module's model can answer for more than those details describe, such as for a PDF its provider reads for a
+model that can't, or for an image that its image generation server tool draws.
 
 ### Apple's guides
 

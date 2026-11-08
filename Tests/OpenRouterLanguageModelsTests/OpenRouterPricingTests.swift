@@ -3,7 +3,7 @@ import Testing
 
 @testable import OpenRouterLanguageModels
 
-@Suite("OpenRouter pricing")
+@Suite("OpenRouter pricing", .timeLimit(.minutes(1)))
 struct OpenRouterPricingTests {
     /// Long prompts cost more, and weekday nights from 01:00 to 04:00 UTC cost more again, except for cache reads.
     private static let pricing = OpenRouterPricing(

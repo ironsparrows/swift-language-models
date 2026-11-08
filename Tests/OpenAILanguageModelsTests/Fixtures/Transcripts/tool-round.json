@@ -1,0 +1,140 @@
+{
+  "transcript" : {
+    "entries" : [
+      {
+        "contents" : [
+
+        ],
+        "id" : "56A3F602-973C-4FF1-8367-1B50BD532749",
+        "role" : "instructions",
+        "tools" : [
+          {
+            "function" : {
+              "description" : "Looks up a food's calories.",
+              "name" : "lookUpFood",
+              "parameters" : {
+                "additionalProperties" : false,
+                "properties" : {
+                  "food" : {
+                    "type" : "string"
+                  }
+                },
+                "required" : [
+                  "food"
+                ],
+                "title" : "Arguments",
+                "type" : "object",
+                "x-order" : [
+                  "food"
+                ]
+              }
+            },
+            "type" : "function"
+          }
+        ]
+      },
+      {
+        "contents" : [
+          {
+            "id" : "677236D0-9C01-4965-A1E5-85BDD50C2EBC",
+            "text" : "Calories in an egg and rice?",
+            "type" : "text"
+          }
+        ],
+        "contextOptions" : {
+
+        },
+        "id" : "4EC5B0E3-0E9C-4187-86C2-5C24FB895DDE",
+        "options" : {
+
+        },
+        "role" : "user"
+      },
+      {
+        "id" : "7D23898A-E448-4C77-A45E-B121CFAE39DF",
+        "metadata" : {
+          "model" : "gpt-test-2026-10-01",
+          "reasoningOrigin" : "openai-responses"
+        },
+        "reasoning" : {
+          "contents" : [
+            {
+              "id" : "8DD91C6B-F0BB-4850-B5FF-2F54F973B063",
+              "text" : "Look both up.",
+              "type" : "text"
+            }
+          ],
+          "signature" : "W3siZW5jcnlwdGVkX2NvbnRlbnQiOiJibG9iLTEiLCJpZCI6InJzXzEiLCJzdW1tYXJ5IjpbeyJ0ZXh0IjoiTG9vayBib3RoIHVwLiIsInR5cGUiOiJzdW1tYXJ5X3RleHQifV0sInR5cGUiOiJyZWFzb25pbmcifV0="
+        },
+        "role" : "reasoning"
+      },
+      {
+        "id" : "3F8BA31C-535B-4A27-BC15-583F99C98B51",
+        "role" : "response",
+        "toolCalls" : [
+          {
+            "arguments" : "{\"food\": \"egg\"}",
+            "id" : "call_1",
+            "metadata" : {
+              "finishReason" : "tool_calls",
+              "model" : "gpt-test-2026-10-01",
+              "responseID" : "resp_1",
+              "serviceTier" : "default"
+            },
+            "name" : "lookUpFood"
+          },
+          {
+            "arguments" : "{\"food\": \"rice\"}",
+            "id" : "call_2",
+            "name" : "lookUpFood"
+          }
+        ]
+      },
+      {
+        "contents" : [
+          {
+            "id" : "63E1E93F-D1DE-4009-A33F-63E7060BF95B",
+            "text" : "egg: 100 kcal",
+            "type" : "text"
+          }
+        ],
+        "id" : "call_1",
+        "role" : "tool",
+        "toolCallID" : "call_1",
+        "toolName" : "lookUpFood"
+      },
+      {
+        "contents" : [
+          {
+            "id" : "30397DF4-B3E0-40C5-8E5E-1F47D70FD6DD",
+            "text" : "rice: 100 kcal",
+            "type" : "text"
+          }
+        ],
+        "id" : "call_2",
+        "role" : "tool",
+        "toolCallID" : "call_2",
+        "toolName" : "lookUpFood"
+      },
+      {
+        "contents" : [
+          {
+            "id" : "46A89A0F-48CB-4D08-A46F-70041290FE65",
+            "text" : "Both have 100 kcal.",
+            "type" : "text"
+          }
+        ],
+        "id" : "DA643DB3-59C6-4C54-94A7-D44E83854924",
+        "metadata" : {
+          "finishReason" : "stop",
+          "model" : "gpt-test-2026-10-01",
+          "responseID" : "resp_1",
+          "serviceTier" : "default"
+        },
+        "role" : "response"
+      }
+    ]
+  },
+  "type" : "FoundationModels.Transcript",
+  "version" : "1.1"
+}

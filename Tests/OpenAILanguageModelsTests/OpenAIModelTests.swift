@@ -7,7 +7,7 @@ import UniformTypeIdentifiers
 
 @testable import OpenAILanguageModels
 
-@Suite("OpenAI model")
+@Suite("OpenAI model", .timeLimit(.minutes(1)))
 struct OpenAIModelTests {
     @Test func `the capabilities come from the settings and inputs the model takes`() {
         let reasoning: OpenAIModel<ContextOptions.ReasoningLevel> = details(inputs: [.text, .image])
@@ -45,11 +45,10 @@ struct OpenAIModelTests {
         #expect(!id.names("gpt-5.4-mini-high"))
     }
 
-    @Test func `every model the catalog removed has its removal date`() {
-        for (id, date) in ModelRemovals.openAI.dates {
-            #expect(
-                OpenAIModel<ContextOptions.ReasoningLevel>(id: OpenAIModelID(rawValue: id), displayName: id, supportedParameters: [])
-                    .removalDate == date)
-        }
+    @Test(arguments: ModelRemovals.openAI.dates.sorted { $0.key < $1.key })
+    func `every model the catalog removed has its removal date`(id: String, date: Date) {
+        let model = OpenAIModel<ContextOptions.ReasoningLevel>(id: OpenAIModelID(rawValue: id), displayName: id, supportedParameters: [])
+
+        #expect(model.removalDate == date)
     }
 }

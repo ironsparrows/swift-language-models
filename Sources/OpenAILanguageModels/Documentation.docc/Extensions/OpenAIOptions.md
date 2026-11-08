@@ -4,7 +4,7 @@
 
 ### Creating options
 
-- ``init(serviceTier:verbosity:reasoningSummary:parallelToolCalls:cacheKey:endUserID:storage:)``
+- ``init(serviceTier:verbosity:reasoningSummary:parallelToolCalls:maximumServerToolCalls:cacheKey:endUserID:storage:)``
 
 ### Serving
 
@@ -27,6 +27,7 @@
 
 - ``parallelToolCalls``
 - ``ParallelToolCalls``
+- ``maximumServerToolCalls``
 
 ### Caching
 

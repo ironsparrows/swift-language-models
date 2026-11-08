@@ -1,0 +1,58 @@
+{
+  "transcript" : {
+    "entries" : [
+      {
+        "contents" : [
+          {
+            "id" : "3C7484F2-D48B-4480-A984-2CA9BA92A4A3",
+            "text" : "Name one color of the sea.",
+            "type" : "text"
+          }
+        ],
+        "contextOptions" : {
+          "reasoningLevel" : "minimal"
+        },
+        "id" : "5ED4F1F7-8EAC-469F-9286-CD10FBEE3652",
+        "options" : {
+          "maximumResponseTokens" : 300
+        },
+        "role" : "user"
+      },
+      {
+        "id" : "820EC4F7-8FA4-4C25-BBF0-91B676FEF122",
+        "metadata" : {
+          "model" : "gpt-5-nano-2025-08-07",
+          "reasoningOrigin" : "openai-responses"
+        },
+        "reasoning" : {
+          "contents" : [
+
+          ],
+          "signature" : "W3siY29udGVudCI6W10sImVuY3J5cHRlZF9jb250ZW50IjoiZ0FBQUFBQnE3a21SOVlnbG5oNC01U0NfaWtuSlFIYUFPQUx6SUczaVNZU2w0X21VTGF2NzVsVnBZRW5qRWUxdGV0QVlNNk1Pc2ZSdzZpQUJqWWM3MTU2M0I5bzBuMUFaQlhxQUIzTmNfQmdJbTFSY3lYZ1Q4MjRNYUNRS3lwWnJhRmlGSTNzVmU5NUNUU0gyMV9oT1lVWTVPR2thU1ZVSEFsam1nMzUzbEJpeXplXzlzVjVhaHEweWZzVTljdjEzcHN5bTZyLWY4UGJwMnFwZlB5LTZaWHhjQWJzV2t2WWVhSDduV01GUHh0S3BNeWt1eTVNNlVoNW5LbHdjUlFZTFU5bVhMN25WXzVJREdGZ2pwTGk0QW5Mbk9yNWJBMFJkcUhTemJWTFNUSTJWV1pCNXZWR19acm15Z3JZbDk3RmFGdW9MNFV0Y1VnVjc3c3QtbElfTktyOTFHYklfUDZvY3kzblNqSHM1RTBiMkdtdFZyakRNc1dRdjI1dlY1eGJ1T3JyT1BpYnlwWG5EYUlPSkl3N2lDc2dOWm9DMTFDMnVRT1lvdHpuUTMxa0pXYlBoR05vMzBzYkZUcmU1WjI1bmZwLTh1dFVjdDJ0V0ptUVk2cFdrTW5RUmhTLWNzYVMxT3ZhZHBjVTUweTEtSzN1SWxHdUR4NFZvRmpWaTFkbTNNWURJNUFZSTlZMlBOejNpeGpaTGc2X0s0aXJRdjY2bWs4NVdYS0F1LTFfVDFYa00xdzlpVGtZenVrc2NVZG1LVU9wRlVCblRRRDVoWFJndnh6aHBvZmMtMFhJbXE0eDZuREhNM0tzeG1OTkxCS3NEVk1MQjNhTzlZTTRYNXZpUjYtTTFWLThzaVM1ZkNlVnFaUkMtaXMxQnBaSmU1SmNaaVFrYlptWEg4bnFPWUJmVUxEaGQzamEtZ29LenN2VllIVTRNNHdFNDk5cUlQTXVQVHZPbXZRQVpycEpISWlUTXA4NHphNkhPV3BZZEU3NmxOQnZzSHI5VEV3OTl0NXJwOE9UeW5XNDBHNVUyQVZueVZHZ2o2TTFjVzRGZWlJTUFzRmVfMFlRRDdUbndZX09fN1NzMHNqZU50YW55ekRnUmdLOHJWOWRzNVR3aVEzTEl2N1p5SGEzcTNWNHlHTnY2aUYtUExmbDZaNjFnWTdHYVhpbWFXblNGR184UWlVem5MWHJjdnA0UlFMTjZRQXlKeHJWcVA0OTYxdW1DOTBZb2ZObWl0dzF1aXhTMU1aS0hEVWlsUHZfNHBjZjZqRXpmaFFFQlVKQTZYNXl4eXVxd29rRXUxUVpLSXJjQ2d2S1J5c3lsd3lJMzFwQWMtbS16eFlLdlAyOUEyeXUyRzBzeXFSRXg2MjNaejU3MlBWeGRfUFNJX3JtUlU2X0lPWko2Y3FyTnRLUWpNNkVNdW1lMl9tOFFJcnRrdnNpSEJWTVgwM0VlUzFOQUhadzI5M1RsT2lSY0hkS0FjbkE5M0gwRElTUGU2OTNrNXBRb01PMkZTVF9UQXdvRG56WTBQRFE2bC1tNW5SNndacHo2a3l1dGVadTVpRUZLSzZCZGFxOXVNQ1NCZktxUXFBcjNfWU96U2xTcEdCU1ZIOERJblBDTGpNSDd1ZDIySjQyYkdIYy01OS04dFJWaE9zT283Zmc4T0ZEWjFiOXhmVl9ZNmNTWjlMdE13WDdxNTAzeEQ5RmhkNkZTaTN5NlhqZUZmdjRwMldmQjlRQTZCR255WjR6ODFFMDZacHJpcnV3WXBZWnU0S3c2SDllRHNkU252WjJsaEY3Z3FPTFVTekdLOVZoMEdCU1dVeUc0eDhwQ0hlNFdub09wcTBzcUN6WmY4a3d1RGlnVDhEWGpReS13Y3pVZWlKRnVRcVk1VHFGVEtLWkFJQWhyOUdKdjVTdVJyd2M0SDNvV1lIRDhKd2VDeDJjUEs1WTlYeGZmeVY1NUpvcXMtbTdHNjF5TV9zV0hRaVJLRnlNMC1odnlhQmRrV2JLWnFZRGFXWDFabDJES0o1Vk84dkN4UWZmSFJtLUdJeUwzbDFfbjVUdE5ha05mZXR6d25neUlSeldObEpPVUo2LUt5RE5EZHY0VWx2TGw5NUhneHV0cm5KMG9aOTk3ZTRPejl2ZVhVX3p2MW9ncmFMczVES0YwbkI1R2k5WS1TWXltMW1xWGN4aDFiNGozYjM1QllweVNpWkptQUNjV1duSW9rZnVBeXhiOEdCSU9zd0N3bTc5a3BLaTFUMlR4MmEydWNpVWhiSG5OSVBhWlgyN3hEM29Cb1N6aGlyQ3FFTjJEaE52NTlNOWlLcERZbUhjUzMxZWxpbGdpbTE0TEhXWG5Nb21wVnJ6WXBUVHM1cHZyNlpVNU0xaXZQWU5veXRnVFN6d2Y3ZW5Vbm9IbXR5Q2VrLTlhck1WZzdpdnBEYmtrV2c9PSIsImlkIjoicnNfZDFlZDYwZjQ3Mjk4NDg1ZDNiNGJhNzY4ZDA2MTY2ZjQxMzJkZmQ4YzQ0MTE0NGE3OTAiLCJzdW1tYXJ5IjpbXSwidHlwZSI6InJlYXNvbmluZyJ9XQ=="
+        },
+        "role" : "reasoning"
+      },
+      {
+        "contents" : [
+          {
+            "id" : "3E72FB4F-55D0-45AE-B0EB-0853BC58E706",
+            "text" : "Blue.",
+            "type" : "text"
+          }
+        ],
+        "id" : "34512D6D-2803-458E-8F3E-825017527552",
+        "metadata" : {
+          "cacheWriteTokenCount" : 0,
+          "finishReason" : "stop",
+          "model" : "gpt-5-nano-2025-08-07",
+          "requestID" : "req_1",
+          "responseID" : "resp_3cba0b7f18ac52680254e110b223921e34b858ee1d3be7f9bd",
+          "serviceTier" : "default"
+        },
+        "role" : "response"
+      }
+    ]
+  },
+  "type" : "FoundationModels.Transcript",
+  "version" : "1.1"
+}

@@ -22,17 +22,18 @@ and its `providerMetadata` reads as ``ProviderErrorMetadata``, the same way for 
 ``OpenAIError/Code/unmapped`` for a 408 or 429 without one, and ``OpenAIError/Code/server`` for a status from 500 up or
 a failure in the stream that names none. OpenAI's support asks for the request id.
 
-A failed connection, a 408, 409 or 429, and any status from 500 up are retried up to twice, as the official SDKs retry
-them, before any data arrives, and so is any status whose `x-should-retry` is `true`. A failure whose `x-should-retry`
-is `false` isn't retried, and one that asks for a wait longer than 2 minutes throws at once, with the wait on its error.
-<doc:Mapping#Errors> lists what each failure becomes.
+A failed connection, a 408, 409 or 429, and any status from 500 up are retried up to twice before any data arrives,
+and so is any status whose `x-should-retry` is `true`. A failure whose `x-should-retry` is `false` isn't retried, and
+one that asks for a wait longer than 2 minutes throws at once, with the wait on its error. <doc:Mapping#Errors> lists
+what each failure becomes.
 
 ### Read an answer's metadata
 
 The entry that ends an answer carries facts about the answer: the model that answered, OpenAI's ids for the response
 and the request, why the answer ended, and the service tier that served it. The answer's usage carries the input,
-cached, output and reasoning tokens, and the prompt tokens written to the cache when OpenAI reports them. `openAI` on a
-response entry reads its facts as ``OpenAIResponseMetadata``, and on a usage as ``OpenAIUsageMetadata``:
+cached, output and reasoning tokens, the prompt tokens written to the cache when OpenAI reports them, and the searches a
+web search ran. `openAI` on a response entry reads its facts as ``OpenAIResponseMetadata``, and on a usage as
+``OpenAIUsageMetadata``:
 
 @Snippet(path: "swift-language-models/Snippets/OpenAIErrors", slice: "metadata")
 
@@ -44,18 +45,21 @@ A request that ends in tool calls has the same facts. Foundation Models keeps no
 entry, so they sit on its first call, and `openAI` on the `Transcript.ToolCalls` entry reads them from there, as
 ``OpenAIResponseMetadata``. A request that asks for several calls at once has one set of facts.
 
-The facts are stored in the metadata under keys that saved transcripts keep, so their spellings never change. Facts
-that every model reports, such as `model` and `requestID`, use the bare keys of `LanguageModelMetadataKey`. The only
-fact OpenAI reports that other providers don't is the `phase` of each of an answer's messages, under
-``OpenAIMetadataKey/phases``, which ``OpenAIResponseMetadata/messages`` reads and <doc:Reasoning> describes.
+Saved transcripts keep these facts. The ones any provider can report, such as the model and the request id, also read
+through `providerMetadata`, as ``ProviderResponseMetadata`` and ``ProviderUsageMetadata``, so code that reads them
+works with any language model in this package, as <doc:/LanguageModels/ReadingWhatAProviderReports> shows. The facts
+OpenAI reports that other providers don't are the `phase` of each of an answer's messages, which
+``OpenAIResponseMetadata/messages`` reads and <doc:Reasoning> describes, and what its server tools did:
+``OpenAIResponseMetadata/serverToolCalls``, ``OpenAIResponseMetadata/sources`` and
+``OpenAIResponseMetadata/fileCitations``, which <doc:ServerTools> describes.
 
 ### Add up a response's usage
 
 Each round of tool calls is a request of its own. A response's `usage` has only its last request's tokens, and a
 session's own `usage` adds up the token counts of every request that answered. A request that fails, such as one the
-model refuses, reports no usage. The entry that ends each request carries only the prompt tokens written to the cache,
-when OpenAI reports them, so to count a whole response, read the session's `usage` before and after it. The package
-keeps no prices, so it reports what each request counted, not what it cost.
+model refuses, reports no usage. The entry that ends each request carries only the prompt tokens written to the cache
+and the web searches, when OpenAI reports them, so to count a whole response, read the session's `usage` before and
+after it. The package keeps no prices, so it reports what each request counted, not what it cost.
 
 ### Apple's guides
 

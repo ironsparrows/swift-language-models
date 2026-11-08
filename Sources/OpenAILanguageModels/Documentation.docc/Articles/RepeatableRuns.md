@@ -37,9 +37,9 @@ left out is logged, and a debug build shows a runtime warning for it. The catalo
 - Set the reasoning level, and keep it the same from run to run. A level the model doesn't accept moves to the nearest
   one it does, and the log says so.
 - Set ``OpenAIOptions/serviceTier`` rather than leaving it to OpenAI, and record the tier that served each answer, from
-  `LanguageModelMetadataKey.serviceTier` on the entry that ends it.
-- Record the model that answered each request, from `LanguageModelMetadataKey.model`, and OpenAI's id for it, from
-  `LanguageModelMetadataKey.requestID`.
+  ``OpenAIResponseMetadata/serviceTier`` on the entry that ends it.
+- Record the model that answered each request, from ``OpenAIResponseMetadata/model``, and OpenAI's id for it, from
+  ``OpenAIResponseMetadata/requestID``.
 
 @Snippet(path: "swift-language-models/Snippets/OpenAIRepeatableRuns", slice: "pinned")
 

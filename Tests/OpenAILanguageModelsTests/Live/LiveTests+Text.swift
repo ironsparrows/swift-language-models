@@ -18,13 +18,13 @@ extension LiveTests {
             #expect(response.content.localizedCaseInsensitiveContains("hello"))
             #expect(response.usage.input.totalTokenCount > 0)
             #expect(response.usage.output.totalTokenCount > 0)
-            let metadata = metadata(of: response)
-            record(metadata, named: "metadata.txt")
-            #expect(string(metadata, LanguageModelMetadataKey.model)?.hasPrefix(model.id.rawValue) == true)
-            #expect(string(metadata, LanguageModelMetadataKey.responseID)?.hasPrefix("resp_") == true)
-            #expect(string(metadata, LanguageModelMetadataKey.requestID)?.isEmpty == false)
-            #expect(string(metadata, LanguageModelMetadataKey.serviceTier) != nil)
-            #expect(string(metadata, LanguageModelMetadataKey.finishReason) == "stop")
+            let answer = try #require(lastAnswer(in: response.transcriptEntries))
+            record(answer.metadata, named: "metadata.txt")
+            #expect(answer.openAI.model?.rawValue.hasPrefix(model.id.rawValue) == true)
+            #expect(answer.openAI.responseID?.hasPrefix("resp_") == true)
+            #expect(answer.openAI.requestID?.isEmpty == false)
+            #expect(answer.openAI.serviceTier != nil)
+            #expect(answer.openAI.finishReason == .stop)
         }
 
         @Test func `a streamed answer grows, and ends as the answer`() async throws {
@@ -72,7 +72,7 @@ extension LiveTests {
 
             #expect(!response.content.isEmpty)
             #expect(response.usage.output.totalTokenCount <= 16)
-            #expect(string(metadata(of: response), LanguageModelMetadataKey.finishReason) == "length")
+            #expect(lastAnswer(in: response.transcriptEntries)?.openAI.finishReason == .length)
         }
 
         @Test func `a cancelled stream stops, and the session answers the next turn`() async throws {
@@ -92,8 +92,8 @@ extension LiveTests {
             task.cancel()
 
             if case .failure(let error) = await task.result { #expect(error is CancellationError) }
-            // While many sessions run at once, Foundation Models may fail the turn after a cancelled stream itself, before
-            // the model's request executor sends anything.
+            // While many sessions run at once, Foundation Models may fail the turn after a cancelled stream itself,
+            // before the model's executor sends anything.
             try await withKnownIssue("Foundation Models may fail the next turn after a cancel itself.", isIntermittent: true) {
                 let response = try await session.respond(
                     to: "Reply with the word done.", options: GenerationOptions(maximumResponseTokens: 2_000),
@@ -144,7 +144,7 @@ extension LiveTests {
             let response = try await session.respond(
                 to: "Say hello.", options: LiveTests.short, contextOptions: LiveModel.nano.quickContext)
 
-            #expect(string(metadata(of: response), LanguageModelMetadataKey.serviceTier) == "flex")
+            #expect(lastAnswer(in: response.transcriptEntries)?.openAI.serviceTier == .flex)
         }
 
         @Test func `a key with OpenAI's own base URL works as the default does`() async throws {

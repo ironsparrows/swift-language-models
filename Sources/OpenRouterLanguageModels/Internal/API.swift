@@ -1,18 +1,17 @@
 import Foundation
 import LanguageModels
 
-/// Facts about OpenRouter's API that its dialect and the info calls rely on. They live outside the dialect because a
-/// generic type can't store static values.
+/// Facts about OpenRouter's API that the model, its exchange and the info calls rely on.
 enum API {
     /// OpenRouter's name, as the log and error messages name it.
     static let name = "OpenRouter"
 
-    /// Whether a failed response's status is retried: any status from 500 up, which OpenRouter or a host returns while
-    /// it's failing or overloaded. A response's `x-should-retry` wins over its status either way.
-    @Sendable
-    static func retriesStatus(_ status: Int) -> Bool {
-        (500..<600).contains(status)
-    }
+    /// The origin of reasoning that a model wrote through OpenRouter's Chat Completions API, which goes back as the
+    /// text and `reasoning_details` of an assistant message.
+    ///
+    /// Saved transcripts keep this value, so it never changes, and only reasoning with this origin goes back in this
+    /// shape.
+    static let reasoningOrigin = "openrouter"
 
     /// Where OpenRouter's API lives. `URL(string:)` makes it optional, although it never fails.
     static let defaultBaseURL = URL(string: "https://openrouter.ai/api/v1/")
@@ -44,18 +43,27 @@ enum API {
 
     /// The names of OpenRouter's own HTTP headers.
     enum Header {
-        static let appCategories: HTTPHeaderName = "X-OpenRouter-Categories"
-        static let appTitle: HTTPHeaderName = "X-OpenRouter-Title"
-        static let appVisibility: HTTPHeaderName = "X-OpenRouter-App-Visibility"
-        static let cache: HTTPHeaderName = "X-OpenRouter-Cache"
-        static let cacheAge: HTTPHeaderName = "X-OpenRouter-Cache-Age"
-        static let cacheClear: HTTPHeaderName = "X-OpenRouter-Cache-Clear"
-        static let cacheSourceID: HTTPHeaderName = "X-OpenRouter-Cache-Source-Id"
-        static let cacheStatus: HTTPHeaderName = "X-OpenRouter-Cache-Status"
-        static let cacheTimeToLive: HTTPHeaderName = "X-OpenRouter-Cache-TTL"
-        static let rateLimitReset: HTTPHeaderName = "X-RateLimit-Reset"
-        static let referer: HTTPHeaderName = "HTTP-Referer"
-        static let routerMetadata: HTTPHeaderName = "X-OpenRouter-Metadata"
-        static let sessionID: HTTPHeaderName = "X-Session-Id"
+        static let appCategories = "X-OpenRouter-Categories"
+        static let appTitle = "X-OpenRouter-Title"
+        static let appVisibility = "X-OpenRouter-App-Visibility"
+        static let cache = "X-OpenRouter-Cache"
+        static let cacheAge = "X-OpenRouter-Cache-Age"
+        static let cacheClear = "X-OpenRouter-Cache-Clear"
+        static let cacheSourceID = "X-OpenRouter-Cache-Source-Id"
+        static let cacheStatus = "X-OpenRouter-Cache-Status"
+        static let cacheTimeToLive = "X-OpenRouter-Cache-TTL"
+        static let rateLimitReset = "X-RateLimit-Reset"
+        static let referer = "HTTP-Referer"
+        static let routerMetadata = "X-OpenRouter-Metadata"
+        static let sessionID = "X-Session-Id"
     }
+}
+
+extension PackageLogger {
+    /// The OpenRouter model's messages: what each request sends and leaves out, retries, which model and host
+    /// answered, failures and timings.
+    ///
+    /// It's the same category as a request's log, for code that runs outside a request, such as an option's
+    /// initializer.
+    static let openRouter = PackageLogger(category: API.name)
 }

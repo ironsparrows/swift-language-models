@@ -1,7 +1,5 @@
-import APIFormat
 import Foundation
 import FoundationModels
-import LanguageModels
 import LanguageModelsTestSupport
 import OpenAILanguageModels
 import Testing
@@ -154,8 +152,8 @@ extension LiveTests {
             #expect((response as? HTTPURLResponse)?.statusCode == 200)
             var startPhases: [Int: String] = [:]
             var endPhases: [Int: String] = [:]
-            for try await event in ServerSentEvent.Events(bytes) {
-                guard let json = try? JSONValue(json: Data(event.data.utf8)), json["item"]?["type"] == "message",
+            for try await line in bytes.lines where line.hasPrefix("data: ") {
+                guard let json = try? JSONValue(json: Data(line.dropFirst(6).utf8)), json["item"]?["type"] == "message",
                     case .integer(let index)? = json["output_index"]
                 else { continue }
                 let phase = json["item"]?["phase"]?.stringValue ?? "none"

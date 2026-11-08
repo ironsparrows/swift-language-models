@@ -24,6 +24,17 @@ extension LiveTests {
             if level == .off, model.quickLevel == .off { #expect(response.usage.output.reasoningTokenCount == 0) }
         }
 
+        /// The catalog records GPT-5.4 mini as reasoning by default, which its own default effort, `none`, contradicts.
+        @Test func `GPT-5.4 mini doesn't reason when a request sets no level`() async throws {
+            let session = LanguageModelSession(model: try LiveModel.gpt54Mini.languageModel())
+
+            let response = try await session.respond(
+                to: "What is 17 × 23? Reply with the number only.", options: GenerationOptions(maximumResponseTokens: 2_000))
+
+            #expect(response.content.contains("391"))
+            #expect(response.usage.output.reasoningTokenCount == 0)
+        }
+
         @Test(arguments: [LiveModel.nano, .gpt54Mini, .luna])
         func `a temperature with no reasoning level goes only to a model that can stop reasoning, and each answers`(
             model: LiveModel

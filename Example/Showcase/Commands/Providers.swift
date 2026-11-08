@@ -2,7 +2,7 @@ import Foundation
 import FoundationModels
 import OpenRouterLanguageModels
 
-/// The providers that serve a model, live from OpenRouter: each endpoint's tier, prices, latency and uptime.
+/// The hosts that serve a model, live from OpenRouter: each endpoint's tier, prices, latency and uptime.
 ///
 /// `endpoints()` needs no key. With one, OpenRouter adds each endpoint's latency, so the command sends the key when
 /// there is one. Each row's tag goes in `OpenRouterRouting(order:)` to send requests to that endpoint.

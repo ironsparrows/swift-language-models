@@ -192,8 +192,7 @@ extension OpenAIModel where Effort == Efforts.Of<OpenAICatalog.Gpt5> {
             inputModalities: [.image, .text],
             supportedParameters: [.maxOutputTokens, .parallelToolCalls, .reasoning, .structuredOutputs, .toolChoice, .tools],
             reasoning: .mandatory,
-            reasoningEfforts: [.high, .medium, .low, .minimal],
-            defaultReasoningEffort: .medium
+            reasoningEfforts: [.high, .medium, .low, .minimal]
         )
     }
 }
@@ -214,8 +213,7 @@ extension OpenAIModel where Effort == Efforts.Of<OpenAICatalog.Gpt5_2025_08_07> 
             inputModalities: [.image, .text],
             supportedParameters: [.maxOutputTokens, .parallelToolCalls, .reasoning, .structuredOutputs, .toolChoice, .tools],
             reasoning: .mandatory,
-            reasoningEfforts: [.high, .medium, .low, .minimal],
-            defaultReasoningEffort: .medium
+            reasoningEfforts: [.high, .medium, .low, .minimal]
         )
     }
 }
@@ -236,8 +234,7 @@ extension OpenAIModel where Effort == Efforts.Of<OpenAICatalog.Gpt5Mini> {
             inputModalities: [.image, .text],
             supportedParameters: [.maxOutputTokens, .parallelToolCalls, .reasoning, .structuredOutputs, .toolChoice, .tools],
             reasoning: .mandatory,
-            reasoningEfforts: [.high, .medium, .low, .minimal],
-            defaultReasoningEffort: .medium
+            reasoningEfforts: [.high, .medium, .low, .minimal]
         )
     }
 }
@@ -258,8 +255,7 @@ extension OpenAIModel where Effort == Efforts.Of<OpenAICatalog.Gpt5Mini2025_08_0
             inputModalities: [.image, .text],
             supportedParameters: [.maxOutputTokens, .parallelToolCalls, .reasoning, .structuredOutputs, .toolChoice, .tools],
             reasoning: .mandatory,
-            reasoningEfforts: [.high, .medium, .low, .minimal],
-            defaultReasoningEffort: .medium
+            reasoningEfforts: [.high, .medium, .low, .minimal]
         )
     }
 }
@@ -280,8 +276,7 @@ extension OpenAIModel where Effort == Efforts.Of<OpenAICatalog.Gpt5Nano> {
             inputModalities: [.image, .text],
             supportedParameters: [.maxOutputTokens, .parallelToolCalls, .reasoning, .structuredOutputs, .toolChoice, .tools],
             reasoning: .mandatory,
-            reasoningEfforts: [.high, .medium, .low, .minimal],
-            defaultReasoningEffort: .medium
+            reasoningEfforts: [.high, .medium, .low, .minimal]
         )
     }
 }
@@ -302,8 +297,7 @@ extension OpenAIModel where Effort == Efforts.Of<OpenAICatalog.Gpt5Nano2025_08_0
             inputModalities: [.image, .text],
             supportedParameters: [.maxOutputTokens, .parallelToolCalls, .reasoning, .structuredOutputs, .toolChoice, .tools],
             reasoning: .mandatory,
-            reasoningEfforts: [.high, .medium, .low, .minimal],
-            defaultReasoningEffort: .medium
+            reasoningEfforts: [.high, .medium, .low, .minimal]
         )
     }
 }
@@ -375,8 +369,7 @@ extension OpenAIModel where Effort == Efforts.Of<OpenAICatalog.Gpt5_1> {
                 .topP,
             ],
             reasoning: .onByDefault,
-            reasoningEfforts: [.high, .medium, .low, .off],
-            defaultReasoningEffort: .medium
+            reasoningEfforts: [.high, .medium, .low, .off]
         )
     }
 }
@@ -406,8 +399,7 @@ extension OpenAIModel where Effort == Efforts.Of<OpenAICatalog.Gpt5_1_2025_11_13
                 .topP,
             ],
             reasoning: .onByDefault,
-            reasoningEfforts: [.high, .medium, .low, .off],
-            defaultReasoningEffort: .medium
+            reasoningEfforts: [.high, .medium, .low, .off]
         )
     }
 }
@@ -433,8 +425,7 @@ extension OpenAIModel where Effort == Efforts.Of<OpenAICatalog.Gpt5_2> {
                 .topP,
             ],
             reasoning: .onByDefault,
-            reasoningEfforts: [.xhigh, .high, .medium, .low, .off],
-            defaultReasoningEffort: .medium
+            reasoningEfforts: [.xhigh, .high, .medium, .low, .off]
         )
     }
 }
@@ -460,8 +451,7 @@ extension OpenAIModel where Effort == Efforts.Of<OpenAICatalog.Gpt5_2_2025_12_11
                 .topP,
             ],
             reasoning: .onByDefault,
-            reasoningEfforts: [.xhigh, .high, .medium, .low, .off],
-            defaultReasoningEffort: .medium
+            reasoningEfforts: [.xhigh, .high, .medium, .low, .off]
         )
     }
 }
@@ -478,8 +468,7 @@ extension OpenAIModel where Effort == Efforts.Of<OpenAICatalog.Gpt5_2Pro> {
             inputModalities: [.image, .text],
             supportedParameters: [.maxOutputTokens, .parallelToolCalls, .reasoning, .toolChoice, .tools],
             reasoning: .mandatory,
-            reasoningEfforts: [.xhigh, .high, .medium],
-            defaultReasoningEffort: .medium
+            reasoningEfforts: [.xhigh, .high, .medium]
         )
     }
 }
@@ -496,8 +485,7 @@ extension OpenAIModel where Effort == Efforts.Of<OpenAICatalog.Gpt5_2Pro2025_12_
             inputModalities: [.image, .text],
             supportedParameters: [.maxOutputTokens, .parallelToolCalls, .reasoning, .toolChoice, .tools],
             reasoning: .mandatory,
-            reasoningEfforts: [.xhigh, .high, .medium],
-            defaultReasoningEffort: .medium
+            reasoningEfforts: [.xhigh, .high, .medium]
         )
     }
 }
@@ -527,8 +515,7 @@ extension OpenAIModel where Effort == Efforts.Of<OpenAICatalog.Gpt5_3Codex> {
                 .topP,
             ],
             reasoning: .onByDefault,
-            reasoningEfforts: [.xhigh, .high, .medium, .low, .off],
-            defaultReasoningEffort: .medium
+            reasoningEfforts: [.xhigh, .high, .medium, .low, .off]
         )
     }
 }
@@ -554,8 +541,7 @@ extension OpenAIModel where Effort == Efforts.Of<OpenAICatalog.Gpt5_4> {
                 .topP,
             ],
             reasoning: .onByDefault,
-            reasoningEfforts: [.xhigh, .high, .medium, .low, .off],
-            defaultReasoningEffort: .medium
+            reasoningEfforts: [.xhigh, .high, .medium, .low, .off]
         )
     }
 }
@@ -581,8 +567,7 @@ extension OpenAIModel where Effort == Efforts.Of<OpenAICatalog.Gpt5_4_2026_03_05
                 .topP,
             ],
             reasoning: .onByDefault,
-            reasoningEfforts: [.xhigh, .high, .medium, .low, .off],
-            defaultReasoningEffort: .medium
+            reasoningEfforts: [.xhigh, .high, .medium, .low, .off]
         )
     }
 }
@@ -608,8 +593,7 @@ extension OpenAIModel where Effort == Efforts.Of<OpenAICatalog.Gpt5_4Mini> {
                 .topP,
             ],
             reasoning: .onByDefault,
-            reasoningEfforts: [.xhigh, .high, .medium, .low, .off],
-            defaultReasoningEffort: .medium
+            reasoningEfforts: [.xhigh, .high, .medium, .low, .off]
         )
     }
 }
@@ -635,8 +619,7 @@ extension OpenAIModel where Effort == Efforts.Of<OpenAICatalog.Gpt5_4Mini2026_03
                 .topP,
             ],
             reasoning: .onByDefault,
-            reasoningEfforts: [.xhigh, .high, .medium, .low, .off],
-            defaultReasoningEffort: .medium
+            reasoningEfforts: [.xhigh, .high, .medium, .low, .off]
         )
     }
 }
@@ -666,8 +649,7 @@ extension OpenAIModel where Effort == Efforts.Of<OpenAICatalog.Gpt5_4Nano> {
                 .topP,
             ],
             reasoning: .onByDefault,
-            reasoningEfforts: [.xhigh, .high, .medium, .low, .off],
-            defaultReasoningEffort: .medium
+            reasoningEfforts: [.xhigh, .high, .medium, .low, .off]
         )
     }
 }
@@ -697,8 +679,7 @@ extension OpenAIModel where Effort == Efforts.Of<OpenAICatalog.Gpt5_4Nano2026_03
                 .topP,
             ],
             reasoning: .onByDefault,
-            reasoningEfforts: [.xhigh, .high, .medium, .low, .off],
-            defaultReasoningEffort: .medium
+            reasoningEfforts: [.xhigh, .high, .medium, .low, .off]
         )
     }
 }
@@ -715,8 +696,7 @@ extension OpenAIModel where Effort == Efforts.Of<OpenAICatalog.Gpt5_4Pro> {
             inputModalities: [.image, .text],
             supportedParameters: [.maxOutputTokens, .parallelToolCalls, .reasoning, .toolChoice, .tools],
             reasoning: .mandatory,
-            reasoningEfforts: [.xhigh, .high, .medium],
-            defaultReasoningEffort: .medium
+            reasoningEfforts: [.xhigh, .high, .medium]
         )
     }
 }
@@ -733,8 +713,7 @@ extension OpenAIModel where Effort == Efforts.Of<OpenAICatalog.Gpt5_4Pro2026_03_
             inputModalities: [.image, .text],
             supportedParameters: [.maxOutputTokens, .parallelToolCalls, .reasoning, .toolChoice, .tools],
             reasoning: .mandatory,
-            reasoningEfforts: [.xhigh, .high, .medium],
-            defaultReasoningEffort: .medium
+            reasoningEfforts: [.xhigh, .high, .medium]
         )
     }
 }
@@ -751,8 +730,7 @@ extension OpenAIModel where Effort == Efforts.Of<OpenAICatalog.Gpt5_5> {
             inputModalities: [.image, .pdf, .text],
             supportedParameters: [.maxOutputTokens, .parallelToolCalls, .reasoning, .structuredOutputs, .toolChoice, .tools],
             reasoning: .onByDefault,
-            reasoningEfforts: [.xhigh, .high, .medium, .low, .off],
-            defaultReasoningEffort: .medium
+            reasoningEfforts: [.xhigh, .high, .medium, .low, .off]
         )
     }
 }
@@ -769,8 +747,7 @@ extension OpenAIModel where Effort == Efforts.Of<OpenAICatalog.Gpt5_5_2026_04_23
             inputModalities: [.image, .pdf, .text],
             supportedParameters: [.maxOutputTokens, .parallelToolCalls, .reasoning, .structuredOutputs, .toolChoice, .tools],
             reasoning: .onByDefault,
-            reasoningEfforts: [.xhigh, .high, .medium, .low, .off],
-            defaultReasoningEffort: .medium
+            reasoningEfforts: [.xhigh, .high, .medium, .low, .off]
         )
     }
 }
@@ -787,8 +764,7 @@ extension OpenAIModel where Effort == Efforts.Of<OpenAICatalog.Gpt5_5Pro> {
             inputModalities: [.image, .pdf, .text],
             supportedParameters: [.maxOutputTokens, .parallelToolCalls, .reasoning, .structuredOutputs, .toolChoice, .tools],
             reasoning: .mandatory,
-            reasoningEfforts: [.xhigh, .high, .medium],
-            defaultReasoningEffort: .medium
+            reasoningEfforts: [.xhigh, .high, .medium]
         )
     }
 }
@@ -805,8 +781,7 @@ extension OpenAIModel where Effort == Efforts.Of<OpenAICatalog.Gpt5_5Pro2026_04_
             inputModalities: [.image, .pdf, .text],
             supportedParameters: [.maxOutputTokens, .parallelToolCalls, .reasoning, .structuredOutputs, .toolChoice, .tools],
             reasoning: .mandatory,
-            reasoningEfforts: [.xhigh, .high, .medium],
-            defaultReasoningEffort: .medium
+            reasoningEfforts: [.xhigh, .high, .medium]
         )
     }
 }
@@ -823,8 +798,7 @@ extension OpenAIModel where Effort == Efforts.Of<OpenAICatalog.Gpt5_6Luna> {
             inputModalities: [.image, .pdf, .text],
             supportedParameters: [.maxOutputTokens, .parallelToolCalls, .reasoning, .structuredOutputs, .toolChoice, .tools],
             reasoning: .onByDefault,
-            reasoningEfforts: [.max, .xhigh, .high, .medium, .low, .off],
-            defaultReasoningEffort: .medium
+            reasoningEfforts: [.max, .xhigh, .high, .medium, .low, .off]
         )
     }
 }
@@ -841,8 +815,7 @@ extension OpenAIModel where Effort == Efforts.Of<OpenAICatalog.Gpt5_6Sol> {
             inputModalities: [.image, .pdf, .text],
             supportedParameters: [.maxOutputTokens, .parallelToolCalls, .reasoning, .structuredOutputs, .toolChoice, .tools],
             reasoning: .onByDefault,
-            reasoningEfforts: [.max, .xhigh, .high, .medium, .low, .off],
-            defaultReasoningEffort: .medium
+            reasoningEfforts: [.max, .xhigh, .high, .medium, .low, .off]
         )
     }
 }
@@ -859,8 +832,7 @@ extension OpenAIModel where Effort == Efforts.Of<OpenAICatalog.Gpt5_6Terra> {
             inputModalities: [.image, .pdf, .text],
             supportedParameters: [.maxOutputTokens, .parallelToolCalls, .reasoning, .structuredOutputs, .toolChoice, .tools],
             reasoning: .onByDefault,
-            reasoningEfforts: [.max, .xhigh, .high, .medium, .low, .off],
-            defaultReasoningEffort: .medium
+            reasoningEfforts: [.max, .xhigh, .high, .medium, .low, .off]
         )
     }
 }
@@ -877,8 +849,7 @@ extension OpenAIModel where Effort == Efforts.Of<OpenAICatalog.Gpt6Astra> {
             inputModalities: [.image, .pdf, .text],
             supportedParameters: [.maxOutputTokens, .parallelToolCalls, .reasoning, .structuredOutputs, .toolChoice, .tools],
             reasoning: .mandatory,
-            reasoningEfforts: [.max, .xhigh, .high, .medium, .low],
-            defaultReasoningEffort: .medium
+            reasoningEfforts: [.max, .xhigh, .high, .medium, .low]
         )
     }
 }
@@ -895,8 +866,7 @@ extension OpenAIModel where Effort == Efforts.Of<OpenAICatalog.Gpt6Luna> {
             inputModalities: [.image, .pdf, .text],
             supportedParameters: [.maxOutputTokens, .parallelToolCalls, .reasoning, .structuredOutputs, .toolChoice, .tools],
             reasoning: .onByDefault,
-            reasoningEfforts: [.max, .xhigh, .high, .medium, .low, .off],
-            defaultReasoningEffort: .medium
+            reasoningEfforts: [.max, .xhigh, .high, .medium, .low, .off]
         )
     }
 }
@@ -913,8 +883,7 @@ extension OpenAIModel where Effort == Efforts.Of<OpenAICatalog.Gpt6Sol> {
             inputModalities: [.image, .pdf, .text],
             supportedParameters: [.maxOutputTokens, .parallelToolCalls, .reasoning, .structuredOutputs, .toolChoice, .tools],
             reasoning: .onByDefault,
-            reasoningEfforts: [.max, .xhigh, .high, .medium, .low, .off],
-            defaultReasoningEffort: .medium
+            reasoningEfforts: [.max, .xhigh, .high, .medium, .low, .off]
         )
     }
 }
@@ -931,8 +900,7 @@ extension OpenAIModel where Effort == Efforts.Of<OpenAICatalog.Gpt6_1Sol> {
             inputModalities: [.image, .pdf, .text],
             supportedParameters: [.maxOutputTokens, .parallelToolCalls, .reasoning, .structuredOutputs, .toolChoice, .tools],
             reasoning: .mandatory,
-            reasoningEfforts: [.max, .xhigh, .high, .medium, .low],
-            defaultReasoningEffort: .medium
+            reasoningEfforts: [.max, .xhigh, .high, .medium, .low]
         )
     }
 }
@@ -949,8 +917,7 @@ extension OpenAIModel where Effort == Efforts.Of<OpenAICatalog.Gpt6_1Terra> {
             inputModalities: [.image, .pdf, .text],
             supportedParameters: [.maxOutputTokens, .parallelToolCalls, .reasoning, .structuredOutputs, .toolChoice, .tools],
             reasoning: .onByDefault,
-            reasoningEfforts: [.max, .xhigh, .high, .medium, .low, .off],
-            defaultReasoningEffort: .medium
+            reasoningEfforts: [.max, .xhigh, .high, .medium, .low, .off]
         )
     }
 }
@@ -971,8 +938,7 @@ extension OpenAIModel where Effort == Efforts.Of<OpenAICatalog.O3> {
             inputModalities: [.image, .pdf, .text],
             supportedParameters: [.maxOutputTokens, .parallelToolCalls, .reasoning, .structuredOutputs, .toolChoice, .tools],
             reasoning: .mandatory,
-            reasoningEfforts: [.high, .medium, .low],
-            defaultReasoningEffort: .medium
+            reasoningEfforts: [.high, .medium, .low]
         )
     }
 }
@@ -993,8 +959,7 @@ extension OpenAIModel where Effort == Efforts.Of<OpenAICatalog.O3_2025_04_16> {
             inputModalities: [.image, .pdf, .text],
             supportedParameters: [.maxOutputTokens, .parallelToolCalls, .reasoning, .structuredOutputs, .toolChoice, .tools],
             reasoning: .mandatory,
-            reasoningEfforts: [.high, .medium, .low],
-            defaultReasoningEffort: .medium
+            reasoningEfforts: [.high, .medium, .low]
         )
     }
 }

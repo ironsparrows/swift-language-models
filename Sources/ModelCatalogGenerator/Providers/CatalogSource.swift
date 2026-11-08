@@ -1,5 +1,7 @@
 import Foundation
 
+// MARK: - Source
+
 /// A provider whose models and vocabularies the generator reads.
 enum CatalogSource: String, Codable, CaseIterable, Sendable {
     case openrouter
@@ -21,15 +23,17 @@ enum CatalogSource: String, Codable, CaseIterable, Sendable {
         }
     }
 
-    /// The environment variable that holds the API key the provider's model list needs, or `nil` when it needs none.
-    var apiKeyVariable: String? {
+    /// The environment variable that holds the API key the provider's list of served models needs, or `nil` when it
+    /// needs none.
+    private var apiKeyVariable: String? {
         switch self {
         case .openrouter: nil
         case .openai: "OPENAI_API_KEY"
         }
     }
 
-    /// The vocabularies of the provider's API, each rendered as a type of its own, in the order their files are made.
+    /// The vocabularies of the provider's API, each rendered as the static members of a type of its own, in the order
+    /// their files are made.
     var vocabularies: [CatalogVocabulary] {
         switch self {
         case .openrouter:
@@ -40,27 +44,34 @@ enum CatalogSource: String, Codable, CaseIterable, Sendable {
     }
 
     /// The words of a vocabulary that the provider's module names in its own code, such as the parameters a request
-    /// sends. They stay current when the source stops listing them, since a deprecated member would fail the module's
-    /// build, which treats warnings as errors.
+    /// sends. They stay current when the source stops listing them, since a deprecated member would fail CI's build of
+    /// the module, which treats warnings as errors.
     func wordsNamedByModule(in vocabulary: CatalogVocabulary) -> Set<String> {
-        switch (self, vocabulary) {
-        case (.openrouter, .parameters):
-            [
-                "frequency_penalty", "logit_bias", "max_completion_tokens", "max_tokens", "min_p", "parallel_tool_calls",
-                "presence_penalty", "repetition_penalty", "seed", "stop", "structured_outputs", "temperature", "tool_choice",
-                "tools", "top_a", "top_k", "top_p", "verbosity",
-            ]
-        case (.openrouter, .inputModalities): ["audio", "file", "image", "text", "video"]
-        case (.openrouter, .outputModalities): ["image", "text"]
-        case (.openai, .parameters): OpenAIModelList.everyParameter
-        case (.openai, .inputModalities): ["image", "pdf", "text"]
-        default: []
+        switch self {
+        case .openrouter:
+            switch vocabulary {
+            case .parameters:
+                [
+                    "frequency_penalty", "logit_bias", "max_completion_tokens", "max_tokens", "min_p", "parallel_tool_calls",
+                    "presence_penalty", "repetition_penalty", "seed", "stop", "structured_outputs", "temperature", "tool_choice",
+                    "tools", "top_a", "top_k", "top_p", "verbosity",
+                ]
+            case .inputModalities: ["audio", "file", "image", "text", "video"]
+            case .outputModalities: ["image", "text"]
+            case .searchContextSizes, .webFetchEngines, .webSearchEngines, .webSearchModes: []
+            }
+        case .openai:
+            switch vocabulary {
+            case .parameters: OpenAIModelList.everyParameter
+            case .inputModalities: ["image", "pdf", "text"]
+            case .outputModalities, .searchContextSizes, .webFetchEngines, .webSearchEngines, .webSearchModes: []
+            }
         }
     }
 
     /// The effort words that the provider's module, or the core module under it, names in its own code, such as
     /// `none` as `ReasoningLevel.off`. They stay current when the source stops listing them, since a deprecated member
-    /// would fail the modules' builds, which treat warnings as errors.
+    /// would fail CI's builds of the modules, which treat warnings as errors.
     var effortsNamedByModule: Set<String> {
         switch self {
         case .openrouter, .openai: [EffortRanking.offWord]
@@ -74,7 +85,7 @@ enum CatalogSource: String, Codable, CaseIterable, Sendable {
     var schemaPath: String { "Catalogs/\(rawValue).schema.json" }
 
     /// The fields of a document whose words form a vocabulary, so new words get reported.
-    func vocabularyFields(in document: CatalogSource.Documents.Kind) -> Set<String> {
+    private func vocabularyFields(in document: CatalogSource.Documents.Kind) -> Set<String> {
         switch (self, document) {
         case (.openrouter, .modelList):
             [
@@ -101,7 +112,7 @@ enum CatalogSource: String, Codable, CaseIterable, Sendable {
     /// - Parameters:
     ///   - session: The session that sends the requests.
     ///   - baseURL: Where every document lives, such as a test server, in place of the provider's own addresses.
-    ///   - environment: The environment variables, which hold the API key a source's model list needs.
+    ///   - environment: The environment variables, which hold the API key a source's list of served models needs.
     ///   - retryDelay: The pause before a failed request is sent again.
     /// - Returns: The response bodies.
     /// - Throws: ``GeneratorError/brokenSource(_:)`` for a network failure, an HTTP error, or a missing API key.
@@ -137,8 +148,9 @@ enum CatalogSource: String, Codable, CaseIterable, Sendable {
     /// - Parameters:
     ///   - documents: The response bodies.
     ///   - today: The day of the fetch, in UTC, before which a model's shutdown has passed.
-    /// - Returns: The models, unsorted, and the words of each vocabulary.
-    /// - Throws: ``GeneratorError/brokenSource(_:)`` when a document doesn't decode.
+    /// - Returns: The models, which a snapshot sorts, the words of each vocabulary and the efforts.
+    /// - Throws: ``GeneratorError/brokenSource(_:)`` when a document doesn't decode, or when OpenRouter's model list
+    ///   serves none of the models that list images on its images path.
     func catalog(from documents: CatalogSource.Documents, today: CatalogDay) throws(GeneratorError) -> FetchedCatalog {
         switch self {
         case .openrouter:
@@ -146,10 +158,14 @@ enum CatalogSource: String, Codable, CaseIterable, Sendable {
                 let description = try OpenRouterAPIDescription.decoded(from: documents.apiDescription)
                 return (try description.vocabularies(), try description.efforts())
             }
-            let models = try reading(.modelList, "doesn't decode") {
-                try OpenRouterModelsResponse.decoded(from: documents.modelList).catalogModels(everyEffort: efforts)
+            let response = try reading(.modelList, "doesn't decode") { try OpenRouterModelsResponse.decoded(from: documents.modelList) }
+            // The images path tells which models return images, so a list that serves none of them there has changed.
+            guard response.servesImagesOnImagesPath else {
+                throw .brokenSource(
+                    "\(displayName)'s model list serves none of the models that list images on its images path, so it no longer "
+                        + "tells which models return images.")
             }
-            return FetchedCatalog(models: models, vocabularies: vocabularies, efforts: efforts)
+            return FetchedCatalog(models: response.catalogModels(everyEffort: efforts), vocabularies: vocabularies, efforts: efforts)
         case .openai:
             let description = try reading(.apiDescription, "doesn't decode") {
                 try OpenAIAPIDescription.decoded(from: documents.apiDescription)
@@ -171,8 +187,7 @@ enum CatalogSource: String, Codable, CaseIterable, Sendable {
                         + "description lists, don't decode: \(listedUndescribed.joined(separator: ", ")).")
             }
             return FetchedCatalog(
-                models: served.catalogModels(
-                    describedBy: descriptions, everyEffort: efforts, defaultEffort: description.defaultEffort, today: today),
+                models: served.catalogModels(describedBy: descriptions, everyEffort: efforts, today: today),
                 vocabularies: [:],
                 efforts: efforts,
                 skippedEntryIDs: descriptions.undecodedIDs,
@@ -190,7 +205,11 @@ enum CatalogSource: String, Codable, CaseIterable, Sendable {
     func schema(of documents: CatalogSource.Documents) throws(GeneratorError) -> CatalogSchema {
         let modelList = try reading(.modelList, "isn't JSON") {
             // models.dev keys OpenAI's models by id, so the shape reads them as a list, which doesn't name each id.
-            let shape = self == .openai ? try ModelsDevCatalog.shapeDocument(of: documents.modelList) : documents.modelList
+            let shape =
+                switch self {
+                case .openrouter: documents.modelList
+                case .openai: try ModelsDevCatalog.shapeDocument(of: documents.modelList)
+                }
             return try CatalogSchema(json: shape, vocabularyFields: vocabularyFields(in: .modelList))
         }
         let apiDescription = try reading(.apiDescription, "isn't JSON") {
@@ -239,6 +258,10 @@ enum CatalogSource: String, Codable, CaseIterable, Sendable {
         }
     }
 
+    /// Downloads one document, sending the request once more after a pause when it fails without a response.
+    ///
+    /// - Throws: ``GeneratorError/brokenSource(_:)`` when the source has no address for the document, the request fails
+    ///   again, or the status isn't a success.
     private func download(
         _ document: CatalogSource.Documents.Kind,
         from location: DocumentLocation,
@@ -281,5 +304,36 @@ enum CatalogSource: String, Codable, CaseIterable, Sendable {
         } catch {
             throw .brokenSource("\(displayName) returned \(document) that \(problem): \(error)")
         }
+    }
+}
+
+// MARK: - Documents
+
+extension CatalogSource {
+    /// The documents a fetch reads from a source.
+    struct Documents: Sendable {
+        /// A document a fetch reads.
+        enum Kind: Sendable, CustomStringConvertible {
+            /// The list that describes the source's models, which for OpenAI is models.dev's.
+            case modelList
+            /// The source's OpenAPI description, which lists the whole vocabularies and describes their words.
+            case apiDescription
+            /// The list of the models the provider still serves, for a source whose model list also describes models
+            /// the provider stopped serving.
+            case servedModels
+
+            var description: String {
+                switch self {
+                case .modelList: "a model list"
+                case .apiDescription: "an API description"
+                case .servedModels: "a list of served models"
+                }
+            }
+        }
+
+        let modelList: Data
+        let apiDescription: Data
+        /// The served models, for a source that has a list of them.
+        private(set) var servedModels: Data?
     }
 }

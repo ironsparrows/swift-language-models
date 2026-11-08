@@ -1,0 +1,126 @@
+{
+  "transcript" : {
+    "entries" : [
+      {
+        "contents" : [
+          {
+            "id" : "7CFE1EDA-7239-48ED-9CCF-493A3C3D2A95",
+            "text" : "What is 17 times 23? Think it through.",
+            "type" : "text"
+          }
+        ],
+        "contextOptions" : {
+          "reasoningLevel" : "light"
+        },
+        "id" : "92B8EC2E-6EE9-4F13-90FB-7FE45B3EEAEC",
+        "options" : {
+          "maximumResponseTokens" : 2000
+        },
+        "role" : "user"
+      },
+      {
+        "id" : "3A9AE55B-3C2D-4657-85B3-55DDD17C90A7",
+        "metadata" : {
+          "model" : "anthropic/claude-haiku-4.5",
+          "reasoningOrigin" : "openrouter"
+        },
+        "reasoning" : {
+          "contents" : [
+            {
+              "id" : "C2291523-5E46-4E60-BA6F-F3AD1094A91F",
+              "text" : "I need to calculate 17 × 23.\n\nLet me break this down:\n17 × 23 = 17 × (20 + 3)\n= (17 × 20) + (17 × 3)\n= 340 + 51\n= 391\n\nLet me verify this another way:\n17 × 23 = (10 + 7) × 23\n= (10 × 23) + (7 × 23)\n= 230 + 161\n= 391\n\nBoth methods give me 391, so that's the answer.",
+              "type" : "text"
+            }
+          ],
+          "signature" : "W3siZm9ybWF0IjoiYW50aHJvcGljLWNsYXVkZS12MSIsImluZGV4IjowLCJ0ZXh0IjoiSSBuZWVkIHRvIGNhbGN1bGF0ZSAxNyDDlyAyMy5cblxuTGV0IG1lIGJyZWFrIHRoaXMgZG93bjpcbjE3IMOXIDIzID0gMTcgw5cgKDIwICsgMylcbj0gKDE3IMOXIDIwKSArICgxNyDDlyAzKVxuPSAzNDAgKyA1MVxuPSAzOTFcblxuTGV0IG1lIHZlcmlmeSB0aGlzIGFub3RoZXIgd2F5OlxuMTcgw5cgMjMgPSAoMTAgKyA3KSDDlyAyM1xuPSAoMTAgw5cgMjMpICsgKDcgw5cgMjMpXG49IDIzMCArIDE2MVxuPSAzOTFcblxuQm90aCBtZXRob2RzIGdpdmUgbWUgMzkxLCBzbyB0aGF0J3MgdGhlIGFuc3dlci4iLCJ0eXBlIjoicmVhc29uaW5nLnRleHQiLCJzaWduYXR1cmUiOiJFcEVFQ3B3QkNCTVFBUmdDS2tDTTBzbzE4NjdZalVrajA1d1hqeXZTV1JDMDNMY1ZIR3I0Ri91cmh6WHBOZkY0OUtpajBpemRKbEM5L2V2dGRGLy9BTU1wYUhqdmlrTXg5SWJBY3lFak1obGpiR0YxWkdVdGFHRnBhM1V0TkMwMUxUSXdNalV4TURBeE9BQkNDSFJvYVc1cmFXNW5XZ3cxTXpZMk9UY3lORGszTWpoeUVOcmtOSURQdksrRzZ5c3RlOWI3UmhXSUFRR29BYm1SdWRjR3NBRUNFZ3lkYllnQkNyYXFFbDVJVFI4YURFL1lDVGhwYlREZjlxSFBCaUl3NmVNNWFhYkNDY3RnL1hCY3RjK3lXOFhxNkVBWTNySVhIT3EvY3pFdDVaNm1lVndkVkxMM0NLaklsUWlISGlhcktxRUMzM0orK0VMZEZJck1kRnUrTjhsd0hCSzhmTWk3VXF4NG5LTkkyYkxRd2VzRm1WSmRjU3JqR0ozdTdvTXFQZUU2bk0xUTBDQWFxUGdGNm8zaEpGYXA0MEF4ZXdnSENJYzNndWFIVFZGY2N4V1FuWEdWaStQaTFWYjVuZHVxWkU2cEJjdjdSQlNwK3JQTlVNTTNNUVNzcDdHUjdGTk0vSlZUQVY2MnY1RFBZSnJwTk1HR0kyZWRDdkVLbVRZR3lWUkttbWZ3M2RIRFU1Vk9MUG02c0I2SHYrQzZLQTNLK3ExNC9SZUo4ZkRiRDUxT0pWQ1BnbGEveXhvUlZYZkNKeFEwUk42VUVBRXVuZEkxTisraitJcmxlNjU1cTlNSFpoZEdXODhWMDZIWTgrUGJuU2Z6WE0vQ1E4MEpxMDZsdDJpdi9rNjRmY2x1bnY1OE1rQ2ZQZ0twbTFyazJEZTFQZjV5UytZTGJMRXNYNGhhRTBVVVpRdmE3dWJBdGJ2dHl3K1ZIeGdCLmV5SmxibVJ3YjJsdWRGOXpiSFZuSWpvaVlXNTBhSEp2Y0dsakwyTnNZWFZrWlMwMExqVXRhR0ZwYTNVdE1qQXlOVEV3TURGOFlXMWhlbTl1TFdKbFpISnZZMnN2WjJ4dlltRnNJbjAifV0="
+        },
+        "role" : "reasoning"
+      },
+      {
+        "contents" : [
+          {
+            "id" : "88058293-BC56-451D-AC56-52FFBA77B2A9",
+            "text" : "# 17 × 23\n\nI'll break this into easier parts:\n\n17 × 23 = 17 × (20 + 3)\n\n**Step 1:** 17 × 20 = 340\n\n**Step 2:** 17 × 3 = 51\n\n**Step 3:** 340 + 51 = **391**\n\nThe answer is **391**.",
+            "type" : "text"
+          }
+        ],
+        "id" : "6AD693ED-394A-44EF-9A58-9C16624AF05A",
+        "metadata" : {
+          "cacheWriteTokenCount" : 0,
+          "cost" : 0.001234,
+          "finishReason" : "stop",
+          "model" : "anthropic/claude-haiku-4.5",
+          "openRouter.isBYOK" : false,
+          "openRouter.upstreamInferenceCompletionCost" : 0.001185,
+          "openRouter.upstreamInferenceCost" : 0.001234,
+          "openRouter.upstreamInferencePromptCost" : 4.9e-05,
+          "provider" : "Amazon Bedrock",
+          "responseID" : "gen-1794001079-rvuRbSJCQNYWZ0LFOBQc",
+          "serviceTier" : "default"
+        },
+        "role" : "response"
+      },
+      {
+        "contents" : [
+          {
+            "id" : "BCD1CA15-C4EF-4070-A350-AD35C039DF0A",
+            "text" : "And 23 times 17?",
+            "type" : "text"
+          }
+        ],
+        "contextOptions" : {
+          "reasoningLevel" : "light"
+        },
+        "id" : "660444D4-7267-47E4-BB78-D61D8AF52A92",
+        "options" : {
+          "maximumResponseTokens" : 2000
+        },
+        "role" : "user"
+      },
+      {
+        "id" : "5E6D7E62-345C-4ACB-A533-DD6DCE3AB0FE",
+        "metadata" : {
+          "model" : "anthropic/claude-haiku-4.5",
+          "reasoningOrigin" : "openrouter"
+        },
+        "reasoning" : {
+          "contents" : [
+            {
+              "id" : "4D7E9DB5-9730-46C6-87E5-EC950CDEBC24",
+              "text" : "The user is asking for 23 times 17. This is actually the same as 17 times 23 due to the commutative property of multiplication. So the answer should be 391 as well.\n\nBut let me show the calculation to demonstrate:\n\n23 × 17 = 23 × (10 + 7)\n= 23 × 10 + 23 × 7\n= 230 + 161\n= 391\n\nOr I could break it down differently:\n23 × 17 = (20 + 3) × 17\n= 20 × 17 + 3 × 17\n= 340 + 51\n= 391\n\nEither way, it's 391, same as before.",
+              "type" : "text"
+            }
+          ],
+          "signature" : "W3siZm9ybWF0IjoiYW50aHJvcGljLWNsYXVkZS12MSIsImluZGV4IjowLCJ0ZXh0IjoiVGhlIHVzZXIgaXMgYXNraW5nIGZvciAyMyB0aW1lcyAxNy4gVGhpcyBpcyBhY3R1YWxseSB0aGUgc2FtZSBhcyAxNyB0aW1lcyAyMyBkdWUgdG8gdGhlIGNvbW11dGF0aXZlIHByb3BlcnR5IG9mIG11bHRpcGxpY2F0aW9uLiBTbyB0aGUgYW5zd2VyIHNob3VsZCBiZSAzOTEgYXMgd2VsbC5cblxuQnV0IGxldCBtZSBzaG93IHRoZSBjYWxjdWxhdGlvbiB0byBkZW1vbnN0cmF0ZTpcblxuMjMgw5cgMTcgPSAyMyDDlyAoMTAgKyA3KVxuPSAyMyDDlyAxMCArIDIzIMOXIDdcbj0gMjMwICsgMTYxXG49IDM5MVxuXG5PciBJIGNvdWxkIGJyZWFrIGl0IGRvd24gZGlmZmVyZW50bHk6XG4yMyDDlyAxNyA9ICgyMCArIDMpIMOXIDE3XG49IDIwIMOXIDE3ICsgMyDDlyAxN1xuPSAzNDAgKyA1MVxuPSAzOTFcblxuRWl0aGVyIHdheSwgaXQncyAzOTEsIHNhbWUgYXMgYmVmb3JlLiIsInR5cGUiOiJyZWFzb25pbmcudGV4dCIsInNpZ25hdHVyZSI6IkVxVUZDcHdCQ0JNUUFSZ0NLa0Ixb0JDblN3eHRrd2s4S3NHVmRVSFdJRTZUU3hYMi95U0F1UVNMbGpITFdzK0JxZmJNMVc1OTh3NG1ReVVtYTdWQmwwaUl0OUZrK3cxd2cvdGtOdEZGTWhsamJHRjFaR1V0YUdGcGEzVXROQzAxTFRJd01qVXhNREF4T0FCQ0NIUm9hVzVyYVc1bldndzFNelkyT1RjeU5EazNNamh5RU5ya05JRFB2SytHNnlzdGU5YjdSaFdJQVFHb0FidVJ1ZGNHc0FFQ0VneXRmbUtwT09IWGxVa3VwRElhREhqM0xZcFZhNW5MVkJtRFZ5SXcraUxEaW5KeVYrclFMSi9rbVdva2JLRlkyQTlPT3JEUll6cDlCWFcwTFhQc0I1TnJrZ0lSYmZqQXhuWGRwQXBFS3JVRDl2U2Q3QmV3UWVxMXpwUVhrNVBhLzU5bUVaU3pkWTBhNEpKRXRZbWpFZ0h0UGxmemhtSENQUXA2UnA1Sklld3kzeTdPSkNpYkJ6eFVyU3lTSGhHRTZnZVEvZnBsdi9INlp0dklJbzcrRVphdldPSytaa2JMUXN6UTlqanhHT1Jwb2FVKzEvVjBlS1ZGMFVoTjRtWFFJZktJMXk3aGNSYVFPczJrNGdvWm5uTUFzbVRJMnp4VGJzdzNMczJ4RHdCcC8reTMyNFNFTTc4cmhuc3Y2cVo3TW1lSEpmb1BZS05GY0Q2Q2E2ZDF4bjlLUXlPcGhMMXBydXF4ZU1TbzZKc0Y2YXViNUZHQVhuNXI0YWgrWklkc2xKNlNNQWZsNXVwWFd1VmJIcFNib3FkaVcyQ0owT0JKTGxDamx1YnZSbG1YRzlSbFNtOUI0TlFDOXh3RGlkRjdxb2JSNi9td2ZlSlA0ZEcxT3psWE01QVpJWVp6UnVXcDBZREhjdjdoTFo4U08zYnBKZXFaN2RMWk02dVRMTHByVU8zajJ4VmtnY3V2d0tIRnRZNVZ3UStVWVpBNEZqc3daMGp5L21tbHhYNi9wMzh1V1FFclN4TEh0K2NDR0tLbzF3OEc1cHlKbFFHa2FTOVlwZ2VpaFQzRjIvdm5TZC91V01jSE9icDRCSUlvMEsrMlBGaTlkdkh2c3ZHQ0xpazAxaGdINlhaakwxdzVPYUkrN3ZxbXZiTkpCV3M0b2tvTVNDT0hUVXFjQm94clVobHN6U2NZQVE9PS5leUpsYm1Sd2IybHVkRjl6YkhWbklqb2lZVzUwYUhKdmNHbGpMMk5zWVhWa1pTMDBMalV0YUdGcGEzVXRNakF5TlRFd01ERjhZVzFoZW05dUxXSmxaSEp2WTJzdloyeHZZbUZzSW4wIn1d"
+        },
+        "role" : "reasoning"
+      },
+      {
+        "contents" : [
+          {
+            "id" : "F694BDE6-EA9D-4A7D-AF18-1F22AE9643A9",
+            "text" : "# 23 × 17\n\nI'll break this down:\n\n23 × 17 = 23 × (10 + 7)\n\n**Step 1:** 23 × 10 = 230\n\n**Step 2:** 23 × 7 = 161\n\n**Step 3:** 230 + 161 = **391**\n\nThe answer is **391**.\n\nThis is the same as before! This demonstrates the commutative property of multiplication: the order doesn't matter, so 17 × 23 = 23 × 17.",
+            "type" : "text"
+          }
+        ],
+        "id" : "8FC82549-89CB-4F2F-AC7D-F914D8CD52B5",
+        "metadata" : {
+          "cacheWriteTokenCount" : 0,
+          "cost" : 0.001709,
+          "finishReason" : "stop",
+          "model" : "anthropic/claude-haiku-4.5",
+          "openRouter.isBYOK" : false,
+          "openRouter.upstreamInferenceCompletionCost" : 0.001555,
+          "openRouter.upstreamInferenceCost" : 0.001709,
+          "openRouter.upstreamInferencePromptCost" : 0.000154,
+          "provider" : "Amazon Bedrock",
+          "responseID" : "gen-1794001081-zuazVI6uaD1QJS8mbLFB",
+          "serviceTier" : "default"
+        },
+        "role" : "response"
+      }
+    ]
+  },
+  "type" : "FoundationModels.Transcript",
+  "version" : "1.1"
+}

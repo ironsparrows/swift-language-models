@@ -7,7 +7,6 @@
 - <doc:GettingStarted>
 - ``init(_:fallbacks:serverTools:routing:options:cacheControl:responseCache:app:session:configuration:auth:)``
 - ``init(_:)``
-- ``init(_:fallbacks:serverTools:routing:options:cacheControl:responseCache:app:session:idleTimeout:auth:)``
 
 ### Describing the model
 
@@ -42,7 +41,6 @@
 - ``app``
 - ``configuration``
 - ``OpenRouterConfiguration``
-- ``idleTimeout``
 - ``executorConfiguration``
-- ``RequestExecutor``
-- ``RequestExecutor/Configuration``
+- ``Executor``
+- ``Executor/Configuration``

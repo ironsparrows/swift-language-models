@@ -1,0 +1,162 @@
+event: response.created
+data: {"type":"response.created","response":{"id":"resp_33556ad7b4c93c74edaa61f8f6d2f1c22bd0d0a6d9c6557c3d","object":"response","created_at":1794001306,"status":"in_progress","access_programs":null,"background":false,"completed_at":null,"error":null,"frequency_penalty":0.0,"image":{"context_compression":"disabled"},"incomplete_details":null,"instructions":null,"max_output_tokens":800,"max_tool_calls":null,"model":"gpt-5-nano-2025-08-07","moderation":null,"output":[],"parallel_tool_calls":true,"presence_penalty":0.0,"previous_response_id":null,"prompt_cache_key":null,"prompt_cache_retention":"in_memory","reasoning":{"context":"current_turn","effort":"minimal","mode":"standard","summary":null},"safety_identifier":null,"service_tier":"auto","store":true,"temperature":1.0,"text":{"format":{"type":"text"},"verbosity":"medium"},"tool_choice":"auto","tool_usage":{"image_gen":{"input_tokens":0,"input_tokens_details":{"image_tokens":0,"text_tokens":0},"output_tokens":0,"output_tokens_details":{"image_tokens":0,"text_tokens":0},"total_tokens":0},"web_search":{"num_requests":0}},"tools":[{"type":"function","description":"Looks up a food's calories.","name":"lookUpFood","output_schema":null,"parameters":{"additionalProperties":false,"properties":{"food":{"type":"string"}},"required":["food"],"title":"Arguments","type":"object"},"strict":false}],"top_logprobs":0,"top_p":1.0,"truncation":"disabled","usage":null,"user":null,"metadata":{}},"sequence_number":0}
+
+event: response.in_progress
+data: {"type":"response.in_progress","response":{"id":"resp_33556ad7b4c93c74edaa61f8f6d2f1c22bd0d0a6d9c6557c3d","object":"response","created_at":1794001306,"status":"in_progress","access_programs":null,"background":false,"completed_at":null,"error":null,"frequency_penalty":0.0,"image":{"context_compression":"disabled"},"incomplete_details":null,"instructions":null,"max_output_tokens":800,"max_tool_calls":null,"model":"gpt-5-nano-2025-08-07","moderation":null,"output":[],"parallel_tool_calls":true,"presence_penalty":0.0,"previous_response_id":null,"prompt_cache_key":null,"prompt_cache_retention":"in_memory","reasoning":{"context":"current_turn","effort":"minimal","mode":"standard","summary":null},"safety_identifier":null,"service_tier":"auto","store":true,"temperature":1.0,"text":{"format":{"type":"text"},"verbosity":"medium"},"tool_choice":"auto","tool_usage":{"image_gen":{"input_tokens":0,"input_tokens_details":{"image_tokens":0,"text_tokens":0},"output_tokens":0,"output_tokens_details":{"image_tokens":0,"text_tokens":0},"total_tokens":0},"web_search":{"num_requests":0}},"tools":[{"type":"function","description":"Looks up a food's calories.","name":"lookUpFood","output_schema":null,"parameters":{"additionalProperties":false,"properties":{"food":{"type":"string"}},"required":["food"],"title":"Arguments","type":"object"},"strict":false}],"top_logprobs":0,"top_p":1.0,"truncation":"disabled","usage":null,"user":null,"metadata":{}},"sequence_number":1}
+
+event: response.output_item.added
+data: {"type":"response.output_item.added","item":{"id":"rs_a398b237f6df6d5dd28191dfe4779b8a55437a5e768e879809","type":"reasoning","content":[],"encrypted_content":"gAAAAABq7kmaYRTT3LbuU673dDo8veHkwQy8h0dj0MgXu4x2rTfp6zcB1Rf7uFcTTdBKX4l8rtimQcVf4rwY04BmrtkmKCsZ0Gqg743eOh5J4he1LrobGZ9397oiPlVAuX1KoqsRdcTqI-o3MZtMK07UMwQZzWW3Mzj5P41yF00fd9tTy4BiF84rbmXkesMvzGhLMkkkaIAUiM-erLSLXJrD4p8EuYD1OQS4Qby0Pv9E5kSyn9WQu_6ofnVsusIAmtxrejpqKwHfYA2g5281LuzROK2SdGVCxKOUqESDNNjfB2jx96jWbPYaHfWHPPL5cCvAqRzaqiR0LF29uxGJI6gvXtSEzHEbDxSSc-gK_nf6guj-zX9YKxOmqFs9CpzmoHNFAa4xLqFmvafEunyOmtcXsEMSuZMvGwg-wvSjwIcuE4WsfnBZBtKRP-H2d0ZO9FHwnxAJHPDXm9D6UMDjHI8b8-FBxpTaogJpbE3CZOukFzGq7bjESvkoXHb7bU1DN12VfqCYjQmi-ocHMYkYf2Edirv5hwaOnDr1EkiwkVp3vPtW7VmFeF_7R4P8IOWL1JDXN_p7qnjl2wrj-fHFiwuASJ1GKFEtreh7yaU_jDYZ5jLjF_i-k-APSgauQaCbpYSr4hp116_Pdh0GZi6HU2Q5mRaY3hKmFry8O870oLD-hWr_IM3nrvgT-Ha71tvQc37GrfMMjlNL5gJxWTopNKxxuaa9xlM9aHN7x1Jfh2LYg0ynUYDOT4hoRLESUZ5FcXVK1fQZ2VA-Kb0OjeUiXzD6GOW42Cyk2qp4O6lmxSSROX4TmOJU49fbcefX4rW2MjVF3HE5hm7mkbsIoNNLh2hwN6v9a8gawuNP9g3sTXdqdiZMyCDoDFOCXDg-8Y_F0H7McXcQxKzZ8OWkLCh01fGkg2KgthUDAdN57z3ZeYYlTj-DK0_DTzjhZOB2Qdtvcukh05DxFWiHmSukzhlbykbMb8X3ZgXXNSTGfMbMdN-cZnHnfSagWBN3Dn4aM3sjBRhnQR_SmWH3XUykvHvPRXeE6Sid_hfICgUniFf9ag4LH1TLZqQLJgHF7qvr1-zYcO2TwLxiY6vTkveoeE8PFyvZejTY5H7fDjsbX9bykQImrNIs7uf0h75sWVvyOQW4CRd-ubaqo_I5B9Lp-iS5v3keLn0QFfVFFIps2xddaEd-j0dbknwpRp3JIh5J0g-ig7fpbeHhfRKqYYJ5RP_KwNScvl477MrXsej5wWfquyj372c3X0M7gTRAsP6dORmjq2t2XlLZ29OozI8a5xkV3XcKgxBV-4lVY9_AjI7UtNCSlRgcvLc6baYA9vy99UnhXBH8xTuxKGe5kMHInd-gwD3RxdSwUGt8vtxWiYNIa5EBcieRUL_McXqSwm1LpK8Pq6T1HraCFJQf","summary":[]},"output_index":0,"sequence_number":2}
+
+event: response.output_item.done
+data: {"type":"response.output_item.done","item":{"id":"rs_a398b237f6df6d5dd28191dfe4779b8a55437a5e768e879809","type":"reasoning","content":[],"encrypted_content":"gAAAAABq7kmao-cFHt52yaWIVAAErjl41OKYb71ra4LR3eInh32NS6FjDfbqVfvJL439j-8y4cD17h9Ovapn081yQpQsxYllaBfC0ZsvlXZfdIntssvqon6ipvrmmQNTjAcp4FPb-Z-6GkQJ650nLScL1BH2kKQeObmCbkGtOimmF3zRlYdtldDlpHnRt28C0ehfKH--cumJM-iuLO4zLA36zDGqGa5GqFfuSQH0GhJOs9DJcpmQgTmRlscfYqjmGSDahai5QgaHplNZeydRT_jHvlD_i6Mj-xyZg1T_4fXNEh_0pVVkj-M1sTe1WqgTMUDmaUCZLFZdUCqIvryaRYrOiGCGHBWJac4-957L5rdZvazeyNtvwrufTk4qT8UWyx_kcv6LBKlpitZA7EvYDXe7ZaYHhEDgxtXYsQE6hOPCO3eu4hAwq_BZCb-SkRj3_-oRk3ZDIZ8rN3RHLM6QtsYj5IQd4N5z9iOJpr7giU6b9qmL0R8WRO6s8v2rvJoD3CPD5S3WpsyPSmzbYWWRA7YHQaqO290I-PJXkiBr6EneyH3lcBIRhUPctD5T7O8z0cLzZ3UxRhneNIQ-RuBC_BkEBIljBdt9D9wVwdCIcHogt1kEAzkh4_qEaOrLW62KrZX6H2PjlTGcd2X87VUGNH0DFZnni3CUFyoQ_eRDRZr3WOKQmzVL917TYc7XWdw8l2jiV-xpJ4zKGOoqO1tFdmF9HccNqd69x1m51pyD_4drduAKCM5b5tmEjs4_zzM7DyJdkyxrPzO6b_kSr35DpN7Utntq9_xJ_-otlYu1Q7rZ1aL_gavWewOVkjcA-EnUTzESDx4a3yuDT0geRHncjUpkPFQR5_tN3Zvh0j9o-CTKmHa1ALNhN0LJ8cANb_eJEJg4iU-5wQxQMe1w_1BXS-XxyroeKaaNvlGbBT75uImf3E0AJZqh_AboZMloFfmDV8PyC9OT_GdNni_PcicxsJPrQSt5f_ndFiaNStkJvr9hRVpAwxnHUFA89wGuWtaZ7slC27SC4ORl0ljH81WD2gG1eo2BoL040AU6fgtJKFz_O4bYV4Ytr1FsrO5YYDF_tLfr1k9I9sNQ0V_NtnZB6Y6G9x-kJhB15TjRcSNU_KQIXlU0SCvWpuBRzPPQl4FLVvss1H-J6VElUB6yUOwEbwj9lE5Xrewab2aCQl6sj1xN55v1l6oZnri-5R0R8bhczWrWqe1S0AUMFlWagxjJj-7nqwSJ07Czf4wXLGmUwGoDyhKfM5EvhUNDC8TNCREodHasJXnp3G4T5X3GDqvmRclhSWhmoCRsnfCbM-SscTiN2wCRnlF0K6pYSIFRKMz3FOuvRqp3tEAYk3_IcwFVxoJD6NxinBcV3vQrL0_81BiS5qhQdLnYsXwaM1qOq-3mfutwHRn4Hyi0unOuHaIBhqZx-XfZEIu-LnJrjbWRCX734Njb_rdFbeZPJhXemJ6qn4XLD-Ui7dOMviiCt7z26Fue2YOK2b1llBNVr1hZ0YV_Jbm6N43R9xm3FkeJzbH-mKioFzqv1hYoeGzMecDTe3aNCrJDr7DkjI9131UlRjfFkd20f2GT-Q2MBPGHh-aog42iEauPThRtme7kqj4UYKXP0BAe_gebNDjAy-n01w47wQvxjzuQzNURyn7YUhQTWq7BqZriNdN4P0KbTOZeeh2MN1-itRWOvo_2ZoAA65QBJn2QO3Ov6bSNf1r7WDVNkVYz51vZUsL6QnREkTwLq96CUZceOPhLHCX46i5Je0VVj2OHT2BRWFbqXWgBYOFzuMAuMgUWu58waQ4UMHdG0N1oVT1TIwROrtF4mR7P486lp7C1MWVghTM=","summary":[]},"output_index":0,"sequence_number":3}
+
+event: response.output_item.added
+data: {"type":"response.output_item.added","item":{"id":"msg_883e7feeb8ad5c7c998d9a745dbdaac781f74ea221774f4f4b","type":"message","status":"in_progress","content":[],"role":"assistant"},"output_index":1,"sequence_number":4}
+
+event: response.content_part.added
+data: {"type":"response.content_part.added","content_index":0,"item_id":"msg_883e7feeb8ad5c7c998d9a745dbdaac781f74ea221774f4f4b","output_index":1,"part":{"type":"output_text","annotations":[],"logprobs":[],"text":""},"sequence_number":5}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"Here","item_id":"msg_883e7feeb8ad5c7c998d9a745dbdaac781f74ea221774f4f4b","logprobs":[],"obfuscation":"A449tkpwFN4B","output_index":1,"sequence_number":6}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" are","item_id":"msg_883e7feeb8ad5c7c998d9a745dbdaac781f74ea221774f4f4b","logprobs":[],"obfuscation":"CwYSAIY0R5LF","output_index":1,"sequence_number":7}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" the","item_id":"msg_883e7feeb8ad5c7c998d9a745dbdaac781f74ea221774f4f4b","logprobs":[],"obfuscation":"g3DxVKEeSkyG","output_index":1,"sequence_number":8}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" results","item_id":"msg_883e7feeb8ad5c7c998d9a745dbdaac781f74ea221774f4f4b","logprobs":[],"obfuscation":"GBfIbO9S","output_index":1,"sequence_number":9}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":":\n\n","item_id":"msg_883e7feeb8ad5c7c998d9a745dbdaac781f74ea221774f4f4b","logprobs":[],"obfuscation":"kVueD8gsmAle3","output_index":1,"sequence_number":10}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"-","item_id":"msg_883e7feeb8ad5c7c998d9a745dbdaac781f74ea221774f4f4b","logprobs":[],"obfuscation":"BbCWr5nSD5ZCsDD","output_index":1,"sequence_number":11}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" Egg","item_id":"msg_883e7feeb8ad5c7c998d9a745dbdaac781f74ea221774f4f4b","logprobs":[],"obfuscation":"qCABzWUaAKxs","output_index":1,"sequence_number":12}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":":","item_id":"msg_883e7feeb8ad5c7c998d9a745dbdaac781f74ea221774f4f4b","logprobs":[],"obfuscation":"7XdTyJfY1y9si6E","output_index":1,"sequence_number":13}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" ","item_id":"msg_883e7feeb8ad5c7c998d9a745dbdaac781f74ea221774f4f4b","logprobs":[],"obfuscation":"bq0pCWJzX5HHmsy","output_index":1,"sequence_number":14}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"100","item_id":"msg_883e7feeb8ad5c7c998d9a745dbdaac781f74ea221774f4f4b","logprobs":[],"obfuscation":"kX445O07HWlzI","output_index":1,"sequence_number":15}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" kcal","item_id":"msg_883e7feeb8ad5c7c998d9a745dbdaac781f74ea221774f4f4b","logprobs":[],"obfuscation":"gguqoCsGxkt","output_index":1,"sequence_number":16}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"\n","item_id":"msg_883e7feeb8ad5c7c998d9a745dbdaac781f74ea221774f4f4b","logprobs":[],"obfuscation":"GJLyjEOY7S1DPrp","output_index":1,"sequence_number":17}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"-","item_id":"msg_883e7feeb8ad5c7c998d9a745dbdaac781f74ea221774f4f4b","logprobs":[],"obfuscation":"QLvX9KKKN63hQLb","output_index":1,"sequence_number":18}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" Rice","item_id":"msg_883e7feeb8ad5c7c998d9a745dbdaac781f74ea221774f4f4b","logprobs":[],"obfuscation":"2ruiTLUdLuo","output_index":1,"sequence_number":19}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":":","item_id":"msg_883e7feeb8ad5c7c998d9a745dbdaac781f74ea221774f4f4b","logprobs":[],"obfuscation":"rG0oPMhi0pNQy5E","output_index":1,"sequence_number":20}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" ","item_id":"msg_883e7feeb8ad5c7c998d9a745dbdaac781f74ea221774f4f4b","logprobs":[],"obfuscation":"9v5ZFD9Wl6m3n5S","output_index":1,"sequence_number":21}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"100","item_id":"msg_883e7feeb8ad5c7c998d9a745dbdaac781f74ea221774f4f4b","logprobs":[],"obfuscation":"CahHiYBsKNpAX","output_index":1,"sequence_number":22}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" kcal","item_id":"msg_883e7feeb8ad5c7c998d9a745dbdaac781f74ea221774f4f4b","logprobs":[],"obfuscation":"wbDcgcjsI0A","output_index":1,"sequence_number":23}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"\n\n","item_id":"msg_883e7feeb8ad5c7c998d9a745dbdaac781f74ea221774f4f4b","logprobs":[],"obfuscation":"L8XDz08e5IaHdF","output_index":1,"sequence_number":24}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"If","item_id":"msg_883e7feeb8ad5c7c998d9a745dbdaac781f74ea221774f4f4b","logprobs":[],"obfuscation":"0BJxFqnWvV7Opc","output_index":1,"sequence_number":25}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" you","item_id":"msg_883e7feeb8ad5c7c998d9a745dbdaac781f74ea221774f4f4b","logprobs":[],"obfuscation":"jtCDj9WBN8sZ","output_index":1,"sequence_number":26}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"’d","item_id":"msg_883e7feeb8ad5c7c998d9a745dbdaac781f74ea221774f4f4b","logprobs":[],"obfuscation":"cJoiU7QkNI6C1e","output_index":1,"sequence_number":27}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" like","item_id":"msg_883e7feeb8ad5c7c998d9a745dbdaac781f74ea221774f4f4b","logprobs":[],"obfuscation":"o9VGSDaAL6k","output_index":1,"sequence_number":28}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":",","item_id":"msg_883e7feeb8ad5c7c998d9a745dbdaac781f74ea221774f4f4b","logprobs":[],"obfuscation":"DT9XSBubeNPEWOd","output_index":1,"sequence_number":29}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" I","item_id":"msg_883e7feeb8ad5c7c998d9a745dbdaac781f74ea221774f4f4b","logprobs":[],"obfuscation":"00MjJjqrKztk8y","output_index":1,"sequence_number":30}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" can","item_id":"msg_883e7feeb8ad5c7c998d9a745dbdaac781f74ea221774f4f4b","logprobs":[],"obfuscation":"Rs6d9Y5Pik0j","output_index":1,"sequence_number":31}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" look","item_id":"msg_883e7feeb8ad5c7c998d9a745dbdaac781f74ea221774f4f4b","logprobs":[],"obfuscation":"94f4McuhcSG","output_index":1,"sequence_number":32}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" up","item_id":"msg_883e7feeb8ad5c7c998d9a745dbdaac781f74ea221774f4f4b","logprobs":[],"obfuscation":"crQgK6bV8H0Lk","output_index":1,"sequence_number":33}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" more","item_id":"msg_883e7feeb8ad5c7c998d9a745dbdaac781f74ea221774f4f4b","logprobs":[],"obfuscation":"Kn7zj7DTy8C","output_index":1,"sequence_number":34}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" details","item_id":"msg_883e7feeb8ad5c7c998d9a745dbdaac781f74ea221774f4f4b","logprobs":[],"obfuscation":"8AwXY7zv","output_index":1,"sequence_number":35}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" (","item_id":"msg_883e7feeb8ad5c7c998d9a745dbdaac781f74ea221774f4f4b","logprobs":[],"obfuscation":"3CcHdBlcD8d75m","output_index":1,"sequence_number":36}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"per","item_id":"msg_883e7feeb8ad5c7c998d9a745dbdaac781f74ea221774f4f4b","logprobs":[],"obfuscation":"dYTLwEie1GFTw","output_index":1,"sequence_number":37}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"-serving","item_id":"msg_883e7feeb8ad5c7c998d9a745dbdaac781f74ea221774f4f4b","logprobs":[],"obfuscation":"JyMRZtIN","output_index":1,"sequence_number":38}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" size","item_id":"msg_883e7feeb8ad5c7c998d9a745dbdaac781f74ea221774f4f4b","logprobs":[],"obfuscation":"E7GlPYMd8IZ","output_index":1,"sequence_number":39}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":",","item_id":"msg_883e7feeb8ad5c7c998d9a745dbdaac781f74ea221774f4f4b","logprobs":[],"obfuscation":"2koysDgs4z3s0qj","output_index":1,"sequence_number":40}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" calories","item_id":"msg_883e7feeb8ad5c7c998d9a745dbdaac781f74ea221774f4f4b","logprobs":[],"obfuscation":"Ubt7BAs","output_index":1,"sequence_number":41}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" for","item_id":"msg_883e7feeb8ad5c7c998d9a745dbdaac781f74ea221774f4f4b","logprobs":[],"obfuscation":"HwEgBYYuPYJK","output_index":1,"sequence_number":42}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" cooked","item_id":"msg_883e7feeb8ad5c7c998d9a745dbdaac781f74ea221774f4f4b","logprobs":[],"obfuscation":"ZKTVdFgxS","output_index":1,"sequence_number":43}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" vs","item_id":"msg_883e7feeb8ad5c7c998d9a745dbdaac781f74ea221774f4f4b","logprobs":[],"obfuscation":"QPaM9o85Vcy49","output_index":1,"sequence_number":44}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":".","item_id":"msg_883e7feeb8ad5c7c998d9a745dbdaac781f74ea221774f4f4b","logprobs":[],"obfuscation":"Yc8omxbP1Ay1oqU","output_index":1,"sequence_number":45}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" raw","item_id":"msg_883e7feeb8ad5c7c998d9a745dbdaac781f74ea221774f4f4b","logprobs":[],"obfuscation":"hx6sWtwwpbKD","output_index":1,"sequence_number":46}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":",","item_id":"msg_883e7feeb8ad5c7c998d9a745dbdaac781f74ea221774f4f4b","logprobs":[],"obfuscation":"mKNV8S8umVa6wgj","output_index":1,"sequence_number":47}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" etc","item_id":"msg_883e7feeb8ad5c7c998d9a745dbdaac781f74ea221774f4f4b","logprobs":[],"obfuscation":"DXblqxKUTnCJ","output_index":1,"sequence_number":48}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":".).","item_id":"msg_883e7feeb8ad5c7c998d9a745dbdaac781f74ea221774f4f4b","logprobs":[],"obfuscation":"oDdbEUurkNrbD","output_index":1,"sequence_number":49}
+
+event: response.output_text.done
+data: {"type":"response.output_text.done","content_index":0,"item_id":"msg_883e7feeb8ad5c7c998d9a745dbdaac781f74ea221774f4f4b","logprobs":[],"output_index":1,"sequence_number":50,"text":"Here are the results:\n\n- Egg: 100 kcal\n- Rice: 100 kcal\n\nIf you’d like, I can look up more details (per-serving size, calories for cooked vs. raw, etc.)."}
+
+event: response.content_part.done
+data: {"type":"response.content_part.done","content_index":0,"item_id":"msg_883e7feeb8ad5c7c998d9a745dbdaac781f74ea221774f4f4b","output_index":1,"part":{"type":"output_text","annotations":[],"logprobs":[],"text":"Here are the results:\n\n- Egg: 100 kcal\n- Rice: 100 kcal\n\nIf you’d like, I can look up more details (per-serving size, calories for cooked vs. raw, etc.)."},"sequence_number":51}
+
+event: response.output_item.done
+data: {"type":"response.output_item.done","item":{"id":"msg_883e7feeb8ad5c7c998d9a745dbdaac781f74ea221774f4f4b","type":"message","status":"completed","content":[{"type":"output_text","annotations":[],"logprobs":[],"text":"Here are the results:\n\n- Egg: 100 kcal\n- Rice: 100 kcal\n\nIf you’d like, I can look up more details (per-serving size, calories for cooked vs. raw, etc.)."}],"role":"assistant"},"output_index":1,"sequence_number":52}
+
+event: response.completed
+data: {"type":"response.completed","response":{"id":"resp_33556ad7b4c93c74edaa61f8f6d2f1c22bd0d0a6d9c6557c3d","object":"response","created_at":1794001306,"status":"completed","access_programs":null,"background":false,"completed_at":1794001306,"error":null,"frequency_penalty":0.0,"image":{"context_compression":"disabled"},"incomplete_details":null,"instructions":null,"max_output_tokens":800,"max_tool_calls":null,"model":"gpt-5-nano-2025-08-07","moderation":null,"output":[{"id":"rs_a398b237f6df6d5dd28191dfe4779b8a55437a5e768e879809","type":"reasoning","content":[],"encrypted_content":"gAAAAABq7kmaKb5tJgY67FYEdOLynYQWYxeE0xUxrqtG3vCRVhWP85fAhZaL2wuAjJmIFx32tmTT6QA5nNpkGijnzOqfvU8WSPdTmjVCwN4cyJHM2Rkt7FWTeleVK1pKvpV4Gl7eQ5HlWF9pYJHxYVzONuG00qrS4RFSuGO_vp678N7nTcGL6_nZjFzEHu5H82Mmti0p3yOcawSMRb90GzQSdPUp8A96acite4NsA8hGDRzHtUc2qnCRb_72eoR1t5F89FzzX-QIFSyzah6IZSzzbFop0RBvFnMNt4jHrfRmifbmnUw0wYCLHdk9q1PzVZ6h14m0lfmyn18Z0Vd9QyYHnfK-dIiP_6N5-fqSI9cTMd06Csu-ahu3kJKAIqs6fngZCuFHjnUn-arcWZgJ--NtZwDjA4eJJU4QkvLlmlRIZplhNH526pJcLnF_xPVfkUvCmNNeOEPv13-Z-7Ajt1KhbFs_3BzJ5mDKmhpO49iAe4xNvN0jOoqDLnwPku6js-Y4eL-tGGZ2QpJfqX3N-6fAI8YGc3ZkIql0O6oF8R1TN86hF1gOG7Xf0JtEi9QcAS-52ZY-zyplZDKUTX7S0UkU7G0HKxK3wmHpYi6Dte69cuTXh6cJkb7lFoeHdofocYDTF8YMvkJVP4l0rUtkR5A6U29jZ0UP8hwy-JJflFD8x_2n7zoLIL4y3QVSMafzDIZzv_L16_ZEypqZdLkzI5RlE3c_d3PWs8MwsZ-PY7eSZ4l9pnpDvq8XWmUvMFr9VG5YFEJcAuvDV2xE_G2ffADuAGfuuFZ30j6HPOYPvb-mWProNhlVfgRwfWtipgwuQQU3GplEvSkA-NRJU0fHUKhkf0n9PZc5RBWdkFWBzuTIHojYCYq0SMhrryMAYQQFJcMIGY8SHqW2GKnPr3yb2F9EeVoaiycIKgoBOhD6ULtZJILKaKIJvSJsbc0QKqbT8bx_ULUUxQEPdAByPLzIBleRVfPHHxhlzZjADdR0aZ2GWWxSoJ4ShHPBB37X-mfI1-FTJSUSpc0qoxCJehKkbTeYrg0j1ek02BGKvp02H8TsaSeDDvny7Aa72RxJcmuDzvzoZ-37rPk4G3w-IrNLnW8t-hcTohG191W4-9ATTZSl9dqoD_-qcb-L3PU68cm5OvF5vvpfYrROHC8QaXgQ_FeIiX1teyS3F4jkhul8CMoaXvf4863BdL5yhMciLodeoDCiNWWsFIfR86OPupOm77FYEk4wAOrgCCClJGuTPT7TccChya1jdIRaST2JTlJULxez3TNWGRCwu5QOFkC9LWNQ7fIjyVOEIgNl5aYfaV6VLQSYZPm6v6Kjn0SdtaQbmmFhkR3q2l3ffiovR12OmnsWXZhH9dsHlbiaUfOdDXpp92W60gHMzxmiMFokyosMKfUB3Hb4kmhNvNopJDYzhQgykWNCnmZw47nPe3tBOEk-2YzGoMagOCcdDeYPko8YUU2KnJRr9iuE9cMYmGOPXbXfILWgzD8LKITM1aQjSb56K6J2mTOUxL4emIUDC10RZ5luu8L3FplqCex8-ijm0Hfprx0MSxDO-mlb8SMKXxwOGQvFqt37bgc-X_3nLr0ZcyGly1cf2-yy_W4jOkqeVsszQqxmcVS5D-nlnD_tmbCrVun9YLnwNvCvDMuR6fgwXtu4VyMBCb2HPQaflVlg_VCssuyer_Sfk9TElPAMpsSQOaFp6V2l1Igt_OErkuq2phCEbOmULP32cG7ViBq2ULdrmrOXOAO5LB9nFHG2nkWbpJ2kpMdnYlizL_AoaHROfebJ9W4gA5VGfM1JYcJouDw71Yz32qLI4y1JkvjZrqfFICiNJt1XdDU=","summary":[]},{"id":"msg_883e7feeb8ad5c7c998d9a745dbdaac781f74ea221774f4f4b","type":"message","status":"completed","content":[{"type":"output_text","annotations":[],"logprobs":[],"text":"Here are the results:\n\n- Egg: 100 kcal\n- Rice: 100 kcal\n\nIf you’d like, I can look up more details (per-serving size, calories for cooked vs. raw, etc.)."}],"role":"assistant"}],"parallel_tool_calls":true,"presence_penalty":0.0,"previous_response_id":null,"prompt_cache_key":null,"prompt_cache_retention":"in_memory","reasoning":{"context":"current_turn","effort":"minimal","mode":"standard","summary":null},"safety_identifier":null,"service_tier":"default","store":true,"temperature":1.0,"text":{"format":{"type":"text"},"verbosity":"medium"},"tool_choice":"auto","tool_usage":{"image_gen":{"input_tokens":0,"input_tokens_details":{"image_tokens":0,"text_tokens":0},"output_tokens":0,"output_tokens_details":{"image_tokens":0,"text_tokens":0},"total_tokens":0},"web_search":{"num_requests":0}},"tools":[{"type":"function","description":"Looks up a food's calories.","name":"lookUpFood","output_schema":null,"parameters":{"additionalProperties":false,"properties":{"food":{"type":"string"}},"required":["food"],"title":"Arguments","type":"object"},"strict":false}],"top_logprobs":0,"top_p":1.0,"truncation":"disabled","usage":{"input_tokens":147,"input_tokens_details":{"cache_write_tokens":0,"cached_tokens":0},"output_tokens":62,"output_tokens_details":{"reasoning_tokens":0},"total_tokens":209},"user":null,"metadata":{}},"sequence_number":53}
+

@@ -36,12 +36,13 @@ enum ModelsTemplate {
             if case .retiring = self { true } else { false }
         }
 
-        /// Whether the id lookup finds the model.
+        /// Whether the id lookup finds the model and the list of every model holds it.
         var isInLookup: Bool {
             if case .removed = self { false } else { true }
         }
     }
 
+    /// A model's static member, and what it's rendered from.
     private struct Member {
         let model: CatalogModel
         let name: SwiftIdentifier
@@ -55,6 +56,10 @@ enum ModelsTemplate {
         var dataName: SwiftIdentifier { status.hasPrivateEntry ? name.appending("Entry") : name }
     }
 
+    /// The source's file of model members, with the lookup by id and the list of every model.
+    ///
+    /// - Throws: ``GeneratorError/invalidCatalog(_:)`` when a model gets no member name, the name of a case of
+    ///   `Optional` or the name of another model, or its data can't become a call of the initializer.
     static func render(_ snapshot: CatalogSnapshot, ranking: EffortRanking) throws(GeneratorError) -> GeneratedFile {
         let removedOn = Dictionary(snapshot.removed.map { ($0.model.id, $0.removedOn) }) { first, _ in first }
         let members = snapshot.namedModels.map { model, name in
@@ -86,6 +91,10 @@ enum ModelsTemplate {
         return GeneratedFile(path: path(for: snapshot.source), contents: SourceText.file(lines))
     }
 
+    /// A model's doc comment, its availability and its static member.
+    ///
+    /// - Throws: ``GeneratorError/invalidCatalog(_:)`` when the model's default effort isn't one it lists, or it needs
+    ///   an argument its provider's initializer doesn't take.
     private static func memberLines(_ member: Member, source: CatalogSource) throws(GeneratorError) -> [String] {
         let model = member.model
         if let defaultEffort = model.defaultReasoningEffort, !member.efforts.contains(defaultEffort) {
@@ -112,6 +121,10 @@ enum ModelsTemplate {
     /// The modalities that the model initializer takes and outputs unless told otherwise.
     private static let defaultModalities = [CatalogModel.textModality]
 
+    /// The call that creates a model's details, which passes only the arguments that differ from the defaults.
+    ///
+    /// - Throws: ``GeneratorError/invalidCatalog(_:)`` when the model needs an argument its provider's initializer
+    ///   doesn't take.
     private static func initializer(of model: CatalogModel, efforts: [String], source: CatalogSource) throws(GeneratorError)
         -> SwiftExpression
     {
@@ -154,6 +167,8 @@ enum ModelsTemplate {
         )
     }
 
+    /// The initializer that finds a model by id. A retiring model is read through its data member, so the lookup builds
+    /// without a deprecation warning.
     private static func lookupLines(_ members: [Member], source: CatalogSource) -> [String] {
         var lines = [
             "",

@@ -7,7 +7,7 @@ Help OpenAI's prompt cache serve the start of a prompt, and see what it read.
 OpenAI's prompt cache keeps the start of a prompt it has read, so a later request that starts the same way reads that
 part from the cache. Each request sends the whole transcript, so every turn of a session starts the way the turn before
 it did. The module sends no cache marks: OpenAI caches on its own. It caches only a prompt whose start reaches the
-model's minimum, such as 1,024 tokens for GPT-5, so a short prompt reads nothing from the cache.
+model's minimum, such as 1,024 tokens for GPT-5.6 and later, so a short prompt reads nothing from the cache.
 
 Every part of a request is written the same way each time, in the same order, from the model and the instructions to
 the transcript's earlier turns, its images and its settings, so a prompt that starts the same way is sent with the

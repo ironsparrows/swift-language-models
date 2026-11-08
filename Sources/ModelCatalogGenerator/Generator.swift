@@ -1,5 +1,7 @@
 import Foundation
 
+// MARK: - Generator
+
 /// The `ModelCatalogGenerator` command-line tool.
 @main
 enum Generator {
@@ -12,6 +14,7 @@ enum Generator {
         let skippedEntryIDs: [String]
     }
 
+    /// Runs the command line's subcommand, or prints the usage for `--help`, and exits with the code of a failure.
     static func main() async {
         do {
             let currentDirectory = URL(filePath: FileManager.default.currentDirectoryPath, directoryHint: .isDirectory)
@@ -33,8 +36,8 @@ enum Generator {
     ///   - command: The parsed command.
     ///   - session: The session for `fetch`.
     ///   - baseURL: Where every source's documents live, replacing each source's own addresses.
-    ///   - environment: The environment variables, which hold the API keys some sources' model lists need.
-    ///   - today: The day recorded for removed models.
+    ///   - environment: The environment variables, which hold the API key a source's list of served models needs.
+    ///   - today: The day of a fetch, in UTC, which it records for what a source stopped listing.
     ///   - log: Where progress messages go.
     /// - Throws: The ``GeneratorError`` that ended the run.
     static func run(
@@ -72,6 +75,8 @@ enum Generator {
             _ = try write(GeneratedFile(path: reportPath, contents: try CatalogJSON.encoded(Report(changes))), in: packageDirectory)
             let release = changes.bump == .none ? "no release" : "a \(changes.bump.rawValue) release"
             log("The catalogs' changes since \(base.ref) need \(release). See \(changelogPath).")
+        case .clearRemoved:
+            try clearRemoved(command.sources, in: packageDirectory, log: log)
         }
     }
 
@@ -86,7 +91,7 @@ enum Generator {
         let bump: CatalogChanges.Bump
         let sources: [CatalogChanges]
 
-        init(_ changes: [CatalogChanges]) {
+        fileprivate init(_ changes: [CatalogChanges]) {
             bump = changes.bump
             sources = changes
         }
@@ -234,17 +239,42 @@ enum Generator {
         }
     }
 
+    /// Drops what the sources' snapshots mark removed, so the next render deletes those members. Deleting a member needs a
+    /// major release, so only a maintainer runs this, and never a fetch.
+    ///
+    /// - Throws: ``GeneratorError/fileAccess(_:)`` when a source has no snapshot yet, and
+    ///   ``GeneratorError/invalidCatalog(_:)`` when clearing would rename a listed model's member.
+    private static func clearRemoved(_ sources: [CatalogSource], in packageDirectory: URL, log: (String) -> Void) throws(GeneratorError) {
+        var changed = false
+        for source in sources {
+            let snapshot = try packageSnapshot(of: source, in: packageDirectory)
+            let file = GeneratedFile(path: source.snapshotPath, contents: try CatalogJSON.encoded(try snapshot.clearingRemoved()))
+            guard try write(file, in: packageDirectory) else { continue }
+            let models = snapshot.removed.map(\.model.id)
+            log("Cleared \(source.snapshotPath). Models deleted: \(models.isEmpty ? "none" : models.joined(separator: ", ")).")
+            changed = true
+        }
+        if !changed { log("The catalogs mark nothing removed.") }
+    }
+
     /// The generated files for every source's snapshot.
     ///
     /// - Throws: ``GeneratorError/fileAccess(_:)`` when a source has no snapshot yet.
     private static func generatedFiles(in packageDirectory: URL) throws(GeneratorError) -> [GeneratedFile] {
         let snapshots = try CatalogSource.allCases.map { (source) throws(GeneratorError) in
-            guard let snapshot = try CatalogJSON.read(CatalogSnapshot.self, at: source.snapshotPath, in: packageDirectory) else {
-                throw .fileAccess("\(source.snapshotPath) is missing. Run `fetch` to create it.")
-            }
-            return snapshot
+            try packageSnapshot(of: source, in: packageDirectory)
         }
         return try CatalogRenderer.files(for: snapshots)
+    }
+
+    /// A source's snapshot in the package.
+    ///
+    /// - Throws: ``GeneratorError/fileAccess(_:)`` when the source has no snapshot yet.
+    private static func packageSnapshot(of source: CatalogSource, in packageDirectory: URL) throws(GeneratorError) -> CatalogSnapshot {
+        guard let snapshot = try CatalogJSON.read(CatalogSnapshot.self, at: source.snapshotPath, in: packageDirectory) else {
+            throw .fileAccess("\(source.snapshotPath) is missing. Run `fetch` to create it.")
+        }
+        return snapshot
     }
 
     /// Writes a file unless it already holds the contents, so an unchanged file keeps its modification date.
@@ -261,5 +291,97 @@ enum Generator {
             throw .fileAccess("Couldn't write \(file.path): \(error.localizedDescription)")
         }
         return true
+    }
+}
+
+// MARK: - Git revision
+
+extension Generator {
+    /// The package's files as a git commit has them.
+    private struct GitRevision {
+        let ref: String
+        let packageDirectory: URL
+
+        /// A revision of the package's repository.
+        ///
+        /// - Throws: ``GeneratorError/usage(_:)`` when `ref` names no commit, and ``GeneratorError/fileAccess(_:)``
+        ///   when git can't run.
+        init(_ ref: String, in packageDirectory: URL) throws(GeneratorError) {
+            self.ref = ref
+            self.packageDirectory = packageDirectory
+            guard try git("rev-parse", "--verify", "--quiet", "\(ref)^{commit}").status == 0 else {
+                throw .usage("'\(ref)' names no commit of the repository at \(packageDirectory.path(percentEncoded: false)).")
+            }
+        }
+
+        /// A file's contents at the revision.
+        ///
+        /// - Parameter path: The file, relative to the package root.
+        /// - Returns: The contents, or `nil` when the revision has no such file.
+        /// - Throws: ``GeneratorError/fileAccess(_:)`` when git can't run or can't read the file.
+        func contents(of path: String) throws(GeneratorError) -> Data? {
+            guard try git("cat-file", "-e", "\(ref):./\(path)").status == 0 else { return nil }
+            let show = try git("show", "\(ref):./\(path)")
+            guard show.status == 0 else { throw .fileAccess("Couldn't read \(path) at \(ref).") }
+            return show.output
+        }
+
+        /// Runs git in the package directory and returns its exit status and standard output.
+        private func git(_ arguments: String...) throws(GeneratorError) -> (status: Int32, output: Data) {
+            let process = Process()
+            process.executableURL = URL(filePath: "/usr/bin/env")
+            process.arguments = ["git", "-C", packageDirectory.path(percentEncoded: false)] + arguments
+            let output = Pipe()
+            process.standardOutput = output
+            process.standardError = FileHandle.nullDevice
+            do {
+                try process.run()
+            } catch {
+                throw .fileAccess("Couldn't run git: \(error.localizedDescription)")
+            }
+            let data = output.fileHandleForReading.readDataToEndOfFile()
+            process.waitUntilExit()
+            return (process.terminationStatus, data)
+        }
+    }
+}
+
+// MARK: - Errors
+
+/// A failure that ends a generator run.
+enum GeneratorError: Error, Equatable, CustomStringConvertible {
+    /// The command line couldn't be parsed.
+    case usage(String)
+
+    /// A source failed or returned data that looks broken, so its files weren't written.
+    case brokenSource(String)
+
+    /// The generated files differ from the ones in the package.
+    case stale([String])
+
+    /// The catalogs can't become code, for example because two words get the same Swift name, or a catalog file
+    /// doesn't decode.
+    case invalidCatalog(String)
+
+    /// A file in the package is missing, or couldn't be read or written.
+    case fileAccess(String)
+
+    /// The process exit code for the failure.
+    var exitCode: Int32 {
+        switch self {
+        case .usage: 64
+        case .brokenSource: 2
+        case .stale: 1
+        case .invalidCatalog: 65
+        case .fileAccess: 74
+        }
+    }
+
+    var description: String {
+        switch self {
+        case .usage(let message): "\(message)\n\n\(Command.usage)"
+        case .stale(let paths): "Generated files are out of date: \(paths.joined(separator: ", ")). Run `render`."
+        case .brokenSource(let message), .invalidCatalog(let message), .fileAccess(let message): message
+        }
     }
 }

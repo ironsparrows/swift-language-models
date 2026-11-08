@@ -1,0 +1,185 @@
+{
+  "transcript" : {
+    "entries" : [
+      {
+        "contents" : [
+
+        ],
+        "id" : "5CDBC511-2177-4380-A4DC-AE7F3FFD3FA9",
+        "role" : "instructions",
+        "tools" : [
+          {
+            "function" : {
+              "description" : "Looks up a food's calories.",
+              "name" : "lookUpFood",
+              "parameters" : {
+                "additionalProperties" : false,
+                "properties" : {
+                  "food" : {
+                    "type" : "string"
+                  }
+                },
+                "required" : [
+                  "food"
+                ],
+                "title" : "Arguments",
+                "type" : "object",
+                "x-order" : [
+                  "food"
+                ]
+              }
+            },
+            "type" : "function"
+          }
+        ]
+      },
+      {
+        "contents" : [
+          {
+            "id" : "84F23961-C101-4AE9-A3EC-DE6F063E024A",
+            "text" : "Search the web for the calories in a boiled egg, and look up rice with the tool. Give both in one sentence.",
+            "type" : "text"
+          }
+        ],
+        "contextOptions" : {
+          "reasoningLevel" : "light"
+        },
+        "id" : "B4D35F7E-869F-4FAC-AFD3-BF4A5257113D",
+        "options" : {
+          "maximumResponseTokens" : 3000
+        },
+        "role" : "user"
+      },
+      {
+        "id" : "FA774A65-086B-4458-99B9-62F2CCF38501",
+        "role" : "response",
+        "toolCalls" : [
+          {
+            "arguments" : "{\"food\": \"rice\"}",
+            "id" : "call_G1JZYOt6bG2AskUydQ99n2Tq",
+            "metadata" : {
+              "cacheWriteTokenCount" : 4505,
+              "finishReason" : "tool_calls",
+              "model" : "gpt-6-luna",
+              "openAI.serverTools" : {
+                "calls" : [
+                  "{\"action\":{\"queries\":[\"calories in one large hard boiled egg USDA\"],\"query\":\"calories in one large hard boiled egg USDA\",\"type\":\"search\"},\"id\":\"ws_27fc3dc5a270b0205b33b577450d1b3ebbdd8e02350b88fbbf\",\"status\":\"completed\",\"type\":\"web_search_call\"}"
+                ]
+              },
+              "requestID" : "req_1",
+              "responseID" : "resp_816495b11ead0ae100dff36813c272a2a7c272ae4a18a9a18a",
+              "serviceTier" : "default",
+              "webSearchCount" : 1
+            },
+            "name" : "lookUpFood"
+          }
+        ]
+      },
+      {
+        "contents" : [
+          {
+            "id" : "8E36EAFB-53DE-418A-8638-2B4DE4D95F17",
+            "text" : "rice: 100 kcal",
+            "type" : "text"
+          }
+        ],
+        "id" : "call_G1JZYOt6bG2AskUydQ99n2Tq",
+        "role" : "tool",
+        "toolCallID" : "call_G1JZYOt6bG2AskUydQ99n2Tq",
+        "toolName" : "lookUpFood"
+      },
+      {
+        "id" : "71D28535-D9DC-41E2-9101-7F7E45D8FF1B",
+        "role" : "response",
+        "toolCalls" : [
+          {
+            "arguments" : "{\"food\": \"rice\"}",
+            "id" : "call_DGVzLWY4h3vnqG7Ktsam7PES",
+            "metadata" : {
+              "cacheWriteTokenCount" : 70,
+              "finishReason" : "tool_calls",
+              "model" : "gpt-6-luna",
+              "requestID" : "req_1",
+              "responseID" : "resp_251b21b487178075a11227576790ac9255f2620e07595cc650",
+              "serviceTier" : "default"
+            },
+            "name" : "lookUpFood"
+          },
+          {
+            "arguments" : "{\"food\": \"boiled egg\"}",
+            "id" : "call_iN3hFnz9OoPR8cGc4mHmmAad",
+            "name" : "lookUpFood"
+          }
+        ]
+      },
+      {
+        "contents" : [
+          {
+            "id" : "B20A3583-0D7C-4D03-A825-EF0E807C43A3",
+            "text" : "rice: 100 kcal",
+            "type" : "text"
+          }
+        ],
+        "id" : "call_DGVzLWY4h3vnqG7Ktsam7PES",
+        "role" : "tool",
+        "toolCallID" : "call_DGVzLWY4h3vnqG7Ktsam7PES",
+        "toolName" : "lookUpFood"
+      },
+      {
+        "contents" : [
+          {
+            "id" : "4FA54EB4-7A74-4636-B435-04F3454B6BFA",
+            "text" : "boiled egg: 100 kcal",
+            "type" : "text"
+          }
+        ],
+        "id" : "call_iN3hFnz9OoPR8cGc4mHmmAad",
+        "role" : "tool",
+        "toolCallID" : "call_iN3hFnz9OoPR8cGc4mHmmAad",
+        "toolName" : "lookUpFood"
+      },
+      {
+        "contents" : [
+          {
+            "id" : "32977417-297D-444C-8915-A3A4E6665C12",
+            "text" : "A large boiled egg has about **78 calories**, and the food lookup lists rice at **100 calories** (serving size unspecified). ([fdc.nal.usda.gov](https://fdc.nal.usda.gov/food-search/?component=1100&utm_source=openai))",
+            "type" : "text"
+          }
+        ],
+        "id" : "44C98674-9EB7-4DC2-9B22-170011916E00",
+        "metadata" : {
+          "cacheWriteTokenCount" : 86,
+          "citations" : [
+            {
+              "endOffset" : 217,
+              "excerpt" : null,
+              "startOffset" : 125,
+              "title" : "Food Search | USDA FoodData Central",
+              "url" : "https://fdc.nal.usda.gov/food-search/?component=1100&utm_source=openai"
+            }
+          ],
+          "finishReason" : "stop",
+          "model" : "gpt-6-luna",
+          "openAI.phases" : [
+            {
+              "length" : 217,
+              "phase" : "final_answer"
+            }
+          ],
+          "openAI.serverTools" : {
+            "calls" : [
+              "{\"action\":{\"queries\":[\"site:fdc.nal.usda.gov hard boiled egg calories 1 large\"],\"query\":\"site:fdc.nal.usda.gov hard boiled egg calories 1 large\",\"type\":\"search\"},\"id\":\"ws_28a7e066747c5d5d6d0667b7016a4e4df933162879f553256b\",\"status\":\"completed\",\"type\":\"web_search_call\"}"
+            ]
+          },
+          "requestID" : "req_1",
+          "responseID" : "resp_4f2d12126f455cf9e8a29d33ed6227cb98493b955ec6a1ea90",
+          "serviceTier" : "default",
+          "webSearchCount" : 1
+        },
+        "role" : "response"
+      }
+    ]
+  },
+  "type" : "FoundationModels.Transcript",
+  "version" : "1.1"
+}

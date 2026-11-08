@@ -1,0 +1,82 @@
+{
+  "transcript" : {
+    "entries" : [
+      {
+        "contents" : [
+          {
+            "id" : "367F781C-1F9C-4FDC-9A0E-896598ACFD68",
+            "text" : "Be brief.",
+            "type" : "text"
+          }
+        ],
+        "id" : "CFE5A214-3ECC-4E9E-82F9-BF562B21CB72",
+        "role" : "instructions"
+      },
+      {
+        "contents" : [
+          {
+            "id" : "DE255A81-BF16-4339-802C-EEBBEE45F6D2",
+            "text" : "Plan the week.",
+            "type" : "text"
+          }
+        ],
+        "contextOptions" : {
+          "reasoningLevel" : "light"
+        },
+        "id" : "B00F398F-9A8E-44A0-9C6A-2E5657C6E4E5",
+        "metadata" : {
+          "team" : "coach"
+        },
+        "options" : {
+          "maximumResponseTokens" : 100,
+          "temperature" : 0.5
+        },
+        "role" : "user"
+      },
+      {
+        "id" : "7339164A-DC9D-4F8F-B833-4BEB4B53074B",
+        "metadata" : {
+          "model" : "gpt-test-2026-10-01",
+          "reasoningOrigin" : "openai-responses"
+        },
+        "reasoning" : {
+          "contents" : [
+            {
+              "id" : "615EAEA9-3EBD-451F-A6DA-D78879949D75",
+              "text" : "Plan it.",
+              "type" : "text"
+            }
+          ],
+          "signature" : "W3siZW5jcnlwdGVkX2NvbnRlbnQiOiJibG9iLTEiLCJpZCI6InJzXzEiLCJzdW1tYXJ5IjpbeyJ0ZXh0IjoiUGxhbiBpdC4iLCJ0eXBlIjoic3VtbWFyeV90ZXh0In1dLCJ0eXBlIjoicmVhc29uaW5nIn1d"
+        },
+        "role" : "reasoning"
+      },
+      {
+        "contents" : [
+          {
+            "id" : "FA8CBEAB-EB13-43AD-9D3A-ABB5085D63EF",
+            "text" : "Start Monday.",
+            "type" : "text"
+          }
+        ],
+        "id" : "C9709B12-FF1D-4DB3-956D-E4CC78CEAE34",
+        "metadata" : {
+          "finishReason" : "stop",
+          "model" : "gpt-test-2026-10-01",
+          "openAI.phases" : [
+            {
+              "length" : 13,
+              "phase" : "final_answer"
+            }
+          ],
+          "requestID" : "req_1",
+          "responseID" : "resp_1",
+          "serviceTier" : "default"
+        },
+        "role" : "response"
+      }
+    ]
+  },
+  "type" : "FoundationModels.Transcript",
+  "version" : "1.1"
+}

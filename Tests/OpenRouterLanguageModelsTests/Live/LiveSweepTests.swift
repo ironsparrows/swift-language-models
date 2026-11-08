@@ -6,7 +6,7 @@ import OpenRouterLanguageModels
 import Testing
 
 /// Each vendor's cheapest catalog model through three passes, a tool round trip, guided generation and a reasoning
-/// tool loop, to find the models the executor doesn't work with yet. It runs only with `LIVE_SWEEP` set, makes about
+/// tool loop, to find the models the package doesn't work with yet. It runs only with `LIVE_SWEEP` set, makes about
 /// 120 cases for about ten cents, and checks loosely, since it looks for breakage rather than quality.
 ///
 /// The models rank by what OpenRouter charges when the sweep runs, from its public model list. When the list can't be
@@ -53,7 +53,6 @@ struct LiveSweepTests {
         .toolRoundTrip: [
             "fireworks/ember-1": "It sometimes answers without calling the tool it was asked to use.",
             "google/gemma-3-12b-it": "It sometimes calls the tool without arguments, which don't decode without the city.",
-            "inception/mercury-2.5": "It sometimes answers without calling the tool it was asked to use.",
             "meta-llama/llama-3.1-8b-instruct": "Only Groq and CoreWeave serve its tools, and Groq rejects the call with tool_use_failed.",
             "nvidia/nemotron-3-nano-30b-a3b": "It sometimes calls the tool without arguments, which don't decode without the city.",
             "rekaai/reka-edge": "Its host sometimes sends the call's arguments with an extra closing brace, which isn't valid JSON.",
@@ -150,7 +149,7 @@ struct LiveSweepTests {
 
     /// Checks that the answer names the model, as its id or a dated version of it.
     private static func expectAnsweringModel(of response: LanguageModelSession.Response<some Generable>, is model: LiveModel) {
-        let answering = lastAnswer(in: response.transcriptEntries).flatMap { metadataString($0.metadata, LanguageModelMetadataKey.model) }
+        let answering = lastAnswer(in: response.transcriptEntries).flatMap { $0.openRouter.model?.rawValue }
         #expect(answering?.hasPrefix(model.details.id.rawValue) == true, "Answered by \(answering ?? "an unnamed model")")
     }
 }

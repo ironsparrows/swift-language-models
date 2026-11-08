@@ -120,11 +120,37 @@ final class GeneratorRunTests {
         #expect(error?.exitCode == 64)
     }
 
-    @Test(arguments: [Command.Action.render, .check])
-    func `render and check fail without a snapshot`(action: Command.Action) async {
+    @Test(arguments: [Command.Action.render, .check, .clearRemoved])
+    func `render, check and clear-removed fail without a snapshot`(action: Command.Action) async {
         await #expect(throws: GeneratorError.fileAccess("Catalogs/openrouter.json is missing. Run `fetch` to create it.")) {
             try await self.run(action, stub: HTTPStub())
         }
+    }
+
+    @Test func `clear-removed writes the snapshots without what they mark removed, and render then deletes the members`() async throws {
+        let stub = try fixtureStub()
+        try await run(.fetch, stub: stub)
+        let path = CatalogSource.openrouter.snapshotPath
+        let snapshot = try #require(try CatalogJSON.read(CatalogSnapshot.self, at: path, in: package))
+        let gone = try #require(snapshot.models.first)
+        let withRemoved = CatalogSnapshot(
+            source: snapshot.source, models: Array(snapshot.models.dropFirst()),
+            removed: [RemovedModel(model: gone, removedOn: "2026-10-01")], vocabularies: snapshot.vocabularies, efforts: snapshot.efforts)
+        try Data(try CatalogJSON.encoded(withRemoved).utf8).write(to: package.appending(path: path))
+        try await run(.render, stub: stub)
+        let removals = package.appending(path: "Sources/OpenRouterLanguageModels/Generated/ModelRemovals+OpenRouter.swift")
+        #expect(try String(contentsOf: removals, encoding: .utf8).contains(gone.id))
+
+        let otherSource = try await run(.clearRemoved, stub: stub, sources: [.openai])
+        let log = try await run(.clearRemoved, stub: stub)
+        try await run(.render, stub: stub)
+
+        let cleared = try #require(try CatalogJSON.read(CatalogSnapshot.self, at: path, in: package))
+        #expect(cleared == (try withRemoved.clearingRemoved()))
+        #expect(otherSource == ["The catalogs mark nothing removed."])
+        #expect(log == ["Cleared \(path). Models deleted: \(gone.id)."])
+        #expect(try !String(contentsOf: removals, encoding: .utf8).contains(gone.id))
+        try await run(.check, stub: stub)
     }
 
     @Test func `a snapshot that doesn't decode fails with its path`() async throws {
@@ -234,8 +260,13 @@ final class GeneratorRunTests {
 
     /// Runs a subcommand against the stub and returns what it logged.
     @discardableResult
-    private func run(_ action: Command.Action, stub: HTTPStub, base: String? = nil) async throws -> [String] {
-        let command = Command(action: action, packageDirectory: package, sources: [.openrouter, .openai], base: base)
+    private func run(
+        _ action: Command.Action,
+        stub: HTTPStub,
+        base: String? = nil,
+        sources: [CatalogSource] = [.openrouter, .openai]
+    ) async throws -> [String] {
+        let command = Command(action: action, packageDirectory: package, sources: sources, base: base)
         var log: [String] = []
         try await Generator.run(
             command, session: stub.session, baseURL: stub.baseURL, environment: ["OPENAI_API_KEY": "test-key"], today: "2026-10-29"

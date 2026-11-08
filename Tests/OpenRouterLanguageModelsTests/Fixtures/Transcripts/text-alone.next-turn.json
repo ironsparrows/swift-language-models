@@ -1,0 +1,1 @@
+{"model":"vendor/model","messages":[{"role":"system","content":"Be brief."},{"role":"user","content":"Plan the week."},{"role":"assistant","content":"The plan starts Monday."},{"role":"user","content":"And next?"}],"stream":true,"plugins":[{"id":"context-compression","enabled":false}],"session_id":"D2079EFE-77FD-49A1-863B-69ABBDF2DC12"}

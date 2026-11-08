@@ -1,11 +1,15 @@
+import Foundation
+
+// MARK: - Snapshot
+
 /// A source's models as `Catalogs/<source>.json` stores them, sorted so the file's diff reads as a changelog.
 struct CatalogSnapshot: Codable, Equatable, Sendable {
     let source: CatalogSource
     let models: [CatalogModel]
     let removed: [RemovedModel]
-    /// Every word of each vocabulary, sorted, including the words the source no longer uses.
+    /// Every word of each vocabulary, sorted, including the words the source stopped using.
     let vocabularies: [CatalogVocabulary: [CatalogWord]]
-    /// Every effort word, highest first, including the words the source no longer uses.
+    /// Every effort word, highest first, including the words the source stopped using.
     let efforts: [CatalogWord]
 
     /// The largest share of the earlier snapshot's models that one fetch can lose. Losing more at once more likely
@@ -16,9 +20,9 @@ struct CatalogSnapshot: Codable, Equatable, Sendable {
     /// The snapshot after a fetch: new and changed models replace old ones, and missing models move to `removed`.
     ///
     /// Each of the source's vocabularies, and the efforts, hold the words the source lists and the words its models
-    /// use. A word that's in neither any more stays, marked removed. A model keeps each effort it accepted before and
-    /// no longer does, marked removed. The source's own order of efforts decides the order of its words; the models'
-    /// lists place the others.
+    /// use. A word of the earlier snapshot that's in neither stays, marked removed, unless the provider's module names
+    /// it in its own code. A model keeps each effort it stopped accepting, marked removed. The source's own order of
+    /// efforts decides the order of its words; the models' lists place the others.
     ///
     /// - Parameters:
     ///   - source: The source the models came from.
@@ -88,7 +92,7 @@ struct CatalogSnapshot: Codable, Equatable, Sendable {
         }
     }
 
-    /// The earlier snapshot's models that the fetch no longer lists.
+    /// The earlier snapshot's models that the fetch doesn't list.
     private static func lostModels(_ fetched: FetchedCatalog, previous: CatalogSnapshot?) -> [CatalogModel] {
         let fetchedIDs = fetched.modelIDs
         return (previous?.models ?? []).filter { !fetchedIDs.contains($0.id) }
@@ -143,8 +147,8 @@ struct CatalogSnapshot: Codable, Equatable, Sendable {
         return ranking.words.compactMap { effortsByWord[$0] }
     }
 
-    /// The fetched models, each with the efforts it accepted in the earlier snapshot, listed or removed, and no longer
-    /// does, marked removed. An effort the model accepts again stops being removed.
+    /// The fetched models, each with the efforts it accepted in the earlier snapshot, listed or removed, and stopped
+    /// accepting, marked removed. An effort the model accepts again stops being removed.
     private static func withRemovedEfforts(
         _ models: [CatalogModel],
         previous: CatalogSnapshot?,
@@ -167,7 +171,7 @@ struct CatalogSnapshot: Codable, Equatable, Sendable {
     }
 
     /// The words a source lists, then the other words its models use, then the words of an earlier snapshot that are
-    /// in neither any more: kept as they were when the module's code names them, and otherwise marked removed.
+    /// in neither: kept as they were when the module's code names them, and otherwise marked removed.
     private static func words(
         listed: [CatalogWord],
         used: [String],
@@ -182,6 +186,33 @@ struct CatalogSnapshot: Codable, Equatable, Sendable {
             named.contains(word.word) ? CatalogWord(word.word, summary: word.summary) : word.removed(on: today)
         }
         return listed + unlisted + gone
+    }
+}
+
+extension CatalogSnapshot {
+    /// The snapshot without what it keeps only so that generated members stay: its removed models, and the effort levels
+    /// and words marked removed. Rendering it deletes those members, which ``CatalogChanges`` reports as major changes.
+    ///
+    /// - Throws: ``GeneratorError/invalidCatalog(_:)`` when a listed model would take the name of a removed one, so its
+    ///   member would change without a report.
+    func clearingRemoved() throws(GeneratorError) -> CatalogSnapshot {
+        let cleared = CatalogSnapshot(
+            source: source,
+            models: models.map { model in
+                var model = model
+                model.removedReasoningEfforts = []
+                return model
+            },
+            removed: [],
+            vocabularies: vocabularies.mapValues { words in words.filter { $0.removedOn == nil } },
+            efforts: efforts.filter { $0.removedOn == nil }
+        )
+        let names = Dictionary(uniqueKeysWithValues: namedModels.map { ($0.model.id, $0.name) })
+        let renamed = cleared.namedModels.filter { names[$0.model.id] != $0.name }.map(\.model.id)
+        guard renamed.isEmpty else {
+            throw .invalidCatalog("Clearing what's removed would rename these models: \(renamed.joined(separator: ", ")).")
+        }
+        return cleared
     }
 }
 
@@ -208,5 +239,104 @@ extension CatalogSnapshot {
                 debugDescription: "These model ids appear more than once: \(repeated.joined(separator: ", "))."
             )
         }
+    }
+}
+
+// MARK: - Fetched catalog
+
+/// What a source's documents say, in catalog form, before it joins the snapshot in the package.
+struct FetchedCatalog: Sendable {
+    let models: [CatalogModel]
+    /// The words that the source's API description lists for each vocabulary, with their summaries.
+    let vocabularies: [CatalogVocabulary: [CatalogWord]]
+    /// Every effort word that the source's API description lists, highest first.
+    let efforts: [String]
+    /// The ids of the model list's entries that don't decode, which the fetch skipped, sorted.
+    private(set) var skippedEntryIDs: [String] = []
+    /// The ids of the models the source serves that the fetch left out because their entries don't decode, so it
+    /// can't tell whether the catalog lists them.
+    private(set) var undescribedModelIDs: Set<String> = []
+
+    /// The ids of the models.
+    fileprivate var modelIDs: Set<String> {
+        Set(models.map(\.id))
+    }
+}
+
+// MARK: - Vocabularies
+
+/// An open vocabulary of a source's API whose words each get a static member, such as the request parameter names or
+/// the web search engines.
+///
+/// Each source lists the vocabularies its API has in ``CatalogSource/vocabularies``.
+enum CatalogVocabulary: String, Codable, CodingKeyRepresentable, Sendable {
+    case inputModalities
+    case outputModalities
+    case parameters
+    case searchContextSizes
+    case webFetchEngines
+    case webSearchEngines
+    case webSearchModes
+
+    /// The vocabulary's words that a model uses, which are none for a vocabulary a model doesn't list, such as the web
+    /// search engines.
+    fileprivate func words(of model: CatalogModel) -> [String] {
+        switch self {
+        case .inputModalities: model.inputModalities
+        case .outputModalities: model.outputModalities
+        case .parameters: model.supportedParameters
+        case .searchContextSizes, .webFetchEngines, .webSearchEngines, .webSearchModes: []
+        }
+    }
+}
+
+// MARK: - Days
+
+/// A day in UTC, such as a model's knowledge cutoff or the day a word was removed, which catalogs write as
+/// `yyyy-MM-dd`.
+struct CatalogDay: Hashable, Sendable, CustomStringConvertible {
+    private static let format = Date.ISO8601FormatStyle().year().month().day()
+
+    /// The day as `yyyy-MM-dd`.
+    let description: String
+
+    /// Midnight UTC at the start of the day.
+    let start: Date
+
+    /// The day a text names, or `nil` unless the text is a real day written as `yyyy-MM-dd`.
+    ///
+    /// The ISO 8601 parser alone also takes text such as `2026-02-30`, which it rolls over into March, or `2026-2-3`,
+    /// and ignores whatever follows the day, so the text must also be how the parsed day is written.
+    init?(_ text: String) {
+        guard let start = try? Self.format.parse(text), start.formatted(Self.format) == text else { return nil }
+        self.description = text
+        self.start = start
+    }
+
+    /// The day in UTC that a moment falls on.
+    init(containing date: Date) {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = .gmt
+        start = calendar.startOfDay(for: date)
+        description = start.formatted(Self.format)
+    }
+}
+
+extension CatalogDay: Codable {
+    /// Decodes a day from its text.
+    ///
+    /// - Throws: `DecodingError.dataCorrupted` when the text isn't a real day written as `yyyy-MM-dd`.
+    init(from decoder: any Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let text = try container.decode(String.self)
+        guard let day = CatalogDay(text) else {
+            throw DecodingError.dataCorruptedError(in: container, debugDescription: "'\(text)' isn't a day written as yyyy-MM-dd.")
+        }
+        self = day
+    }
+
+    func encode(to encoder: any Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(description)
     }
 }

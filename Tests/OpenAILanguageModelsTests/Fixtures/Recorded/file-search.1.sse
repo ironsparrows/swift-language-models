@@ -1,0 +1,84 @@
+event: response.created
+data: {"type":"response.created","response":{"id":"resp_646860155c3e7ad63f2eb1bb2dc3260afb12edad0413a5512b","object":"response","created_at":1794136997,"status":"in_progress","access_programs":null,"background":false,"completed_at":null,"error":null,"frequency_penalty":0.0,"image":{"context_compression":"disabled"},"incomplete_details":null,"instructions":null,"max_output_tokens":2000,"max_tool_calls":null,"model":"gpt-6-luna","moderation":null,"output":[],"parallel_tool_calls":true,"presence_penalty":0.0,"previous_response_id":null,"prompt_cache_key":null,"prompt_cache_retention":"24h","reasoning":{"context":"all_turns","effort":"low","mode":"standard","summary":null},"safety_identifier":null,"service_tier":"auto","store":true,"temperature":1.0,"text":{"format":{"type":"text"},"verbosity":"medium"},"tool_choice":"auto","tool_usage":{"image_gen":{"input_tokens":0,"input_tokens_details":{"image_tokens":0,"text_tokens":0},"output_tokens":0,"output_tokens_details":{"image_tokens":0,"text_tokens":0},"total_tokens":0},"web_search":{"num_requests":0}},"tools":[{"type":"file_search","filters":null,"max_num_results":3,"ranking_options":{"ranker":"auto","score_threshold":0.0},"vector_store_ids":["vs_recordedvectorstore0000000000"]}],"top_logprobs":0,"top_p":0.98,"truncation":"disabled","usage":null,"user":null,"metadata":{}},"sequence_number":0}
+
+event: response.in_progress
+data: {"type":"response.in_progress","response":{"id":"resp_646860155c3e7ad63f2eb1bb2dc3260afb12edad0413a5512b","object":"response","created_at":1794136997,"status":"in_progress","access_programs":null,"background":false,"completed_at":null,"error":null,"frequency_penalty":0.0,"image":{"context_compression":"disabled"},"incomplete_details":null,"instructions":null,"max_output_tokens":2000,"max_tool_calls":null,"model":"gpt-6-luna","moderation":null,"output":[],"parallel_tool_calls":true,"presence_penalty":0.0,"previous_response_id":null,"prompt_cache_key":null,"prompt_cache_retention":"24h","reasoning":{"context":"all_turns","effort":"low","mode":"standard","summary":null},"safety_identifier":null,"service_tier":"auto","store":true,"temperature":1.0,"text":{"format":{"type":"text"},"verbosity":"medium"},"tool_choice":"auto","tool_usage":{"image_gen":{"input_tokens":0,"input_tokens_details":{"image_tokens":0,"text_tokens":0},"output_tokens":0,"output_tokens_details":{"image_tokens":0,"text_tokens":0},"total_tokens":0},"web_search":{"num_requests":0}},"tools":[{"type":"file_search","filters":null,"max_num_results":3,"ranking_options":{"ranker":"auto","score_threshold":0.0},"vector_store_ids":["vs_recordedvectorstore0000000000"]}],"top_logprobs":0,"top_p":0.98,"truncation":"disabled","usage":null,"user":null,"metadata":{}},"sequence_number":1}
+
+event: response.output_item.added
+data: {"type":"response.output_item.added","item":{"id":"fs_86db36ab33d0065bdb91f1a8c999af47188b99cf8856133a33","type":"file_search_call","status":"in_progress","queries":[],"results":null},"output_index":0,"sequence_number":2}
+
+event: response.file_search_call.in_progress
+data: {"type":"response.file_search_call.in_progress","item_id":"fs_86db36ab33d0065bdb91f1a8c999af47188b99cf8856133a33","output_index":0,"sequence_number":3}
+
+event: response.file_search_call.searching
+data: {"type":"response.file_search_call.searching","item_id":"fs_86db36ab33d0065bdb91f1a8c999af47188b99cf8856133a33","output_index":0,"sequence_number":4}
+
+event: response.file_search_call.completed
+data: {"type":"response.file_search_call.completed","item_id":"fs_86db36ab33d0065bdb91f1a8c999af47188b99cf8856133a33","output_index":0,"sequence_number":5}
+
+event: response.output_item.done
+data: {"type":"response.output_item.done","item":{"id":"fs_86db36ab33d0065bdb91f1a8c999af47188b99cf8856133a33","type":"file_search_call","status":"completed","queries":["What does Harbor Kitchen serve on Tuesday?"],"results":null},"output_index":0,"sequence_number":6}
+
+event: response.output_item.added
+data: {"type":"response.output_item.added","item":{"id":"msg_e33a63c7af9f263ae4c7308d4eb4e1e51dcdd0923eb854a9f6","type":"message","status":"in_progress","content":[],"phase":"final_answer","role":"assistant"},"output_index":1,"sequence_number":7}
+
+event: response.content_part.added
+data: {"type":"response.content_part.added","content_index":0,"item_id":"msg_e33a63c7af9f263ae4c7308d4eb4e1e51dcdd0923eb854a9f6","output_index":1,"part":{"type":"output_text","annotations":[],"logprobs":[],"text":""},"sequence_number":8}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"Har","item_id":"msg_e33a63c7af9f263ae4c7308d4eb4e1e51dcdd0923eb854a9f6","logprobs":[],"obfuscation":"cfvKIOcCkH25X","output_index":1,"sequence_number":9}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"bor","item_id":"msg_e33a63c7af9f263ae4c7308d4eb4e1e51dcdd0923eb854a9f6","logprobs":[],"obfuscation":"2ooZvIX9V9uiE","output_index":1,"sequence_number":10}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" Kitchen","item_id":"msg_e33a63c7af9f263ae4c7308d4eb4e1e51dcdd0923eb854a9f6","logprobs":[],"obfuscation":"ggeKimgn","output_index":1,"sequence_number":11}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" serves","item_id":"msg_e33a63c7af9f263ae4c7308d4eb4e1e51dcdd0923eb854a9f6","logprobs":[],"obfuscation":"5BHMJBCHt","output_index":1,"sequence_number":12}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" grilled","item_id":"msg_e33a63c7af9f263ae4c7308d4eb4e1e51dcdd0923eb854a9f6","logprobs":[],"obfuscation":"SiWjDDSi","output_index":1,"sequence_number":13}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" sard","item_id":"msg_e33a63c7af9f263ae4c7308d4eb4e1e51dcdd0923eb854a9f6","logprobs":[],"obfuscation":"O1HCtf99iSD","output_index":1,"sequence_number":14}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"ines","item_id":"msg_e33a63c7af9f263ae4c7308d4eb4e1e51dcdd0923eb854a9f6","logprobs":[],"obfuscation":"wA9QggXCxe5m","output_index":1,"sequence_number":15}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" with","item_id":"msg_e33a63c7af9f263ae4c7308d4eb4e1e51dcdd0923eb854a9f6","logprobs":[],"obfuscation":"vB8ZLPinHMI","output_index":1,"sequence_number":16}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" lemon","item_id":"msg_e33a63c7af9f263ae4c7308d4eb4e1e51dcdd0923eb854a9f6","logprobs":[],"obfuscation":"K3np7Kqn0c","output_index":1,"sequence_number":17}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" potatoes","item_id":"msg_e33a63c7af9f263ae4c7308d4eb4e1e51dcdd0923eb854a9f6","logprobs":[],"obfuscation":"Novz6Do","output_index":1,"sequence_number":18}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" on","item_id":"msg_e33a63c7af9f263ae4c7308d4eb4e1e51dcdd0923eb854a9f6","logprobs":[],"obfuscation":"64D7xhWbD710I","output_index":1,"sequence_number":19}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" Tuesday","item_id":"msg_e33a63c7af9f263ae4c7308d4eb4e1e51dcdd0923eb854a9f6","logprobs":[],"obfuscation":"r8sTTulE","output_index":1,"sequence_number":20}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":".","item_id":"msg_e33a63c7af9f263ae4c7308d4eb4e1e51dcdd0923eb854a9f6","logprobs":[],"obfuscation":"K9vJGZ0oW4czj6z","output_index":1,"sequence_number":21}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" ","item_id":"msg_e33a63c7af9f263ae4c7308d4eb4e1e51dcdd0923eb854a9f6","logprobs":[],"obfuscation":"417Yy0jwzoTyIkv","output_index":1,"sequence_number":22}
+
+event: response.output_text.annotation.added
+data: {"type":"response.output_text.annotation.added","annotation":{"type":"file_citation","file_id":"file-Iwjw69k0XQgTmttP4AwqT8","filename":"menu.txt","index":71},"annotation_index":0,"content_index":0,"item_id":"msg_e33a63c7af9f263ae4c7308d4eb4e1e51dcdd0923eb854a9f6","output_index":1,"sequence_number":23}
+
+event: response.output_text.done
+data: {"type":"response.output_text.done","content_index":0,"item_id":"msg_e33a63c7af9f263ae4c7308d4eb4e1e51dcdd0923eb854a9f6","logprobs":[],"output_index":1,"sequence_number":24,"text":"Harbor Kitchen serves grilled sardines with lemon potatoes on Tuesday. "}
+
+event: response.content_part.done
+data: {"type":"response.content_part.done","content_index":0,"item_id":"msg_e33a63c7af9f263ae4c7308d4eb4e1e51dcdd0923eb854a9f6","output_index":1,"part":{"type":"output_text","annotations":[{"type":"file_citation","file_id":"file-Iwjw69k0XQgTmttP4AwqT8","filename":"menu.txt","index":71}],"logprobs":[],"text":"Harbor Kitchen serves grilled sardines with lemon potatoes on Tuesday. "},"sequence_number":25}
+
+event: response.output_item.done
+data: {"type":"response.output_item.done","item":{"id":"msg_e33a63c7af9f263ae4c7308d4eb4e1e51dcdd0923eb854a9f6","type":"message","status":"completed","content":[{"type":"output_text","annotations":[{"type":"file_citation","file_id":"file-Iwjw69k0XQgTmttP4AwqT8","filename":"menu.txt","index":71}],"logprobs":[],"text":"Harbor Kitchen serves grilled sardines with lemon potatoes on Tuesday. "}],"phase":"final_answer","role":"assistant"},"output_index":1,"sequence_number":26}
+
+event: response.completed
+data: {"type":"response.completed","response":{"id":"resp_646860155c3e7ad63f2eb1bb2dc3260afb12edad0413a5512b","object":"response","created_at":1794136997,"status":"completed","access_programs":null,"background":false,"completed_at":1794137001,"error":null,"frequency_penalty":0.0,"image":{"context_compression":"disabled"},"incomplete_details":null,"instructions":null,"max_output_tokens":2000,"max_tool_calls":null,"model":"gpt-6-luna","moderation":null,"output":[{"id":"fs_86db36ab33d0065bdb91f1a8c999af47188b99cf8856133a33","type":"file_search_call","status":"completed","queries":["What does Harbor Kitchen serve on Tuesday?"],"results":null},{"id":"msg_e33a63c7af9f263ae4c7308d4eb4e1e51dcdd0923eb854a9f6","type":"message","status":"completed","content":[{"type":"output_text","annotations":[{"type":"file_citation","file_id":"file-Iwjw69k0XQgTmttP4AwqT8","filename":"menu.txt","index":71}],"logprobs":[],"text":"Harbor Kitchen serves grilled sardines with lemon potatoes on Tuesday. "}],"phase":"final_answer","role":"assistant"}],"parallel_tool_calls":true,"presence_penalty":0.0,"previous_response_id":null,"prompt_cache_key":null,"prompt_cache_retention":"24h","reasoning":{"context":"all_turns","effort":"low","mode":"standard","summary":null},"safety_identifier":null,"service_tier":"default","store":true,"temperature":1.0,"text":{"format":{"type":"text"},"verbosity":"medium"},"tool_choice":"auto","tool_usage":{"image_gen":{"input_tokens":0,"input_tokens_details":{"image_tokens":0,"text_tokens":0},"output_tokens":0,"output_tokens_details":{"image_tokens":0,"text_tokens":0},"total_tokens":0},"web_search":{"num_requests":0}},"tools":[{"type":"file_search","filters":null,"max_num_results":3,"ranking_options":{"ranker":"auto","score_threshold":0.0},"vector_store_ids":["vs_recordedvectorstore0000000000"]}],"top_logprobs":0,"top_p":0.98,"truncation":"disabled","usage":{"input_tokens":2057,"input_tokens_details":{"cache_write_tokens":1475,"cached_tokens":0},"output_tokens":55,"output_tokens_details":{"reasoning_tokens":23},"total_tokens":2112},"user":null,"metadata":{}},"sequence_number":27}
+

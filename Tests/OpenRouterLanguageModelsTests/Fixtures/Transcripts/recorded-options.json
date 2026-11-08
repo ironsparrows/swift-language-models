@@ -1,0 +1,67 @@
+{
+  "transcript" : {
+    "entries" : [
+      {
+        "contents" : [
+          {
+            "id" : "25D753E2-0B61-4EA2-8D2C-9F1E0674AC8B",
+            "text" : "Be brief.",
+            "type" : "text"
+          }
+        ],
+        "id" : "F8613AD8-1334-488A-9AAD-95E279B9D038",
+        "role" : "instructions"
+      },
+      {
+        "contents" : [
+          {
+            "id" : "C4FC29F9-A9A9-44FB-B14A-FCCC57463FCA",
+            "text" : "Plan the week in one line.",
+            "type" : "text"
+          }
+        ],
+        "contextOptions" : {
+
+        },
+        "id" : "DA51899E-5EA1-4C76-9C2A-643A4EE538CA",
+        "metadata" : {
+          "count" : 3,
+          "team" : "coach"
+        },
+        "options" : {
+          "maximumResponseTokens" : 60,
+          "randomSeed" : 7,
+          "temperature" : 0.5,
+          "topP" : 0.9
+        },
+        "role" : "user"
+      },
+      {
+        "contents" : [
+          {
+            "id" : "31F3FB5B-4B91-45F1-B1D2-72DFE9FF6253",
+            "text" : "Focus on work projects, schedule workouts, prioritize family time, and set aside moments for relaxation and hobbies.",
+            "type" : "text"
+          }
+        ],
+        "id" : "E3E3271A-ACFD-468E-B88A-FBE1512D025A",
+        "metadata" : {
+          "cacheWriteTokenCount" : 0,
+          "cost" : 1.575e-05,
+          "finishReason" : "stop",
+          "model" : "openai/gpt-4o-mini",
+          "openRouter.isBYOK" : false,
+          "openRouter.upstreamInferenceCompletionCost" : 1.26e-05,
+          "openRouter.upstreamInferenceCost" : 1.575e-05,
+          "openRouter.upstreamInferencePromptCost" : 3.15e-06,
+          "provider" : "OpenAI",
+          "responseID" : "gen-1794002503-FK3d9nqCDcOIIojtNbnL",
+          "serviceTier" : "default"
+        },
+        "role" : "response"
+      }
+    ]
+  },
+  "type" : "FoundationModels.Transcript",
+  "version" : "1.1"
+}

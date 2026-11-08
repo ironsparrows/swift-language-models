@@ -86,7 +86,6 @@
     {
       "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 1050000,
-      "defaultReasoningEffort" : "medium",
       "displayName" : "GPT-6 Astra",
       "id" : "gpt-6-astra",
       "inputModalities" : [
@@ -119,7 +118,6 @@
     {
       "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 1050000,
-      "defaultReasoningEffort" : "medium",
       "displayName" : "GPT-6 Luna",
       "id" : "gpt-6-luna",
       "inputModalities" : [
@@ -153,7 +151,6 @@
     {
       "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 200000,
-      "defaultReasoningEffort" : "medium",
       "displayName" : "o3",
       "id" : "o3",
       "inputModalities" : [

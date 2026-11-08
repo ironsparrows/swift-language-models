@@ -1,0 +1,63 @@
+{
+  "transcript" : {
+    "entries" : [
+      {
+        "contents" : [
+          {
+            "id" : "ADFE79E5-870B-46F4-B52E-786C61D8656A",
+            "text" : "Be brief.",
+            "type" : "text"
+          }
+        ],
+        "id" : "E8D5BF03-C6B5-4698-8EDA-9754B280DCAC",
+        "role" : "instructions"
+      },
+      {
+        "contents" : [
+          {
+            "id" : "5E387169-E061-4655-BDBD-5B31A1313B66",
+            "text" : "Plan the week.",
+            "type" : "text"
+          }
+        ],
+        "contextOptions" : {
+
+        },
+        "id" : "D2079EFE-77FD-49A1-863B-69ABBDF2DC12",
+        "metadata" : {
+          "count" : 3,
+          "team" : "coach"
+        },
+        "options" : {
+          "maximumResponseTokens" : 100,
+          "randomSeed" : 7,
+          "temperature" : 0.5,
+          "topP" : 0.9
+        },
+        "role" : "user"
+      },
+      {
+        "contents" : [
+          {
+            "id" : "6579EF0B-0B47-4B30-AEEB-7416933C1C08",
+            "text" : "The plan starts Monday.",
+            "type" : "text"
+          }
+        ],
+        "id" : "F031C2C9-EB74-4E15-A298-0C4F0E48FE65",
+        "metadata" : {
+          "cacheWriteTokenCount" : 2,
+          "cost" : 0.00025,
+          "finishReason" : "stop",
+          "model" : "vendor/model",
+          "provider" : "Vendor",
+          "responseID" : "gen-1",
+          "serviceTier" : "flex"
+        },
+        "role" : "response"
+      }
+    ]
+  },
+  "type" : "FoundationModels.Transcript",
+  "version" : "1.1"
+}

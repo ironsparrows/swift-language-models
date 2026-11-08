@@ -1,0 +1,79 @@
+{
+  "transcript" : {
+    "entries" : [
+      {
+        "contents" : [
+          {
+            "id" : "02D14F1B-3A8C-4EF4-8ACB-EB372C3AC9FF",
+            "text" : "Rate the soup.",
+            "type" : "text"
+          }
+        ],
+        "contextOptions" : {
+          "includeSchemaInPrompt" : true
+        },
+        "id" : "09A3358B-50DA-4461-9899-C27D4EB8F509",
+        "options" : {
+
+        },
+        "responseFormat" : {
+          "jsonSchema" : {
+            "name" : "SoupRating",
+            "schema" : {
+              "additionalProperties" : false,
+              "properties" : {
+                "reason" : {
+                  "type" : "string"
+                },
+                "stars" : {
+                  "description" : "From 1 to 5",
+                  "maximum" : 5,
+                  "minimum" : 1,
+                  "type" : "integer"
+                }
+              },
+              "required" : [
+                "stars",
+                "reason"
+              ],
+              "title" : "SoupRating",
+              "type" : "object",
+              "x-order" : [
+                "stars",
+                "reason"
+              ]
+            }
+          },
+          "type" : "jsonSchema"
+        },
+        "role" : "user"
+      },
+      {
+        "contents" : [
+          {
+            "id" : "4180C70B-5856-4EB5-8C64-EB6145CA7698",
+            "structure" : {
+              "content" : {
+                "reason" : "Tasty.",
+                "stars" : 4
+              },
+              "source" : "SoupRating"
+            },
+            "type" : "structure"
+          }
+        ],
+        "id" : "5746AC5C-A158-4AC7-AA0F-64DCD285F0A0",
+        "metadata" : {
+          "cost" : 0.00025,
+          "finishReason" : "stop",
+          "model" : "vendor/model",
+          "provider" : "Vendor",
+          "responseID" : "gen-1"
+        },
+        "role" : "response"
+      }
+    ]
+  },
+  "type" : "FoundationModels.Transcript",
+  "version" : "1.1"
+}

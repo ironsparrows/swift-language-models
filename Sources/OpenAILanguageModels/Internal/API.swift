@@ -1,21 +1,19 @@
 import Foundation
 import LanguageModels
 
-/// Facts about OpenAI's API that its dialect relies on. They live outside the dialect because a generic type can't
-/// store static values.
+/// Facts about OpenAI's API that the model and its exchange rely on.
 enum API {
     /// OpenAI's name, as the log and error messages name it.
     static let name = "OpenAI"
 
-    /// Whether a failed response's status is retried, as the official SDKs retry it: a 408, 409 or 429, or any status
-    /// from 500 up. A response's `x-should-retry` wins over its status either way.
-    @Sendable
-    static func retriesStatus(_ status: Int) -> Bool {
-        [408, 409, 429].contains(status) || status >= 500
-    }
+    /// The origin of reasoning that a model wrote through OpenAI's Responses API, which goes back as the answer's
+    /// `reasoning` items, with their reasoning encrypted.
+    ///
+    /// Saved transcripts keep this value, so it never changes.
+    static let reasoningOrigin = "openai-responses"
 
     /// Where OpenAI's API lives. `URL(string:)` makes it optional, although it never fails.
-    static let defaultBaseURL = URL(string: "https://api.openai.com/v1/")
+    private static let defaultBaseURL = URL(string: "https://api.openai.com/v1/")
 
     /// Where a request goes: the authentication's base URL, or OpenAI's.
     ///
@@ -29,11 +27,12 @@ enum API {
         return base
     }
 
-    /// The names of OpenAI's own HTTP headers.
+    /// The names of the HTTP headers OpenAI's API reads and sends.
     enum Header {
-        static let organization: HTTPHeaderName = "OpenAI-Organization"
-        static let project: HTTPHeaderName = "OpenAI-Project"
-        static let rateLimitResetRequests: HTTPHeaderName = "x-ratelimit-reset-requests"
-        static let rateLimitResetTokens: HTTPHeaderName = "x-ratelimit-reset-tokens"
+        static let organization = "OpenAI-Organization"
+        static let project = "OpenAI-Project"
+        static let rateLimitResetRequests = "x-ratelimit-reset-requests"
+        static let rateLimitResetTokens = "x-ratelimit-reset-tokens"
+        static let requestID = "x-request-id"
     }
 }

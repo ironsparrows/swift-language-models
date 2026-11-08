@@ -112,7 +112,7 @@ A proxy does the same for every provider:
 - Return the provider's redirects instead of following them, so the key goes nowhere else.
 - Limit each person's requests.
 - Optionally, read the request's JSON and refuse a model or an output limit you don't allow. The provider's API names
-  these fields.
+  these members.
 - Never log request or response bodies, which hold prompts and answers. Log the person, the path, the status and the
   time.
 
@@ -453,9 +453,9 @@ long answer. A reverse proxy in front may buffer too: nginx passes a response st
 The rate limit lives in memory, so it holds for one instance. With several, keep the counts in a shared store, such as
 Redis.
 
-The server reads the provider's key, and `TOKEN_SECRET`, from its environment, set from your host's secrets manager.
-Neither goes in the repository: the settings file names the key's variable, not the key. The server refuses to start
-unless `TOKEN_SECRET` holds at least 32 random bytes, since a short or empty one lets anyone sign a token.
+The server reads the provider's key, and `TOKEN_SECRET`, from its environment, set from your hosting platform's secrets
+manager. Neither goes in the repository: the settings file names the key's variable, not the key. The server refuses to
+start unless `TOKEN_SECRET` holds at least 32 random bytes, since a short or empty one lets anyone sign a token.
 
 ### Prove the request comes from your app
 

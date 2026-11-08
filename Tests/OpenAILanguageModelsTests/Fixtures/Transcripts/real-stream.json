@@ -1,0 +1,63 @@
+{
+  "transcript" : {
+    "entries" : [
+      {
+        "contents" : [
+          {
+            "id" : "0B7E303D-F0F3-46C9-8EDB-0397CA8194BC",
+            "text" : "What is 17 times 23? Reply with the number only.",
+            "type" : "text"
+          }
+        ],
+        "contextOptions" : {
+
+        },
+        "id" : "D3688DE8-C170-4DF3-BA56-9EB85DAD75CE",
+        "options" : {
+
+        },
+        "role" : "user"
+      },
+      {
+        "id" : "B4DA13D4-4A74-46F6-A4AE-AC85901C04B3",
+        "metadata" : {
+          "model" : "gpt-6-luna",
+          "reasoningOrigin" : "openai-responses"
+        },
+        "reasoning" : {
+          "contents" : [
+
+          ],
+          "signature" : "W3siY29udGVudCI6W10sImVuY3J5cHRlZF9jb250ZW50IjoiZ0FBQUFBQnE2YVZ1aU5oMTFaQ29DXzhWekdpUlpxb0lnTlg2QzVVSzNxaEdXSmN0dWttUTdUNGE0eXlSM1RRWU1hRWZSb2Yzc3Y4aGhISGdOam9VT0oxYTByRGdLR2pYVTNFWkZnUkstdVpVQldHQl9NbzJuUUFQcHlZV3pDSDZFUTV6ajcwMTNoRXhlNldhMmV4VjlBSVk5Rkt5SDFwRjVHT0hhdmYwbEVWVGkxNEFXcDdSZHdSTzkwOGEzVzg2NnRmdEV3NU42OHlRLXBhV3hOeEFGaHlLUEctWGozeGEzOGNxR0h5dzEya1IxZjhFa0tobEN0LWNyMWd6M0VDTGUwcWFjclZjeWRaaHNmWTlUX1VFdnhkZFZjODFiVEVaOVdVTGxYbkZhMjMyQTBwM0JPYi1pQjFsanYwZV9OZXJSZWowT3JkdWt4THllVElSTHpyV2xZelMxX2JBUW12NnFxTENuUFBKd1BlY3JteVVsb3MxNndDN1BCMHRoa1RqUnFjc2hLd0U5cnhXZlBsR0M1cHg1SmFyN25FNlVhaGlmOFIyamVlSXNkMjc3bkFEMWFhc3BlNkxuNU1vRXJEVHEyV1dHQmt1TERBczM5Ry04OGx6MUpMYUZPSF81ZnZvWDhQZjdwaGJNMU1Wb1RvRDlMNWdPRXp4SGNxN3VFVTJZS2dHNG12eVdTRmhuYXNOQnhtaEhwWURNc2JabVN4MnZXSzFGVFd5QlhfRE5qTXFWZll3dlowcnNjRnJPLTM4cVU2RUptSm5BM1dKTkJDbnk1dHFKYk1aNWlvd2N0bzZRTmNaM1JVZ0VBRkxrLUl3SVRtazZWQ085eEYtY0dNdkxJVDZZSEx2T0lMcV9ObmYyVzZOblNsUUg5UjhqTFFRVkJQd0pwUGhTYmZ6bTNOeXVoYVpfU2hRVE9qV0MwcTJOVG1DbFNzeG1BbmMzRzIzZER1cDNOT0h3RW9OYU5SUlNLczZxcGY3RHpaNE9rYkFKZ0ZoOHY1SVVDN0NVa2hfZ3YyU1UzVHNST0NwcFFCZXMxOEVEeEpwbUt5TWp2elV5MmYyckk2ZEJyeGduX3dtcVd3T3NsN0xUNkR5TzY0ZlZ3TjlrNGk2M0pTVUtvc08tQXBTZ1UxRUlYZVJRWnlOWkh2Rmo2VXdIeUJfenBuN2VwUERoZExoN0JMMmhFUUgyaXRMc2phNDFHLWtxYnlOLUF1NE5ST1B6WktpVXNYZXFwTVpsaG1KYm9PeUlPQ095N2lRNXctVEZtM1B6VzZDVkkyb0c2UGVNeUpCTTBHUVRwbVQ0U2xycTQzVjZ4UmlMczlMVEltdVJVVGlfLXVtMGRNUE01NG1aOWNQcFF1czhqMmJPdWhFbEJUbG9ueTJYTk0zWVFMYU1WcmtyNUlieEZSVkx5R2NQd0d1SWhodnE2eGNNZzhTMGFSOU9HN3M5elZkVnM3VjNkLXc5LTBjeFU4NGk4Zlhja3dmSE1yRkI0d2sxQU5WVUhKY3pYTVVZeEUtcjItVXpadDB0QmZ5NzZRRWFnMnQ2aXZKOU5TZXAxTVdvcncxMU5iS0xMSjdna0t2a0hQVF9HQnNrZENNS2lSMWtKMkpYcFZtQVpMd0Ric3NndlI2dnRjRFlXbDN1S0ZObElnbDc0UTc5Tlg2UjBCNkJIYkRRZjFOVTNxc19PbWJ3T3FrZmJLS2l0UmlvMjBsODNncTBXLTdTWHJmU2YzclY5TExHemNNakNjR051c1dtOUM2M0JlQ3QzWGJXdEdfRFRBaHFhbTNQNzEwdUNKZnYxTjBNT3ExNjlnYVFQZll2Und4bmEwYWhaRkthUU81dUVxRzgzZ2hkQkphM1hKNWRlUXJxcXFrVGlEai1COTdPTFFaRGNnclBqMkRjeVVJdkVOcUFPTWx3cV9rRThEM2pfNjJicUZFNEU0LWtGdHpJT1hfUl9YV2psd2NHbXE5a05iYS1XWHgtTTNyRUhxbV8zNHlyNXBNTFZUQVc0c2U2ejhWMEhQMWdSeWx1bkp4eTJjPSIsImlkIjoicnNfMDIxZWUyN2M4NzkwMTk2YTAxNmFlOWE1NmVhMzUwODdkMmI2MGRkMjJmODQ5ZWU2YTciLCJzdW1tYXJ5IjpbXSwidHlwZSI6InJlYXNvbmluZyJ9XQ=="
+        },
+        "role" : "reasoning"
+      },
+      {
+        "contents" : [
+          {
+            "id" : "D937A503-395E-4505-AC3C-7D76491EAE78",
+            "text" : "391",
+            "type" : "text"
+          }
+        ],
+        "id" : "2D33D9D0-3F3E-47CE-80FC-9D9292D05621",
+        "metadata" : {
+          "cacheWriteTokenCount" : 0,
+          "finishReason" : "stop",
+          "model" : "gpt-6-luna",
+          "openAI.phases" : [
+            {
+              "length" : 3,
+              "phase" : "final_answer"
+            }
+          ],
+          "responseID" : "resp_021ee27c8790196a016ae9a56d688887d290214057379e9b39",
+          "serviceTier" : "default"
+        },
+        "role" : "response"
+      }
+    ]
+  },
+  "type" : "FoundationModels.Transcript",
+  "version" : "1.1"
+}

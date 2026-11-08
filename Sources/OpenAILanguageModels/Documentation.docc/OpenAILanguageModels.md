@@ -26,16 +26,16 @@ profiles and reasoning levels work as they do with Apple's own models:
 
 Each request is a `POST` to OpenAI's Responses API, `responses`, and its answer streams back as server-sent events.
 Every request sends the whole transcript, and a model's reasoning goes back on later turns encrypted, so a session
-works the same whether or not OpenAI keeps its responses.
+works the same whether or not OpenAI keeps its responses, apart from a generated image, as <doc:ServerTools>
+describes.
 
 Every model in the catalog is a static member of ``OpenAIModel``, with its context size, request settings, input kinds
 and reasoning levels. Its effort type lists exactly the levels the model accepts, so `model.reasoningLevel(_:)` offers
 only those levels. The catalog lists the models OpenAI still serves through the Responses API, and keeps no prices,
 as <doc:ChoosingAModel> describes.
 
-Model details, typed reasoning efforts and logging live in the
-[`LanguageModels` module](doc:/LanguageModels),
-which this module re-exports.
+Model details, typed reasoning efforts and logging live in the [`LanguageModels` module](doc:/LanguageModels), which
+this module re-exports.
 
 ## Topics
 
@@ -60,6 +60,19 @@ which this module re-exports.
 - <doc:ToolsAndGuidedGeneration>
 - <doc:Reasoning>
 
+### Server tools
+
+- <doc:ServerTools>
+- ``OpenAIServerTool``
+- ``OpenAISearchContextSize``
+- ``OpenAIImageModel``
+- ``OpenAIImageQuality``
+- ``OpenAIImageComplexity``
+- ``OpenAIImageSize``
+- ``OpenAIImageFormat``
+- ``OpenAIImageBackground``
+- ``OpenAIImageModeration``
+
 ### Caching
 
 - <doc:Caching>
@@ -83,14 +96,17 @@ which this module re-exports.
 - <doc:ErrorsAndMetadata>
 - ``FoundationModels/Transcript/Response/openAI``
 - ``FoundationModels/Transcript/ToolCalls/openAI``
+- ``FoundationModels/LanguageModelSession/Usage/openAI``
+- ``FoundationModels/LanguageModelError/openAI``
 - ``OpenAIResponseMetadata``
 - ``OpenAIResponseMetadata/Message``
 - ``OpenAIResponseMetadata/Phase``
-- ``FoundationModels/LanguageModelSession/Usage/openAI``
+- ``OpenAIServerToolCall``
+- ``OpenAIFileCitation``
+- ``FoundationModels/Transcript/DataEntry/openAI``
+- ``OpenAIDataMetadata``
 - ``OpenAIUsageMetadata``
-- ``FoundationModels/LanguageModelError/openAI``
 - ``OpenAIErrorMetadata``
-- ``OpenAIMetadataKey``
 - ``OpenAIError``
 - ``OpenAIError/Code``
 

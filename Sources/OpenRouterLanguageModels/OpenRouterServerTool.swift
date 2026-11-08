@@ -2,6 +2,8 @@ public import Foundation
 public import FoundationModels
 import LanguageModels
 
+// MARK: - Server tool
+
 /// A tool that OpenRouter runs for the model while it answers, such as a web search or a call to another model.
 ///
 /// Server tools are a setting of the model, in ``OpenRouterLanguageModel/serverTools``, rather than Foundation Models
@@ -110,8 +112,8 @@ public struct OpenRouterServerTool: Sendable, Hashable {
     /// The model sends the advisor a prompt, and OpenRouter returns the advisor's answer to the model, which writes the
     /// final answer. Each consultation is a request to the advisor model, billed at its price on top of the model's
     /// tokens, and it adds the time the advisor takes. The consultation never reaches the session: the answer's usage
-    /// counts it among ``OpenRouterMetadataKey/requestedServerToolCallCount``, and chat completions return neither the
-    /// prompt nor the advice. So the advisor can't recall its earlier consultations on later turns; with
+    /// counts it among ``OpenRouterUsageMetadata/requestedServerToolCallCount``, and Chat Completions returns neither
+    /// the prompt nor the advice. So the advisor can't recall its earlier consultations on later turns; with
     /// `forwardsTranscript`, it reads the whole conversation instead.
     ///
     /// To offer several advisors, list one advisor per model with a `name` each; at most one can go without a name,
@@ -156,7 +158,7 @@ public struct OpenRouterServerTool: Sendable, Hashable {
     /// only that description, never the conversation, and keeps nothing between tasks. Each task is a request to the
     /// worker model, billed at its price on top of the model's tokens, and more when the worker uses server tools. The
     /// task never reaches the session; the answer's usage counts it among
-    /// ``OpenRouterMetadataKey/requestedServerToolCallCount``.
+    /// ``OpenRouterUsageMetadata/requestedServerToolCallCount``.
     ///
     /// To offer several workers, list one subagent per model with a `name` each; at most one can go without a name,
     /// and keep their order across a session's requests.
@@ -194,6 +196,8 @@ public struct OpenRouterServerTool: Sendable, Hashable {
         return Self(.subagent(call, tools: tools, maximumToolCalls: maximumToolCalls))
     }
 }
+
+// MARK: - Wire
 
 extension OpenRouterServerTool {
     /// A server tool's entry in a request's `tools`: its type, and its parameters when any is set, in the order a
@@ -262,14 +266,14 @@ extension OpenRouterServerTool {
 
     /// The parameters of a web search.
     struct WebSearch: Encodable, Sendable, Hashable {
-        let engine: OpenRouterWebSearchEngine?
-        let mode: OpenRouterWebSearchMode?
-        let maximumResults: Int?
-        let maximumTotalResults: Int?
-        let maximumSearches: Int?
-        let searchContextSize: OpenRouterSearchContextSize?
-        let allowedDomains: [String]?
-        let excludedDomains: [String]?
+        fileprivate let engine: OpenRouterWebSearchEngine?
+        fileprivate let mode: OpenRouterWebSearchMode?
+        fileprivate let maximumResults: Int?
+        fileprivate let maximumTotalResults: Int?
+        fileprivate let maximumSearches: Int?
+        fileprivate let searchContextSize: OpenRouterSearchContextSize?
+        fileprivate let allowedDomains: [String]?
+        fileprivate let excludedDomains: [String]?
 
         private enum CodingKeys: String, CodingKey {
             case engine
@@ -285,11 +289,11 @@ extension OpenRouterServerTool {
 
     /// The parameters of a web fetch.
     struct WebFetch: Encodable, Sendable, Hashable {
-        let engine: OpenRouterWebFetchEngine?
-        let maximumFetches: Int?
-        let maximumContentTokens: Int?
-        let allowedDomains: [String]?
-        let excludedDomains: [String]?
+        fileprivate let engine: OpenRouterWebFetchEngine?
+        fileprivate let maximumFetches: Int?
+        fileprivate let maximumContentTokens: Int?
+        fileprivate let allowedDomains: [String]?
+        fileprivate let excludedDomains: [String]?
 
         private enum CodingKeys: String, CodingKey {
             case engine
@@ -302,15 +306,15 @@ extension OpenRouterServerTool {
 
     /// The parameters of a call to another model, which an advisor and a subagent share.
     struct ModelCall: Encodable, Sendable, Hashable {
-        let name: String?
-        let model: OpenRouterModelID?
-        let instructions: String?
-        let maximumResponseTokens: Int?
-        let reasoning: Reasoning?
-        let temperature: Double?
+        private let name: String?
+        private let model: OpenRouterModelID?
+        private let instructions: String?
+        private let maximumResponseTokens: Int?
+        private let reasoning: Reasoning?
+        private let temperature: Double?
 
         /// The call's reasoning: the nearest effort OpenRouter names, and a token budget.
-        struct Reasoning: Encodable, Sendable, Hashable {
+        private struct Reasoning: Encodable, Sendable, Hashable {
             let effort: String?
             let maximumTokens: Int?
 
@@ -320,7 +324,7 @@ extension OpenRouterServerTool {
             }
         }
 
-        init(
+        fileprivate init(
             model: OpenRouterModelID?,
             name: String?,
             instructions: String?,

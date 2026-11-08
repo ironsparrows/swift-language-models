@@ -4,8 +4,8 @@ import Foundation
 ///
 /// A catalog follows its source, so its changes are patch releases unless code that compiled stops compiling:
 /// - major: a member is deleted: a model's static, an effort level of a model, a word or an effort;
-/// - patch: anything else in the snapshot: a model, word or effort level added, retiring, no longer listed by the
-///   source or listed again, or a model's limits, name, dates or parameters changing. A model, word or effort level the
+/// - patch: anything else in the snapshot: a model, word or effort level added, retiring, dropped from the source's
+///   list or listed again, or a model's limits, name, dates or parameters changing. A model, word or effort level the
 ///   source stops listing keeps its member, marked deprecated, so code that names it still compiles, with a warning;
 /// - none: the snapshots are equal. A change to the source's API shape alone releases nothing, since no code changes.
 struct CatalogChanges: Codable, Equatable, Sendable {
@@ -71,7 +71,7 @@ extension CatalogChanges {
         )
     }
 
-    /// The models added, retiring, no longer listed by the source, listed again or deleted. Each model has a static,
+    /// The models added, retiring, dropped from the source's list, listed again or deleted. Each model has a static,
     /// whether it's listed or removed.
     private static func statics(from old: CatalogSnapshot?, to new: CatalogSnapshot, source: CatalogSource) -> [Member] {
         let oldListed = Dictionary(uniqueKeysWithValues: (old?.models ?? []).map { ($0.id, $0) })
@@ -101,9 +101,9 @@ extension CatalogChanges {
         return changes
     }
 
-    /// The effort levels each listed model gains, stops accepting, accepts again or loses outright since the earlier
-    /// version, listed or removed then. A level the model stops accepting keeps its member, marked deprecated, so only
-    /// a level that disappears from both lists deletes a member.
+    /// The effort levels each model, listed or removed, gains, stops accepting, accepts again or loses outright since
+    /// the earlier version, listed or removed then. A level the model stops accepting keeps its member, marked
+    /// deprecated, so only a level that disappears from both lists deletes a member.
     private static func efforts(from old: [CatalogModel], to new: [CatalogModel], source: CatalogSource) -> [Member] {
         let oldModels = Dictionary(old.map { ($0.id, $0) }) { first, _ in first }
         return new.flatMap { model -> [Member] in

@@ -1,0 +1,138 @@
+{
+  "transcript" : {
+    "entries" : [
+      {
+        "contents" : [
+          {
+            "id" : "E046FEF1-3A0A-49D7-B5CB-6C87489923D1",
+            "text" : "Search the web: what is the tallest building in Lisbon? One sentence.",
+            "type" : "text"
+          }
+        ],
+        "contextOptions" : {
+
+        },
+        "id" : "FBE4E440-E932-47DA-B45D-CB125E598B1C",
+        "options" : {
+          "maximumResponseTokens" : 4000
+        },
+        "role" : "user"
+      },
+      {
+        "contents" : [
+          {
+            "id" : "F8F37CB9-8FAB-49EF-8BE2-F0706ADF375C",
+            "text" : "Lisbon’s tallest building is the **Vasco da Gama Tower**, at 145 metres tall. ([visitlisboa.com](https://www.visitlisboa.com/en/places/vasco-da-gama-tower?utm_source=openai))",
+            "type" : "text"
+          }
+        ],
+        "id" : "2230A402-E7A8-4463-AE04-02CC7003B40C",
+        "metadata" : {
+          "cacheWriteTokenCount" : 19,
+          "citations" : [
+            {
+              "endOffset" : 174,
+              "excerpt" : null,
+              "startOffset" : 78,
+              "title" : "Vasco da Gama Tower | Visit Lisboa",
+              "url" : "https://www.visitlisboa.com/en/places/vasco-da-gama-tower?utm_source=openai"
+            }
+          ],
+          "finishReason" : "stop",
+          "model" : "gpt-6-luna",
+          "openAI.phases" : [
+            {
+              "length" : 174,
+              "phase" : "final_answer"
+            }
+          ],
+          "openAI.serverTools" : {
+            "calls" : [
+              "{\"action\":{\"queries\":[\"tallest building in Lisbon Portugal height Torre Vasco da Gama official\"],\"query\":\"tallest building in Lisbon Portugal height Torre Vasco da Gama official\",\"type\":\"search\"},\"id\":\"ws_b4b53699db835a93b43f48b9481acda86d8426da01aa873cd2\",\"status\":\"completed\",\"type\":\"web_search_call\"}"
+            ],
+            "unstored" : true
+          },
+          "requestID" : "req_1",
+          "responseID" : "resp_e33a63c7af9f263ae4c7308d4eb4e1e51dcdd0923eb854a9f6",
+          "serviceTier" : "default",
+          "webSearchCount" : 1
+        },
+        "role" : "response"
+      },
+      {
+        "contents" : [
+          {
+            "id" : "3AD2F7BC-465D-4AC0-BADC-17B450A6CAFD",
+            "text" : "How tall is it? One sentence.",
+            "type" : "text"
+          }
+        ],
+        "contextOptions" : {
+
+        },
+        "id" : "966CDB5E-09FF-4D27-8919-139C37A9045E",
+        "options" : {
+          "maximumResponseTokens" : 4000
+        },
+        "role" : "user"
+      },
+      {
+        "id" : "4D1233DD-9B79-4DFC-A2F5-6D4B66DD3CD1",
+        "metadata" : {
+          "model" : "gpt-6-luna",
+          "reasoningOrigin" : "openai-responses"
+        },
+        "reasoning" : {
+          "contents" : [
+
+          ],
+          "signature" : "W3siY29udGVudCI6W10sImVuY3J5cHRlZF9jb250ZW50IjoiZ0FBQUFBQnE4S0tFWVZXVkNjdTVaMzlyT0xLOEJxSmQ3T0k4d1JJX3VhZ3VIcXJ4SkRkNTQtbGZoQm10dWlrS29lOElhbEU4X1JfNW5KU3NSTG9BcjVnTzZTRVFJdTBCWG5lZEs0ZGphT2h4V3ZnRE1QQ25iRGFvS2F1d0ptSkNXWENmSmpnR25Ic3ZJUm9uQU9rbnRSelQyc0Mxb1IxU0xDbGEwZW5WeHZfMVNBNzM1MVpBdWJZc0w3MXRVQThaUnl1MG5PYklSaE9ZV0ppZkxIS3hnWU1VMEFteEUwSmxnOEw1cU01UVR4VldWNWJlVjRKQndHRHZHVTQ2YXNya0tsb0JDa2lLMWRpUVFWd0VSMERzeXZFWENMNmcxOVBwS1NCeXphVmNORDN0VlQ5SHRjYlVqWW9kYjJBcmRFeFpia3pmcXpzRUdzdVRUdFUtN3FnQkw3UHZpbmlsckcxUE1Dajlxa3Mydmduekh1YVJUcmNWSWd4dmZNT1dQOFRXWHRMbEwyclNxdzlJV1V1Zk8tWEY4UWZteU9SMmJCOUVFSjlpdVlBbFVFZVhfWktmU3FKSGdfVHE3X1htZVhFRVhXNmJtS0NuckR4MVdaSTktbFo2OE96UnZ1N3dqREsxNjJGbk0wV0RFVUljX0IyR2toaWIteFN3NlJyWXE4OG9tZmU3OEFxRmJMOUxUZjI2dTZEU19GVTNMV0dDNTBPZ1VLbmdQc0xQdXM1MTF0cHNuXzRLTTJRT3ZTd1pyUWhCaVB4ZUxnR3Rfb005Y1FRUVN4ai1SNWhQd2U3MFNGd09hbTF2UXhuN19saDVNenZyZ2JJUVU0TDEwaUhESm84R0xjZk1Ib1drSzJmVnVoczFwUXZrN0FYa21kOTJ1a1FWWjIwY3ZBMTBSMEFFYjJNNmlKT202NTRiLXBranoyRVYyYzJJdHhRUFBxdG53N2E2ejRzVEg4cXpLN3l3MjdJU3FkdDRHaU5FazNja19WSHlWcU9FWWYwc1l5ZmNzakZLUVRTT2NmZVVTXy10MkdNNElaTWx2Wlp3bUZUY1BnakMtWGgwUl9rSE05MU1YQU5USmhUYzl0QV9OUnNCMU81bWE5SGF6UjluYk9lTFQyY0xxUGtFc0gwU2pUc0lrR1EydnpfeGhXQU1VbG5sWXJOZl96X1cyazg1U0Q4djVkQlBFR1FDZkdEMWgwdGR0b2FURFo1UzJGV3VONTBhSXpjeF94UEJsRFhEcWx1U1p2ZURsQzVDN1Fya3RNWXhsb3k1Qmo4TVV0Tmx3VXE4RFFyeGJQcVF0aW03WFNLWHBjMEhDSFdhZk1tTnItNzdhYnJUR0s2UndNeVk3UlVadF84UDdoQ3FTeDQ2RWZUZFNhLVdCVVA1elhPYXNpZkRKdk5jSFBtN1B4UU1lelVHTmRwQ0h2NTZJY2ZuVFZIelFhUWlYWHl4WXM5by1kdGtjQkhwZmpGQmxmUDhQeXlEZUVnNWxOaDZ6RVE5ZUl6ZXc5TnpQblI4aWZpd0FlZzJuYVRwRkFQMlVDTmRzb1kzOVZESUtrbVJ6a3VYYWVDUlNvaGJlSHpfQmMxYVpGVjFpWmlOUDYxTGdNUnJnbV9vejJWT0poNi1LZTl2RHU2S1lVdzBEWTBSbVZQTXhnTGw5WVkxM05RWmo1UGtYTlFqOHNRUG5wd0g3T3RIYVoxRlN4R3E3cnpBMUFHSG91TXBUSE9DMmxvLUQtNGNTWWJWOXVzajgtemRMUWtnZ2ZlejZuRURZdXJoTWJlTVZvMFBOdFVGS0o2UUlDeERxZlZzcTBkb2dRRjk5cjNVZFBOTG00VEs1YVg0djBhNEh3aWdUNzBnd01XbTU1VkF2eGZyd1BsWGVQLXc0MWNMSWZibXdMd0NUclEzMzZ4V1ZEclNQbjdvbF9vOWF4VE9ISTl0U09Bcll6dXZCRkVOWUtWaE5wQ05PQjhCdWItdlFhb2VWWGlsMFlBd3NjWDhjU0dYYlAxd1hNNnVOeFVuOE9GbzJYM3FselNhNmZYcHhuUEN5UFBoQzlkUi1uYi1VcFZ5cFREdFA5Nm41UjdualM0V0pqbjc5OVRhazNfQmNLbGhrT19ib1VqbkdmdUFfM1RESTZWZl9lOVk4enRDSUxSZFhZQllvV2pFa01URGdsYUo0TEtSZDBJcEpkYmxTUUwwQkp0bzcwd2xjODhfMFl0V2F2YnRwSWlWSG5YeC1FYlVlc2tMWXlyVnNWczRtai1UaVNzUnJES2xIbEI4TVc2NGh3T2ZaUzlGcm1jRkZLUFhwYmxMbDJtaHRVdjJiRWMwQ0VmWTdzV09hNFljZTFKUVI5bks2Wm1NcldmRHlqcUU1NHplRy1OYzNDZGZqdWtrWGxGWDdmMEZuRUtCbk55SFI3bEZzcFNmNXVUWHJnVWhObWxJN1pPRDQ4SkI1ZE5TbGJLUTRzVnR5ZW5WOGQ0ZFZVdF9BekZLdjVicnY3WHd1MzRTb2dHUmIzLVIzV1NKWmxsenhvQnBWZkxhSjY0MEM5dEFDaG5DSllKa2VzUnNxdnFRb3FfRnNJYkVuUUN2dlhUd3JvQTRRRUdtOEo5dEo2YkZfcEQtOXE3QzlXbEdIQlJYRUR5S2VNelNkVFA5WjdsWnhGTGdmQ0JuczQySCIsImlkIjoicnNfNjM0YjY4YTc5Y2ZmOTkzY2Q2MGQ2MzNiNGYyYmQyNjFjMGMyNzI2YWI3NjU3ODg1MmEiLCJzdW1tYXJ5IjpbXSwidHlwZSI6InJlYXNvbmluZyJ9LHsidHlwZSI6IndlYl9zZWFyY2hfY2FsbCJ9LHsidHlwZSI6Im1lc3NhZ2UifV0="
+        },
+        "role" : "reasoning"
+      },
+      {
+        "contents" : [
+          {
+            "id" : "867642B2-5CEB-473D-8308-A6E219946A0F",
+            "text" : "It’s approximately **145 metres (476 feet)** tall. ([vascodagamatower.com](https://www.vascodagamatower.com/en/faqs/?utm_source=openai))",
+            "type" : "text"
+          }
+        ],
+        "id" : "63B4CCA4-A5B6-4EF7-9B75-78DB04C78F20",
+        "metadata" : {
+          "cacheWriteTokenCount" : 110,
+          "citations" : [
+            {
+              "endOffset" : 136,
+              "excerpt" : null,
+              "startOffset" : 51,
+              "title" : "Faqs - Vasco da Gama Tower",
+              "url" : "https://www.vascodagamatower.com/en/faqs/?utm_source=openai"
+            }
+          ],
+          "finishReason" : "stop",
+          "model" : "gpt-6-luna",
+          "openAI.phases" : [
+            {
+              "length" : 136,
+              "phase" : "final_answer"
+            }
+          ],
+          "openAI.serverTools" : {
+            "calls" : [
+              "{\"action\":{\"queries\":[\"Vasco da Gama Tower Lisbon height 145 metres\"],\"query\":\"Vasco da Gama Tower Lisbon height 145 metres\",\"type\":\"search\"},\"id\":\"ws_83c3db96b0ffe27fdb1387f03a875d44333dbaee757f7c5d34\",\"status\":\"completed\",\"type\":\"web_search_call\"}"
+            ],
+            "unstored" : true
+          },
+          "requestID" : "req_1",
+          "responseID" : "resp_a9e730bf4aabdea72cb13110ede0d391681c84a5531c7e432e",
+          "serviceTier" : "default",
+          "webSearchCount" : 1
+        },
+        "role" : "response"
+      }
+    ]
+  },
+  "type" : "FoundationModels.Transcript",
+  "version" : "1.1"
+}

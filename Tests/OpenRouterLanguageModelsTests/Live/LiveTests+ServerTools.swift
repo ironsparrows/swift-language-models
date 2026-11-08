@@ -22,11 +22,8 @@ extension LiveTests {
             #expect(!citations.isEmpty)
             // A search engine may cite a page that's only served over http.
             #expect(citations.allSatisfy { ["http", "https"].contains($0.url.scheme) })
-            let usage = response.usage.metadata
-            #expect(
-                metadataNumber(usage, LanguageModelMetadataKey.webSearchCount) != nil
-                    || metadataNumber(usage, OpenRouterMetadataKey.serverToolCost) != nil
-            )
+            let usage = response.usage.openRouter
+            #expect(usage.webSearchCount != nil || usage.serverToolCost != nil)
         }
 
         @Test func `a fetched page reaches the answer`() async throws {
@@ -37,7 +34,7 @@ extension LiveTests {
 
             record(answerMetadata(response), named: "metadata.txt")
             #expect(response.content.contains("Example Domain"))
-            #expect((metadataNumber(response.usage.metadata, OpenRouterMetadataKey.requestedServerToolCallCount) ?? 0) >= 1)
+            #expect((response.usage.openRouter.requestedServerToolCallCount ?? 0) >= 1)
         }
 
         @Test func `the date tool gives the current year`() async throws {
@@ -64,7 +61,7 @@ extension LiveTests {
             record(answerMetadata(response), named: "metadata.txt")
             record(session.transcript, named: "transcript.txt")
             #expect(!response.content.isEmpty)
-            #expect((metadataNumber(response.usage.metadata, OpenRouterMetadataKey.requestedServerToolCallCount) ?? 0) >= 1)
+            #expect((response.usage.openRouter.requestedServerToolCallCount ?? 0) >= 1)
             #expect(session.transcript.toolCalls.isEmpty)
         }
 
@@ -73,14 +70,14 @@ extension LiveTests {
             let session = LanguageModelSession(model: LiveModel(.openaiGpt4_1Nano).languageModel(serverTools: [subagent]))
 
             let response = try await session.respond(
-                to: "Delegate this task to the subagent: write the word 'harbor' in capital letters. Then reply with its outcome only.",
+                to: "Delegate this task to the subagent: write the word 'lantern' in capital letters. Then reply with its outcome only.",
                 options: GenerationOptions(maximumResponseTokens: 200)
             )
 
             record(answerMetadata(response), named: "metadata.txt")
             record(session.transcript, named: "transcript.txt")
-            #expect(response.content.contains("HARBOR"))
-            #expect((metadataNumber(response.usage.metadata, OpenRouterMetadataKey.requestedServerToolCallCount) ?? 0) >= 1)
+            #expect(response.content.contains("LANTERN"))
+            #expect((response.usage.openRouter.requestedServerToolCallCount ?? 0) >= 1)
             #expect(session.transcript.toolCalls.isEmpty)
         }
 
@@ -98,7 +95,7 @@ extension LiveTests {
             if let response {
                 // A server tool's call can meet the requirement on its own.
                 record(answerMetadata(response), named: "metadata.txt")
-                #expect((metadataNumber(response.usage.metadata, OpenRouterMetadataKey.requestedServerToolCallCount) ?? 0) >= 1)
+                #expect((response.usage.openRouter.requestedServerToolCallCount ?? 0) >= 1)
             } else {
                 #expect(session.transcript.toolCalls.contains { $0.toolName == "getWeather" })
             }

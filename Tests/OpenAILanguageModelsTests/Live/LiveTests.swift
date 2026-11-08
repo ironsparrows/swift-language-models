@@ -47,14 +47,14 @@ struct LiveModel: Sendable, CustomTestStringConvertible {
     /// o3, a model that always reasons, from before GPT-5.
     static let o3 = LiveModel(id: "o3", quickLevel: .light)
 
-    /// GPT-5.4 mini, a model whose reasoning is off unless a request sets an effort, as OpenAI's model page says.
+    /// GPT-5.4 mini, a model whose reasoning is off unless a request sets an effort.
     static let gpt54Mini = LiveModel(id: "gpt-5.4-mini", quickLevel: .off)
 
     var testDescription: String { id.rawValue }
 
     /// The model with OpenAI's settings and the running test's API key.
     ///
-    /// - Throws: An issue when the catalog no longer lists the model.
+    /// - Throws: An issue when the catalog doesn't list the model.
     func languageModel(
         options: OpenAIOptions = OpenAIOptions(),
         auth: OpenAIAuthentication? = nil
@@ -74,11 +74,6 @@ struct LiveModel: Sendable, CustomTestStringConvertible {
 /// The metadata of an answer's last response entry.
 func metadata(of response: LanguageModelSession.Response<some Generable>) -> [String: GeneratedContent] {
     lastAnswer(in: response.transcriptEntries)?.metadata ?? [:]
-}
-
-/// A text value of metadata.
-func string(_ metadata: [String: GeneratedContent], _ key: String) -> String? {
-    if case .string(let text)? = metadata[key]?.kind { text } else { nil }
 }
 
 /// Why OpenAI couldn't serve a request right now, when that, rather than the request, made it fail: a rate limit, a

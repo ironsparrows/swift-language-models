@@ -569,24 +569,6 @@ public enum OpenRouterCatalog {
         public static var efforts: [String] { ["high", "low", "none"] }
     }
 
-    /// Inception: Mercury 2
-    public enum InceptionMercury2: Efforts.List {
-        /// The levels the model accepts, highest first.
-        public static var efforts: [String] { ["high", "medium", "low", "none"] }
-    }
-
-    /// Inception: Mercury 2.5
-    public enum InceptionMercury2_5: Efforts.List {
-        /// The levels the model accepts, highest first.
-        public static var efforts: [String] { ["high", "medium", "low", "none"] }
-    }
-
-    /// Inception: Mercury 3
-    public enum InceptionMercury3: Efforts.List {
-        /// The levels the model accepts, highest first.
-        public static var efforts: [String] { ["high", "medium", "low", "none"] }
-    }
-
     /// inclusionAI: Ling 3.0 Flash
     public enum InclusionaiLing3_0Flash: Efforts.List {
         /// The levels the model accepts, highest first.
@@ -767,32 +749,8 @@ public enum OpenRouterCatalog {
         public static var efforts: [String] { [] }
     }
 
-    /// MiniMax: MiniMax-01
-    public enum MinimaxMinimax01: Efforts.List {
-        /// The levels the model accepts, highest first.
-        public static var efforts: [String] { [] }
-    }
-
     /// MiniMax: MiniMax M1
     public enum MinimaxMinimaxM1: Efforts.List {
-        /// The levels the model accepts, highest first.
-        public static var efforts: [String] { [] }
-    }
-
-    /// MiniMax: MiniMax M2
-    public enum MinimaxMinimaxM2: Efforts.List {
-        /// The levels the model accepts, highest first.
-        public static var efforts: [String] { [] }
-    }
-
-    /// MiniMax: MiniMax M2-her
-    public enum MinimaxMinimaxM2Her: Efforts.List {
-        /// The levels the model accepts, highest first.
-        public static var efforts: [String] { [] }
-    }
-
-    /// MiniMax: MiniMax M2.1
-    public enum MinimaxMinimaxM2_1: Efforts.List {
         /// The levels the model accepts, highest first.
         public static var efforts: [String] { [] }
     }
@@ -1025,18 +983,6 @@ public enum OpenRouterCatalog {
         public static var efforts: [String] { ["high", "medium", "none"] }
     }
 
-    /// Nous: Hermes 3 405B Instruct
-    public enum NousresearchHermes3Llama3_1_405b: Efforts.List {
-        /// The levels the model accepts, highest first.
-        public static var efforts: [String] { [] }
-    }
-
-    /// Nous: Hermes 3 70B Instruct
-    public enum NousresearchHermes3Llama3_1_70b: Efforts.List {
-        /// The levels the model accepts, highest first.
-        public static var efforts: [String] { [] }
-    }
-
     /// Nous: Hermes 4 405B
     public enum NousresearchHermes4_405b: Efforts.List {
         /// The levels the model accepts, highest first.
@@ -1075,12 +1021,6 @@ public enum OpenRouterCatalog {
 
     /// NVIDIA: Nemotron 3.5 Content Safety
     public enum NvidiaNemotron3_5ContentSafety: Efforts.List {
-        /// The levels the model accepts, highest first.
-        public static var efforts: [String] { [] }
-    }
-
-    /// NVIDIA: Nemotron 3.5 Content Safety (free)
-    public enum NvidiaNemotron3_5ContentSafetyFree: Efforts.List {
         /// The levels the model accepts, highest first.
         public static var efforts: [String] { [] }
     }
@@ -1553,30 +1493,6 @@ public enum OpenRouterCatalog {
         public static var efforts: [String] { [] }
     }
 
-    /// Poolside: Laguna S 2.1
-    public enum PoolsideLagunaS2_1: Efforts.List {
-        /// The levels the model accepts, highest first.
-        public static var efforts: [String] { [] }
-    }
-
-    /// Poolside: Laguna S 2.1 (free)
-    public enum PoolsideLagunaS2_1Free: Efforts.List {
-        /// The levels the model accepts, highest first.
-        public static var efforts: [String] { [] }
-    }
-
-    /// Poolside: Laguna XS 2.1
-    public enum PoolsideLagunaXs2_1: Efforts.List {
-        /// The levels the model accepts, highest first.
-        public static var efforts: [String] { [] }
-    }
-
-    /// Poolside: Laguna XS 2.1 (free)
-    public enum PoolsideLagunaXs2_1Free: Efforts.List {
-        /// The levels the model accepts, highest first.
-        public static var efforts: [String] { [] }
-    }
-
     /// PrismML: Ternary Bonsai 2 27B
     public enum PrismMlTernaryBonsai2_27b: Efforts.List {
         /// The levels the model accepts, highest first.
@@ -2027,18 +1943,6 @@ public enum OpenRouterCatalog {
         public static var efforts: [String] { ["max", "high", "medium", "low", "minimal", "none"] }
     }
 
-    /// Thinking Machines: Inkling Small (free)
-    public enum ThinkingmachinesInklingSmallFree: Efforts.List {
-        /// The levels the model accepts, highest first.
-        public static var efforts: [String] { ["max", "high", "medium", "low", "minimal", "none"] }
-    }
-
-    /// Thinking Machines: Inkling (free)
-    public enum ThinkingmachinesInklingFree: Efforts.List {
-        /// The levels the model accepts, highest first.
-        public static var efforts: [String] { ["max", "high", "medium", "low", "minimal", "none"] }
-    }
-
     /// TypeSafe: Jev Router
     public enum TypesafeJevRouter: Efforts.List {
         /// The levels the model accepts, highest first.
@@ -2067,12 +1971,6 @@ public enum OpenRouterCatalog {
     public enum UpstageSolarMini4: Efforts.List {
         /// The levels the model accepts, highest first.
         public static var efforts: [String] { ["max", "xhigh", "high", "medium", "low", "minimal", "none"] }
-    }
-
-    /// Upstage: Solar Pro 3
-    public enum UpstageSolarPro3: Efforts.List {
-        /// The levels the model accepts, highest first.
-        public static var efforts: [String] { ["high", "medium", "low", "minimal", "none"] }
     }
 
     /// Upstage: Solar Pro 4
@@ -2971,48 +2869,6 @@ extension Efforts.Of where Tag == OpenRouterCatalog.GoogleGeminiOmni1_2Flash {
 extension Efforts.Of where Tag == OpenRouterCatalog.IbmGraniteGranite4_2_8b {
     /// The `high` effort.
     public static var high: Self { Self(listed: "high") }
-
-    /// The `low` effort.
-    public static var low: Self { Self(listed: "low") }
-
-    /// The `none` effort, which turns reasoning off.
-    public static var off: Self { Self(listed: "none") }
-}
-
-extension Efforts.Of where Tag == OpenRouterCatalog.InceptionMercury2 {
-    /// The `high` effort.
-    public static var high: Self { Self(listed: "high") }
-
-    /// The `medium` effort.
-    public static var medium: Self { Self(listed: "medium") }
-
-    /// The `low` effort.
-    public static var low: Self { Self(listed: "low") }
-
-    /// The `none` effort, which turns reasoning off.
-    public static var off: Self { Self(listed: "none") }
-}
-
-extension Efforts.Of where Tag == OpenRouterCatalog.InceptionMercury2_5 {
-    /// The `high` effort.
-    public static var high: Self { Self(listed: "high") }
-
-    /// The `medium` effort.
-    public static var medium: Self { Self(listed: "medium") }
-
-    /// The `low` effort.
-    public static var low: Self { Self(listed: "low") }
-
-    /// The `none` effort, which turns reasoning off.
-    public static var off: Self { Self(listed: "none") }
-}
-
-extension Efforts.Of where Tag == OpenRouterCatalog.InceptionMercury3 {
-    /// The `high` effort.
-    public static var high: Self { Self(listed: "high") }
-
-    /// The `medium` effort.
-    public static var medium: Self { Self(listed: "medium") }
 
     /// The `low` effort.
     public static var low: Self { Self(listed: "low") }
@@ -4168,46 +4024,6 @@ extension Efforts.Of where Tag == OpenRouterCatalog.ThinkingmachinesInklingSmall
     public static var off: Self { Self(listed: "none") }
 }
 
-extension Efforts.Of where Tag == OpenRouterCatalog.ThinkingmachinesInklingSmallFree {
-    /// The `max` effort.
-    public static var max: Self { Self(listed: "max") }
-
-    /// The `high` effort.
-    public static var high: Self { Self(listed: "high") }
-
-    /// The `medium` effort.
-    public static var medium: Self { Self(listed: "medium") }
-
-    /// The `low` effort.
-    public static var low: Self { Self(listed: "low") }
-
-    /// The `minimal` effort.
-    public static var minimal: Self { Self(listed: "minimal") }
-
-    /// The `none` effort, which turns reasoning off.
-    public static var off: Self { Self(listed: "none") }
-}
-
-extension Efforts.Of where Tag == OpenRouterCatalog.ThinkingmachinesInklingFree {
-    /// The `max` effort.
-    public static var max: Self { Self(listed: "max") }
-
-    /// The `high` effort.
-    public static var high: Self { Self(listed: "high") }
-
-    /// The `medium` effort.
-    public static var medium: Self { Self(listed: "medium") }
-
-    /// The `low` effort.
-    public static var low: Self { Self(listed: "low") }
-
-    /// The `minimal` effort.
-    public static var minimal: Self { Self(listed: "minimal") }
-
-    /// The `none` effort, which turns reasoning off.
-    public static var off: Self { Self(listed: "none") }
-}
-
 extension Efforts.Of where Tag == OpenRouterCatalog.UpstageSolarMini4 {
     /// The `max` effort.
     public static var max: Self { Self(listed: "max") }
@@ -4215,23 +4031,6 @@ extension Efforts.Of where Tag == OpenRouterCatalog.UpstageSolarMini4 {
     /// The `xhigh` effort.
     public static var xhigh: Self { Self(listed: "xhigh") }
 
-    /// The `high` effort.
-    public static var high: Self { Self(listed: "high") }
-
-    /// The `medium` effort.
-    public static var medium: Self { Self(listed: "medium") }
-
-    /// The `low` effort.
-    public static var low: Self { Self(listed: "low") }
-
-    /// The `minimal` effort.
-    public static var minimal: Self { Self(listed: "minimal") }
-
-    /// The `none` effort, which turns reasoning off.
-    public static var off: Self { Self(listed: "none") }
-}
-
-extension Efforts.Of where Tag == OpenRouterCatalog.UpstageSolarPro3 {
     /// The `high` effort.
     public static var high: Self { Self(listed: "high") }
 

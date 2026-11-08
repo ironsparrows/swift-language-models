@@ -6,7 +6,7 @@ import OpenRouterLanguageModels
 import Testing
 import UniformTypeIdentifiers
 
-/// Attachments sent to real models through OpenRouter: what each provider makes of the parts this package sends. Each
+/// Attachments sent to real models through OpenRouter: what each host makes of the parts this package sends. Each
 /// test costs under $0.0002, except the generated image, which costs about $0.004.
 @diagnose(DeprecatedDeclaration, as: warning)
 @Suite(

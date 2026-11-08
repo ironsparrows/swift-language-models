@@ -40,9 +40,9 @@ them doesn't take an attachment, a request throws before sending anything, as Fo
 
 ### Get images back
 
-A model that generates images, such as `.googleGemini2_5FlashImage`, is asked for images and text when every model of
-the request generates images and the request has no response schema. Each image it generates becomes a data entry of
-its own, of the kind its data names, such as PNG:
+A model that generates images, such as `.googleGemini2_5FlashImage`, is asked for images when every model of the
+request generates them and the request has no response schema, and for text too when they all generate text. Each image
+it generates becomes a data entry of its own, of the kind its data names, such as PNG:
 
 @Snippet(path: "swift-language-models/Snippets/Attachments", slice: "images")
 

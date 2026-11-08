@@ -41,8 +41,8 @@ request:
   the configuration's `timeoutIntervalForRequest`. It limits the wait for the next data, not the whole answer. It's 10
   minutes unless the model is created with another, since a model that reasons hard may send nothing for a while, and
   `nil` keeps the session's own timeout.
-- Redirects only to the same host, through a delegate of each request's own. A background session doesn't support a
-  request's own delegate, so there the session's own redirect policy applies.
+- Redirects only to the same scheme, URL host and port, through a delegate of each request's own. A background session
+  doesn't support a request's own delegate, so there the session's own redirect policy applies.
 
 The model's ``OpenAILanguageModel/configuration``, an ``OpenAIConfiguration``, holds how the package sends requests,
 apart from what they ask OpenAI for: the idle timeout, the ``RequestRetries`` of a request that fails before any data
@@ -59,9 +59,7 @@ model.configuration.images.maximumSide = 1_024
 ```
 
 The package logs what each request sends and leaves out, its retries, which model answered, and how it ended, without
-keys, prompts or answers.
-<doc:/LanguageModels/Logging> says
-how to watch the messages and how to log less.
+keys, prompts or answers. <doc:/LanguageModels/Logging> says how to watch the messages and how to log less.
 
 ### Next steps
 

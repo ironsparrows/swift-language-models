@@ -10,7 +10,7 @@ let chatParameters: Set<OpenRouterParameter> = [
     .maxTokens, .reasoning, .responseFormat, .seed, .structuredOutputs, .temperature, .toolChoice, .tools, .topK, .topP,
 ]
 
-/// A model served by a stub, with the shared retry policy without its waits.
+/// A model served by a stub, with the standard retries without their waits.
 func model<Effort: ModelEffort>(
     _ stub: HTTPStub,
     id: OpenRouterModelID = "vendor/model",
@@ -27,8 +27,7 @@ func model<Effort: ModelEffort>(
     responseCache: OpenRouterResponseCache? = nil,
     options: OpenRouterOptions = OpenRouterOptions(),
     retryLimit: Int = RequestRetries.standard.limit,
-    configuration: OpenRouterConfiguration? = nil,
-    auth: OpenRouterAuthentication = .apiKey { "sk-or-test" }
+    configuration: OpenRouterConfiguration? = nil
 ) -> OpenRouterLanguageModel<Effort> {
     OpenRouterLanguageModel(
         details: OpenRouterModel(
@@ -51,10 +50,8 @@ func model<Effort: ModelEffort>(
         responseCache: responseCache,
         app: OpenRouterApp(name: "Coach"),
         session: stub.session,
-        // The stub stands in for OpenRouter, so the authentication's headers go to the stub's URL.
-        auth: OpenRouterAuthentication(baseURL: stub.baseURL) {
-            Dictionary(uniqueKeysWithValues: try await auth.requestHeaders().map { ($0.key.rawValue, $0.value) })
-        },
+        // The stub stands in for OpenRouter, so the authentication goes to the stub's URL.
+        auth: .apiKey(baseURL: stub.baseURL) { "sk-or-test" },
         configuration: configuration ?? OpenRouterConfiguration(retries: .immediate(limit: retryLimit))
     )
 }
@@ -177,7 +174,7 @@ func chunk(_ delta: JSONValue, finishReason: String? = nil, usage: JSONValue? = 
     return ["id": "gen-1", "model": "vendor/model", "provider": "Vendor", "choices": [choice], "usage": usage]
 }
 
-/// The chunk with the given top-level fields added or replaced, such as `service_tier`.
+/// The chunk with the given top-level members added or replaced, such as `service_tier`.
 func adding(_ fields: [String: JSONValue], to chunk: JSONValue) -> JSONValue {
     guard case .object(var object) = chunk else { return chunk }
     for (key, value) in fields { object[key] = value }
@@ -189,7 +186,7 @@ func text(_ text: String, finishReason: String? = nil) -> JSONValue {
     chunk(["content": .string(text)], finishReason: finishReason)
 }
 
-/// A chunk with one tool-call fragment. A fragment without an index leaves the field out.
+/// A chunk with one tool-call fragment. A fragment without an index leaves the member out.
 func toolCall(_ index: Int?, id: String? = nil, name: String? = nil, arguments: String? = nil) -> JSONValue {
     let function: JSONValue = ["name": name.map(JSONValue.string), "arguments": arguments.map(JSONValue.string)]
     let fragment: JSONValue = [

@@ -33,22 +33,23 @@ The catalog lists a model's dated snapshots as members of their own, such as `.g
 its model's details, and its model's name with its day, such as GPT-5.5 (2026-04-23).
 
 An answer names the model that answered, which can be a dated snapshot of the one the request named, such as
-`gpt-5-nano-2025-08-07` for `gpt-5-nano`. The entry that ends the answer keeps it under
-`LanguageModelMetadataKey.model`, as <doc:ErrorsAndMetadata> shows. Reasoning that a snapshot wrote goes back on later
-turns to the model it's a snapshot of, as <doc:Reasoning> describes. To keep the model the same from run to run, name
-a dated snapshot, as <doc:RepeatableRuns> describes.
+`gpt-5-nano-2025-08-07` for `gpt-5-nano`. The entry that ends the answer keeps it, and
+``OpenAIResponseMetadata/model`` reads it, as <doc:ErrorsAndMetadata> shows. Reasoning that a snapshot wrote goes back
+on later turns to the model it's a snapshot of, as <doc:Reasoning> describes. To keep the model the same from run to
+run, name a dated snapshot, as <doc:RepeatableRuns> describes.
 
 ### How the catalog stays current
 
 The catalog comes from three lists:
 
-- OpenAI's OpenAPI description, which names the effort words, and the default effort, `medium`, which the catalog
-  records for every model that accepts it. A model's own default, which it uses
-  when a request doesn't set a level, can differ, as GPT-5.4 mini's does.
+- OpenAI's OpenAPI description, which names the effort words.
 - OpenAI's list of the models it serves, `GET /v1/models`, with the day each one shuts down.
 - [models.dev](https://models.dev), which describes each model: its name, context size, input kinds and knowledge
   cutoff, whether it calls tools, holds its answers to a schema and takes a temperature, and whether it reasons, with
   its efforts.
+
+None of them gives the effort a model uses when a request doesn't set a level, so every model's
+``OpenAIModel/defaultReasoningEffort`` is `nil`.
 
 A model is in the catalog when OpenAI serves it and models.dev describes it as a model that answers in text, unless
 its id says it works only with an endpoint other than the Responses API, as the search, audio, realtime, transcription
@@ -61,9 +62,8 @@ this model on" that day, so code that names it warns before it stops working. Me
 and `.gpt5_5`, aren't. A model that leaves the catalog keeps its member, marked `deprecated` with "Removed from OpenAI"
 and the day, which ``OpenAIModel/removalDate`` gives, and ``OpenAIModel/catalogModels`` and
 ``OpenAIModel/init(catalogID:)`` leave it out. A request that still names it logs an error and, in a debug build, shows
-a runtime warning.
-<doc:/LanguageModels/ModelCatalogs>
-says how every provider module's catalog changes, and which release each change needs.
+a runtime warning. <doc:/LanguageModels/ModelCatalogs> says how every provider module's catalog changes, and which
+release each change needs.
 
 ### What a model supports
 
@@ -96,6 +96,9 @@ The catalog keeps no prices. What the answer's usage counts:
   cache, as <doc:Caching> describes.
 - **Output.** The usage counts the answer's tokens, its reasoning tokens among them.
 - **Tool calls.** Each round of tool calls is a request of its own, and a response's usage reports only the last one.
+- **Server tools.** A web search costs by the call, which ``OpenAIUsageMetadata/webSearchCount`` counts, an image at
+  the prices of the model that draws it, and a file search by the call and the storage it searches, on top of the
+  tokens, as <doc:ServerTools> describes.
 
 ``OpenAIOptions/serviceTier`` picks a processing tier, which trades speed against price, and the answer's metadata names
 the tier that served it.

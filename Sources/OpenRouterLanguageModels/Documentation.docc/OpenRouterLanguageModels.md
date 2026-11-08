@@ -114,18 +114,17 @@ which this module re-exports.
 - <doc:ErrorsAndMetadata>
 - ``FoundationModels/Transcript/Response/openRouter``
 - ``FoundationModels/Transcript/ToolCalls/openRouter``
+- ``FoundationModels/LanguageModelSession/Usage/openRouter``
+- ``FoundationModels/LanguageModelError/openRouter``
 - ``OpenRouterResponseMetadata``
 - ``OpenRouterResponseMetadata/RoutingStrategy``
 - ``OpenRouterResponseMetadata/RoutingAttempt``
 - ``OpenRouterResponseMetadata/RoutingEndpoint``
 - ``OpenRouterResponseMetadata/PipelineStage``
 - ``OpenRouterResponseMetadata/PipelineStage/Kind``
-- ``FoundationModels/LanguageModelSession/Usage/openRouter``
 - ``OpenRouterUsageMetadata``
-- ``FoundationModels/LanguageModelError/openRouter``
 - ``OpenRouterErrorMetadata``
 - ``OpenRouterErrorMetadata/LimitSource``
-- ``OpenRouterMetadataKey``
 - ``OpenRouterError``
 - ``OpenRouterError/Code``
 

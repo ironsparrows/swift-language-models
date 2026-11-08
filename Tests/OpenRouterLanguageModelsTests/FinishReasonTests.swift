@@ -4,7 +4,7 @@ import Testing
 
 @testable import OpenRouterLanguageModels
 
-@Suite("Finish reason")
+@Suite("Finish reason", .timeLimit(.minutes(1)))
 struct FinishReasonTests {
     @Test(arguments: [
         ("stop", FinishReason.stop),

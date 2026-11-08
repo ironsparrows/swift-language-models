@@ -3,6 +3,8 @@ public import FoundationModels
 public import LanguageModels
 public import UniformTypeIdentifiers
 
+// MARK: - Model
+
 /// What the catalog records about one of OpenAI's models.
 ///
 /// Each model in the catalog is a static member whose effort type lists exactly the levels that model accepts. A model
@@ -17,10 +19,10 @@ public struct OpenAIModel<Effort: ModelEffort>: ModelDetails, Hashable {
     /// When OpenAI created the model, or `nil` when the details don't record it.
     public let releaseDate: Date?
 
-    /// The day the model's training data ends, at midnight UTC.
+    /// The day the model's training data ends, at midnight UTC, or `nil` when the details don't record it.
     public let knowledgeCutoff: Date?
 
-    /// The day OpenAI shuts the model down, at midnight UTC.
+    /// The day OpenAI shuts the model down, at midnight UTC, or `nil` when the details don't record one.
     public let expirationDate: Date?
 
     /// The day the catalog stopped listing the model, at midnight UTC, as this release's catalog records it, or `nil`
@@ -32,7 +34,7 @@ public struct OpenAIModel<Effort: ModelEffort>: ModelDetails, Hashable {
         ModelRemovals.openAI.removalDate(of: id.rawValue)
     }
 
-    /// The size of the model's context window, in tokens.
+    /// The size of the model's context window, in tokens, or `nil` when the details don't record it.
     public let contextSize: Int?
 
     /// The kinds of input the model accepts, such as text, images or PDF documents.
@@ -47,10 +49,10 @@ public struct OpenAIModel<Effort: ModelEffort>: ModelDetails, Hashable {
     /// The reasoning levels the model accepts, highest first, or none when it doesn't reason.
     public let reasoningEfforts: [Effort]
 
-    /// The effort OpenAI's API description gives as the default, which the catalog records as `medium` for every model
-    /// that accepts it, or `nil` when the model doesn't reason or doesn't accept it.
+    /// The effort the model uses when a request doesn't set a level, or `nil` when it isn't known or the model doesn't
+    /// reason.
     ///
-    /// A model's own default, which it uses when a request doesn't set a level, can differ, as GPT-5.4 mini's does.
+    /// The catalog records none, since none of the lists it comes from gives a model's own default.
     public let defaultReasoningEffort: Effort?
 
     /// Creates a model's details.
@@ -66,7 +68,7 @@ public struct OpenAIModel<Effort: ModelEffort>: ModelDetails, Hashable {
     ///   - supportedParameters: The request settings the model accepts.
     ///   - reasoning: Whether and when the model reasons.
     ///   - reasoningEfforts: The reasoning levels the model accepts, highest first.
-    ///   - defaultReasoningEffort: The default effort that OpenAI's API description gives for the model.
+    ///   - defaultReasoningEffort: The effort the model uses when a request doesn't set a level, when it's known.
     public init(
         id: OpenAIModelID,
         displayName: String,
@@ -93,7 +95,7 @@ public struct OpenAIModel<Effort: ModelEffort>: ModelDetails, Hashable {
         self.defaultReasoningEffort = defaultReasoningEffort
     }
 
-    /// What the model supports, from the request settings and input kinds it accepts.
+    /// What the model supports, from the request settings and input kinds it accepts, and whether it reasons.
     ///
     /// Guided generation needs `structured_outputs`, so OpenAI holds the answer to the schema.
     public var capabilities: LanguageModelCapabilities {
@@ -141,5 +143,38 @@ extension OpenAIModel where Effort == ContextOptions.ReasoningLevel {
             reasoningEfforts: typed.reasoningEfforts.map(\.reasoningLevel),
             defaultReasoningEffort: typed.defaultReasoningEffort?.reasoningLevel
         )
+    }
+}
+
+// MARK: - Model id
+
+/// An OpenAI model id, such as `gpt-6-luna`.
+///
+/// A distinct type, so text that isn't an OpenAI id, such as a display name or another provider's id, can't be passed
+/// by mistake.
+///
+/// To make ids from strings, name the initializer in full, since a bare `OpenAIModelID.init` could also mean the
+/// string-literal one:
+///
+/// ```swift
+/// let ids = savedIDs.map(OpenAIModelID.init(rawValue:))
+/// ```
+public struct OpenAIModelID: ProviderVocabulary {
+    /// The id as OpenAI's API spells it.
+    public let rawValue: String
+
+    /// Creates an id from OpenAI's spelling of it.
+    ///
+    /// - Parameter rawValue: The id, such as `"gpt-6-luna"`.
+    public init(rawValue: String) {
+        self.rawValue = rawValue
+    }
+}
+
+extension OpenAIModelID {
+    /// Whether a model that answered, as its answer names it, is this one: the same id, or a dated snapshot of it,
+    /// such as `gpt-5-nano-2025-08-07` for `gpt-5-nano`.
+    func names(_ answeringModel: String) -> Bool {
+        answeringModel == rawValue || answeringModel.wholeMatch(of: /(.+)-\d{4}-\d{2}-\d{2}/).map { String($0.1) == rawValue } == true
     }
 }

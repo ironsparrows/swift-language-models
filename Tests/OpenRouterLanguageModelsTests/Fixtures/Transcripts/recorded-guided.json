@@ -1,0 +1,103 @@
+{
+  "transcript" : {
+    "entries" : [
+      {
+        "contents" : [
+          {
+            "id" : "CDF4282B-E86C-4C09-9E62-9F9A17BEC774",
+            "text" : "Rate a tomato soup.",
+            "type" : "text"
+          }
+        ],
+        "contextOptions" : {
+          "reasoningLevel" : "light"
+        },
+        "id" : "A1EB466E-8BE5-4DB0-86F2-B96379202E21",
+        "options" : {
+          "maximumResponseTokens" : 800
+        },
+        "responseFormat" : {
+          "jsonSchema" : {
+            "name" : "SoupRating",
+            "schema" : {
+              "additionalProperties" : false,
+              "properties" : {
+                "reason" : {
+                  "type" : "string"
+                },
+                "stars" : {
+                  "description" : "From 1 to 5",
+                  "maximum" : 5,
+                  "minimum" : 1,
+                  "type" : "integer"
+                }
+              },
+              "required" : [
+                "stars",
+                "reason"
+              ],
+              "title" : "SoupRating",
+              "type" : "object",
+              "x-order" : [
+                "stars",
+                "reason"
+              ]
+            }
+          },
+          "type" : "jsonSchema"
+        },
+        "role" : "user"
+      },
+      {
+        "id" : "47B27661-BF56-4A35-AD40-5AC3B42EC974",
+        "metadata" : {
+          "model" : "openai/gpt-5-nano",
+          "reasoningOrigin" : "openrouter"
+        },
+        "reasoning" : {
+          "contents" : [
+            {
+              "id" : "461DA454-6AB3-48B2-9CEA-26111D19AA3A",
+              "text" : "**Generating JSON rating**\n\nI need to create JSON that matches the schema specified. Since the task is to rate a generic tomato soup, I'll rate it four stars. My reasoning will focus on its balanced tanginess and creamy texture while noting it could use more depth.\n\nSo, my output will be: {\"stars\":4,\"reason\":\"Rich tomato flavor with bright acidity and a creamy base; well-balanced seasoning; could be slightly thicker for some preferences.\"} I’ll make sure it’s valid JSON without any extra properties.",
+              "type" : "text"
+            }
+          ],
+          "signature" : "W3siZm9ybWF0Ijoib3BlbmFpLXJlc3BvbnNlcy12MSIsImluZGV4IjowLCJzdW1tYXJ5IjoiKipHZW5lcmF0aW5nIEpTT04gcmF0aW5nKipcblxuSSBuZWVkIHRvIGNyZWF0ZSBKU09OIHRoYXQgbWF0Y2hlcyB0aGUgc2NoZW1hIHNwZWNpZmllZC4gU2luY2UgdGhlIHRhc2sgaXMgdG8gcmF0ZSBhIGdlbmVyaWMgdG9tYXRvIHNvdXAsIEknbGwgcmF0ZSBpdCBmb3VyIHN0YXJzLiBNeSByZWFzb25pbmcgd2lsbCBmb2N1cyBvbiBpdHMgYmFsYW5jZWQgdGFuZ2luZXNzIGFuZCBjcmVhbXkgdGV4dHVyZSB3aGlsZSBub3RpbmcgaXQgY291bGQgdXNlIG1vcmUgZGVwdGguXG5cblNvLCBteSBvdXRwdXQgd2lsbCBiZToge1wic3RhcnNcIjo0LFwicmVhc29uXCI6XCJSaWNoIHRvbWF0byBmbGF2b3Igd2l0aCBicmlnaHQgYWNpZGl0eSBhbmQgYSBjcmVhbXkgYmFzZTsgd2VsbC1iYWxhbmNlZCBzZWFzb25pbmc7IGNvdWxkIGJlIHNsaWdodGx5IHRoaWNrZXIgZm9yIHNvbWUgcHJlZmVyZW5jZXMuXCJ9IEnigJlsbCBtYWtlIHN1cmUgaXTigJlzIHZhbGlkIEpTT04gd2l0aG91dCBhbnkgZXh0cmEgcHJvcGVydGllcy4iLCJ0eXBlIjoicmVhc29uaW5nLnN1bW1hcnkifSx7ImRhdGEiOiJnQUFBQUFCcTdrakNTVUQwV2hkNVZjWnJQS0dPMlBCeVFOZENuTnVIcjlWbFNneThRVy1vaDVfV0Z3bjVqZE9HLWhESGRKNUdJc0pWN3dzbFhYRWMwVXJsa3ZrNURpX1UtN0hpczY0cjhWeklKS2RrOGlJQ0lBVF9iMjUwaENxRWJjd3lrT2l5b2hjUWF1cU5zTFdOa2xuVUUwZmZwaEtHdFVDWm5lczZJVURGM1hpaURFNThNYkRyRHFBcU5ESW90QUVrMjhaX1p3VEFQNmxXekdJWjZvMHUzNzVNZ2RCYkZjeERZNXViZlhFYWpSb2poWWlnYjdqQXJTbll6ZzVlbXBGaFJRMnFKRHRESTlOZWZ3eElDS25rV1BKYXBaQ3oyMVgwQXc4RXVJeU5BLWxVZmFMNWQxYTItbVBkeDJTaURFT25mZE5wVVk1X2lEOC1RaXlLVXlKY1YyYzlxLXh1M3Jlb1RkcHFFZmZ3MTBOT2tGQ0N0ZXlNNXdLUDFJYUhuTnBndF8zdXpsSXpDc2x2c2F1bTF5NjlmOF9FdHNaTjFqUHRENkRuNVBrOG9PcnVrUnNaeFhBM2I4TUFzS3VJSzRLZGpmTWhoUEI4bEpab21SR2RXRUpMS2RHSFdMNW05TXg2d3kxTElic3NUb2VEWGM2NzJ6bjNCMGxjeFZ5ZnF4X1pQUnp3eG10SGhncGJHeDE3YnBuYnZCenRnb3JFaDVlVmp0M2piSXVvdTZjMElnUVhEbEFiVGwtU2JNWkxiYUpKcl9kQktsQWJzbjNqZ2c1LUdEc3ZiNWNIeVJKcFBIQjVTVWR0SjZCU1VoRUlpOGxOb0lWbVpjZjBQS3ZTZ1RRcWZBVFhOOXhLNEl3NmM5VUlzbHFOdDNUNjhaMy1jaTZQVmhtbExmQkl6OGpWaGQxdXB5OEJjZ1NPNXpUQmtkdndGcnBZdHpsMjkxcGNHWDBKNUtEcjN1a3g5Y19ndVZHS2o2aUJtRkxVb2Z2UE1NaFpTOTFXUUNfVmZVOTMwd3FqNlRWUDNwNzhTazFNWEdmdHRHTG8wRjROMHpCV2d1Qkt4Ylhkay1MMXk5amNvSWpJcDM5d3ZNRGRCdFM1MjFuTVRHY3JSb3k1emY5VjgwUkF5OEJsVkE0SGVkcDVuNDF3SFRvVThxNGwyMDBIRGJ2SEN5UnpZdDRvcnBxckUtZ1BxOFNDQV91Ym1qZmVkeEpVYzctLS1NRkZPUWdoRGR6VUdPRzhUVWc0Yzh3Qm11WUg3VVpQdUY2VTFLbFMtSHRuUDlCWng1WHlIM29SVEhmUld2Q0JKV29waFhBMU1tblcweVVveGJpNnJsaE4xazdSSV84cEpZX0RCRmttdVEwdkE2QkEtZng0bHVIc0JNZDZLanJLWmJfVUNHX0hIQjdNd29rSWJLT1JGVVVqXzIwM2xzd29wdmhJZW1OY0RFMmpTa3Jub1BMNXBYeUNHR0RROEplenZhY19BRndQcDJlX0NoakVIWU12ZkRaNjlPOUN5Z0hGRzJ2TUZPc0dJU1p6cnU4RlJFazZGZkdPbWVGREhCMERRbzhJaEZnbkx4bGlyWF9lQkptOW5TNFRqUERPb0s3SjhXQVIxbk5VZ2tVaGVjdGdNbW5ueHBhZXBjUGNJS0JIVHBSXzMxMWVJYTRsSXBTVDBJN0p6UlVzNWstSFE1SkFlSXM4aVBJc1JjblBHQkRTTU45Tnc5WGVyMTFQT0todnoyUnZhUUtaM05TeWFmNFFGeV8zZzE1MHY3ZkxsOTByUG90YmlUdGVDY3M4X2RQOUpDc0h0Y2wzdUNQcXotRmYyZ3dYSi1ydmZYMW5WRWE4dFVuaXhtQzE2THpYaExxUkN4NzdjVlFVU2RvMlJRWTcydHotNjhrLWdHYlFTWVhKb1RSajRFMDFfaGJrZU5QTFZXOEdGRzBaZXBzLTNKZlhkSkZXTzc5elQweTRvWGo4d2lNTzJhcEdUUVF1VjlKSEFGbnhEaC12aUd0T3lwMTg2RGhUaW1Wb2lNNVoyR1pSQjQ1dTNpWjUwWUxXc2dNX3JhTktfR3dONG04VmRCWktKMjJrMTRfMHFMRUFKS0hTTGk3NjU1aVktSWtqV0dSZkxobTVkeVBoQkhEeEJxQWFkMFpMdHdJNVRZSkZtSWVjdHB0aVJESThCTW5KT0cxMWhSSUxUZ0FTTDBuYkxfcU1FOUZlaHNuMzMxZHp3bWFHQzh4MkZ4US1DY19MTGk1MWV4YmRxWVVVOUZhYVcxeXNSaWFpQjFFRjBZSVZzbVlfV2luOS05ZHY0d1JkeWR0aEJMMXE5eXotUHQ2SzVLdi1oNU9jNFJLN2JqekxEY2hUZmplaVlJQ0Z0NmZOOW1EVkg4blFJYXgxS1pOOTBwVTFwSjRWc2hjRzdmTlVQbnZwT0pDVXBuMzZLc3FpQlRRWTlFVnBGRWZhOHgyRWNPb2M2UGl1Szl0U2hHMG56RG4ta2lFck41V19tMkh3SS15dlBrX3ZEM09vRGNwek14Y0VrUF9UaWg4WHl6YmRSOTFvQXQ2LTVwWVdPSzBXSU5ITEZ2bnZSSmNkUUljS1I2Mnlsbkk1SDNGR3FfSk5uZ09UNEF3OWVjekdIb1RRdXBKOEZ5Q1Zlb0M2VzZwajFJbjdpeE9JaWNQUVNLa1VNZWJmNFpWeEYzLWZsZTJBUDBpcDJyTFBTWTNmZ255Q1hEUVZSTEZoekhUVEdORFd2Ty1qc0YzMm9IMGEzdHVJMXF1elNnX09EcVJiOE9NVWhPd3RSenNkSERRQXJoM2xLdEJtVVBBNzU1SU1oZ1pxU2JoM09XejM2WGZFOHdkdHBJc3lIZUpaSXdjYmNUU0ZqYVBMaGFXWW1rMGhmSXhrU29Wb25QbGd4Ymhjc3oxZ0VMdlBmczN2Ul8ydEc4QmpsMm1mWGU5ckx0dzFFUjB4X3NlOVVmc3BiMG9jcjNvaDlDZ0RpTmhlb0phaWgzSWtSRnpoaTAyU21laG9vbWNLYXVfc0ZsN0FXUUU3aUFoN0ZIcGRLVmZ5OUppWFRDLTJxbk9vWjNRQ1lYV1FSZGpRVTZSMFV1OTF3VmtpWkN2SmdhZTBMTDl4Yl9CM3MteS13UURiOHNyZWNWUFNSYUwyZG1OOWo3REtuSTNPd0hZYUR3X1hDdW9BUDlPVC12RHBTYWZka0RvTWh1RDN6bDlfYzlCcmk1Yy1SQ1lEYUVVN0o2VUlXQ0p0WkxVOUE3Y1R2Q0lpcWVoTmZzVnduLUpaaUdFaExlRGp1dmZ6VEVVR3dfVHhva1J2TEctWTVCS1RZcGVNckY4R2M1UXVCVHQwSFlLUEpkYWVidHZfWGV5YWw0TEQ2U0NzVVZReXZ0bU50SW9LdmRqRWM1SEZQMnhFWC1LUzNmUTREbHZ3MkZEWUhUSThpUkMzRmRJdFNHeFk4RzZiWE55eE9mNXlNVjhGMlJpUU9KLW44NjhNTGgxVHE4RGhhV3pIMDJMOEx5RE1RUk5kV0R0b3YwVXZWbGlzNjJPR1c3WUVITjRQT2FBUDlGYzM4SS1SOXUteU9aUllUOElQNDhHbXVtd3dwUWJZazVPQkRELVprb25pR28wMlpjZGVvNG9yTkpqX1R4cmhPSGdkUDVPejFhN3kzRENrNElJQTRaQURjZGZMczZVZTVlWnBxeUxXMERxRE1HTENIQy1NNk5PNEM3bzdGSjFBRFVnNkF3YnBnMG9WdzltLUprWlVaMEFpRWR1UWpCbXl6MGVyMi1MeHZqNmctRW9aV0JDUENTY1RJMjU1YUVnNlFGMmFRS3BXLXFiUjlIMFlFQ0NIMXpvem1INjFvRkpUOWdobTFMTUdYamQ4ci03VXktNnN3STVScUpRaXNQbVNmVjlDNGFwd2hEVjNQbDF0YkZuSno1ZWhJMU5RTEUwUWh0TUgwZlkxdHpXTFNjV2MwWUJWTU9nOUpYbkZBMlNpdHdLdFRrMzI1Qkl0TG85WEFDc0dYZWdreXMyeUJ6dmdNLUZUZE45NFBkMC1GTUtseEthYWo4MXVFVzRUeUtyalFXQ25XNTRtNDVBY3k4aWtZVmptdlBNS2MwN19XaDMwMjlackRSLUpHMC1qbGw3MkdvajlWUFA1UEVSUFF4T1hqV2tTMG5FaVd3bm9EZzVJblVlV3h0bmJBc1lWVVJTSWM4R0pJXzhGX3BEa1dvS1dLdXA2c2U3OVVLRWhZZFRXZ1h6TlhtZGFJcVFVSnNjVGxjcnl4RzNyV0tvSlMyR1FLZkVYSTJTTEMyTXh6cU9qU0YyWDByMFdPTGN3QU5BSXp6WDBXa042SVM3SzUwVDJfMVYtNDZ4S2dpOHg1UGVhaEJneTU0NFQuZXlKbGJtUndiMmx1ZEY5emJIVm5Jam9pYjNCbGJtRnBMMmR3ZEMwMUxXNWhibTh0TWpBeU5TMHdPQzB3TjN4dmNHVnVZV2tpZlEiLCJmb3JtYXQiOiJvcGVuYWktcmVzcG9uc2VzLXYxIiwiaWQiOiJyc18wYjFlNzA0MDUwOTMwYmU1MGJmMjhjY2U2YTk4N2NmN2ViNWE1YjkyZmMwMDFhMzYxYSIsImluZGV4IjoxLCJ0eXBlIjoicmVhc29uaW5nLmVuY3J5cHRlZCJ9XQ=="
+        },
+        "role" : "reasoning"
+      },
+      {
+        "contents" : [
+          {
+            "id" : "E54D959B-EA47-4993-9795-89B64C79A76B",
+            "structure" : {
+              "content" : {
+                "reason" : "Bright tomato flavor with pleasant acidity and a creamy, smooth texture. Well-seasoned with a gentle balance of salt and herbs; could be a touch thicker for those who prefer heartier soups.",
+                "stars" : 4
+              },
+              "source" : "SoupRating"
+            },
+            "type" : "structure"
+          }
+        ],
+        "id" : "E642613F-C90B-4724-9644-9CFA8A21CD16",
+        "metadata" : {
+          "cacheWriteTokenCount" : 0,
+          "cost" : 7.31e-05,
+          "finishReason" : "stop",
+          "model" : "openai/gpt-5-nano",
+          "openRouter.isBYOK" : false,
+          "openRouter.upstreamInferenceCompletionCost" : 6.72e-05,
+          "openRouter.upstreamInferenceCost" : 7.31e-05,
+          "openRouter.upstreamInferencePromptCost" : 5.9e-06,
+          "provider" : "OpenAI",
+          "responseID" : "gen-1794001086-c5uAMBtz7tuchUdsLPAG",
+          "serviceTier" : "default"
+        },
+        "role" : "response"
+      }
+    ]
+  },
+  "type" : "FoundationModels.Transcript",
+  "version" : "1.1"
+}

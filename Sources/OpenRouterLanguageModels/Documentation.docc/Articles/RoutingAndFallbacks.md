@@ -9,8 +9,8 @@ picks one for each request. ``OpenRouterRouting`` limits and orders the hosts it
 models to try when the model fails.
 
 OpenRouter calls these hosts providers, so the package keeps that word wherever it names one:
-``OpenRouterProviderName``, ``OpenRouterRouting/allowedProviders``, ``OpenRouterError/providerName`` and the
-``LanguageModelMetadataKey/provider`` key.
+``OpenRouterProviderName``, ``OpenRouterRouting/allowedProviders``, ``OpenRouterError/provider`` and
+``OpenRouterResponseMetadata/provider``.
 
 Fallbacks, routing and aliases such as `~anthropic/claude-haiku-latest` can each change which model or host answers a
 request. An evaluation that compares runs needs the same model and hosts in every run, so it pins them, as
@@ -34,8 +34,8 @@ Any of the models may answer, so a request asks only for what all of them suppor
   generation, reasoning and images work only when every model supports them, and an attachment or data kind only when
   every model takes it.
 - A setting is sent only when every model lists its parameter, the token limit too, as `max_completion_tokens` or
-  `max_tokens`. OpenRouter picks a host that supports an answer that long.
-  A schema goes only to models that all take structured outputs; otherwise the request is refused before it's sent.
+  `max_tokens`. OpenRouter picks a host that supports an answer that long. A schema goes only to models that all take
+  structured outputs; otherwise the request is refused before it's sent.
 - A reasoning level becomes the nearest effort that every model accepts. When they share none, the request only turns
   reasoning on or off, and it doesn't turn reasoning off when any model always reasons.
 - A schema goes in portable form, with its constraints in descriptions, when any of the models is Anthropic's.

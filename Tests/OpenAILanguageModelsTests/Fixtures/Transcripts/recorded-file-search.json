@@ -1,0 +1,116 @@
+{
+  "transcript" : {
+    "entries" : [
+      {
+        "contents" : [
+          {
+            "id" : "0C93EFDE-E76B-49D4-8EBD-460574A09AB4",
+            "text" : "Search the files: what does Harbor Kitchen serve on Tuesday? One sentence.",
+            "type" : "text"
+          }
+        ],
+        "contextOptions" : {
+          "reasoningLevel" : "light"
+        },
+        "id" : "A743B6CD-BEA4-43C9-A926-3F65886867B9",
+        "options" : {
+          "maximumResponseTokens" : 2000
+        },
+        "role" : "user"
+      },
+      {
+        "contents" : [
+          {
+            "id" : "48D21A1F-01F2-485E-B26B-2994BF048A27",
+            "text" : "Harbor Kitchen serves grilled sardines with lemon potatoes on Tuesday. ",
+            "type" : "text"
+          }
+        ],
+        "id" : "ADE1687B-B3CB-4303-B246-64DB696FAC52",
+        "metadata" : {
+          "cacheWriteTokenCount" : 1475,
+          "finishReason" : "stop",
+          "model" : "gpt-6-luna",
+          "openAI.phases" : [
+            {
+              "length" : 71,
+              "phase" : "final_answer"
+            }
+          ],
+          "openAI.serverTools" : {
+            "calls" : [
+              "{\"id\":\"fs_86db36ab33d0065bdb91f1a8c999af47188b99cf8856133a33\",\"queries\":[\"What does Harbor Kitchen serve on Tuesday?\"],\"results\":null,\"status\":\"completed\",\"type\":\"file_search_call\"}"
+            ],
+            "fileCitations" : [
+              {
+                "fileID" : "file-Iwjw69k0XQgTmttP4AwqT8",
+                "filename" : "menu.txt",
+                "offset" : 71
+              }
+            ]
+          },
+          "requestID" : "req_1",
+          "responseID" : "resp_646860155c3e7ad63f2eb1bb2dc3260afb12edad0413a5512b",
+          "serviceTier" : "default"
+        },
+        "role" : "response"
+      },
+      {
+        "contents" : [
+          {
+            "id" : "C4B80D81-6C79-464B-803E-4A5EB570CDCF",
+            "text" : "And when does the kitchen close? One sentence.",
+            "type" : "text"
+          }
+        ],
+        "contextOptions" : {
+          "reasoningLevel" : "light"
+        },
+        "id" : "253FA2C3-FC17-4657-ADAE-9C06027349AB",
+        "options" : {
+          "maximumResponseTokens" : 2000
+        },
+        "role" : "user"
+      },
+      {
+        "contents" : [
+          {
+            "id" : "651B5BF7-7DFF-43D2-9A8E-E174665B870B",
+            "text" : "Harbor Kitchen closes at nine every evening. ",
+            "type" : "text"
+          }
+        ],
+        "id" : "45C2973B-8FEB-4732-9C62-FBE99A728A3E",
+        "metadata" : {
+          "cacheWriteTokenCount" : 182,
+          "finishReason" : "stop",
+          "model" : "gpt-6-luna",
+          "openAI.phases" : [
+            {
+              "length" : 45,
+              "phase" : "final_answer"
+            }
+          ],
+          "openAI.serverTools" : {
+            "calls" : [
+              "{\"id\":\"fs_58c3a69b96b01f0f120ffb843809cbe04eaf6aba9e730bf4aa\",\"queries\":[\"When does Harbor Kitchen close?\"],\"results\":null,\"status\":\"completed\",\"type\":\"file_search_call\"}"
+            ],
+            "fileCitations" : [
+              {
+                "fileID" : "file-Iwjw69k0XQgTmttP4AwqT8",
+                "filename" : "menu.txt",
+                "offset" : 45
+              }
+            ]
+          },
+          "requestID" : "req_1",
+          "responseID" : "resp_35a93b43f48b9481acda86d8426da01aa873cd29afce4565ed",
+          "serviceTier" : "default"
+        },
+        "role" : "response"
+      }
+    ]
+  },
+  "type" : "FoundationModels.Transcript",
+  "version" : "1.1"
+}

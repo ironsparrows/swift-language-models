@@ -48,15 +48,16 @@ It goes out only with the session's tools, and a model that can't be made to cal
 
 @Snippet(path: "swift-language-models/Snippets/OpenAITools", slice: "required")
 
-When tool calls are disallowed, the request sends no tools at all.
+When tool calls are disallowed, the request sends no tools at all, server tools included. Tools that OpenAI runs
+itself, such as a web search, are <doc:ServerTools>.
 
 ### How the schema is sent
 
 - The request sends the schema as `text.format`, of type `json_schema`, with `strict` set to `true`, so OpenAI holds
   the answer to it.
-- As the official SDKs parse a guided answer, only its first message with no phase or the `final_answer` phase
-  decodes. A `commentary` message the model writes first, such as a preamble before its tool calls, stays out of the
-  answer, and its text goes back on later turns with its phase, as <doc:Reasoning> describes.
+- A guided answer decodes only its first message with no phase or the `final_answer` phase. A `commentary` message the
+  model writes first, such as a preamble before its tool calls, stays out of the answer, and its text goes back on later
+  turns with its phase, as <doc:Reasoning> describes.
 - The request sends the full schema first. When OpenAI rejects one of its constraints, with a 400 whose message names
   a constraint keyword, such as `minimum`, `maxItems` or `pattern`, and says it isn't supported, permitted or allowed,
   the request goes once more with the portable schema, whose constraints move into the descriptions. In the example,

@@ -50,6 +50,12 @@ large or in a format it can't read, throws `unsupportedTranscriptContent`, namin
 Generated data and an answer's attachments stay in the transcript but aren't sent back. Each request sends the whole
 transcript, so a prompt's attachment goes again with every later request of the session.
 
+### Get images back
+
+A model draws images with the image generation server tool, from OS 27.2. Each image is a data entry of its own, of its
+format's kind, which `supportsDataEntryType(_:)` says the model generates. The image's call goes back on later turns,
+so the model can change the image, while OpenAI keeps responses. <doc:ServerTools> shows how.
+
 ### Apple's guides
 
 - [Analyzing images with multimodal prompting](https://developer.apple.com/documentation/foundationmodels/analyzing-images-with-multimodal-prompting)

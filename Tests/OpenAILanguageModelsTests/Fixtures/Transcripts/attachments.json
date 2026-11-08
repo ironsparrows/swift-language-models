@@ -1,0 +1,99 @@
+{
+  "transcript" : {
+    "entries" : [
+      {
+        "contents" : [
+          {
+            "id" : "36F8C641-3D64-4782-99E5-730A54F64364",
+            "text" : "Keep these.",
+            "type" : "text"
+          },
+          {
+            "attachment" : {
+              "imageURL" : "data:image/jpeg;base64,/9j/4QC+RXhpZgAATU0AKgAAAAgABQEaAAUAAAABAAAASgEbAAUAAAABAAAAUgEoAAMAAAABAAIAAAITAAMAAAABAAEAAIdpAAQAAAABAAAAWgAAAAAAAABIAAAAAQAAAEgAAAABAAeQAAAHAAAABDAyMjGRAQAHAAAABAECAwCgAAAHAAAABDAxMDCgAQADAAAAAQABAACgAgAEAAAAAQAAAAigAwAEAAAAAQAAAASkBgADAAAAAQAAAAAAAAAAAAD/2wCEAAEBAQEBAQIBAQIDAgICAwQDAwMDBAUEBAQEBAUGBQUFBQUFBgYGBgYGBgYHBwcHBwcICAgICAkJCQkJCQkJCQkBAQEBAgICBAICBAkGBQYJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCf/dAAQAAf/AABEIAAQACAMBIgACEQEDEQH/xAGiAAABBQEBAQEBAQAAAAAAAAAAAQIDBAUGBwgJCgsQAAIBAwMCBAMFBQQEAAABfQECAwAEEQUSITFBBhNRYQcicRQygZGhCCNCscEVUtHwJDNicoIJChYXGBkaJSYnKCkqNDU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6g4SFhoeIiYqSk5SVlpeYmZqio6Slpqeoqaqys7S1tre4ubrCw8TFxsfIycrS09TV1tfY2drh4uPk5ebn6Onq8fLz9PX29/j5+gEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoLEQACAQIEBAMEBwUEBAABAncAAQIDEQQFITEGEkFRB2FxEyIygQgUQpGhscEJIzNS8BVictEKFiQ04SXxFxgZGiYnKCkqNTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqCg4SFhoeIiYqSk5SVlpeYmZqio6Slpqeoqaqys7S1tre4ubrCw8TFxsfIycrS09TV1tfY2dri4+Tl5ufo6ery8/T19vf4+fr/2gAMAwEAAhEDEQA/AP5o/wBqr/mA/wDb1/7Rr5Dr68/aq/5gP/b1/wC0a+Q6/wCqT9iX/wAoxcM/9zf/AKnYk/oD9r3/AMpEcQ/9yv8A6hYc/9k=",
+              "label" : "Photo",
+              "type" : "image"
+            },
+            "id" : "28B2B4DB-0A36-465C-A0E6-094144564A7B",
+            "type" : "attachment"
+          },
+          {
+            "attachment" : {
+              "data" : {
+                "contentType" : "com.adobe.pdf",
+                "data" : "JVBERi0xLjQKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4KZW5kb2JqCjIgMCBvYmoKPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0gL0NvdW50IDEgPj4KZW5kb2JqCjMgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAvTWVkaWFCb3ggWzAgMCA2MTIgNzkyXSAvQ29udGVudHMgNCAwIFIgL1Jlc291cmNlcyA8PCAvRm9udCA8PCAvRjEgNSAwIFIgPj4gPj4gPj4KZW5kb2JqCjQgMCBvYmoKPDwgL0xlbmd0aCA0NiA+PgpzdHJlYW0KQlQgL0YxIDI0IFRmIDcyIDcyMCBUZCAoU291cCBvZiB0aGUgZGF5KSBUaiBFVAplbmRzdHJlYW0KZW5kb2JqCjUgMCBvYmoKPDwgL1R5cGUgL0ZvbnQgL1N1YnR5cGUgL1R5cGUxIC9CYXNlRm9udCAvSGVsdmV0aWNhID4+CmVuZG9iagp4cmVmCjAgNgowMDAwMDAwMDAwIDY1NTM1IGYgCjAwMDAwMDAwMDkgMDAwMDAgbiAKMDAwMDAwMDA1OCAwMDAwMCBuIAowMDAwMDAwMTE1IDAwMDAwIG4gCjAwMDAwMDAyNDEgMDAwMDAgbiAKMDAwMDAwMDMzNyAwMDAwMCBuIAp0cmFpbGVyCjw8IC9TaXplIDYgL1Jvb3QgMSAwIFIgPj4Kc3RhcnR4cmVmCjQwNwolJUVPRgo=",
+                "metadata" : {
+
+                }
+              },
+              "label" : "Menu",
+              "type" : "data"
+            },
+            "id" : "4BB2C7F7-01A4-48CB-8A41-4A19C9BA9A4A",
+            "type" : "attachment"
+          }
+        ],
+        "contextOptions" : {
+
+        },
+        "id" : "7EEAB80D-EB98-454E-BDA1-ACB821D2BF66",
+        "options" : {
+
+        },
+        "role" : "user"
+      },
+      {
+        "contents" : [
+          {
+            "id" : "F2C446C3-F689-425F-8E9C-4A351C415D82",
+            "text" : "Kept.",
+            "type" : "text"
+          }
+        ],
+        "id" : "4727EBC9-0E09-410E-AEF7-BC70953DBE3A",
+        "metadata" : {
+          "assetIDs" : [
+
+          ]
+        },
+        "role" : "response"
+      },
+      {
+        "contents" : [
+          {
+            "id" : "E5BE7FA9-B525-460B-9E53-8E8F155C0C96",
+            "text" : "What's in these?",
+            "type" : "text"
+          }
+        ],
+        "contextOptions" : {
+
+        },
+        "id" : "BA91F765-BD15-42A5-87A7-2ACD6D4ABCD5",
+        "options" : {
+
+        },
+        "role" : "user"
+      },
+      {
+        "contents" : [
+          {
+            "id" : "21AD958C-18BC-4563-905C-1D4BF025A64B",
+            "text" : "A menu and a photo.",
+            "type" : "text"
+          }
+        ],
+        "id" : "79F1F46C-9159-4E57-BD63-6C832C560049",
+        "metadata" : {
+          "finishReason" : "stop",
+          "model" : "gpt-test-2026-10-01",
+          "responseID" : "resp_1",
+          "serviceTier" : "default"
+        },
+        "role" : "response"
+      }
+    ]
+  },
+  "type" : "FoundationModels.Transcript",
+  "version" : "1.1"
+}

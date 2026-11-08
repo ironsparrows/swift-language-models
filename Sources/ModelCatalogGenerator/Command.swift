@@ -8,14 +8,16 @@ struct Command: Equatable {
         case render
         case check
         case diff
+        case clearRemoved = "clear-removed"
 
         /// What the subcommand does, for the usage text.
-        var summary: String {
+        fileprivate var summary: String {
             switch self {
             case .fetch: "Download the providers' model lists into Catalogs/."
             case .render: "Turn the catalogs into Swift sources."
             case .check: "Exit with code 1 when the Swift sources don't match the catalogs."
             case .diff: "Write the catalogs' changes since --base, and the release they need, to .build/catalog/."
+            case .clearRemoved: "Drop what the catalogs mark removed, for a major release. Run render after it."
             }
         }
     }
@@ -24,12 +26,12 @@ struct Command: Equatable {
         USAGE: ModelCatalogGenerator <\(Action.allCases.map(\.rawValue).joined(separator: " | "))> [options]
 
         SUBCOMMANDS:
-        \(Action.allCases.map { "  \($0.rawValue.padding(toLength: 9, withPad: " ", startingAt: 0))\($0.summary)" }.joined(separator: "\n"))
+        \(Action.allCases.map { "  \($0.rawValue.padding(toLength: 15, withPad: " ", startingAt: 0))\($0.summary)" }.joined(separator: "\n"))
 
         OPTIONS:
           --base <git-ref>             The version to compare the catalogs with, for diff.
           --package-directory <path>   The package root (default: the current directory).
-          --sources <names>            Comma-separated sources to fetch (default: all). Sources: \
+          --sources <names>            Comma-separated sources to fetch or clear (default: all). Sources: \
         \(CatalogSource.allCases.map(\.rawValue).joined(separator: ", ")).
           -h, --help                   Show this help.
         """

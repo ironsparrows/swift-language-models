@@ -26,7 +26,7 @@ extension ExactExchange {
             serviceTier: .flex, verbosity: .low, reasoningSummary: .auto, cacheKey: .session, endUserID: "user-1", storage: .notStored)
         let languageModel = model(
             stub, details(efforts: [ContextOptions.ReasoningLevel.high, .medium, .low, .off]), options: options,
-            auth: .apiKey(organization: "org-1", project: "proj-1") { "sk-test" })
+            auth: { .apiKey(baseURL: $0, organization: "org-1", project: "proj-1") { "sk-test" } })
         let generation = GenerationOptions(temperature: 0.5, maximumResponseTokens: 100)
         return await ExactExchange(stub, LanguageModelSession(model: languageModel, instructions: "Be brief.")) { session, lastSnapshot in
             try await stream(
@@ -71,6 +71,15 @@ extension ExactExchange {
         let stub = HTTPStub(responseStream(headers: ["x-request-id": "req_9"], [created(), textDelta("Partial "), failure]))
         return await ExactExchange(stub, LanguageModelSession(model: reasoningModel(stub))) { session, lastSnapshot in
             try await stream(session.streamResponse(to: "Plan the week."), into: &lastSnapshot)
+        }
+    }
+
+    /// A real streamed answer with reasoning, recorded from OpenAI.
+    static func realStream() async throws -> ExactExchange {
+        let recorded = try Bundle.module.fixture("reasoning-stream.sse")
+        let stub = HTTPStub(StubResponse(status: 200, headers: ["Content-Type": "text/event-stream"], chunks: [recorded]))
+        return await ExactExchange(stub, LanguageModelSession(model: reasoningModel(stub))) { session, _ in
+            try await session.respond(to: "What is 17 times 23? Reply with the number only.").usage
         }
     }
 

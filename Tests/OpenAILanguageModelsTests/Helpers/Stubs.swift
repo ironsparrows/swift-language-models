@@ -40,18 +40,18 @@ func details<Effort: ModelEffort>(
 func model<Effort: ModelEffort>(
     _ stub: HTTPStub,
     _ details: OpenAIModel<Effort>,
+    serverTools: [OpenAIServerTool] = [],
     options: OpenAIOptions = OpenAIOptions(),
     configuration: OpenAIConfiguration = .stubbed,
-    auth: OpenAIAuthentication = .apiKey { "sk-test" }
+    auth: (URL) -> OpenAIAuthentication = { url in .apiKey(baseURL: url) { "sk-test" } }
 ) -> OpenAILanguageModel<Effort> {
     OpenAILanguageModel(
         details: details,
+        serverTools: serverTools,
         options: options,
         session: stub.session,
-        // The stub stands in for OpenAI, so the authentication's headers go to the stub's URL.
-        auth: OpenAIAuthentication(baseURL: stub.baseURL) {
-            Dictionary(uniqueKeysWithValues: try await auth.requestHeaders().map { ($0.key.rawValue, $0.value) })
-        },
+        // The stub stands in for OpenAI, so the authentication goes to the stub's URL.
+        auth: auth(stub.baseURL),
         configuration: configuration
     )
 }
@@ -159,11 +159,6 @@ func body(_ stub: HTTPStub, _ index: Int = 0) throws -> JSONValue {
 /// The input items of a request body.
 func input(_ body: JSONValue) -> [JSONValue] {
     if case .array(let items)? = body["input"] { items } else { [] }
-}
-
-/// The keys of an object, in order.
-func keys(_ value: JSONValue?) -> [String] {
-    if case .object(let object)? = value { object.members.map(\.key) } else { [] }
 }
 
 /// A text segment.

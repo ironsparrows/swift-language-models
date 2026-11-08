@@ -30,15 +30,16 @@ Apple's `LanguageModelSession`, with Claude, GPT, Gemini and more in the same se
 > OpenAI's Responses API.
 
 Apps keep Apple's `LanguageModelSession`, with its transcripts, tools, `@Generable` guided generation, Dynamic Profiles
-and reasoning levels. Provider modules plug other services' models into it. Claude, GPT, Gemini, DeepSeek, Qwen, Llama
+and reasoning levels. Provider modules plug other providers' models into it. Claude, GPT, Gemini, DeepSeek, Qwen, Llama
 and Mistral then run in the same session as Apple's on-device model, and switching changes only `model:`.
 
 - **Apple's API, any model.** Sessions, streaming, tools, `@Generable` and Dynamic Profiles work unchanged.
-- **Typed model catalogs.** Every OpenRouter and OpenAI model is a static member, with its context size, levels and
-  capabilities.
+- **Typed model catalogs.** Each model of OpenRouter's and OpenAI's catalogs is a static member, with its context size,
+  levels and capabilities.
 - **Typed reasoning levels.** Each model takes only the levels it accepts, checked when the code compiles.
 - **Routing, fallbacks and caching.** Hosts picked by price or data policy, backup models, and cached prompts.
-- **Server tools.** Web search, web fetch, advisors and subagents run on OpenRouter while the model answers.
+- **Server tools.** Web search, web fetch, advisors and subagents run on OpenRouter, and web search, image generation
+  and file search on OpenAI, while the model answers.
 - **Attachments.** Images, and from OS 27.2 PDFs and text, plus audio and video through OpenRouter; generated images
   come back as data.
 - **Errors to switch on.** Rate limits, oversized contexts, guardrails and refusals throw Apple's `LanguageModelError`.
@@ -80,7 +81,7 @@ module's product to each target that uses it:
 
 ```swift
 dependencies: [
-  .package(url: "https://github.com/ironsparrows/swift-language-models", from: "1.0.0")
+  .package(url: "https://github.com/ironsparrows/swift-language-models", from: "2.0.0")
 ]
 ```
 
@@ -89,7 +90,9 @@ dependencies: [
 .product(name: "OpenAILanguageModels", package: "swift-language-models")
 ```
 
-A provider module re-exports `LanguageModels`, the shared core, so apps import the provider module alone.
+A provider module re-exports `LanguageModels`, which carries the contract every provider shares, so apps import the
+provider module alone. A library that needs only the contract can depend on the `LanguageModelsCore` product instead, and
+reads the same pages, under `LanguageModels`.
 
 ## Usage
 
@@ -125,7 +128,7 @@ for try await snapshot in session.streamResponse(to: "Do I need a jacket in Athe
 let itinerary = try await session.respond(to: "Plan three days in Kyoto.", generating: Itinerary.self).content
 ```
 
-A guided request goes only to a model whose service enforces the schema, as Tools and guided generation describes
+A guided request goes only to a model whose provider enforces the schema, as Tools and guided generation describes
 [for OpenRouter][tools] and [for OpenAI][openai-tools]. Some hosts drop guides such as a range or a count, so each
 answer is checked against them, and one that breaks a guide throws `GeneratedContent.ParsingError`, whose
 `underlyingError` is a `GuideViolations` that lists each value, its path, keyword and limit.
@@ -358,9 +361,8 @@ print(luna.reasoningEfforts.map(\.rawValue))   // The levels it accepts, highest
 let picked = OpenAIModel(catalogID: "gpt-5.5")  // A model picked at runtime, with its efforts in their open form
 ```
 
-The catalog lists the models OpenAI's API description names for the Responses API and its model list still serves, with
-what models.dev says each one takes. A model with a shutdown date stays, marked deprecated, until OpenAI shuts it down.
-See [Choosing a model][openai-choosing-a-model].
+The catalog lists the models OpenAI still serves that work with the Responses API, with what models.dev says each one
+takes. Models OpenAI retires or stops serving stay, marked deprecated. See [Choosing a model][openai-choosing-a-model].
 
 ### Reasoning and storage
 
@@ -375,6 +377,23 @@ let model = OpenAILanguageModel(.gpt6Luna, options: options, auth: .apiKey { try
 ```
 
 See [Reasoning][openai-reasoning] and [Caching][openai-caching].
+
+### Server tools
+
+Server tools run on OpenAI while the model answers, and their calls go back on later turns:
+
+```swift
+let model = OpenAILanguageModel(
+    .gpt6Luna,
+    serverTools: [.webSearch(listsSources: true), .imageGeneration(quality: .low), .fileSearch(vectorStoreIDs: ["vs_menus"])],
+    auth: .apiKey { try await keyStore.openAIKey() }
+)
+```
+
+A web search's cited pages are `answer.openAI.citations`, and with `listsSources`, every page its searches consulted is
+`answer.openAI.sources`. A file search's cited files are `answer.openAI.fileCitations`. Each generated image is a data
+entry of its own, so a request with image generation throws `LanguageModelError.unsupportedCapability` before OS 27.2,
+or in an app built without Xcode 27.2. See [Server tools][openai-server-tools].
 
 ### Metadata and errors
 
@@ -399,7 +418,7 @@ do {
 | 429 that isn't a quota | `LanguageModelError.rateLimited`, with the reset date |
 | A prompt flagged by OpenAI's usage policies | `LanguageModelError.guardrailViolation` |
 | A refusal | `LanguageModelError.refusal` |
-| 408, 504, or a timed-out connection | `LanguageModelError.timeout` |
+| 408, 504, `vector_store_timeout`, or a timed-out connection | `LanguageModelError.timeout` |
 | An image OpenAI can't use | `LanguageModelError.unsupportedTranscriptContent` |
 | Anything else, such as 401 or a quota or credits that ran out | `OpenAIError`, with its status, code and request id |
 
@@ -422,9 +441,9 @@ model keeps unit tests offline.
 
 ## Documentation
 
-The [documentation][docs] is on the Swift Package Index, for [`OpenRouterLanguageModels`][openrouter-docs],
-[`OpenAILanguageModels`][openai-docs] and [`LanguageModels`][core-docs], the core every provider module shares. For
-sessions, tools and profiles, see Apple's
+The [documentation][docs] is on GitHub Pages, updated with each release, for
+[`OpenRouterLanguageModels`][openrouter-docs], [`OpenAILanguageModels`][openai-docs] and [`LanguageModels`][core-docs],
+the core every provider module shares. For sessions, tools and profiles, see Apple's
 [Foundation Models documentation](https://developer.apple.com/documentation/foundationmodels).
 
 New to Foundation Models? [Foundation Models Academy](https://github.com/dioKaratzas/foundation-models-academy)
@@ -508,3 +527,4 @@ Licensed under the Apache License 2.0. See [LICENSE](LICENSE).
 [openai-tools]: https://ironsparrows.github.io/swift-language-models/documentation/openailanguagemodels/toolsandguidedgeneration
 [openai-attachments]: https://ironsparrows.github.io/swift-language-models/documentation/openailanguagemodels/attachments
 [openai-repeatable-runs]: https://ironsparrows.github.io/swift-language-models/documentation/openailanguagemodels/repeatableruns
+[openai-server-tools]: https://ironsparrows.github.io/swift-language-models/documentation/openailanguagemodels/servertools

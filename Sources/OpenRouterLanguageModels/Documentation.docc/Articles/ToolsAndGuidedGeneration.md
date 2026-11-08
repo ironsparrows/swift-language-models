@@ -41,7 +41,7 @@ and sends their outputs back, and the last answer is the `Generable` value:
 
 `toolCallingMode` becomes `tool_choice`: `auto` when tools are allowed, and `required` when the model must call one.
 Only `tool_choice` makes a model call a tool, so a required mode throws `LanguageModelError.unsupportedCapability`
-before sending anything when the model or a fallback doesn't list it:
+before sending anything when the model or a fallback doesn't list `tools`, or lists it without `tool_choice`:
 
 @Snippet(path: "swift-language-models/Snippets/ToolsAndGuidedGeneration", slice: "required")
 
@@ -63,7 +63,7 @@ as <doc:ServerTools> describes.
   request goes once more with the portable schema.
 - Whichever schema the request sent, the answer is checked against the full one, since a host may drop or ignore a
   constraint. A value that breaks a guide, such as a `minutes` of 2 in the example, throws
-  `GeneratedContent.ParsingError`, which names the value and the guide. Its `underlyingError` is a `GuideViolations`
+  `GeneratedContent.ParsingError`, which names the value and the guide. Its `underlyingError` is a ``GuideViolations``
   that lists each value with its path, keyword and limit, so an app can clamp a number or cut a list short instead of
   asking again. A streamed response is checked once it ends, so its snapshots may show such a value before the stream
   throws.

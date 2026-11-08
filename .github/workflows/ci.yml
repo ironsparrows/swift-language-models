@@ -17,6 +17,8 @@ env:
   # Only the `xcode-27` image (a public preview) has Xcode 27.x; `/Applications/Xcode_27.2.app` is a link that stays
   # when the release candidate becomes the release.
   DEVELOPER_DIR: /Applications/Xcode_27.2.app/Contents/Developer
+  # A snapshot that's missing or wrong fails here. Snapshots are recorded on a developer's machine and reviewed.
+  SNAPSHOT_TESTING_RECORD: never
 
 jobs:
   build:
@@ -31,12 +33,19 @@ jobs:
         run: xcodebuild -version && swift --version
       - name: Format
         run: swift format lint --strict -r Sources Tests Plugins Package.swift Snippets
+      - name: One public line in the shared target
+        # Everything in `LanguageModels` is `package` or narrower, apart from the re-export of the core.
+        run: |
+          lines="$(grep -rhE '^\s*([A-Za-z_@]+(\([^)]*\))?\s+)*(public|open)(\([a-z]+\))?\s' Sources/LanguageModels --include='*.swift')"
+          echo "$lines"
+          test "$lines" = '@_exported public import LanguageModelsCore'
       - name: Build
         run: swift build --build-tests -Xswiftc -warnings-as-errors
       - name: Generated catalog is up to date
         run: swift run --skip-build ModelCatalogGenerator check --package-directory .
       - name: Test
-        # Without OPENROUTER_API_KEY the live suites skip themselves, so this runs only the fixture-based tests.
+        # Without OPENROUTER_API_KEY and OPENAI_API_KEY the live suites skip themselves, so this runs only the
+        # offline tests.
         run: swift test --skip-build
 
   minimum:

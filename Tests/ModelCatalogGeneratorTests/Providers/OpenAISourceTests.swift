@@ -29,7 +29,6 @@ struct OpenAISourceTests {
         #expect(models.first { $0.id == "gpt-6-astra" }?.reasoning == .mandatory)
         #expect(models.first { $0.id == "gpt-4o" }?.reasoning == .unsupported)
         #expect(models.first { $0.id == "o3" }?.reasoningEfforts == ["high", "medium", "low"])
-        #expect(models.first { $0.id == "o3" }?.defaultReasoningEffort == "medium")
     }
 
     @Test func `the efforts come from the API description, highest first`() throws {

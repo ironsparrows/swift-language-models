@@ -1,4 +1,5 @@
-# The package has no dependencies, so only the workflows' actions need updates.
+# The package's products have no dependencies and its test dependency isn't tracked, so only the workflows' actions get
+# updates.
 version: 2
 updates:
   - package-ecosystem: github-actions

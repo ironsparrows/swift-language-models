@@ -2634,93 +2634,6 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.IbmGranit
     }
 }
 
-extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.InceptionMercury2> {
-    /// Inception: Mercury 2
-    @available(*, deprecated, message: "Removed from OpenRouter on 2026-11-08")
-    public static var inceptionMercury2: Self {
-        Self(
-            id: "inception/mercury-2",
-            displayName: "Inception: Mercury 2",
-            releaseDate: Date(timeIntervalSince1970: 1_772_636_275),
-            expirationDate: Date(timeIntervalSince1970: 1_794_096_000),
-            contextSize: 128_000,
-            supportedParameters: [
-                .includeReasoning,
-                .maxTokens,
-                .reasoning,
-                .reasoningEffort,
-                .responseFormat,
-                .stop,
-                .structuredOutputs,
-                .temperature,
-                .toolChoice,
-                .tools,
-            ],
-            reasoning: .onByDefault,
-            reasoningEfforts: [.high, .medium, .low, .off],
-            defaultReasoningEffort: .medium
-        )
-    }
-}
-
-extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.InceptionMercury2_5> {
-    /// Inception: Mercury 2.5
-    @available(*, deprecated, message: "Removed from OpenRouter on 2026-11-08")
-    public static var inceptionMercury2_5: Self {
-        Self(
-            id: "inception/mercury-2.5",
-            displayName: "Inception: Mercury 2.5",
-            releaseDate: Date(timeIntervalSince1970: 1_788_892_137),
-            expirationDate: Date(timeIntervalSince1970: 1_794_096_000),
-            contextSize: 260_000,
-            supportedParameters: [
-                .includeReasoning,
-                .maxTokens,
-                .reasoning,
-                .reasoningEffort,
-                .responseFormat,
-                .stop,
-                .structuredOutputs,
-                .temperature,
-                .toolChoice,
-                .tools,
-            ],
-            reasoning: .onByDefault,
-            reasoningEfforts: [.high, .medium, .low, .off],
-            defaultReasoningEffort: .medium
-        )
-    }
-}
-
-extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.InceptionMercury3> {
-    /// Inception: Mercury 3
-    @available(*, deprecated, message: "Removed from OpenRouter on 2026-11-08")
-    public static var inceptionMercury3: Self {
-        Self(
-            id: "inception/mercury-3",
-            displayName: "Inception: Mercury 3",
-            releaseDate: Date(timeIntervalSince1970: 1_792_158_337),
-            expirationDate: Date(timeIntervalSince1970: 1_794_096_000),
-            contextSize: 1_000_000,
-            supportedParameters: [
-                .includeReasoning,
-                .maxTokens,
-                .reasoning,
-                .reasoningEffort,
-                .responseFormat,
-                .stop,
-                .structuredOutputs,
-                .temperature,
-                .toolChoice,
-                .tools,
-            ],
-            reasoning: .onByDefault,
-            reasoningEfforts: [.high, .medium, .low, .off],
-            defaultReasoningEffort: .medium
-        )
-    }
-}
-
 extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.InclusionaiLing3_0Flash> {
     /// inclusionAI: Ling 3.0 Flash
     public static var inclusionaiLing3_0Flash: Self {
@@ -3652,23 +3565,6 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.Microsoft
     }
 }
 
-extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.MinimaxMinimax01> {
-    /// MiniMax: MiniMax-01
-    @available(*, deprecated, message: "Removed from OpenRouter on 2026-11-05")
-    public static var minimaxMinimax01: Self {
-        Self(
-            id: "minimax/minimax-01",
-            displayName: "MiniMax: MiniMax-01",
-            releaseDate: Date(timeIntervalSince1970: 1_736_915_462),
-            knowledgeCutoff: Date(timeIntervalSince1970: 1_711_843_200),
-            expirationDate: Date(timeIntervalSince1970: 1_793_836_800),
-            contextSize: 1_000_192,
-            inputModalities: [.image, .text],
-            supportedParameters: [.maxTokens, .temperature, .topP]
-        )
-    }
-}
-
 extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.MinimaxMinimaxM1> {
     /// MiniMax: MiniMax M1
     public static var minimaxMinimaxM1: Self {
@@ -3694,53 +3590,6 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.MinimaxMi
                 .topP,
             ],
             reasoning: .offByDefault
-        )
-    }
-}
-
-extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.MinimaxMinimaxM2> {
-    /// MiniMax: MiniMax M2
-    @available(*, deprecated, message: "Removed from OpenRouter on 2026-11-05")
-    public static var minimaxMinimaxM2: Self {
-        Self(
-            id: "minimax/minimax-m2",
-            displayName: "MiniMax: MiniMax M2",
-            releaseDate: Date(timeIntervalSince1970: 1_761_252_093),
-            expirationDate: Date(timeIntervalSince1970: 1_793_836_800),
-            contextSize: 204_800,
-            supportedParameters: [.includeReasoning, .maxTokens, .reasoning, .temperature, .toolChoice, .tools, .topP],
-            reasoning: .mandatory
-        )
-    }
-}
-
-extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.MinimaxMinimaxM2Her> {
-    /// MiniMax: MiniMax M2-her
-    @available(*, deprecated, message: "Removed from OpenRouter on 2026-11-05")
-    public static var minimaxMinimaxM2Her: Self {
-        Self(
-            id: "minimax/minimax-m2-her",
-            displayName: "MiniMax: MiniMax M2-her",
-            releaseDate: Date(timeIntervalSince1970: 1_769_177_239),
-            expirationDate: Date(timeIntervalSince1970: 1_793_836_800),
-            contextSize: 65_536,
-            supportedParameters: [.maxTokens, .temperature, .topP]
-        )
-    }
-}
-
-extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.MinimaxMinimaxM2_1> {
-    /// MiniMax: MiniMax M2.1
-    @available(*, deprecated, message: "Removed from OpenRouter on 2026-11-05")
-    public static var minimaxMinimaxM2_1: Self {
-        Self(
-            id: "minimax/minimax-m2.1",
-            displayName: "MiniMax: MiniMax M2.1",
-            releaseDate: Date(timeIntervalSince1970: 1_766_454_997),
-            expirationDate: Date(timeIntervalSince1970: 1_793_836_800),
-            contextSize: 204_800,
-            supportedParameters: [.includeReasoning, .maxTokens, .reasoning, .responseFormat, .temperature, .toolChoice, .tools, .topP],
-            reasoning: .mandatory
         )
     }
 }
@@ -4841,65 +4690,6 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.NexAgiNex
     }
 }
 
-extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.NousresearchHermes3Llama3_1_405b> {
-    /// Nous: Hermes 3 405B Instruct
-    @available(*, deprecated, message: "Removed from OpenRouter on 2026-11-02")
-    public static var nousresearchHermes3Llama3_1_405b: Self {
-        Self(
-            id: "nousresearch/hermes-3-llama-3.1-405b",
-            displayName: "Nous: Hermes 3 405B Instruct",
-            releaseDate: Date(timeIntervalSince1970: 1_723_766_400),
-            knowledgeCutoff: Date(timeIntervalSince1970: 1_703_980_800),
-            expirationDate: Date(timeIntervalSince1970: 1_793_577_600),
-            contextSize: 131_072,
-            supportedParameters: [
-                .frequencyPenalty,
-                .logitBias,
-                .maxTokens,
-                .minP,
-                .presencePenalty,
-                .repetitionPenalty,
-                .responseFormat,
-                .seed,
-                .stop,
-                .structuredOutputs,
-                .temperature,
-                .topK,
-                .topP,
-            ]
-        )
-    }
-}
-
-extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.NousresearchHermes3Llama3_1_70b> {
-    /// Nous: Hermes 3 70B Instruct
-    @available(*, deprecated, message: "Removed from OpenRouter on 2026-11-02")
-    public static var nousresearchHermes3Llama3_1_70b: Self {
-        Self(
-            id: "nousresearch/hermes-3-llama-3.1-70b",
-            displayName: "Nous: Hermes 3 70B Instruct",
-            releaseDate: Date(timeIntervalSince1970: 1_723_939_200),
-            knowledgeCutoff: Date(timeIntervalSince1970: 1_703_980_800),
-            expirationDate: Date(timeIntervalSince1970: 1_793_577_600),
-            contextSize: 131_072,
-            supportedParameters: [
-                .frequencyPenalty,
-                .logitBias,
-                .maxTokens,
-                .minP,
-                .presencePenalty,
-                .repetitionPenalty,
-                .seed,
-                .stop,
-                .structuredOutputs,
-                .temperature,
-                .topK,
-                .topP,
-            ]
-        )
-    }
-}
-
 extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.NousresearchHermes4_405b> {
     /// Nous: Hermes 4 405B
     public static var nousresearchHermes4_405b: Self {
@@ -5100,22 +4890,6 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.NvidiaNem
                 .topK,
                 .topP,
             ],
-            reasoning: .onByDefault
-        )
-    }
-}
-
-extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.NvidiaNemotron3_5ContentSafetyFree> {
-    /// NVIDIA: Nemotron 3.5 Content Safety (free)
-    @available(*, deprecated, message: "Removed from OpenRouter on 2026-11-06")
-    public static var nvidiaNemotron3_5ContentSafetyFree: Self {
-        Self(
-            id: "nvidia/nemotron-3.5-content-safety:free",
-            displayName: "NVIDIA: Nemotron 3.5 Content Safety (free)",
-            releaseDate: Date(timeIntervalSince1970: 1_780_581_864),
-            contextSize: 128_000,
-            inputModalities: [.image, .text],
-            supportedParameters: [.includeReasoning, .maxTokens, .reasoning, .seed, .temperature, .topP],
             reasoning: .onByDefault
         )
     }
@@ -6929,7 +6703,6 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.OpenRoute
             releaseDate: Date(timeIntervalSince1970: 1_793_885_889),
             contextSize: 2_000_000,
             inputModalities: [.audio, .file, .image, .text, .video],
-            outputModalities: [.image, .text],
             supportedParameters: [
                 .frequencyPenalty,
                 .includeReasoning,
@@ -6969,7 +6742,6 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.OpenRoute
             releaseDate: Date(timeIntervalSince1970: 1_784_311_165),
             contextSize: 2_000_000,
             inputModalities: [.audio, .file, .image, .text, .video],
-            outputModalities: [.image, .text],
             supportedParameters: [
                 .frequencyPenalty,
                 .includeReasoning,
@@ -7010,7 +6782,6 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.OpenRoute
             releaseDate: Date(timeIntervalSince1970: 1_793_884_321),
             contextSize: 2_000_000,
             inputModalities: [.audio, .file, .image, .text, .video],
-            outputModalities: [.image, .text],
             supportedParameters: [
                 .frequencyPenalty,
                 .includeReasoning,
@@ -7334,70 +7105,6 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.Perplexit
                 .webSearchOptions,
             ],
             reasoning: .mandatory
-        )
-    }
-}
-
-extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.PoolsideLagunaS2_1> {
-    /// Poolside: Laguna S 2.1
-    @available(*, deprecated, message: "Removed from OpenRouter on 2026-10-31")
-    public static var poolsideLagunaS2_1: Self {
-        Self(
-            id: "poolside/laguna-s-2.1",
-            displayName: "Poolside: Laguna S 2.1",
-            releaseDate: Date(timeIntervalSince1970: 1_784_652_683),
-            expirationDate: Date(timeIntervalSince1970: 1_793_404_800),
-            contextSize: 1_048_576,
-            supportedParameters: [.includeReasoning, .maxTokens, .reasoning, .temperature, .toolChoice, .tools],
-            reasoning: .onByDefault
-        )
-    }
-}
-
-extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.PoolsideLagunaS2_1Free> {
-    /// Poolside: Laguna S 2.1 (free)
-    @available(*, deprecated, message: "Removed from OpenRouter on 2026-10-31")
-    public static var poolsideLagunaS2_1Free: Self {
-        Self(
-            id: "poolside/laguna-s-2.1:free",
-            displayName: "Poolside: Laguna S 2.1 (free)",
-            releaseDate: Date(timeIntervalSince1970: 1_784_652_683),
-            expirationDate: Date(timeIntervalSince1970: 1_793_404_800),
-            contextSize: 262_144,
-            supportedParameters: [.includeReasoning, .maxTokens, .reasoning, .temperature, .toolChoice, .tools],
-            reasoning: .onByDefault
-        )
-    }
-}
-
-extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.PoolsideLagunaXs2_1> {
-    /// Poolside: Laguna XS 2.1
-    @available(*, deprecated, message: "Removed from OpenRouter on 2026-10-31")
-    public static var poolsideLagunaXs2_1: Self {
-        Self(
-            id: "poolside/laguna-xs-2.1",
-            displayName: "Poolside: Laguna XS 2.1",
-            releaseDate: Date(timeIntervalSince1970: 1_783_002_429),
-            expirationDate: Date(timeIntervalSince1970: 1_793_404_800),
-            contextSize: 262_144,
-            supportedParameters: [.includeReasoning, .maxTokens, .reasoning, .temperature, .toolChoice, .tools],
-            reasoning: .onByDefault
-        )
-    }
-}
-
-extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.PoolsideLagunaXs2_1Free> {
-    /// Poolside: Laguna XS 2.1 (free)
-    @available(*, deprecated, message: "Removed from OpenRouter on 2026-10-31")
-    public static var poolsideLagunaXs2_1Free: Self {
-        Self(
-            id: "poolside/laguna-xs-2.1:free",
-            displayName: "Poolside: Laguna XS 2.1 (free)",
-            releaseDate: Date(timeIntervalSince1970: 1_783_002_429),
-            expirationDate: Date(timeIntervalSince1970: 1_793_404_800),
-            contextSize: 262_144,
-            supportedParameters: [.includeReasoning, .maxTokens, .reasoning, .temperature, .toolChoice, .tools],
-            reasoning: .onByDefault
         )
     }
 }
@@ -9609,68 +9316,6 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.Thinkingm
     }
 }
 
-extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.ThinkingmachinesInklingSmallFree> {
-    /// Thinking Machines: Inkling Small (free)
-    @available(*, deprecated, message: "Removed from OpenRouter on 2026-11-04")
-    public static var thinkingmachinesInklingSmallFree: Self {
-        Self(
-            id: "thinkingmachines/inkling-small:free",
-            displayName: "Thinking Machines: Inkling Small (free)",
-            releaseDate: Date(timeIntervalSince1970: 1_785_443_117),
-            expirationDate: Date(timeIntervalSince1970: 1_793_750_400),
-            contextSize: 1_048_576,
-            inputModalities: [.audio, .image, .text],
-            supportedParameters: [
-                .frequencyPenalty,
-                .includeReasoning,
-                .maxTokens,
-                .presencePenalty,
-                .reasoning,
-                .reasoningEffort,
-                .seed,
-                .stop,
-                .temperature,
-                .tools,
-                .topP,
-            ],
-            reasoning: .onByDefault,
-            reasoningEfforts: [.max, .high, .medium, .low, .minimal, .off],
-            defaultReasoningEffort: .high
-        )
-    }
-}
-
-extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.ThinkingmachinesInklingFree> {
-    /// Thinking Machines: Inkling (free)
-    @available(*, deprecated, message: "Removed from OpenRouter on 2026-11-04")
-    public static var thinkingmachinesInklingFree: Self {
-        Self(
-            id: "thinkingmachines/inkling:free",
-            displayName: "Thinking Machines: Inkling (free)",
-            releaseDate: Date(timeIntervalSince1970: 1_784_325_956),
-            expirationDate: Date(timeIntervalSince1970: 1_793_750_400),
-            contextSize: 1_048_576,
-            inputModalities: [.audio, .image, .text],
-            supportedParameters: [
-                .frequencyPenalty,
-                .includeReasoning,
-                .maxTokens,
-                .presencePenalty,
-                .reasoning,
-                .reasoningEffort,
-                .seed,
-                .stop,
-                .temperature,
-                .tools,
-                .topP,
-            ],
-            reasoning: .onByDefault,
-            reasoningEfforts: [.max, .high, .medium, .low, .minimal, .off],
-            defaultReasoningEffort: .high
-        )
-    }
-}
-
 extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.TypesafeJevRouter> {
     /// TypeSafe: Jev Router
     public static var typesafeJevRouter: Self {
@@ -9795,38 +9440,6 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.UpstageSo
             ],
             reasoning: .offByDefault,
             reasoningEfforts: [.max, .xhigh, .high, .medium, .low, .minimal, .off],
-            defaultReasoningEffort: .medium
-        )
-    }
-}
-
-extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.UpstageSolarPro3> {
-    /// Upstage: Solar Pro 3
-    @available(*, deprecated, message: "Removed from OpenRouter on 2026-10-29")
-    public static var upstageSolarPro3: Self {
-        Self(
-            id: "upstage/solar-pro-3",
-            displayName: "Upstage: Solar Pro 3",
-            releaseDate: Date(timeIntervalSince1970: 1_769_481_200),
-            expirationDate: Date(timeIntervalSince1970: 1_793_318_400),
-            contextSize: 131_072,
-            supportedParameters: [
-                .frequencyPenalty,
-                .includeReasoning,
-                .maxTokens,
-                .parallelToolCalls,
-                .presencePenalty,
-                .reasoning,
-                .reasoningEffort,
-                .responseFormat,
-                .structuredOutputs,
-                .temperature,
-                .toolChoice,
-                .tools,
-                .topP,
-            ],
-            reasoning: .offByDefault,
-            reasoningEfforts: [.high, .medium, .low, .minimal, .off],
             defaultReasoningEffort: .medium
         )
     }

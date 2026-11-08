@@ -5,25 +5,24 @@ See which models reason, what a reasoning level becomes, and how reasoning comes
 ## Overview
 
 Foundation Models sets how much a model reasons with `ContextOptions.ReasoningLevel`, as
-<doc:/LanguageModels/ReasoningLevels>
-describes. An OpenAI model's ``OpenAIModel/reasoning`` says whether it reasons at all, and its
-``OpenAIModel/reasoningEfforts`` which levels it accepts:
+<doc:/LanguageModels/ReasoningLevels> describes. An OpenAI model's ``OpenAIModel/reasoning`` says whether it reasons at
+all, and its ``OpenAIModel/reasoningEfforts`` which levels it accepts:
 
 @Snippet(path: "swift-language-models/Snippets/OpenAIReasoning", slice: "level")
 
 ### Which models reason
 
-``OpenAIModel/reasoning`` is one of these `ModelReasoning` values:
+``OpenAIModel/reasoning`` is one of these ``ModelReasoning`` values:
 
 - `unsupported`: the model doesn't reason, such as GPT-4.1, and a request sends no `reasoning`.
 - `onByDefault`: the model accepts `none`, so a request can turn its reasoning off, such as GPT-6 Luna and GPT-5.5.
-  The catalog records it as reasoning by default, since OpenAI's API description gives `medium` as the default effort,
-  although a model's own default can differ, as GPT-5.4 mini's does.
+  The catalog records every such model as reasoning by default, which assumes its default effort isn't `none`.
+  GPT-5.4 mini's is `none`, so its record is wrong: it reasons only when a request sets a level other than `off`.
 - `mandatory`: the model always reasons, since it doesn't accept `none`, such as GPT-6 Astra and GPT-5.5 Pro.
 
 A model that reasons has `.reasoning` in its ``OpenAIModel/capabilities``. Its
-``OpenAIModel/defaultReasoningEffort`` is the default effort that OpenAI's API description gives, `medium` for every
-model that accepts it, and not always the effort the model uses when a request doesn't set one.
+``OpenAIModel/defaultReasoningEffort`` is `nil` in the catalog, which doesn't know the effort a model uses when a
+request doesn't set one.
 
 ### What a level becomes
 
@@ -42,10 +41,10 @@ model that accepts it, and not always the effort the model uses when a request d
 
 A model that reasons takes `temperature` and `top_p` only while its effort is `none`. A request that sets another
 level leaves them out, even when the model lists them, as GPT-5.4 does, and so does any request to a model that always
-reasons, such as GPT-5 nano. A request that sets no level sends them to a model that can stop reasoning, as the
-official SDKs do, since the catalog's ``OpenAIModel/defaultReasoningEffort`` doesn't always match the model's own:
-GPT-5.4 mini takes them, although its catalog default is `medium`. OpenAI rejects them when the model's default isn't
-`none`. Each setting left out is logged, and a debug build shows a runtime warning for it.
+reasons, such as GPT-5 nano. A request that sets no level sends them to a model that can stop reasoning, since the
+catalog doesn't record the model's default effort: GPT-5.4 mini, whose default is `none`, takes them. OpenAI rejects
+them when the model's default isn't `none`. Each setting left out is logged, and a debug build shows a runtime warning
+for it.
 
 ### Instructions
 
@@ -56,10 +55,9 @@ doesn't.
 
 The model's reasoning arrives in the transcript as a reasoning entry, before the answer's text. Reasoning that arrives
 after the answer's text starts, as between a `commentary` message and the final answer, isn't shown, but its
-`reasoning` items still go back on later turns. The entry's text is the summary
-of its reasoning that the model writes, when ``OpenAIOptions/reasoningSummary`` asks for one, or the model's reasoning
-text, when the model sends it. Each part of a summary starts after a blank line. The answer's usage counts the reasoning
-tokens in `output.reasoningTokenCount`.
+`reasoning` items still go back on later turns. The entry's text is the summary of its reasoning that the model writes,
+when ``OpenAIOptions/reasoningSummary`` asks for one, or the model's reasoning text, when the model sends it. Each part
+of a summary starts after a blank line. The answer's usage counts the reasoning tokens in `output.reasoningTokenCount`.
 
 ``OpenAIOptions/reasoningSummary`` has no default: without one, the request asks for no summary, and the reasoning entry
 has no text, but still carries the reasoning, encrypted, so it goes back on later turns.
@@ -75,11 +73,12 @@ Every request to a model that reasons asks for its reasoning encrypted, with `in
 `reasoning.encrypted_content`. The answer's `reasoning` items, as OpenAI sent them, become the reasoning entry's
 signature. Each request sends the transcript, and with it the reasoning of earlier answers:
 
-- An answer's `reasoning` items go back as they came, in their places between its messages and function calls.
+- An answer's `reasoning` items go back as they came, in their places between its messages, function calls and server
+  tools' calls.
 - They go back only to the model that wrote them, or to the model it's a dated snapshot of, since encrypted reasoning
   suits only that model. The reasoning entry names the model that answered, such as `gpt-5-nano-2025-08-07`, so its
   reasoning goes back to `gpt-5-nano` too, and not to another model the session moves to.
-- An answer with neither text nor tool calls, such as one cut off while it reasoned, sends no reasoning back.
+- An answer with nothing after its reasoning, such as one cut off while it reasoned, sends no reasoning back.
 - Reasoning that another provider module wrote, in a transcript that moved between models, isn't sent.
 
 ### Store responses or not
@@ -92,21 +91,23 @@ signature. Each request sends the transcript, and with it the reasoning of earli
   left out of the request, since OpenAI can't look it up by its id.
 
 The package sends the whole transcript, and every reasoning item goes back encrypted, so later turns work the same
-whether or not OpenAI keeps the response. A session that moves from stored to not stored responses keeps answering.
+whether or not OpenAI keeps the response, apart from a generated image, whose call goes back only while OpenAI keeps
+the responses, as <doc:ServerTools> describes. A session that moves from stored to not stored responses keeps answering.
 
 ### Message phases
 
 A model can write an answer as several messages, each with a `phase`, such as `commentary` or `final_answer`. The
 answer's text joins them, and the entry that ends the answer keeps the `phase` of each message, with the length of its
-text, under ``OpenAIMetadataKey/phases``: a list of structures with a `phase` and a `length`, which
-``OpenAIResponseMetadata/messages`` reads. On later turns, each message goes back as an `assistant` message of its own,
-with its `phase`, as OpenAI asks. When the lengths don't add up to the answer's text, as when the text changed, the
-messages held out of the text go back first, then the whole text as one message with the phase of the last message shown
-in it.
+text, which ``OpenAIResponseMetadata/messages`` reads as a list of ``OpenAIResponseMetadata/Message`` values, each with
+its ``OpenAIResponseMetadata/Message/phase`` and ``OpenAIResponseMetadata/Message/length``. On later turns, each message
+goes back as an `assistant` message of its own, with its `phase`, as OpenAI asks. When the lengths don't add up to the
+answer's text, as when the text changed, the messages held out of the text go back first, then the whole text as one
+message with the phase of the last message shown in it.
 
-A guided answer decodes only its first message with no phase or the `final_answer` phase, as the official SDKs parse
-it. The text of its other messages, such as a `commentary` preamble, stays out of the answer's text, and its structure
-in ``OpenAIMetadataKey/phases`` keeps the text under `heldText`, with a `length` of 0, so it goes back in its place.
+A guided answer decodes only its first message with no phase or the `final_answer` phase. The text of its other
+messages, such as a `commentary` preamble, stays out of the answer's text, and
+``OpenAIResponseMetadata/Message/heldText`` keeps it, with a ``OpenAIResponseMetadata/Message/length`` of 0, so it goes
+back in its place.
 
 ### OpenAI's guides
 

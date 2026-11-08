@@ -1,0 +1,399 @@
+import Foundation
+public import FoundationModels
+import os
+
+// MARK: - Violations
+
+/// A value of a guided answer that breaks a guide of its schema, such as a number below its minimum.
+///
+/// Foundation Models checks a guided answer's types as it decodes the answer, and the package checks the guides that
+/// become constraints of the schema. An answer that breaks one throws `GeneratedContent.ParsingError`, whose
+/// `underlyingError` is a ``GuideViolations`` that lists each value, so an app can decide value by value: clamp a
+/// number, cut a list short, or ask again.
+///
+/// ```swift
+/// do {
+///     return try await session.respond(to: prompt, generating: Dinner.self).content
+/// } catch let error as GeneratedContent.ParsingError {
+///     guard let broken = error.underlyingError as? GuideViolations else { throw error }
+///     for violation in broken.violations where violation.keyword == .minimum {
+///         print(violation.path, violation.value, violation.limit)  // minutes 2 5
+///     }
+///     throw error
+/// }
+/// ```
+public struct GuideViolation: Sendable, Equatable, CustomStringConvertible {
+    /// Where the value is in the answer, such as `ingredients[1].grams`, or empty for the whole answer.
+    public let path: String
+
+    /// The schema keyword the value breaks, such as ``Keyword/minimum``.
+    public let keyword: Keyword
+
+    /// The value that breaks the guide.
+    public let value: GeneratedContent
+
+    /// The guide's limit, as the schema states it: the bound of a minimum, a maximum, a count or a length, the pattern,
+    /// the constant, or the allowed values.
+    public let limit: GeneratedContent
+
+    /// What's wrong with the value, such as `is 0, below the minimum of 1`.
+    private let problem: String
+
+    fileprivate init(path: String, keyword: Keyword, value: GeneratedContent, limit: GeneratedContent, problem: String) {
+        self.path = path
+        self.keyword = keyword
+        self.value = value
+        self.limit = limit
+        self.problem = problem
+    }
+
+    /// Where the value is and what's wrong with it, such as `ingredients[1].grams is 0, below the minimum of 1`.
+    public var description: String {
+        "\(path.isEmpty ? "The answer" : path) \(problem)"
+    }
+}
+
+extension GuideViolation {
+    /// A JSON Schema keyword that a guide becomes.
+    public struct Keyword: ProviderVocabulary {
+        /// The one value allowed, which `.constant` becomes.
+        public static let const: Self = "const"
+
+        /// The values allowed, which `.anyOf` becomes.
+        public static let `enum`: Self = "enum"
+
+        /// The lowest number allowed, which `.minimum` and `.range` become.
+        public static let minimum: Self = "minimum"
+
+        /// The highest number allowed, which `.maximum` and `.range` become.
+        public static let maximum: Self = "maximum"
+
+        /// A number the value must be above.
+        public static let exclusiveMinimum: Self = "exclusiveMinimum"
+
+        /// A number the value must be below.
+        public static let exclusiveMaximum: Self = "exclusiveMaximum"
+
+        /// The fewest elements allowed, which `.minimumCount` and `.count` become.
+        public static let minItems: Self = "minItems"
+
+        /// The most elements allowed, which `.maximumCount` and `.count` become.
+        public static let maxItems: Self = "maxItems"
+
+        /// The fewest characters allowed, counted as Unicode scalars.
+        public static let minLength: Self = "minLength"
+
+        /// The most characters allowed, counted as Unicode scalars.
+        public static let maxLength: Self = "maxLength"
+
+        /// A pattern the text must match, which `.pattern` becomes.
+        public static let pattern: Self = "pattern"
+
+        /// The keyword's name in JSON Schema.
+        public let rawValue: String
+
+        /// Creates a keyword from its name in JSON Schema.
+        ///
+        /// - Parameter rawValue: The name, such as `"minimum"`.
+        public init(rawValue: String) {
+            self.rawValue = rawValue
+        }
+    }
+}
+
+/// The values of a guided answer that break guides of its schema: the `underlyingError` of the
+/// `GeneratedContent.ParsingError` that the answer throws.
+public struct GuideViolations: Error, Sendable, Equatable, CustomStringConvertible {
+    /// Each value that breaks a guide, in the order of the answer.
+    public let violations: [GuideViolation]
+
+    private init(_ violations: [GuideViolation]) {
+        self.violations = violations
+    }
+
+    /// Each violation, such as `minutes is 2, below the minimum of 5`, separated by semicolons.
+    public var description: String {
+        violations.map(\.description).joined(separator: "; ")
+    }
+}
+
+// MARK: - Checking against a schema
+
+extension GuideViolations {
+    /// Checks an answer's text against the guides of the request's schema.
+    ///
+    /// A request without a schema passes, as does a schema that can't be encoded, and a response that isn't JSON when
+    /// the schema's root isn't an object or an array, such as a string Foundation Models decodes from plain text.
+    ///
+    /// - Parameters:
+    ///   - responseText: The text of the answer's response entry, or empty when the answer ended in tool calls, which
+    ///     passes.
+    ///   - generation: The request, with its schema, and its id, whose start names the request in the log.
+    /// - Throws: `GeneratedContent.ParsingError`, naming each value that breaks a guide, with the ``GuideViolations``
+    ///   as its `underlyingError`, when one does, or when an object or array answer isn't complete JSON, since
+    ///   decoding would fill in what's missing.
+    package static func check(_ responseText: String, of generation: LanguageModelExecutorGenerationRequest) throws {
+        guard let schema = generation.schema, !responseText.isEmpty, let json = try? JSONValue(schema, strict: true) else { return }
+        guard let answer = try? JSONValue(json: Data(responseText.utf8)) else {
+            guard let root = json["type"]?.stringValue, [JSONValue.SchemaType.object, JSONValue.SchemaType.array].contains(root)
+            else { return }
+            throw GeneratedContent.ParsingError(rawContent: responseText, debugDescription: "The answer isn't complete JSON.")
+        }
+        let violations = answer.violations(of: json)
+        guard !violations.isEmpty else { return }
+        // The log names where each value is and the guide it breaks, never the value, which is part of the answer.
+        let places = violations.map { "\($0.path.isEmpty ? "the answer" : $0.path) (\($0.keyword))" }.joined(separator: ", ")
+        let request = LanguageModelsLogging.requestName(generation.id)
+        PackageLogger.languageModels(.error)?.error(
+            "Request \(request, privacy: .public): the answer breaks its schema's guides at \(places, privacy: .public).")
+        throw GeneratedContent.ParsingError(
+            rawContent: responseText, underlyingError: GuideViolations(violations),
+            debugDescription: "The answer breaks its schema's guides: \(GuideViolations(violations)).")
+    }
+}
+
+extension JSONValue {
+    /// The constraints of a JSON schema that the value breaks.
+    ///
+    /// It checks the constraints that guides become, `const`, `enum`, `minimum`, `maximum`, `exclusiveMinimum`,
+    /// `exclusiveMaximum`, `minItems`, `maxItems`, `minLength`, `maxLength` and `pattern`, through `properties`,
+    /// `items`, `anyOf`, `allOf` and references into `$defs`. Each applies only to values of its kind, and a `pattern`
+    /// matches anywhere in the string, by Unicode scalar, as in JSON Schema. Types, and the `const` that names an
+    /// enum's case, only choose the `anyOf` branch a value takes: decoding checks them.
+    ///
+    /// - Parameter schema: The schema, whose `$ref`s point into its own `$defs`.
+    /// - Returns: Each broken constraint, in the order of the value; none when the value meets them all.
+    func violations(of schema: JSONValue) -> [GuideViolation] {
+        SchemaChecker(root: schema).violations(of: self, against: schema, at: "", depth: 0)
+    }
+}
+
+extension JSONValue {
+    /// Checks values against the constraints of one schema.
+    private struct SchemaChecker {
+        let root: JSONValue
+
+        /// How deep a check goes through references, properties and items, so a schema that refers to itself ends.
+        private static let maximumDepth = 64
+
+        /// The constraints that a value and what it holds break, following the schema's references, `anyOf` and `allOf`.
+        func violations(of value: JSONValue, against schema: JSONValue, at path: String, depth: Int) -> [GuideViolation] {
+            guard case .object(let keywords) = schema, depth < Self.maximumDepth else { return [] }
+            var found: [GuideViolation] = []
+            if let target = keywords["$ref"].flatMap(resolve) {
+                found += violations(of: value, against: target, at: path, depth: depth + 1)
+            }
+            if case .array(let branches)? = keywords["anyOf"] {
+                found += violations(of: value, againstAnyOf: branches, at: path, depth: depth)
+            }
+            if case .array(let branches)? = keywords["allOf"] {
+                for branch in branches { found += violations(of: value, against: branch, at: path, depth: depth + 1) }
+            }
+            found += Self.violations(of: value, keywords: keywords, at: path)
+            switch value {
+            case .object(let object):
+                guard case .object(let properties)? = keywords["properties"] else { break }
+                for member in object.members {
+                    guard let property = properties[member.key] else { continue }
+                    found += violations(of: member.value, against: property, at: Self.path(path, member.key), depth: depth + 1)
+                }
+            case .array(let elements):
+                guard let items = keywords["items"] else { break }
+                for (index, element) in elements.enumerated() {
+                    found += violations(of: element, against: items, at: "\(path)[\(index)]", depth: depth + 1)
+                }
+            default:
+                break
+            }
+            return found
+        }
+
+        /// A value meets `anyOf` when it meets a branch. Otherwise its violations are those of the first branch of its
+        /// type, and none when no branch is of its type, which decoding reports.
+        private func violations(of value: JSONValue, againstAnyOf branches: [JSONValue], at path: String, depth: Int) -> [GuideViolation] {
+            var firstOfItsType: [GuideViolation]?
+            for branch in branches where fits(value, branch, depth: depth + 1) {
+                let found = violations(of: value, against: branch, at: path, depth: depth + 1)
+                if found.isEmpty { return [] }
+                if firstOfItsType == nil { firstOfItsType = found }
+            }
+            return firstOfItsType ?? []
+        }
+
+        /// Whether the value is of a type the schema allows, following references and `anyOf`, and names the case the
+        /// schema is for, when the schema is one case of an enum. A schema without a type allows any.
+        private func fits(_ value: JSONValue, _ schema: JSONValue, depth: Int) -> Bool {
+            guard case .object(let keywords) = schema, depth < Self.maximumDepth else { return true }
+            if let target = keywords["$ref"].flatMap(resolve), !fits(value, target, depth: depth + 1) { return false }
+            if case .array(let branches)? = keywords["anyOf"], !branches.contains(where: { fits(value, $0, depth: depth + 1) }) {
+                return false
+            }
+            // Each case of an enum with associated values is an object whose `type` property has a `const`, its name.
+            if case .object(let object) = value, case .object(let properties)? = keywords["properties"] {
+                for property in properties.members {
+                    guard let name = property.value["const"] else { continue }
+                    guard let member = object[property.key], member.isSame(as: name) else { return false }
+                }
+            }
+            switch keywords["type"] {
+            case .string(let type)?: return value.isOfType(type)
+            case .array(let types)?: return types.contains { $0.stringValue.map(value.isOfType) ?? false }
+            default: return true
+            }
+        }
+
+        /// The schema a `$ref` such as `#/$defs/Ingredient` points to.
+        private func resolve(_ reference: JSONValue) -> JSONValue? {
+            guard let reference = reference.stringValue, reference.hasPrefix("#") else { return nil }
+            var target: JSONValue? = root
+            for component in reference.dropFirst().split(separator: "/") {
+                let key = String(component).replacing("~1", with: "/").replacing("~0", with: "~")
+                target = target?[key]
+            }
+            return target
+        }
+
+        /// The violations of the keywords that constrain the value itself.
+        private static func violations(of value: JSONValue, keywords: JSONObject, at path: String) -> [GuideViolation] {
+            var found: [GuideViolation] = []
+            func add(_ keyword: GuideViolation.Keyword, limit: JSONValue, _ problem: String) {
+                found.append(
+                    GuideViolation(
+                        path: path, keyword: keyword, value: GeneratedContent(value), limit: GeneratedContent(limit), problem: problem))
+            }
+            if let constant = keywords["const"], !value.isSame(as: constant) {
+                add(.const, limit: constant, "is \(value.shortText), not \(constant.shortText)")
+            }
+            if case .array(let allowed)? = keywords["enum"], !allowed.contains(where: value.isSame) {
+                add(.enum, limit: .array(allowed), "is \(value.shortText), not one of \(allowed.map(\.shortText).joined(separator: ", "))")
+            }
+            func order(to keyword: String) -> ComparisonResult? {
+                keywords[keyword].flatMap { JSONValue.order(of: value, to: $0) }
+            }
+            if let minimum = keywords["minimum"], order(to: "minimum") == .orderedAscending {
+                add(.minimum, limit: minimum, "is \(value.shortText), below the minimum of \(minimum.shortText)")
+            }
+            if let maximum = keywords["maximum"], order(to: "maximum") == .orderedDescending {
+                add(.maximum, limit: maximum, "is \(value.shortText), above the maximum of \(maximum.shortText)")
+            }
+            if let minimum = keywords["exclusiveMinimum"], let order = order(to: "exclusiveMinimum"), order != .orderedDescending {
+                add(.exclusiveMinimum, limit: minimum, "is \(value.shortText), not above \(minimum.shortText)")
+            }
+            if let maximum = keywords["exclusiveMaximum"], let order = order(to: "exclusiveMaximum"), order != .orderedAscending {
+                add(.exclusiveMaximum, limit: maximum, "is \(value.shortText), not below \(maximum.shortText)")
+            }
+            if case .array(let elements) = value {
+                if let minimum = keywords["minItems"], let bound = minimum.numberValue, Double(elements.count) < bound {
+                    add(.minItems, limit: minimum, "has \(items(elements.count)), fewer than the minimum of \(minimum.shortText)")
+                }
+                if let maximum = keywords["maxItems"], let bound = maximum.numberValue, Double(elements.count) > bound {
+                    add(.maxItems, limit: maximum, "has \(items(elements.count)), more than the maximum of \(maximum.shortText)")
+                }
+            }
+            if case .string(let text) = value {
+                let length = Double(text.unicodeScalars.count)
+                if let minimum = keywords["minLength"], let bound = minimum.numberValue, length < bound {
+                    add(.minLength, limit: minimum, "is \(value.shortText), shorter than the minimum of \(minimum.shortText) characters")
+                }
+                if let maximum = keywords["maxLength"], let bound = maximum.numberValue, length > bound {
+                    add(.maxLength, limit: maximum, "is \(value.shortText), longer than the maximum of \(maximum.shortText) characters")
+                }
+                // A pattern Swift can't compile is left unchecked, rather than failing an answer the host accepted.
+                if let pattern = keywords["pattern"]?.stringValue, let regex = try? Regex(pattern).matchingSemantics(.unicodeScalar),
+                    text.firstMatch(of: regex) == nil
+                {
+                    add(.pattern, limit: .string(pattern), "is \(value.shortText), which doesn't match the pattern \(pattern)")
+                }
+            }
+            return found
+        }
+
+        private static func path(_ path: String, _ key: String) -> String {
+            path.isEmpty ? key : "\(path).\(key)"
+        }
+
+        private static func items(_ count: Int) -> String {
+            count == 1 ? "1 item" : "\(count) items"
+        }
+    }
+}
+
+extension JSONValue {
+    /// The value as a number, for any of the number cases.
+    private var numberValue: Double? {
+        switch self {
+        case .integer(let value): Double(value)
+        case .largeInteger(let value): NSDecimalNumber(decimal: value).doubleValue
+        case .number(let value): value
+        default: nil
+        }
+    }
+
+    /// Whether the value is of a JSON Schema type, where a whole number is an `integer` too.
+    private func isOfType(_ type: String) -> Bool {
+        switch (type, self) {
+        case (SchemaType.null, .null), (SchemaType.boolean, .bool), (SchemaType.string, .string),
+            (SchemaType.array, .array), (SchemaType.object, .object):
+            true
+        case (SchemaType.integer, .integer), (SchemaType.integer, .largeInteger): true
+        case (SchemaType.integer, .number(let value)): value.rounded() == value
+        case (SchemaType.number, _): numberValue != nil
+        default: false
+        }
+    }
+
+    /// Whether two values are the same JSON value, where numbers compare by value.
+    private func isSame(as other: JSONValue) -> Bool {
+        if let order = Self.order(of: self, to: other) { return order == .orderedSame }
+        return self == other
+    }
+
+    /// How one number compares with another, or `nil` when either isn't a number.
+    ///
+    /// Whole numbers compare exactly, also past the 2^53 that a `Double` holds exactly; a number with a fraction
+    /// compares as a `Double`.
+    private static func order(of value: JSONValue, to other: JSONValue) -> ComparisonResult? {
+        switch (value, other) {
+        case (.integer(let value), .integer(let other)):
+            return order(value, other)
+        case (.number, _), (_, .number):
+            guard let value = value.numberValue, let other = other.numberValue else { return nil }
+            return order(value, other)
+        default:
+            guard let value = value.wholeNumber, let other = other.wholeNumber else { return nil }
+            return order(value, other)
+        }
+    }
+
+    private static func order<Number: Comparable>(_ value: Number, _ other: Number) -> ComparisonResult {
+        value < other ? .orderedAscending : value > other ? .orderedDescending : .orderedSame
+    }
+
+    /// The value as a whole number, for the integer cases.
+    private var wholeNumber: Decimal? {
+        switch self {
+        case .integer(let value): Decimal(value)
+        case .largeInteger(let value): value
+        default: nil
+        }
+    }
+
+    /// The value as JSON text, cut short after 60 characters.
+    private var shortText: String {
+        let text = self.text
+        return text.count > 60 ? "\(text.prefix(60))…" : text
+    }
+}
+
+extension JSONValue {
+    /// The words of JSON Schema's `type` keyword.
+    enum SchemaType {
+        static let null = "null"
+        fileprivate static let boolean = "boolean"
+        fileprivate static let integer = "integer"
+        fileprivate static let number = "number"
+        fileprivate static let string = "string"
+        fileprivate static let array = "array"
+        fileprivate static let object = "object"
+    }
+}

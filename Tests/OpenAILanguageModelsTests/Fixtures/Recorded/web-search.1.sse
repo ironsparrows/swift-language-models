@@ -1,0 +1,339 @@
+event: response.created
+data: {"type":"response.created","response":{"id":"resp_ae79c0d2d30b9ce28bd0da6dcf50cf3eef2c22b18f408c38c6","object":"response","created_at":1794155119,"status":"in_progress","access_programs":null,"background":false,"completed_at":null,"error":null,"frequency_penalty":0.0,"image":{"context_compression":"disabled"},"incomplete_details":null,"instructions":null,"max_output_tokens":4000,"max_tool_calls":2,"model":"gpt-6-luna","moderation":null,"output":[],"parallel_tool_calls":true,"presence_penalty":0.0,"previous_response_id":null,"prompt_cache_key":null,"prompt_cache_retention":"24h","reasoning":{"context":"all_turns","effort":"medium","mode":"standard","summary":"detailed"},"safety_identifier":null,"service_tier":"auto","store":true,"temperature":1.0,"text":{"format":{"type":"text"},"verbosity":"medium"},"tool_choice":"auto","tool_usage":{"image_gen":{"input_tokens":0,"input_tokens_details":{"image_tokens":0,"text_tokens":0},"output_tokens":0,"output_tokens_details":{"image_tokens":0,"text_tokens":0},"total_tokens":0},"web_search":{"num_requests":0}},"tools":[{"type":"web_search","return_token_budget":"default","search_content_types":["text"],"search_context_size":"medium","user_location":{"type":"approximate","city":null,"country":"US","region":null,"timezone":null}}],"top_logprobs":0,"top_p":0.98,"truncation":"disabled","usage":null,"user":null,"metadata":{}},"sequence_number":0}
+
+event: response.in_progress
+data: {"type":"response.in_progress","response":{"id":"resp_ae79c0d2d30b9ce28bd0da6dcf50cf3eef2c22b18f408c38c6","object":"response","created_at":1794155119,"status":"in_progress","access_programs":null,"background":false,"completed_at":null,"error":null,"frequency_penalty":0.0,"image":{"context_compression":"disabled"},"incomplete_details":null,"instructions":null,"max_output_tokens":4000,"max_tool_calls":2,"model":"gpt-6-luna","moderation":null,"output":[],"parallel_tool_calls":true,"presence_penalty":0.0,"previous_response_id":null,"prompt_cache_key":null,"prompt_cache_retention":"24h","reasoning":{"context":"all_turns","effort":"medium","mode":"standard","summary":"detailed"},"safety_identifier":null,"service_tier":"auto","store":true,"temperature":1.0,"text":{"format":{"type":"text"},"verbosity":"medium"},"tool_choice":"auto","tool_usage":{"image_gen":{"input_tokens":0,"input_tokens_details":{"image_tokens":0,"text_tokens":0},"output_tokens":0,"output_tokens_details":{"image_tokens":0,"text_tokens":0},"total_tokens":0},"web_search":{"num_requests":0}},"tools":[{"type":"web_search","return_token_budget":"default","search_content_types":["text"],"search_context_size":"medium","user_location":{"type":"approximate","city":null,"country":"US","region":null,"timezone":null}}],"top_logprobs":0,"top_p":0.98,"truncation":"disabled","usage":null,"user":null,"metadata":{}},"sequence_number":1}
+
+event: response.output_item.added
+data: {"type":"response.output_item.added","item":{"id":"ws_10b349fa4eb3ec0767faeb2628eae9067277d0d2c007ba6ae6","type":"web_search_call","status":"in_progress"},"output_index":0,"sequence_number":2}
+
+event: response.web_search_call.in_progress
+data: {"type":"response.web_search_call.in_progress","item_id":"ws_10b349fa4eb3ec0767faeb2628eae9067277d0d2c007ba6ae6","output_index":0,"sequence_number":3}
+
+event: response.web_search_call.searching
+data: {"type":"response.web_search_call.searching","item_id":"ws_10b349fa4eb3ec0767faeb2628eae9067277d0d2c007ba6ae6","output_index":0,"sequence_number":4}
+
+event: response.web_search_call.completed
+data: {"type":"response.web_search_call.completed","item_id":"ws_10b349fa4eb3ec0767faeb2628eae9067277d0d2c007ba6ae6","output_index":0,"sequence_number":5}
+
+event: response.output_item.done
+data: {"type":"response.output_item.done","item":{"id":"ws_10b349fa4eb3ec0767faeb2628eae9067277d0d2c007ba6ae6","type":"web_search_call","status":"completed","action":{"type":"search","queries":["latest stable release Swift programming language official release"],"query":"latest stable release Swift programming language official release","sources":[{"type":"url","url":"https://www.swift.org/blog/"},{"type":"url","url":"https://www.swift.org/blog/swift-6.4-released/?trk=article-ssr-frontend-pulse_little-text-block"},{"type":"url","url":"https://github.com/swiftlang/swift-evolution/blob/main/README.md?plain=1"},{"type":"url","url":"https://www.swift.org/install/macos/"},{"type":"url","url":"https://swiftlee-weekly.com/swift-evolution/releases/"},{"type":"url","url":"https://developer.apple.com/swift/blog/"},{"type":"url","url":"https://github.com/swiftlang/swift-evolution"},{"type":"url","url":"https://swiftly.dev/swift-versions"},{"type":"url","url":"https://forums.swift.org/c/development/dev-announce/17"},{"type":"url","url":"https://zairalabs.ai/guide/languages/swift/"},{"type":"url","url":"https://www.swift.org/blog/swift-6.3-released/?trk=article-ssr-frontend-pulse_little-text-block"},{"type":"url","url":"https://github.com/SwiftLang"},{"type":"url","url":"https://en.wikipedia.org/wiki/Swift_%28programming_language%29"},{"type":"url","url":"https://en.wikipedia.org/wiki/Swift_%28parallel_scripting_language%29"},{"type":"url","url":"https://www2.swift.com/knowledgecentre/rest/v1/publications/sref_rl_20230929/2.0/sref_rl_20230929.pdf?logDownload=true"},{"type":"url","url":"https://www.swift.com/swift-resource/251959/download"},{"type":"url","url":"https://es.wikipedia.org/wiki/Swift_%28lenguaje_de_programaci%C3%B3n%29"},{"type":"url","url":"https://en.wikipedia.org/wiki/Julia_%28programming_language%29"},{"type":"url","url":"https://www.reddit.com/r/iOSProgramming/comments/1x3leg8/what_happened_to_the_swift_on_android_what_is/"},{"type":"url","url":"https://en.wikipedia.org/wiki/Python_%28programming_language%29"},{"type":"url","url":"https://en.wikipedia.org/wiki/Swift_Playgrounds"},{"type":"url","url":"https://bobkonf.de/2024/slides/chakravarty.pdf"},{"type":"url","url":"https://www.swift.com/sites/default/files/documents/swift_release_timeline_q2_2020.pdf"},{"type":"url","url":"https://www.reddit.com/r/swift/comments/1w4yo7y/whats_everyone_working_on_this_month_september/"},{"type":"url","url":"https://www2.swift.com/knowledgecentre/rest/v1/publications/sref_rl_20211119/1.0/sref_rl_20211119.pdf?logDownload=true"},{"type":"url","url":"https://www.reddit.com/r/swift/comments/192tvaf/no_way_to_get_a_clean_the_swift_programming/"},{"type":"url","url":"https://www.reddit.com/r/swift/comments/1c7ju6l/where_can_i_find_the_epub_ebook_for_the_swift/"},{"type":"url","url":"https://www.reddit.com/r/swift/comments/1nid8ln"},{"type":"url","url":"https://arxiv.org/abs/2609.28822"}]}},"output_index":0,"sequence_number":6}
+
+event: response.output_item.added
+data: {"type":"response.output_item.added","item":{"id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","type":"reasoning","content":[],"encrypted_content":"gAAAAABq8KJyzchytWqOvL-DQSeAOt3-ASgJmEDF1vbZmtnRkHRDRYyP-L-JycfKErLL90UXv6oM5Q_SWUhOBEgDTTku6_FzsRwtLXyNOpTDb4THFnYyH-ja1UFq1mX9PkM03uA48XWFAR8jKXV_NPgz6FmdzrXWaeV06cNoiCUQakZuzy2C7dCylxQU-52bHp37dKSx5AU2YpSms0gUgFowFM7xq2VJUEw6gYyNLUp7DawT4F7LVUHaSrXylmRmdv-H7BhOgHOecAxieovT6PCU4ft3VyVDgMpefxJdKil-WCrNZoWP32KqLd-AjvQ-T_Ru1rSYk3asDm-uvkxDqEa_aXv2H1JOl7dlXH7Lwn6sRMC0o2z7L6GtbjEN0Fty3xKU8Xh-f8UdKYwdf-fPyb__38L_Xv87L1XxCFHZFM44RwguHuxWi6gQqSP6ZUHiHXIo3pRkdd_GZTe-2bxAv8qBZGEoOn-l7cgQLaF18Ht4b52Rhrry4raioiuIcSao5cQyYZlx2sq734svRn6hwndbBvLbxjhXD0OgCAMKYoVU-RDZjm18vIA7rmEJ3vD4DOI5HpoAU3tKjBZToi5xQ8rr6NOx-y3ohALvIGxz39FM0bxCoCO7ab_3tRFJ-jIrkEtaz3psT7qcWoeXzPqu57-5XDdCFJJxzRvyjVu-SGzDeQJwKjXrqD3-IiZXK8Ode1UptvbTxXIWd2fMfGRWVYuPTTI8-wQhs_QCM1iTo9_t9mEt2E5FaUnQ2XPg8VMsKt2DPhPHlmNqb7gXVKbBZijk2mSSAYI8zHok57eeeifylmgMIq7fbwzw3tGWycaCk32rpXNqR8nBiFXxoShXiAG4SP4rY8meJAQzajzj52edK3iyKGq4wU1HU3hKqUxPedkYDI2h-mwPZiZrfw7DhOkWOCiZb56kN7C546qkfRZIAqjKJksWhU1NJ_TEx4PPjx7_R5-BU-T87JF9nVYl4TIKcHi0FD74aacuFdQA4M4QrGKzj2yXP0ycNcj9O2STAcEJ6Zh4RWXTEb05grE4_aFqzpQLI4f7urvYaNJfve5DLxyQsxj2uHs0eW8pMqYmEbBKOKour8mQdovp9L6ULP_BmItw64H2wNtmcLIplBMOxizBVAU52R9SvTzHeO1-ruQXQuvrPf0yy0RqdbInOsgqawqmD7skI85PazZBUd5lu22_hu8olGPU_Op0p3wZ1Obszmb8aX5jStx--7PmQ5CQ2nRZN_pm9l8qWzzfzaWgdc2rxO7fw8rXbbJOFEixA09ekjOJwCx1fdWMWLz3QFsY58AbH1-ZLfvd5vg7UgutjYVTvTnYT7MsEdGMgs-nTs-G9HvFhDa_0Gig7X7pHhFQZXOzlJnHbBHIyEuFX4p79AZYVkeVpKk=","summary":[]},"output_index":1,"sequence_number":7}
+
+event: response.reasoning_summary_part.added
+data: {"type":"response.reasoning_summary_part.added","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","output_index":1,"part":{"type":"summary_text","text":""},"sequence_number":8,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":"**Verifying latest release**\n\nI","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"q","output_index":1,"sequence_number":9,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":" need","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"AznJtztbP2X","output_index":1,"sequence_number":10,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":" to","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"Glpeq0wOxsrB0","output_index":1,"sequence_number":11,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":" check","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"sydUxAJIdY","output_index":1,"sequence_number":12,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":" for","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"6xcoLZUzjHoH","output_index":1,"sequence_number":13,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":" the","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"eY4AdTpFrwvy","output_index":1,"sequence_number":14,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":" likely","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"PJEJXTjok","output_index":1,"sequence_number":15,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":" latest","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"08ispZFTr","output_index":1,"sequence_number":16,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":" stable","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"C9r3ZQcb7","output_index":1,"sequence_number":17,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":" release","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"Fs8pldKM","output_index":1,"sequence_number":18,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":",","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"9QC3QGGbMMHTKG0","output_index":1,"sequence_number":19,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":" which","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"jCAgKKurUY","output_index":1,"sequence_number":20,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":" looks","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"M8Ig30PXCR","output_index":1,"sequence_number":21,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":" like","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"iUegdSFCNLz","output_index":1,"sequence_number":22,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":" version","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"2HWmUuTm","output_index":1,"sequence_number":23,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":" 6","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"CIqsbWXblS2ylh","output_index":1,"sequence_number":24,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":".","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"YmW2Fhybtlh2kus","output_index":1,"sequence_number":25,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":"4","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"1cHIglDz1KKszT6","output_index":1,"sequence_number":26,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":" with","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"mbRse0n7O2y","output_index":1,"sequence_number":27,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":" a","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"bCdFiuByuMFU73","output_index":1,"sequence_number":28,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":" potential","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"loW7BF","output_index":1,"sequence_number":29,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":" patch","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"P8sfwP1PxE","output_index":1,"sequence_number":30,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":" at","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"ogyTpOE4R86zY","output_index":1,"sequence_number":31,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":" 6","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"chZ9aWcWRWSCQS","output_index":1,"sequence_number":32,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":".","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"T4LU5IjBHshxra2","output_index":1,"sequence_number":33,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":"4","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"IwJ7eyqvpJjAGVX","output_index":1,"sequence_number":34,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":".","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"CS5FWAstnZNVjJB","output_index":1,"sequence_number":35,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":"2","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"8xpW4iNbTWN7EY5","output_index":1,"sequence_number":36,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":".","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"UV2SZOxz6UilOW3","output_index":1,"sequence_number":37,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":" It","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"68RWE6QMU3Dtv","output_index":1,"sequence_number":38,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":"’s","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"M1OBGDRylwKkyX","output_index":1,"sequence_number":39,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":" important","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"oq6j4t","output_index":1,"sequence_number":40,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":" to","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"Jb0BmrT9P7pYv","output_index":1,"sequence_number":41,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":" verify","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"khqTkZge3","output_index":1,"sequence_number":42,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":" this","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"GQFDtEsbYuF","output_index":1,"sequence_number":43,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":" by","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"XsziXwT46Zi5T","output_index":1,"sequence_number":44,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":" looking","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"4hPDhaee","output_index":1,"sequence_number":45,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":" at","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"Onx1MAwIQ10IK","output_index":1,"sequence_number":46,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":" the","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"dUX4YN2mWRU1","output_index":1,"sequence_number":47,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":" official","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"ld8vZIj","output_index":1,"sequence_number":48,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":" Swift","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"2Tm1JnZhh9","output_index":1,"sequence_number":49,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":" download","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"ka3P2W6","output_index":1,"sequence_number":50,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":" releases","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"wSZVi5d","output_index":1,"sequence_number":51,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":".","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"EJpqj3Iar3AfV72","output_index":1,"sequence_number":52,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":" The","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"tO7w4f45m06v","output_index":1,"sequence_number":53,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":" user","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"fGz5Xo64AKA","output_index":1,"sequence_number":54,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":" is","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"KP1NtOxwWX3BW","output_index":1,"sequence_number":55,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":" asking","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"xIjHfCkYy","output_index":1,"sequence_number":56,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":" about","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"pPnvfNyoQU","output_index":1,"sequence_number":57,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":" the","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"PCBuxj71eGer","output_index":1,"sequence_number":58,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":" latest","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"ol47nyEfu","output_index":1,"sequence_number":59,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":" stable","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"DwDk5cpkD","output_index":1,"sequence_number":60,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":" release","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"KJsskCGT","output_index":1,"sequence_number":61,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":",","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"ve83joJcNhHLhGV","output_index":1,"sequence_number":62,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":" so","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"G8QQXoADYIQCC","output_index":1,"sequence_number":63,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":" I'll","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"bMobu5Btxkp","output_index":1,"sequence_number":64,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":" search","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"KSSjJGCYE","output_index":1,"sequence_number":65,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":" the","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"x3d9mDIFZR1a","output_index":1,"sequence_number":66,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":" official","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"i3qtOcO","output_index":1,"sequence_number":67,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":" Git","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"8cKn0kxeyBQW","output_index":1,"sequence_number":68,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":"Hub","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"GTrmOOJ37F0Wg","output_index":1,"sequence_number":69,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":" releases","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"SlWYUGB","output_index":1,"sequence_number":70,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":" page","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"YWA4esVWpg3","output_index":1,"sequence_number":71,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":" to","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"ZznkYh8UyUAko","output_index":1,"sequence_number":72,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":" confirm","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"7CJXqWmZ","output_index":1,"sequence_number":73,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":" the","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"RX3O8f9aL2mC","output_index":1,"sequence_number":74,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":" right","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"0cfAFGxIDB","output_index":1,"sequence_number":75,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":" version","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"z5iw2DR6","output_index":1,"sequence_number":76,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":".","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"xfMymyxysHor7sd","output_index":1,"sequence_number":77,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":" This","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"GixODF4V8ll","output_index":1,"sequence_number":78,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":" will","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"niC3UIWZxku","output_index":1,"sequence_number":79,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":" ensure","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"682ej2GwH","output_index":1,"sequence_number":80,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":" I","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"M66HW5w8UqDQWA","output_index":1,"sequence_number":81,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":" provide","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"ifgfoDEc","output_index":1,"sequence_number":82,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":" accurate","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"J3KBZA8","output_index":1,"sequence_number":83,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":" and","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"rzFWUXbdntmn","output_index":1,"sequence_number":84,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":" up","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"gzN3JNG14XcCn","output_index":1,"sequence_number":85,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":"-to","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"80rvrlFIKfI6J","output_index":1,"sequence_number":86,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":"-date","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"SbCKdlK3Ucj","output_index":1,"sequence_number":87,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":" information","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"MCYi","output_index":1,"sequence_number":88,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":" for","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"Fe9EcXSI4jfi","output_index":1,"sequence_number":89,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":" the","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"LpDhZW8vPKsZ","output_index":1,"sequence_number":90,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":" user","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"7wpdefqBXOt","output_index":1,"sequence_number":91,"summary_index":0}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","delta":"!","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","obfuscation":"eRZC6DK7mfraLzO","output_index":1,"sequence_number":92,"summary_index":0}
+
+event: response.reasoning_summary_text.done
+data: {"type":"response.reasoning_summary_text.done","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","output_index":1,"sequence_number":93,"summary_index":0,"text":"**Verifying latest release**\n\nI need to check for the likely latest stable release, which looks like version 6.4 with a potential patch at 6.4.2. It’s important to verify this by looking at the official Swift download releases. The user is asking about the latest stable release, so I'll search the official GitHub releases page to confirm the right version. This will ensure I provide accurate and up-to-date information for the user!"}
+
+event: response.reasoning_summary_part.done
+data: {"type":"response.reasoning_summary_part.done","item_id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","output_index":1,"part":{"type":"summary_text","text":"**Verifying latest release**\n\nI need to check for the likely latest stable release, which looks like version 6.4 with a potential patch at 6.4.2. It’s important to verify this by looking at the official Swift download releases. The user is asking about the latest stable release, so I'll search the official GitHub releases page to confirm the right version. This will ensure I provide accurate and up-to-date information for the user!"},"sequence_number":94,"summary_index":0}
+
+event: response.output_item.done
+data: {"type":"response.output_item.done","item":{"id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","type":"reasoning","content":[],"encrypted_content":"gAAAAABq8KJ0xg7cvrl7KsSaIBAO3N7Cdlzm4ihEEHixncmH1wpGkuPssdgTl4rJfkcEqxAjqbOp2uIGnz6SD1tJEV3fCiQrcU_9hJEIDabm0G1Ws6cYggMK5hJ1PAyu_tqbD_-qU2cBKiWGkyOgl5-1xpWt-4fE4GgDV1G6cjxUs-_ZO3pS7n7jGcSx2lmO8uvAREypWmRzBAgUby1M96n_6_gGfgU6IPESPdM8aZgR1z6EHXp1jR6XM75VSf-myXaKPejWiedp5ijICKBVKx2zNOXBvS1elMTGieSm8QTH-5oqKKlZohUYOQjELXoOtwIcOd2xz5qaJ65ZOiezuNUckplFhm51xKRE98rhg7DIHqOrTP8CxKj_WysJrAzbuDUhzzGiwPa9gX05nEbsnhZQotw-H0dXHeNG3bXz5KYQJ92Ng0MCmfZI1NOEai9tEW7Xu4eP3Nhmuw6zrQ5Ofqb1Ctzk-rv7EAdUj1Nl8TPjdWR6j705XMweMJxJN5vAILvRJmrNYHrexWagjFyGEsYWFG2fOz0OkERJbgnmF8R0tNtQrykeIlpYpJcrMAbHzYIRS6tJnKCzbva3jYek-y2cRr3_2eouQPbNhFoHzXcrNSogCPZr7AmE3cFMg8lVIcw4uHentgv3mAmnFljZdUyp8WnmptrkvTwzr-T_3oHHG753a27FChKCvlv83xWr8__bUxNKjLEQP_bjfFUn1T-NT8Mi99YNU7ZIjSdJgGXfA7q6-kvXW_f9sCnc-9OnWPo5L-XdDNuS-8oGEMEytrXRfxJtRVRPt_0PzTuu4Zp1BgnyV5b_o4RIf0UC5HnHZ_hEPMmGjGMgrQYZ7V5l3WQuwxst5DBQLOQrhF3zjrgoXFJdCGsd8lgtN1_dgSbzJquTwqDei_IGcoH2DRXS9nXKOS--X29BIdJWLc78EvPv8mYxnBsZtRq_Z0XrTrFeHIWzai5yhF2oE09rRZ5ofYuFq8FW3FNK-Iwm72BuQD5lnoZ96d_K53RfDKLzRvdNyQ0tx75mDduiDgel3EKucO1ahVmoGsggOxKkO5rZa7_OVZNJUVOqw-UKtK7JzvPqdRJQhB-QE2qey8Jlc8SDfHEvZQ_sdxuW4IDMqGnvHxLdnnbX14LuTDIv298d1WyP1y2nBgmZLU25VeE70hQ8bBZW1C2Np3NMf_NLKj1xZTk2z-FQz_R63Eh0Ihx3A1SiBRogyAdnQZgpATLdOGRzFr0PEwBf5ImdxwtH5G-mr_TcbhoKtNBlhCmIxPrJ2fYJ1g50dUItGZsk0ebHERb0Jukh0Ew-yzqCSD4Alt21xlP3EX7B-h5LyC278-3rM08pzniXdPzpZZmwno4ZedQHVE-DekAmwTv2be5bo8laFtmi5ZgO4r1T6AtO9t3fPFh4buVJU_I3djKavFysIj3kdB1ssoIqL3ETKfpncXqi_4YUu4M8_mMdhrqJlI-Ny3WrgKVPZBVWq4-sG335ohMhHBViXmetUbwCl9sPfv1Uu7CYCep4HHlUd4_7T5c8VFGXhMAb0uy9FtzWtqqtnKNO-T8g8CSK2BHcEaGj8r7JD-_w1_1nhBbG_ENMmNsFgba1ygCTASXWPPUH3ICxEABpW5R481vD_2i8ggteaXMGLsoV5qQaf0BA5RfKxydDVwIjpbLgSdYUYRO3pUGMObEadrEcBURoJeFIgUZK4ZEgzUwfAbZWkH3dq7sH-1Zz9HVo0aAyoIHNw8oy1V2C5iDOCYtVP9X1oLUV9sx3NE4DtV5NC9F2Zv0lUOaLSJScG61WfbpLPYlls69n-BE6enKGHNQ3r0NJbaesQomRUGBl69hgnTXZPYueKhm5uORopiMXEHJd_Bx6oGNccBFtyuaJtRJFKpn_dU9alVpZQyHtwO965hG2J9ofUExzPHqPidnHAutc3ch6_jnGYR0tIrwKMwjQxAY-yyegjYRbOm50Pxt_ew66ou9qBwCKkbIWeJfbNrukZOoSlDBLUcGEBkFZF7iyuhD9UHxHaafZWLGDI-FeOGAxUbO3voMvKyg34UZdUvzWdCB1jGk15XzAqxAUlkTzFXC0Sy70r5wl9IOjWCuXzipMYRS-GPHhkUTOHeMx30FHdBb5aZ_SilJhdzbwlaYntxHZYxFxvD3PburhF8wR3uMFHkPwPe0zUerC_-oIl9Ed7wckWKmliKAFYzcq4rjaw6UCnBsF2g==","summary":[{"type":"summary_text","text":"**Verifying latest release**\n\nI need to check for the likely latest stable release, which looks like version 6.4 with a potential patch at 6.4.2. It’s important to verify this by looking at the official Swift download releases. The user is asking about the latest stable release, so I'll search the official GitHub releases page to confirm the right version. This will ensure I provide accurate and up-to-date information for the user!"}]},"output_index":1,"sequence_number":95}
+
+event: response.output_item.added
+data: {"type":"response.output_item.added","item":{"id":"ws_eecb54d15323721f327d2c04d38c1d7feac25542b4213db93b","type":"web_search_call","status":"in_progress"},"output_index":2,"sequence_number":96}
+
+event: response.web_search_call.in_progress
+data: {"type":"response.web_search_call.in_progress","item_id":"ws_eecb54d15323721f327d2c04d38c1d7feac25542b4213db93b","output_index":2,"sequence_number":97}
+
+event: response.web_search_call.searching
+data: {"type":"response.web_search_call.searching","item_id":"ws_eecb54d15323721f327d2c04d38c1d7feac25542b4213db93b","output_index":2,"sequence_number":98}
+
+event: response.web_search_call.completed
+data: {"type":"response.web_search_call.completed","item_id":"ws_eecb54d15323721f327d2c04d38c1d7feac25542b4213db93b","output_index":2,"sequence_number":99}
+
+event: response.output_item.done
+data: {"type":"response.output_item.done","item":{"id":"ws_eecb54d15323721f327d2c04d38c1d7feac25542b4213db93b","type":"web_search_call","status":"completed","action":{"type":"search","queries":["site:swift.org/blog \"Swift 6.4.2\"","site:github.com/swiftlang/swift/releases Swift 6.4.2 release","site:swift.org \"6.4.2\" Swift release"],"query":"site:swift.org/blog \"Swift 6.4.2\"","sources":[{"type":"url","url":"https://www.swift.org/install/windows/"},{"type":"url","url":"https://github.com/swiftlang/swift/releases"},{"type":"url","url":"https://www.swift.org/install/windows/manual/"},{"type":"url","url":"https://forums.swift.org/t/announcing-swift-6-4-2/90337"},{"type":"url","url":"https://forums.swift.org/t/development-open-for-swift-6-4-3-for-non-darwin-platforms/90403"},{"type":"url","url":"https://www.swift.org/install/linux/debian/12/"},{"type":"url","url":"https://github.com/swiftlang/swift-evolution/blob/main/README.md?plain=1"},{"type":"url","url":"https://www.swift.org/install/linux/debian/13/"},{"type":"url","url":"https://github.com/swiftlang/swift-llbuild/releases"},{"type":"url","url":"https://forums.swift.org/c/general-announce/24"},{"type":"url","url":"https://www.swift.org/install/macos/package_installer/"},{"type":"url","url":"https://github.com/swiftlang/swift-build/releases"}]}},"output_index":2,"sequence_number":100}
+
+event: response.output_item.added
+data: {"type":"response.output_item.added","item":{"id":"msg_c0c99597050c57a3b30da8fde91091f529adfe31b1bf7b8e94","type":"message","status":"in_progress","content":[],"phase":"final_answer","role":"assistant"},"output_index":3,"sequence_number":101}
+
+event: response.content_part.added
+data: {"type":"response.content_part.added","content_index":0,"item_id":"msg_c0c99597050c57a3b30da8fde91091f529adfe31b1bf7b8e94","output_index":3,"part":{"type":"output_text","annotations":[],"logprobs":[],"text":""},"sequence_number":102}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"The latest stable Swift release is **Swift 6","item_id":"msg_c0c99597050c57a3b30da8fde91091f529adfe31b1bf7b8e94","logprobs":[],"obfuscation":"yNU7","output_index":3,"sequence_number":103}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":".4.2**, released","item_id":"msg_c0c99597050c57a3b30da8fde91091f529adfe31b1bf7b8e94","logprobs":[],"obfuscation":"","output_index":3,"sequence_number":104}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" October 30, 2026. ","item_id":"msg_c0c99597050c57a3b30da8fde91091f529adfe31b1bf7b8e94","logprobs":[],"obfuscation":"tJ4otMapuBusY","output_index":3,"sequence_number":105}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"([forums.swift.org](https://forums.swift.org/t/announcing-swift-6-4-2/90337?utm_source=openai)","item_id":"msg_c0c99597050c57a3b30da8fde91091f529adfe31b1bf7b8e94","logprobs":[],"obfuscation":"8l","output_index":3,"sequence_number":106}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":")","item_id":"msg_c0c99597050c57a3b30da8fde91091f529adfe31b1bf7b8e94","logprobs":[],"obfuscation":"UvSYnkg99My4v4C","output_index":3,"sequence_number":107}
+
+event: response.output_text.annotation.added
+data: {"type":"response.output_text.annotation.added","annotation":{"type":"url_citation","end_index":174,"start_index":79,"title":"Announcing Swift 6.4.2 - Announcements - Swift Forums","url":"https://forums.swift.org/t/announcing-swift-6-4-2/90337?utm_source=openai"},"annotation_index":0,"content_index":0,"item_id":"msg_c0c99597050c57a3b30da8fde91091f529adfe31b1bf7b8e94","output_index":3,"sequence_number":108}
+
+event: response.output_text.done
+data: {"type":"response.output_text.done","content_index":0,"item_id":"msg_c0c99597050c57a3b30da8fde91091f529adfe31b1bf7b8e94","logprobs":[],"output_index":3,"sequence_number":109,"text":"The latest stable Swift release is **Swift 6.4.2**, released October 30, 2026. ([forums.swift.org](https://forums.swift.org/t/announcing-swift-6-4-2/90337?utm_source=openai))"}
+
+event: response.content_part.done
+data: {"type":"response.content_part.done","content_index":0,"item_id":"msg_c0c99597050c57a3b30da8fde91091f529adfe31b1bf7b8e94","output_index":3,"part":{"type":"output_text","annotations":[{"type":"url_citation","end_index":174,"start_index":79,"title":"Announcing Swift 6.4.2 - Announcements - Swift Forums","url":"https://forums.swift.org/t/announcing-swift-6-4-2/90337?utm_source=openai"}],"logprobs":[],"text":"The latest stable Swift release is **Swift 6.4.2**, released October 30, 2026. ([forums.swift.org](https://forums.swift.org/t/announcing-swift-6-4-2/90337?utm_source=openai))"},"sequence_number":110}
+
+event: response.output_item.done
+data: {"type":"response.output_item.done","item":{"id":"msg_c0c99597050c57a3b30da8fde91091f529adfe31b1bf7b8e94","type":"message","status":"completed","content":[{"type":"output_text","annotations":[{"type":"url_citation","end_index":174,"start_index":79,"title":"Announcing Swift 6.4.2 - Announcements - Swift Forums","url":"https://forums.swift.org/t/announcing-swift-6-4-2/90337?utm_source=openai"}],"logprobs":[],"text":"The latest stable Swift release is **Swift 6.4.2**, released October 30, 2026. ([forums.swift.org](https://forums.swift.org/t/announcing-swift-6-4-2/90337?utm_source=openai))"}],"phase":"final_answer","role":"assistant"},"output_index":3,"sequence_number":111}
+
+event: response.completed
+data: {"type":"response.completed","response":{"id":"resp_ae79c0d2d30b9ce28bd0da6dcf50cf3eef2c22b18f408c38c6","object":"response","created_at":1794155119,"status":"completed","access_programs":null,"background":false,"completed_at":1794155125,"error":null,"frequency_penalty":0.0,"image":{"context_compression":"disabled"},"incomplete_details":null,"instructions":null,"max_output_tokens":4000,"max_tool_calls":2,"model":"gpt-6-luna","moderation":null,"output":[{"id":"ws_10b349fa4eb3ec0767faeb2628eae9067277d0d2c007ba6ae6","type":"web_search_call","status":"completed","action":{"type":"search","queries":["latest stable release Swift programming language official release"],"query":"latest stable release Swift programming language official release","sources":[{"type":"url","url":"https://www.swift.org/blog/"},{"type":"url","url":"https://www.swift.org/blog/swift-6.4-released/?trk=article-ssr-frontend-pulse_little-text-block"},{"type":"url","url":"https://github.com/swiftlang/swift-evolution/blob/main/README.md?plain=1"},{"type":"url","url":"https://www.swift.org/install/macos/"},{"type":"url","url":"https://swiftlee-weekly.com/swift-evolution/releases/"},{"type":"url","url":"https://developer.apple.com/swift/blog/"},{"type":"url","url":"https://github.com/swiftlang/swift-evolution"},{"type":"url","url":"https://swiftly.dev/swift-versions"},{"type":"url","url":"https://forums.swift.org/c/development/dev-announce/17"},{"type":"url","url":"https://zairalabs.ai/guide/languages/swift/"},{"type":"url","url":"https://www.swift.org/blog/swift-6.3-released/?trk=article-ssr-frontend-pulse_little-text-block"},{"type":"url","url":"https://github.com/SwiftLang"},{"type":"url","url":"https://en.wikipedia.org/wiki/Swift_%28programming_language%29"},{"type":"url","url":"https://en.wikipedia.org/wiki/Swift_%28parallel_scripting_language%29"},{"type":"url","url":"https://www2.swift.com/knowledgecentre/rest/v1/publications/sref_rl_20230929/2.0/sref_rl_20230929.pdf?logDownload=true"},{"type":"url","url":"https://www.swift.com/swift-resource/251959/download"},{"type":"url","url":"https://es.wikipedia.org/wiki/Swift_%28lenguaje_de_programaci%C3%B3n%29"},{"type":"url","url":"https://en.wikipedia.org/wiki/Julia_%28programming_language%29"},{"type":"url","url":"https://www.reddit.com/r/iOSProgramming/comments/1x3leg8/what_happened_to_the_swift_on_android_what_is/"},{"type":"url","url":"https://en.wikipedia.org/wiki/Python_%28programming_language%29"},{"type":"url","url":"https://en.wikipedia.org/wiki/Swift_Playgrounds"},{"type":"url","url":"https://bobkonf.de/2024/slides/chakravarty.pdf"},{"type":"url","url":"https://www.swift.com/sites/default/files/documents/swift_release_timeline_q2_2020.pdf"},{"type":"url","url":"https://www.reddit.com/r/swift/comments/1w4yo7y/whats_everyone_working_on_this_month_september/"},{"type":"url","url":"https://www2.swift.com/knowledgecentre/rest/v1/publications/sref_rl_20211119/1.0/sref_rl_20211119.pdf?logDownload=true"},{"type":"url","url":"https://www.reddit.com/r/swift/comments/192tvaf/no_way_to_get_a_clean_the_swift_programming/"},{"type":"url","url":"https://www.reddit.com/r/swift/comments/1c7ju6l/where_can_i_find_the_epub_ebook_for_the_swift/"},{"type":"url","url":"https://www.reddit.com/r/swift/comments/1nid8ln"},{"type":"url","url":"https://arxiv.org/abs/2609.28822"}]}},{"id":"rs_7d6138127ba32cbf0908f4310bce391e51b9e8517beb3d0bb6","type":"reasoning","content":[],"encrypted_content":"gAAAAABq8KJ1HdYtek11_T7C5TZ5GA5Ba1XZPPdvqKdWDWuzhfx-0toAfCF7mWdzAeFFlDim92Oi0UphX6hFhyuxAHJTy1e_zve_jTg99psj2SO-oqxO2u3EDm6Fs_chkOGx3rbe_AIeiLZRuNckP7F1m5fs0QkGsI6DHt2SqrdD_qyZldLJCQnBi8NhkDYySlimB2Jte4eNEmQEkKnu6OEpdY_LkhrVtBJVeUJOCN8K0z1LLm1rTeojfEOFkTZB6lAzXVFayv0CA-o0EG-NO6kyceuZYaJu166b8M5hBEfMzD0QghTIAhJd9ziNk6VOXeBzgHe7cT58yBEu0FzGQtHjbZIB5u3Nf9f4B6M2Pfnz8T3a40So57KU73iRDQqMWUqFWv1b3OoY1JodM14nuRT1TISOHznRKbT3AczFKTMT1xuGQw2fDn5fEdubZN5Uds_D8hPE2LuRcBXDpWqQ3caAYD3tlcqKrv_Bw_8bodTzDK2Z8mkO8mdS2UjQgAesnPNa1cvtMDP5nAsH4auqrOpiBIPBeKtBOfzOAela919ehvqtIApyfZ4YaTIsJKj4WcekKqnUS5b3B6PctA7Tt8ibk_-Vht3bMnBzLLlixWHs4ksGovi84bHylavGcyZ--sA7XJ8h_rpqccEki6EHIcDTBvxPjgXXJqxGht-WpSr-XICzYRm49PLvjnhNEKUKS-6Fw9m_kCrGBEa6q0285S4RJH_MoW4mqrmpYa4rXv4TNbMEENbCdy3jLkIPzX4VPN6dGidbjSbVGmfZAy-PhyxTLoz-HHbTnBrONZ66Enb8UBCqXlV4u68dn7lV6evwr461xaJp4mOnzwLLVJYVO_gVWFLLl6BTnK6whzRAlumVLVuSzVqheQRiG54czGUIQlbJ7F8ZoNFyN1QrpJxS6adXoOegLNJt_uYn_5LNKzMC0jAblEmjULbPkl7_MMqEe048SnBLYmoa-dlq_Lc5lWjftuV7S3Cxzk8Swc-1gE51BYMkTNyZnXiQr8jOw6vRlB9IeqiZpIIb-Cze79fododJ-cNuZlMQKy2wkirQbasobgbHzyI_TNYo58A17lIWoHtFzDDb9Vb1a2kmVOZvATRkaBasTREax2Zt5cxsPbjiIDIIIWaygEF-td0ys8K_Y2kWg6gZAdXirn3Jduw9hcrtvGk66-VGKVOnSnVXYOZRqfexadTZsl6y-chUu_XQmXicQsTNMDDoP1ldu-zcGjoxfjy21bT7TRsduYAXNSumMEJ2XUPqbHiTMN_pbQGLuSqPrKs5S-4gI4oplOC0HENBSUafsi1f3T4dXExZuZerfwswPx5xGU_ADQLY-318UZs4H8nw6Uk2srPcFFpLqtchO4nZ0bKaR4X_hd7dzfr70dowwY-PnHeY6rlMcK4WIS1l0x_bl_I5BU8UUT2lKXQUEivdk7NC6CzRyP3mNTn3-7SIgnOw49dU-FOnxcEC3Sh0Hlqw5Nlu_x5EZi7pMD9uquLuIj92PEhpSoB6pf-rsLzzH30omddO7mK7InTc1Om0dHqhoABDBNkghsOAo5ZwpbxVzmjpdB5xx5j5-gG_ph5FPYoQNolH7V5VecoMIG_XtVYxk9O11kZ9hdD8H-NjENveGXVaQebXJ74FFrSGIbmdinBnA7oI0rkXOT0TJC-6ISwdheg7fE8oXR1H_dIdub7MEavRHEkyVfk-928PgF6Pciuto5ehv6qYJqRXKrrOyF4_F0_h5BoadH0P9DPYxNTU0toklxtLYlnMtkp8NDfSIm4V1O8XH0_eFmOhvOgssS0yJa7gkSTJnVSb9Sh2DhsoyOkocu7Lfk-x6NtfFFHzb_DQY6AXd_rAn0rXy0oWRnWIq9Ff5KBHE3Q-orP6hG8RDLjaBClOVoJXwnfTHC11AdX0XZKwNDddxyy3ikwevC0C6VoAh70mkNunzLqZkVfeQa1pPr0w6SFUb4zERRDHaPK4thrZ7iCnduiPlPYabTqTJ9J7hOdjklbnb3h81RiZif4mvPT5JPy_gecqIQg27m4hdNGCPCdOkXrFjMvw-ijg8hqzH7Yu0bAImJVMEpoiwIlNiUsRwaNFAawtQ6CJfpOMhACf57S7h4R2do5rCBleD6nCFYYKGXzVhCH81UBdC78MNDWNRz4q9r6IRGPS9hwFwlC0TrdzV1WrLof1BBdc4PiU_elT5SaLb4y6YKswfIQ32w==","summary":[{"type":"summary_text","text":"**Verifying latest release**\n\nI need to check for the likely latest stable release, which looks like version 6.4 with a potential patch at 6.4.2. It’s important to verify this by looking at the official Swift download releases. The user is asking about the latest stable release, so I'll search the official GitHub releases page to confirm the right version. This will ensure I provide accurate and up-to-date information for the user!"}]},{"id":"ws_eecb54d15323721f327d2c04d38c1d7feac25542b4213db93b","type":"web_search_call","status":"completed","action":{"type":"search","queries":["site:swift.org/blog \"Swift 6.4.2\"","site:github.com/swiftlang/swift/releases Swift 6.4.2 release","site:swift.org \"6.4.2\" Swift release"],"query":"site:swift.org/blog \"Swift 6.4.2\"","sources":[{"type":"url","url":"https://www.swift.org/install/windows/"},{"type":"url","url":"https://github.com/swiftlang/swift/releases"},{"type":"url","url":"https://www.swift.org/install/windows/manual/"},{"type":"url","url":"https://forums.swift.org/t/announcing-swift-6-4-2/90337"},{"type":"url","url":"https://forums.swift.org/t/development-open-for-swift-6-4-3-for-non-darwin-platforms/90403"},{"type":"url","url":"https://www.swift.org/install/linux/debian/12/"},{"type":"url","url":"https://github.com/swiftlang/swift-evolution/blob/main/README.md?plain=1"},{"type":"url","url":"https://www.swift.org/install/linux/debian/13/"},{"type":"url","url":"https://github.com/swiftlang/swift-llbuild/releases"},{"type":"url","url":"https://forums.swift.org/c/general-announce/24"},{"type":"url","url":"https://www.swift.org/install/macos/package_installer/"},{"type":"url","url":"https://github.com/swiftlang/swift-build/releases"},{"type":"url","url":"https://forums.swift.org/t/announcing-swift-6-4-2/90337?utm_source=openai"}]}},{"id":"msg_c0c99597050c57a3b30da8fde91091f529adfe31b1bf7b8e94","type":"message","status":"completed","content":[{"type":"output_text","annotations":[{"type":"url_citation","end_index":174,"start_index":79,"title":"Announcing Swift 6.4.2 - Announcements - Swift Forums","url":"https://forums.swift.org/t/announcing-swift-6-4-2/90337?utm_source=openai"}],"logprobs":[],"text":"The latest stable Swift release is **Swift 6.4.2**, released October 30, 2026. ([forums.swift.org](https://forums.swift.org/t/announcing-swift-6-4-2/90337?utm_source=openai))"}],"phase":"final_answer","role":"assistant"}],"parallel_tool_calls":true,"presence_penalty":0.0,"previous_response_id":null,"prompt_cache_key":null,"prompt_cache_retention":"24h","reasoning":{"context":"all_turns","effort":"medium","mode":"standard","summary":"detailed"},"safety_identifier":null,"service_tier":"default","store":true,"temperature":1.0,"text":{"format":{"type":"text"},"verbosity":"medium"},"tool_choice":"auto","tool_usage":{"image_gen":{"input_tokens":0,"input_tokens_details":{"image_tokens":0,"text_tokens":0},"output_tokens":0,"output_tokens_details":{"image_tokens":0,"text_tokens":0},"total_tokens":0},"web_search":{"num_requests":2}},"tools":[{"type":"web_search","return_token_budget":"default","search_content_types":["text"],"search_context_size":"medium","user_location":{"type":"approximate","city":null,"country":"US","region":null,"timezone":null}}],"top_logprobs":0,"top_p":0.98,"truncation":"disabled","usage":{"input_tokens":12804,"input_tokens_details":{"cache_write_tokens":4455,"cached_tokens":0},"output_tokens":205,"output_tokens_details":{"reasoning_tokens":154},"total_tokens":13009},"user":null,"metadata":{}},"sequence_number":112}
+
