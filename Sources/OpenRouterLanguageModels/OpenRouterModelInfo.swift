@@ -152,7 +152,7 @@ public struct OpenRouterCurrentDetails: Sendable, Hashable {
     /// Whether the host OpenRouter ranks first moderates content.
     public let isModerated: Bool
 
-    /// The day OpenRouter retires the model, at midnight UTC.
+    /// The day OpenRouter retires the model, at midnight UTC, or `nil` when OpenRouter lists none.
     public let expirationDate: Date?
 
     /// Creates a model's current details, such as for a preview.

@@ -92,8 +92,8 @@ extension LiveTests {
             task.cancel()
 
             if case .failure(let error) = await task.result { #expect(error is CancellationError) }
-            // While many sessions run at once, Foundation Models may fail the turn after a cancelled stream itself, before
-            // the model's executor sends anything.
+            // While many sessions run at once, Foundation Models may fail the turn after a cancelled stream itself,
+            // before the model's executor sends anything.
             try await withKnownIssue("Foundation Models may fail the next turn after a cancel itself.", isIntermittent: true) {
                 let response = try await session.respond(
                     to: "Reply with the word done.", options: GenerationOptions(maximumResponseTokens: 2_000),

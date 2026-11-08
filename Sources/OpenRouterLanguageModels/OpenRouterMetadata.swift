@@ -358,7 +358,7 @@ public struct OpenRouterUsageMetadata: Sendable, Hashable {
     public let upstreamInferenceCompletionCost: Decimal?
 
     /// What server tools that are billed by use cost, in US dollars, such as the time a sandbox ran; 0 when they ran
-    /// for free.
+    /// for free, and `nil` when OpenRouter doesn't report it.
     public let serverToolCost: Decimal?
 
     /// The server-tool calls the model asked for, of every kind, such as ``OpenRouterServerTool`` web searches and

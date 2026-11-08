@@ -28,7 +28,9 @@ Each provider module plugs one provider's models into Foundation Models:
 
 This module holds what the provider modules share. A provider module's model conforms to ``DetailedLanguageModel``,
 so it carries ``ModelDetails``: its name, capabilities, context size, the reasoning levels it accepts and the kinds of
-data it takes as attachments and generates. Foundation Models reads the capabilities and data kinds from the details.
+data it takes as attachments and generates. Foundation Models asks the model for its capabilities and data kinds. The
+model answers from its details, and for the data it generates, also from the server tools it's given, such as OpenAI's
+image generation.
 From OS 27.2, ``FileAttachment`` attaches a file, such as a PDF, to a prompt.
 
 Each model's details name an effort type that lists the model's levels.

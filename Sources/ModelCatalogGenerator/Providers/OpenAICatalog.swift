@@ -304,7 +304,7 @@ struct ModelsDevCatalog: Decodable {
             case structuredOutput = "structured_output"
         }
 
-        /// The effort words the model takes, in the catalog's order.
+        /// The effort words the model takes, in models.dev's order, lowest first.
         var efforts: [String] {
             reasoningOptions?.first { $0.type == ModelsDevCatalog.effortOption }?.values ?? []
         }

@@ -87,6 +87,6 @@ A call fails as a session's request does: a model OpenRouter doesn't list throws
 ``OpenRouterError/Code/notFound``, a rate limit throws `LanguageModelError.rateLimited`, and a failed connection or
 any status from 500 to 599 is retried as the configuration's ``OpenRouterConfiguration/retries`` say, up to twice by
 default, and so is any status whose `x-should-retry` is `true`. A failure whose `x-should-retry` is `false` isn't
-retried, and one that asks for a wait longer than 2 minutes throws at once, with the wait on its error.
-A call sends the headers of its ``OpenRouterAuthentication``, none without one, and follows a redirect only to the same
-scheme, URL host and port.
+retried, and one that asks for a wait longer than 2 minutes throws at once, with the wait on its error. A call sends
+the headers of its ``OpenRouterAuthentication``, none without one, and follows a redirect only to the same scheme, URL
+host and port.

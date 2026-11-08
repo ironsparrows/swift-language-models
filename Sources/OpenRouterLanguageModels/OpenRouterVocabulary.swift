@@ -204,8 +204,7 @@ public struct OpenRouterQuantization: ProviderVocabulary {
 /// How much of each page a web search returns to the model, from `low` to `high`.
 ///
 /// Exa caps each result at a size the level picks, Parallel caps all results together, and Perplexity passes the level
-/// on. Firecrawl and the hosts' own search ignore it. More context gives the model more to cite, and costs more prompt
-/// tokens.
+/// on. Firecrawl and the hosts' own search ignore it.
 ///
 /// Sizes are an open vocabulary: any size OpenRouter lists is valid, with or without a static member.
 public struct OpenRouterSearchContextSize: ProviderVocabulary {

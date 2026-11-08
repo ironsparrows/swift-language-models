@@ -390,8 +390,10 @@ let model = OpenAILanguageModel(
 )
 ```
 
-A web search's cited pages are `answer.openAI.citations`, and each generated image is a data entry of its own, from OS
-27.2. See [Server tools][openai-server-tools].
+A web search's cited pages are `answer.openAI.citations`, and with `listsSources`, every page its searches consulted is
+`answer.openAI.sources`. A file search's cited files are `answer.openAI.fileCitations`. Each generated image is a data
+entry of its own, so a request with image generation throws `LanguageModelError.unsupportedCapability` before OS 27.2,
+or in an app built without Xcode 27.2. See [Server tools][openai-server-tools].
 
 ### Metadata and errors
 
@@ -416,7 +418,7 @@ do {
 | 429 that isn't a quota | `LanguageModelError.rateLimited`, with the reset date |
 | A prompt flagged by OpenAI's usage policies | `LanguageModelError.guardrailViolation` |
 | A refusal | `LanguageModelError.refusal` |
-| 408, 504, or a timed-out connection | `LanguageModelError.timeout` |
+| 408, 504, `vector_store_timeout`, or a timed-out connection | `LanguageModelError.timeout` |
 | An image OpenAI can't use | `LanguageModelError.unsupportedTranscriptContent` |
 | Anything else, such as 401 or a quota or credits that ran out | `OpenAIError`, with its status, code and request id |
 

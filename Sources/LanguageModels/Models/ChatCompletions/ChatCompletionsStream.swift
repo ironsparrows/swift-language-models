@@ -223,7 +223,7 @@ extension FinishReason {
 /// One event of a streamed chat completion, reduced to the members of OpenAI's format that the answer stream reads.
 ///
 /// Keys are listed one by one instead of converted from snake case, because a conversion would also rename the keys
-/// of a provider's own members, such as reasoning that goes back to the host unchanged.
+/// of a provider's own members, such as reasoning that goes back unchanged on later turns.
 private struct Chunk: Decodable {
     struct Choice: Decodable {
         let delta: Delta?

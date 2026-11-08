@@ -3,9 +3,10 @@ public import LanguageModels
 
 /// Request settings that only OpenRouter has, beyond Foundation Models' generation options.
 ///
-/// Each sampling setting goes out only if the model and each fallback list its parameter, such as `frequency_penalty`,
-/// so a setting a model doesn't take is left out instead of failing the request. Router settings reach only the router
-/// model that reads them. Every setting left `nil` keeps the model's default.
+/// Each sampling or output setting, such as `frequency_penalty`, `stop` or `verbosity`, goes out only if the model and
+/// each fallback list its parameter, so a setting a model doesn't take is left out instead of failing the request. The
+/// service tier and end user id go out whatever the models list. Router settings reach only the router model that reads
+/// them. Every setting left `nil` keeps the model's default.
 public struct OpenRouterOptions: Sendable, Hashable {
     /// Lowers the chance of a token by how often it already appeared, from -2 to 2.
     public var frequencyPenalty: Double?

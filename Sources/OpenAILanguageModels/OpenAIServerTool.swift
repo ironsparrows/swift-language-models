@@ -18,11 +18,12 @@ import LanguageModels
 /// )
 /// ```
 ///
-/// The entry that ends the answer records each call, which ``OpenAIResponseMetadata/serverToolCalls`` reads, and each call
-/// goes back on later turns while the model still has its tool. Each tool costs extra, on top of the model's tokens:
-/// a search by the call, an image by its size and quality, and a file search by the call and the storage it searches.
+/// The entry that ends the answer records each call, which ``OpenAIResponseMetadata/serverToolCalls`` reads, and each
+/// call that completed goes back on later turns while the model still has its tool, and an image's call only while
+/// OpenAI keeps the responses. Each tool costs extra, on top of the model's tokens: a search by the call, an image at the
+/// prices of the model that draws it, and a file search by the call and the storage it searches.
 ///
-/// Two tools are equal when a request sends the same entry for them.
+/// Two tools are equal when a request sends the same for them, in `tools` and in `include`.
 public struct OpenAIServerTool: Sendable, Hashable {
     /// The tool's entry in a request's `tools`, and what the request asks for with it.
     let entry: Entry
@@ -37,13 +38,14 @@ public struct OpenAIServerTool: Sendable, Hashable {
     /// to the person as links beside the answer.
     ///
     /// - Parameters:
-    ///   - searchContextSize: How much of each page the model gets, or `nil` for OpenAI's default, `medium`. More
-    ///     context costs more prompt tokens.
+    ///   - searchContextSize: How much of the model's context window the search may use, or `nil` for OpenAI's default,
+    ///     `medium`.
     ///   - allowedDomains: The only domains to search, such as `"swift.org"`, which include their subdomains, or `nil`
     ///     to search any.
     ///   - userLocation: Roughly where the person is, so results suit it, or `nil` for none, which OpenAI takes as the
     ///     United States. A location with no fields avoids that.
-    ///   - webAccess: Whether the search reads pages live or only from OpenAI's cache.
+    ///   - webAccess: Whether the search reads pages live or only from OpenAI's cache, or ``WebAccess/automatic`` for
+    ///     OpenAI's default.
     ///   - listsSources: Whether the answer lists every page the searches consulted, which
     ///     ``OpenAIResponseMetadata/sources`` reads, beyond the pages it cites.
     /// - Returns: The web search.
@@ -70,15 +72,16 @@ public struct OpenAIServerTool: Sendable, Hashable {
     /// 27.2's SDK, where no image could arrive.
     ///
     /// Without a `complexity`, OpenAI plans each image with the request's reasoning effort. GPT Image 2 refuses a
-    /// complexity of `low` or `medium`, and GPT Image 1 mini of `low`, which a light reasoning level passes on, so with
-    /// them a request at a light reasoning level fails; leave the reasoning level at the model's default.
+    /// complexity of `low` or `medium`, and GPT Image 1 mini refuses `low`. So with either model, a request at a light
+    /// reasoning level, which asks for `low`, fails with an ``OpenAIError`` whose code is `invalid_value`. Leave the
+    /// reasoning level at the model's default.
     ///
     /// - Parameters:
     ///   - model: The model that draws the images, such as ``OpenAIImageModel/gptImage1Mini``, or `nil` for OpenAI's
     ///     default, GPT Image 2.
-    ///   - quality: How detailed the images are, which sets their price, or `nil` for OpenAI's default, `auto`.
+    ///   - quality: How detailed the images are, or `nil` for OpenAI's default, `auto`.
     ///   - complexity: How much the model plans each image, apart from its quality, or `nil` to plan with the request's
-    ///     reasoning effort, or with the image model's default when the effort isn't one it takes.
+    ///     reasoning effort.
     ///   - size: The images' size, or `nil` for OpenAI's default.
     ///   - format: The images' file format, or `nil` for OpenAI's default, PNG.
     ///   - compression: How much a JPEG or WebP image is compressed, from 0 to 100, or `nil` for OpenAI's default,

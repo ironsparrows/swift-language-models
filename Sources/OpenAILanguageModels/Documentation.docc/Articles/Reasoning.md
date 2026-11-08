@@ -73,11 +73,12 @@ Every request to a model that reasons asks for its reasoning encrypted, with `in
 `reasoning.encrypted_content`. The answer's `reasoning` items, as OpenAI sent them, become the reasoning entry's
 signature. Each request sends the transcript, and with it the reasoning of earlier answers:
 
-- An answer's `reasoning` items go back as they came, in their places between its messages and function calls.
+- An answer's `reasoning` items go back as they came, in their places between its messages, function calls and server
+  tools' calls.
 - They go back only to the model that wrote them, or to the model it's a dated snapshot of, since encrypted reasoning
   suits only that model. The reasoning entry names the model that answered, such as `gpt-5-nano-2025-08-07`, so its
   reasoning goes back to `gpt-5-nano` too, and not to another model the session moves to.
-- An answer with neither text nor tool calls, such as one cut off while it reasoned, sends no reasoning back.
+- An answer with nothing after its reasoning, such as one cut off while it reasoned, sends no reasoning back.
 - Reasoning that another provider module wrote, in a transcript that moved between models, isn't sent.
 
 ### Store responses or not

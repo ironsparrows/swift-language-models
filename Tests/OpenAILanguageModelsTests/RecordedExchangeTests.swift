@@ -8,8 +8,8 @@ import Testing
 @testable import OpenAILanguageModels
 
 /// Exchanges replayed from what OpenAI really sent, so these pin how real streams and failures read. Ids and what shows
-/// the account or its location are swapped for fake values; encrypted reasoning stays as it came. The streams and
-/// failures a real host can't be made to send stay hand-built, in the other suites.
+/// the account or its location are swapped for fake values, and a generated image for a 2 × 2 PNG; encrypted reasoning
+/// stays as it came. The streams and failures a real host can't be made to send stay hand-built, in the other suites.
 @Suite("Recorded exchanges", .timeLimit(.minutes(1)))
 struct RecordedExchangeTests {
     @Test func `a real streamed answer reads as OpenAI sent it`() async throws {

@@ -7,7 +7,7 @@ import UniformTypeIdentifiers
 
 @testable import OpenAILanguageModels
 
-/// Each server tool with its entry in a request's tools.
+/// Each web and file search with its entry in a request's tools.
 private let searchToolEntries: [(OpenAIServerTool, JSONValue)] = [
     (.webSearch(), ["type": "web_search"]),
     (

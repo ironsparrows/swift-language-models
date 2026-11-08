@@ -23,7 +23,7 @@ self-contained tasks to, with server tools of its own:
 
 @Snippet(path: "swift-language-models/Snippets/ServerTools", slice: "models")
 
-Each call is a request to the other model. Chat completions return neither the model's request nor the other model's
+Each call is a request to the other model. Chat Completions returns neither the model's request nor the other model's
 answer, so an advisor can't recall earlier consultations.
 
 ### Choose the engine and the sites
@@ -52,8 +52,8 @@ so a request with them asks for hosts that honor every parameter, unless ``OpenR
 says otherwise. <doc:ToolsAndGuidedGeneration> covers the session's own tools, and <doc:Mapping> lists what each
 server tool sends.
 
-A tool-calling mode concerns only the session's tools: `tool_choice` goes out only with them, and a server-tool call
-can satisfy `.required`. Only `.disallowed` reaches the server tools, which it leaves out too.
+A tool-calling mode concerns only the session's tools: `tool_choice` goes out only with them. Only `.disallowed`
+reaches the server tools, which it leaves out too.
 
 OpenRouter's record of a server-tool call, when it sends one, is part of the answer's reasoning details, and goes back
 on later turns with them unless a fallback wrote the answer. Server-tool calls never become tool calls in the

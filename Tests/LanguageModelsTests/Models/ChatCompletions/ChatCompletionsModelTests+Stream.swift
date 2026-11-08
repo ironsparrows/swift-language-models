@@ -160,7 +160,8 @@ extension ChatCompletionsModelTests {
         }
 
         @Test func `a snapshot arrives while the answer still streams`() async throws {
-            // Foundation Models yields no snapshot until a few chunks have arrived, and how many each one holds depends on timing.
+            // Foundation Models yields no snapshot until a few chunks have arrived, and how many each one holds depends
+            // on timing.
             let lines = ["One", " two", " three", " four", " five", " six"].map { "data: \(textChunk($0).text)\n\n" }.joined()
             let stub = HTTPStub(StubResponse.eventStream(Data(lines.utf8)).keepingConnectionOpen())
             let session = LanguageModelSession(model: plainModel(stub))

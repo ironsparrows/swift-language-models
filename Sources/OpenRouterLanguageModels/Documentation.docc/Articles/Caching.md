@@ -20,8 +20,8 @@ Most hosts cache long prompts without being asked: OpenAI, Google for Gemini 2.5
 Moonshot AI and Z.AI. A read costs a fraction of the input price, and a write costs nothing extra on most of them;
 OpenAI charges 1.25× to write from GPT-5.6 on.
 
-OpenAI caches prompts of 1,024 tokens or more. Gemini's minimum depends on the model: 2,048 tokens for Gemini 2.5 Flash
-and Pro, and 4,096 for Gemini 3.1 Pro and later.
+From GPT-5.6 on, OpenAI caches prompts of 1,024 tokens or more. Gemini's minimum depends on the model: 2,048 tokens
+for Gemini 2.5 Flash and Pro, and 4,096 for Gemini 3.1 Pro and later.
 
 ### Hosts that cache only marked prompts
 
@@ -86,7 +86,7 @@ find its cache. Each request names its session by the id of the transcript's fir
 session's first answer.
 
 - OpenRouter does this only when the host's cache reads cost less than its prompts.
-- It forgets the host after 10 minutes without a request, and moves on to the next-best host when that one is
+- It forgets the host after 60 minutes without a request, and moves on to the next-best host when that one is
   unavailable.
 - A routing with an ``OpenRouterRouting/order`` turns it off, so the order wins over the cache, as
   <doc:RoutingAndFallbacks#Choose-the-hosts> describes.

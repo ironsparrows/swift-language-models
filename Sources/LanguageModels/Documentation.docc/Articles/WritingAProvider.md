@@ -102,7 +102,9 @@ A fact only your module reports takes a key with the module's prefix, such as `v
 typed readers for those facts, so they never read metadata as a dictionary, in the same four places for every provider,
 each through a property named for the provider: `Transcript.Response` and `Transcript.ToolCalls` read a
 `<Provider>ResponseMetadata`, `LanguageModelSession.Usage` a `<Provider>UsageMetadata`, and `LanguageModelError` a
-`<Provider>ErrorMetadata`, as `openRouter` and `openAI` do.
+`<Provider>ErrorMetadata`, as `openRouter` and `openAI` do. When the model generates data, such as an image, put the
+provider's facts about it in the metadata of its data entry, and read them through the same property on
+`Transcript.DataEntry`, as `openAI` does.
 
 Throw `LanguageModelError` wherever it has a case, so the same `catch` works for every model, and an error type of the
 module's own for the rest. Pass the ``ProviderErrorMetadata/contextMetadata`` of a ``ProviderErrorMetadata`` as the

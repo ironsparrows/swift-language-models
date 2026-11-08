@@ -92,10 +92,9 @@ public struct OpenAIServiceTier: ProviderVocabulary {
     }
 }
 
-/// How much of each page a web search gives the model, from `low` to `high`.
+/// How much of the model's context window a web search may use, from `low` to `high`.
 ///
-/// More context gives the model more to cite, and costs more prompt tokens. Sizes are an open vocabulary: any size OpenAI
-/// lists is valid, with or without a static member.
+/// Sizes are an open vocabulary: any size OpenAI lists is valid, with or without a static member.
 public struct OpenAISearchContextSize: ProviderVocabulary {
     /// The least context.
     public static let low: Self = "low"
@@ -138,7 +137,7 @@ public struct OpenAIImageModel: ProviderVocabulary {
     }
 }
 
-/// How detailed a generated image is, which sets its price, from `low` to `high`.
+/// How detailed a generated image is, from `low` to `high`.
 ///
 /// Qualities are an open vocabulary: any quality OpenAI lists is valid, with or without a static member. Some models
 /// take more, such as `xhigh` and `max`.

@@ -94,7 +94,7 @@ public struct OpenRouterPricing: Sendable, Hashable {
     ///
     /// - Parameters:
     ///   - promptTokens: The request's prompt length, in tokens.
-    ///   - date: When the request is sent.
+    ///   - date: When the request is sent. The default is now.
     /// - Returns: The prices, with no overrides left. The fees that no override changes, such as ``request`` and
     ///   ``webSearch``, carry over, and so does the ``discount``.
     public func prices(forPromptTokens promptTokens: Int, at date: Date = .now) -> OpenRouterPricing {
@@ -360,7 +360,8 @@ extension OpenRouterPricing.Override {
 // MARK: - Wire
 
 extension OpenRouterPricing {
-    /// A `pricing` object in OpenRouter's model and endpoint lists, with each price as decimal text in US dollars.
+    /// A `pricing` object in OpenRouter's description of a model and in its endpoint list, with each price as decimal
+    /// text in US dollars.
     struct Payload: Decodable, Sendable {
         /// Prices that replace the base prices while their conditions hold.
         fileprivate struct Override: Decodable, Sendable {
@@ -399,7 +400,7 @@ extension OpenRouterPricing {
         fileprivate let image: String?
         fileprivate let request: String?
         fileprivate let webSearch: String?
-        /// The fraction taken off the endpoint's prices, from 0 to 1.
+        /// The fraction taken off the prices, from 0 to 1.
         fileprivate let discount: Double?
         fileprivate let overrides: [Override]?
 

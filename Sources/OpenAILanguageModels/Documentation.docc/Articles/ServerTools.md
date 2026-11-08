@@ -28,14 +28,14 @@ An image generator draws images the model asks for. Each image is a data entry o
 The model sees an image on later turns, so it can change it: the image's call goes back by its id, and OpenAI looks the
 image up. That needs OpenAI to keep the response that made the image and the request that sends it back, its default.
 When OpenAI doesn't keep one of them, as with ``OpenAIOptions/Storage/notStored``, the call stays out of later turns
-with the reasoning before it, so attach the image to a prompt to work on it. OpenAI keeps a response for a limited time, so a
-saved transcript sends an old image's call that OpenAI may no longer have. Data entries need iOS,
-macOS, visionOS or watchOS 27.2 and Xcode 27.2's SDK: anywhere else, a request with an image generator throws
+with the reasoning before it, so attach the image to a prompt to work on it. OpenAI keeps a response for a limited
+time, so a saved transcript may send an old image's call that OpenAI has dropped. Data entries need iOS, macOS,
+visionOS or watchOS 27.2 and Xcode 27.2's SDK: anywhere else, a request with an image generator throws
 `LanguageModelError.unsupportedCapability` before sending anything, since the image would be billed and couldn't arrive.
 
 An image generator plans each image with the request's reasoning effort, unless its `complexity` says otherwise. GPT
-Image 2 refuses a complexity of `low` or `medium`, and GPT Image 1 mini of `low`, which a light reasoning level passes
-on: with them, a request at a light reasoning level fails with an ``OpenAIError`` whose code is `invalid_value`. Leave
+Image 2 refuses a complexity of `low` or `medium`, and GPT Image 1 mini refuses `low`. So with either model, a request
+at a light reasoning level, which asks for `low`, fails with an ``OpenAIError`` whose code is `invalid_value`. Leave
 the reasoning level at the model's default.
 
 ### Search your files
@@ -61,8 +61,8 @@ file search's queries, and an image's revised prompt. Each call that completed g
 the reasoning before it, while the model still has its tool.
 
 Each tool costs extra, on top of the model's tokens: a web search by the call, which
-``OpenAIUsageMetadata/webSearchCount`` counts, an image by its model, size and quality, and a file search by the call
-and the storage it searches.
+``OpenAIUsageMetadata/webSearchCount`` counts, an image at the prices of the model that draws it, and a file search by
+the call and the storage it searches.
 
 ### OpenAI's guides
 

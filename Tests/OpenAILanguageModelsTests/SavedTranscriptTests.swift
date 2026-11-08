@@ -105,7 +105,7 @@ struct SavedTranscriptTests {
             """ + serverToolFacts(metadata)
     }
 
-    /// What the server tools left, only when they left something, so the facts of an answer without them read as before.
+    /// What the server tools left, or nothing when they left nothing, so an answer without them adds no facts.
     private static func serverToolFacts(_ metadata: OpenAIResponseMetadata) -> String {
         func text(_ value: (some Any)?) -> String { value.map { String(describing: $0) } ?? "nil" }
         var facts: [String] = []

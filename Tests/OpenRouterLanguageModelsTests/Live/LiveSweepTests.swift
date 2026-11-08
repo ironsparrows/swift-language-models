@@ -53,7 +53,6 @@ struct LiveSweepTests {
         .toolRoundTrip: [
             "fireworks/ember-1": "It sometimes answers without calling the tool it was asked to use.",
             "google/gemma-3-12b-it": "It sometimes calls the tool without arguments, which don't decode without the city.",
-            "inception/mercury-2.5": "It sometimes answers without calling the tool it was asked to use.",
             "meta-llama/llama-3.1-8b-instruct": "Only Groq and CoreWeave serve its tools, and Groq rejects the call with tool_use_failed.",
             "nvidia/nemotron-3-nano-30b-a3b": "It sometimes calls the tool without arguments, which don't decode without the city.",
             "rekaai/reka-edge": "Its host sometimes sends the call's arguments with an extra closing brace, which isn't valid JSON.",

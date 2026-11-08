@@ -34,8 +34,8 @@ Any of the models may answer, so a request asks only for what all of them suppor
   generation, reasoning and images work only when every model supports them, and an attachment or data kind only when
   every model takes it.
 - A setting is sent only when every model lists its parameter, the token limit too, as `max_completion_tokens` or
-  `max_tokens`. OpenRouter picks a host that supports an answer that long.
-  A schema goes only to models that all take structured outputs; otherwise the request is refused before it's sent.
+  `max_tokens`. OpenRouter picks a host that supports an answer that long. A schema goes only to models that all take
+  structured outputs; otherwise the request is refused before it's sent.
 - A reasoning level becomes the nearest effort that every model accepts. When they share none, the request only turns
   reasoning on or off, and it doesn't turn reasoning off when any model always reasons.
 - A schema goes in portable form, with its constraints in descriptions, when any of the models is Anthropic's.

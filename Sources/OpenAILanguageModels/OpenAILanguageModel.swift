@@ -34,6 +34,9 @@ public struct OpenAILanguageModel<Effort: ModelEffort>: DetailedLanguageModel {
 
     /// Tools that OpenAI runs for the model while it answers, such as a web search, listed after the session's own
     /// tools in each request.
+    ///
+    /// A request that disallows tool calls sends none of them. One that sends them to a model that doesn't list `tools`
+    /// throws `LanguageModelError.unsupportedCapability` before it's sent.
     public var serverTools: [OpenAIServerTool]
 
     /// Request settings that only OpenAI has.

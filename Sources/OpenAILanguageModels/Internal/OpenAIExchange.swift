@@ -92,9 +92,10 @@ struct OpenAIExchange: Responses.Exchange {
     /// so they go back on later turns. A web search that lists its sources asks for them in `include`, after the
     /// encrypted reasoning.
     ///
-    /// - Throws: `LanguageModelError.unsupportedCapability` when tool calls are required and the model doesn't take
-    ///   tools, when there are server tools to send and the model doesn't take tools, when one generates images where
-    ///   no image could arrive, or when the request has a response schema and the model doesn't take structured outputs.
+    /// - Throws: `LanguageModelError.unsupportedCapability` when a call to the session's tools is required and the model
+    ///   doesn't take tools, when there are server tools to send and the model doesn't take tools, when one generates
+    ///   images where no image could arrive, or when the request has a response schema and the model doesn't take
+    ///   structured outputs.
     func prepare(_ request: inout Responses.Request) throws {
         let options = model.options
         let generation = request.generation

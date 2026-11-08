@@ -19,7 +19,8 @@ struct RecordedTranscriptTests {
         .webSearchWithSessionTool, .fileSearch,
     ]
 
-    /// The transcripts of every Xcode and system, then the one that needs the newer ones to read its attachments.
+    /// The transcripts any Xcode and system read, then those that need Xcode 27.2 and OS 27.2 to read their attachments
+    /// and generated images.
     static let allScenarios: [RecordedScenario] = {
         #if canImport(FoundationModels, _version: 2.1.14)
         if #available(iOS 27.2, macOS 27.2, visionOS 27.2, watchOS 27.2, *) {

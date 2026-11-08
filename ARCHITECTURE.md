@@ -145,19 +145,19 @@ sequenceDiagram
 
     EX->>M: respond(to:streamingInto:), on model.responses(configuration)
     M->>X: 1 read the input: checkAttachment, replays
-    M->>X: 2 prepare(&request): storage, encrypted reasoning, reasoning, text members
+    M->>X: 2 prepare(&request): storage, encrypted reasoning, reasoning, text members, server tools
     M->>M: 3 request.body(): leave out unsupported and unsent members
     M->>CN: 4 openEventStream POST responses (retries, then one with the portable schema)
     CN->>OA: request
     OA-->>CN: server-sent events
     loop each event
         M->>ST: 5 receive(event)
-        ST->>CH: text, reasoning summaries, function calls by output index, citations
+        ST->>CH: text, reasoning summaries, function calls by output index, citations, generated images
     end
     Note over ST: response.completed or response.incomplete ends the answer, error or response.failed throws
     M->>ST: 6 finish
     ST->>X: additions(header:)
-    ST->>CH: finish: reasoning items in their order as the signature, message phases, metadata, usage
+    ST->>CH: finish: the output items' order as the signature, message phases, server tool calls, metadata, usage
 ```
 
 | Step | File |

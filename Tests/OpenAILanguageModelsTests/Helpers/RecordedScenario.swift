@@ -38,7 +38,7 @@ extension RecordedScenario {
     private static let luna: OpenAIModel<ContextOptions.ReasoningLevel> = OpenAILanguageModelsTests.details(
         id: "gpt-6-luna", parameters: [.maxOutputTokens, .parallelToolCalls, .reasoning, .structuredOutputs, .toolChoice, .tools],
         efforts: [.max, .xhigh, .high, .medium, .low, .off])
-    /// The least reasoning a web search takes.
+    /// The least reasoning these scenarios search at, which sends `low`.
     private static let light = ContextOptions(reasoningLevel: .light)
 
     /// A streamed answer with the least reasoning.
@@ -149,8 +149,8 @@ extension RecordedScenario {
         return try await session.respond(to: "When was it released? One sentence.", options: options).usage
     }
 
-    /// Two turns of web searches OpenAI doesn't keep, at the model's own effort, the second sending the first's call back
-    /// whole and ending with reasoning before its call.
+    /// Two turns of web searches OpenAI doesn't keep, at the model's own effort: the second sends the first's call back
+    /// whole, and its answer reasons before its own search.
     static let webSearchNotStored = RecordedScenario(
         name: "web-search-not-stored", details: luna, serverTools: [.webSearch()],
         options: OpenAIOptions(reasoningSummary: .auto, maximumServerToolCalls: 2, storage: .notStored), replies: [.stream, .stream]
@@ -160,7 +160,7 @@ extension RecordedScenario {
         return try await session.respond(to: "How tall is it? One sentence.", options: options).usage
     }
 
-    /// Two turns of web searches by a model that doesn't reason, whose calls go back before its messages.
+    /// Two turns by a model that doesn't reason, the first with a web search whose call goes back before its message.
     static let webSearchPlain = RecordedScenario(
         name: "web-search-plain", details: mini, serverTools: [.webSearch()], options: OpenAIOptions(maximumServerToolCalls: 1),
         replies: [.stream, .stream]
@@ -170,7 +170,8 @@ extension RecordedScenario {
         return try await session.respond(to: "In which year was it finished? One sentence.", options: options).usage
     }
 
-    /// A web search and a call of the session's tool in one answer, a second round of calls, then the answer.
+    /// A web search and a call of the session's tool in one answer, two more calls of the tool, then the answer after a
+    /// second search.
     static let webSearchWithSessionTool = RecordedScenario(
         name: "web-search-with-session-tool", details: luna, serverTools: [.webSearch()],
         options: OpenAIOptions(maximumServerToolCalls: 1), tools: [FoodTool()], replies: [.stream, .stream, .stream]
@@ -183,7 +184,8 @@ extension RecordedScenario {
     }
 
     /// Two turns with an image at the model's own effort, the second asking for a change, which sends the first image's
-    /// call back by its id. An image tool's complexity follows a `low` effort, which the image models refuse.
+    /// call back by its id, without the image. A light reasoning level would plan the image at a `low` complexity, which
+    /// the image models refuse.
     static let imageGeneration = RecordedScenario(
         name: "image-generation", details: luna, serverTools: [.imageGeneration(quality: .low, size: .square1024)],
         replies: [.stream, .stream]

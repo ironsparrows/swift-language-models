@@ -140,8 +140,8 @@ extension OpenAIResponseMetadata {
 
 /// One call the model made to a server tool while it answered, as OpenAI reported it.
 ///
-/// Each kind fills its own facts: a web search its ``action``, ``queries`` and ``url``, a file search its ``queries``, and
-/// an image generation its ``revisedPrompt``. The rest stay empty or `nil`.
+/// Each kind fills its own facts: a web search its ``action``, ``queries``, ``url`` and ``pattern``, a file search its
+/// ``queries``, and an image generation its ``revisedPrompt``. The rest stay empty or `nil`.
 public struct OpenAIServerToolCall: Sendable, Hashable {
     /// OpenAI's id for the call, such as `ws_…`.
     public let id: String
@@ -449,7 +449,8 @@ extension OpenAIResponseMetadata {
 
     /// The key of what an answer's server tools left, on the entry that ends the answer: their calls, in their order,
     /// each as the JSON text of its item, without an image, and the files the answer cites. A generated image's data
-    /// entry keeps the image's call under it too. The calls go back on later turns.
+    /// entry keeps the image's call under it too. A call that completed goes back on later turns while the request still
+    /// sends its tool, and an image's call only while OpenAI keeps the responses.
     ///
     /// It starts with `openAI.`, so it never collides with another provider's keys. Saved transcripts keep it, so its
     /// spelling never changes.

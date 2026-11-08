@@ -15,8 +15,8 @@ package final class HTTPStub: Sendable {
     /// A session that sends its requests to the stub.
     package let session: URLSession
 
-    /// An element for each request the stub answers, once it has sent the response's chunks, so a test can act while a
-    /// response kept open is still in flight.
+    /// An element for each request the stub takes, once it has sent the response's chunks or failed the request, so a
+    /// test can act while a response kept open is still in flight.
     package let sentResponses: AsyncStream<Void>
 
     private let host: String
@@ -56,9 +56,10 @@ package final class HTTPStub: Sendable {
 
 // MARK: - Recorded requests
 
-/// A request that reached an ``HTTPStub``, with its body read out of the request's stream.
+/// A request that reached an ``HTTPStub`` or a ``LoopbackServer``, with its body, which a stub reads out of the
+/// request's stream.
 package struct RecordedRequest: Sendable {
-    /// The request as the stub received it.
+    /// The request as it arrived.
     package let request: URLRequest
 
     /// The request body.

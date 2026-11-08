@@ -35,7 +35,7 @@ enum OutputItem: Equatable {
     }
 
     /// The signature for an answer's output items: the `reasoning` items alone when they all come first and no server
-    /// tool's call is among the items, or `nil` when there are no `reasoning` items.
+    /// tool's call is among the items, every item otherwise, or `nil` when there are no `reasoning` items.
     static func signature(of items: [OutputItem]) -> Data? {
         let reasoning = items.filter { if case .reasoning = $0 { true } else { false } }
         guard !reasoning.isEmpty else { return nil }
@@ -62,9 +62,9 @@ extension Responses {
     /// A kind of call that one of a provider's server tools adds to an answer as an output item of its own, such as a web
     /// search, which a request that sends the tool keeps, so the call goes back on later turns in its place.
     ///
-    /// An answer's response entry keeps the calls whole, under the model's ``Model/serverToolsKey``, and its reasoning
-    /// entry's signature their places among its `reasoning` items. A call goes back right after the reasoning items
-    /// before it, or neither goes back.
+    /// An answer's response entry keeps the calls, an image's without its image, under the model's
+    /// ``Model/serverToolsKey``, and its reasoning entry's signature their places among its `reasoning` items. A call
+    /// goes back right after the reasoning items before it, or neither goes back.
     package enum ServerToolCall: CaseIterable, Sendable {
         /// A `web_search_call`: the searches, page opens and finds of a web search.
         case webSearch

@@ -181,26 +181,12 @@ is `respond(to:model:streamingInto:)`. The contents of `executorConfiguration` d
 
 ### A removed OpenRouter model
 
-The 14 models that OpenRouter stopped listing are gone from `OpenRouterModel`, with the `OpenRouterCatalog` enums of
-their efforts, and the effort levels of the three that listed any. Their members were deprecated with "Removed from
-OpenRouter on" and a date:
+The models that OpenRouter stopped listing during 1.x are gone from `OpenRouterModel`, with the `OpenRouterCatalog`
+enums of their efforts, and the effort levels of those that listed any. The last 1.x release deprecates each of their
+members with "Removed from OpenRouter on" and a date, so a build against that release warns wherever your code names
+one.
 
-- `minimax/minimax-01`
-- `minimax/minimax-m2`
-- `minimax/minimax-m2-her`
-- `minimax/minimax-m2.1`
-- `nousresearch/hermes-3-llama-3.1-405b`
-- `nousresearch/hermes-3-llama-3.1-70b`
-- `nvidia/nemotron-3.5-content-safety:free`
-- `poolside/laguna-s-2.1`
-- `poolside/laguna-s-2.1:free`
-- `poolside/laguna-xs-2.1`
-- `poolside/laguna-xs-2.1:free`
-- `thinkingmachines/inkling-small:free`
-- `thinkingmachines/inkling:free`
-- `upstage/solar-pro-3`
-
-Name another model. If one of these still answers for you, describe it by hand with
+Name another model. If one of them still answers for you, describe it by hand with
 `OpenRouterModel<ContextOptions.ReasoningLevel>(id:displayName:supportedParameters:)`. Its ``ModelDetails/removalDate`` is
 `nil`, so a request to it logs no report.
 

@@ -23,10 +23,10 @@ public struct OpenRouterModel<Effort: ModelEffort>: ModelDetails, Hashable {
     /// isn't an alias.
     public let aliasTarget: OpenRouterModelID?
 
-    /// The day the model's training data ends, at midnight UTC.
+    /// The day the model's training data ends, at midnight UTC, or `nil` when the details don't record it.
     public let knowledgeCutoff: Date?
 
-    /// The day OpenRouter retires the model, at midnight UTC.
+    /// The day OpenRouter retires the model, at midnight UTC, or `nil` when OpenRouter lists none.
     public let expirationDate: Date?
 
     /// The day OpenRouter stopped listing the model, at midnight UTC, as this release's catalog records it, or `nil`
@@ -181,8 +181,8 @@ extension OpenRouterModel where Effort == ContextOptions.ReasoningLevel {
 
 extension OpenRouterModel where Effort == ContextOptions.ReasoningLevel {
     /// The details narrowed to what another model also supports: the parameters, input and output kinds and efforts
-    /// both take, the smaller limits, the default effort only when both have the same one, reasoning only when both
-    /// reason, and caching only marked prompts only when both do. The id, name and dates stay these.
+    /// both take, the smaller context size, the default effort only when both have the same one, reasoning only when
+    /// both reason, and caching only marked prompts only when both do. The id, name, alias target and dates stay these.
     func sharing(_ other: Self) -> Self {
         Self(
             id: id,

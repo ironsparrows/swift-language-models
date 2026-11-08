@@ -105,7 +105,7 @@ public struct OpenRouterEndpoint: Sendable, Hashable {
     ///   - maximumOutputTokens: The most tokens the endpoint generates in one response.
     ///   - maximumPromptTokens: The most prompt tokens the endpoint takes.
     ///   - pricing: What the endpoint charges.
-    ///   - status: OpenRouter's health code for the endpoint, 0 while it serves normally.
+    ///   - status: OpenRouter's health code for the endpoint: 0, the default, while it serves normally.
     ///   - uptimeLast5Minutes: The share of the last 5 minutes in which the endpoint answered, as a percentage.
     ///   - uptimeLast30Minutes: The share of the last 30 minutes in which the endpoint answered, as a percentage.
     ///   - uptimeLastDay: The share of the last day in which the endpoint answered, as a percentage.

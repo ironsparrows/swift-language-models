@@ -8,9 +8,11 @@ public import UniformTypeIdentifiers
 
 /// A language model that carries what its provider reports about it.
 ///
-/// The model's capabilities, and the kinds of data it accepts and generates, come from its details. Its executor is the
-/// provider module's own. In a provider module of your own, the executor calls ``reportRemovedModels(for:)`` before it
-/// sends a request and ``checkGuides(ofResponseText:for:)`` once the answer is over.
+/// The model's capabilities, and the kinds of data it accepts and generates, default to what the details of the model
+/// and of each of its fallbacks list. A provider module may add to them, such as the image format of a server tool that
+/// generates images. The model's executor is the provider module's own. In a provider module of your own, the executor
+/// calls ``reportRemovedModels(for:)`` before it sends a request and ``checkGuides(ofResponseText:for:)`` once the answer
+/// is over.
 public protocol DetailedLanguageModel: LanguageModel {
     /// The type that describes the model.
     associatedtype Details: ModelDetails

@@ -138,8 +138,8 @@ public struct OpenRouterResponseCache: Sendable, Hashable {
     /// Creates a response cache.
     ///
     /// - Parameters:
-    ///   - timeToLive: How long OpenRouter keeps an answer. A fraction of a second is dropped, and the rest is clamped
-    ///     to 1 second through 24 hours, with a runtime warning in a debug build.
+    ///   - timeToLive: How long OpenRouter keeps an answer. The default is 5 minutes. A fraction of a second is
+    ///     dropped, and the rest is clamped to 1 second through 24 hours, with a runtime warning in a debug build.
     ///   - refreshes: Whether each request replaces the answer kept for it with a new one.
     public init(timeToLive: Duration = .seconds(300), refreshes: Bool = false) {
         let kept = Self.timeToLive(clamping: timeToLive)

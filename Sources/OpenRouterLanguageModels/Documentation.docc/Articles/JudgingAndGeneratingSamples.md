@@ -111,7 +111,7 @@ dataset reaches `targetCount`, which counts the seeds. Without a `sessionProvide
 with one, the model and instructions of the session it returns.
 
 The generator calls `sessionProvider` when it starts, and again whenever the session runs out of context. The new
-session knows nothing of the earlier exchange, so its instructions stand alone: what the feature does, what a sample
+session knows nothing of the earlier session, so its instructions stand alone: what the feature does, what a sample
 holds and the rules each sample follows. For samples with tool expectations, they also name each tool and when it's
 called, since the generator's model doesn't know them.
 

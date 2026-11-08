@@ -9,15 +9,15 @@ extension Responses {
     /// A transcript as the format's `input` items.
     ///
     /// Instructions become a message in the model's instructions role, and prompts `user` messages. One answer
-    /// becomes its `reasoning` items, an `assistant` message for each of its messages, with its text and `phase`, and a
-    /// reasoning block that the model wrote in its answer's text back at the start of the first, a `function_call`
-    /// item for each of its tool calls, and its server tools' calls whole, in the order they came, or with the
-    /// `reasoning` items first when the order isn't known and the server tools' calls before the messages when there's no
-    /// reasoning to place them. An answer with nothing after its reasoning, as one cut off while it reasoned, sends no
-    /// reasoning back, since a reasoning item needs an item after it. Each tool output becomes a `function_call_output` item,
-    /// matched to its call by `call_id`. Prompts and tool outputs carry their attachments as input parts;
-    /// generated data and an answer's attachments aren't sent back. Every entry turns into the same JSON each time, so
-    /// a host's prompt cache stays valid from one request to the next.
+    /// becomes its `reasoning` items, an `assistant` message for each of its messages, with its text and `phase`, a
+    /// `function_call` item for each of its tool calls, and its server tools' calls as the answer kept them. A reasoning
+    /// block that the model wrote in its answer's text goes back at the start of the first message. The items go in the
+    /// order they came, as the reasoning's signature records it; the items it doesn't place follow, the server tools'
+    /// calls first, then the messages, then the function calls. An answer with nothing after its reasoning, as one cut
+    /// off while it reasoned, sends no reasoning back, since a reasoning item needs an item after it. Each tool output
+    /// becomes a `function_call_output` item, matched to its call by `call_id`. Prompts and tool outputs carry their
+    /// attachments as input parts; generated data and an answer's attachments aren't sent back. Every entry turns into
+    /// the same JSON each time, so a host's prompt cache stays valid from one request to the next.
     struct Input {
         private var items: [Item] = []
 
@@ -64,11 +64,12 @@ extension Responses {
 
         /// The `input` member: the items a request with this storage sends, with the server tools' calls it keeps.
         ///
-        /// A server tool's call goes back only when it completed, while the request keeps its kind and, for a kind that
-        /// doesn't go back unstored, only when the provider keeps both this request's response and the one that made the
-        /// call; the `reasoning` items right before it go back with it, or neither does. A request the provider doesn't
-        /// store also leaves out every other `reasoning` item that carries no encrypted reasoning, since the provider
-        /// can't look it up by its id.
+        /// A server tool's call goes back with the `reasoning` items right before it, or neither goes back. It goes back
+        /// only when it completed, or has no status, the request keeps its kind, and the provider keeps this request's
+        /// response or, for a kind that goes back unstored, such as a web search, each of the `reasoning` items before it
+        /// carries encrypted reasoning. A call of another kind, such as an image's, also needs the provider to have kept
+        /// the response that made it. A request the provider doesn't store also leaves out every other `reasoning` item
+        /// that carries no encrypted reasoning, since the provider can't look it up by its id.
         ///
         /// - Parameters:
         ///   - storage: Whether the provider keeps the response.

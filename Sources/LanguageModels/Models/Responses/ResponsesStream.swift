@@ -19,9 +19,10 @@ extension Responses {
     /// answer: the text of the others, such as `commentary`, stays out of the response text, so the answer decodes, and
     /// goes in the metadata with its phase.
     ///
-    /// The calls of the server tools the request keeps go in the metadata whole, with their places in the signature, and
-    /// so do the files the answer cites, which only a file search returns. A generated image becomes a data entry of its
-    /// own, which keeps the image's call. The calls of other server tools are passed over.
+    /// The calls of the server tools the request keeps go in the metadata, with their places in the signature, and so do
+    /// the files the answer cites, which only a file search returns. A call goes in whole, but an image's call goes in
+    /// without its image: a generated image becomes a data entry of its own, which keeps the image's call. The calls of
+    /// other server tools are passed over.
     struct Stream<Exchange: Responses.Exchange> {
         private let exchange: Exchange
         private let headers: ResponseHeaders
@@ -564,7 +565,7 @@ extension ResponseEvent {
         /// The `error` object of a failed response.
         let error: JSONValue?
 
-        /// What the built-in tools used, such as the web searches that ran.
+        /// What the server tools used, such as the web searches that ran.
         let toolUsage: ToolUsage?
 
         /// Whether the provider keeps the response.
@@ -595,7 +596,7 @@ extension ResponseEvent {
         }
     }
 
-    /// What a response's built-in tools used, such as its web searches.
+    /// What a response's server tools used, such as its web searches.
     struct ToolUsage: Decodable {
         struct WebSearch: Decodable {
             /// The billable searches, which leave out opening a page.

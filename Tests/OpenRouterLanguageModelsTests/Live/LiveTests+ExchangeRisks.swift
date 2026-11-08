@@ -24,11 +24,11 @@ extension LiveTests {
             LiveModel(.qwenQwen3_7Flash),
         ]
 
-        /// Models that reject encrypted reasoning another model wrote.
+        /// Models a transcript moves to with encrypted reasoning that another model wrote.
         static let handoffModels = [LiveModel(.deepseekDeepseekV4Flash), LiveModel(.googleGemini3_1FlashLite)]
 
-        /// With tool calls disallowed, Foundation Models sends no tools, so a history with tool calls goes out without their
-        /// definitions, and Anthropic and Bedrock still accept it.
+        /// With tool calls disallowed, Foundation Models sends no tools, so a history with tool calls goes out without
+        /// their definitions, and Anthropic and Bedrock still accept it.
         @Test(arguments: toolHistoryModels)
         func `a turn with tools disallowed after a tool call keeps the history valid`(model: LiveModel) async throws {
             let session = LanguageModelSession(model: model.languageModel, tools: [WeatherTool()])
@@ -44,7 +44,8 @@ extension LiveTests {
             #expect(response.content.localizedCaseInsensitiveContains("Lisbon"))
         }
 
-        /// Some hosts stream reasoning as `reasoning` text next to an empty `reasoning_details`, and the text still arrives.
+        /// Some hosts stream reasoning as `reasoning` text next to an empty `reasoning_details`, and the text still
+        /// arrives.
         @Test(arguments: plainTextReasoningModels)
         func `reasoning in plain text reaches the transcript`(model: LiveModel) async throws {
             let session = LanguageModelSession(model: model.languageModel)
@@ -89,8 +90,8 @@ extension LiveTests {
             expectThinkingMovedToReasoning(in: response.transcriptEntries)
         }
 
-        /// Nova writes `<thinking>` before it calls a tool. The block goes back at the start of the
-        /// answer's text, and Bedrock takes it, so the tool loop ends with the tool's answer.
+        /// Nova writes `<thinking>` before it calls a tool. The block goes back at the start of the answer's text, and
+        /// Bedrock takes it, so the tool loop ends with the tool's answer.
         @Test func `Nova keeps its thinking out of the answer through a tool loop`() async throws {
             let session = LanguageModelSession(model: LiveModel(.amazonNovaMicroV1).languageModel, tools: [WeatherTool()])
 
@@ -151,8 +152,8 @@ extension LiveTests {
             #expect(!response.content.isEmpty)
         }
 
-        /// `.required` is refused before any request on a model without `tool_choice`, such as Nova, which would otherwise
-        /// answer without a tool call.
+        /// `.required` is refused before any request on a model without `tool_choice`, such as Nova, which would
+        /// otherwise answer without a tool call.
         @Test func `a required tool call is refused on a model without tool_choice`() async throws {
             let session = LanguageModelSession(model: LiveModel(.amazonNovaMicroV1).languageModel, tools: [WeatherTool()])
 
@@ -183,9 +184,8 @@ extension LiveTests {
             #expect(trip.activities.count == 3)
         }
 
-        /// Reasoning that a model none of the request names wrote still goes back,
-        /// so a transcript moved to another model resends the first model's encrypted reasoning, which DeepSeek and
-        /// Gemini accept.
+        /// Reasoning that neither the model nor a fallback wrote still goes back, so a transcript moved to another model
+        /// resends the first model's encrypted reasoning, which DeepSeek and Gemini accept.
         @Test(arguments: handoffModels)
         func `a transcript with another model's encrypted reasoning moves to a new model`(model: LiveModel) async throws {
             let first = LanguageModelSession(model: LiveModel(.openaiGpt5Nano).languageModel, tools: [WeatherTool()])
@@ -203,8 +203,9 @@ extension LiveTests {
             #expect(response.content.contains("17"))
         }
 
-        /// Reasoning text without a format counts as Anthropic's, so GLM's unsigned reasoning is dropped when
-        /// it's replayed. The next request goes to a stub, which shows what would go back.
+        /// Unsigned reasoning text without a format counts as Anthropic's and is dropped when it's replayed, so GLM's
+        /// reasoning goes back only while GLM names a format of its own. The next request goes to a stub, which shows
+        /// what would go back.
         @Test func `GLM's unsigned reasoning goes back on the next request`() async throws {
             let glm = LiveModel(.zAiGlm5_3Flash)
             let session = LanguageModelSession(model: glm.languageModel, tools: [WeatherTool()])

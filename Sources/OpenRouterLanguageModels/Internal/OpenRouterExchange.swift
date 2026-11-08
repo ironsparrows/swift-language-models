@@ -162,9 +162,10 @@ struct OpenRouterExchange: ChatCompletions.Exchange {
     /// parameter any of its hosts takes, so with tools or a schema, when the request asks for hosts that take all it
     /// sends, each setting sent also narrows its hosts.
     ///
-    /// - Throws: `LanguageModelError.unsupportedCapability` when tool calls are required and a model doesn't take
-    ///   `tool_choice`, when there are server tools and a model doesn't take tools, and for a schema when a model
-    ///   doesn't take structured outputs.
+    /// - Throws: `LanguageModelError.unsupportedCapability` when a call to the session's tools is required and the
+    ///   models take tools but a model doesn't take `tool_choice`, when there are server tools and a model doesn't take
+    ///   tools, and for a schema when a model doesn't take structured outputs. A model that doesn't take tools gets none
+    ///   of the session's tools, and no error, even when a call is required.
     func prepare(_ request: inout ChatCompletions.Request) throws {
         let options = model.options
         let toolCallingMode = request.generation.generationOptions.toolCallingMode
@@ -269,7 +270,8 @@ struct OpenRouterExchange: ChatCompletions.Exchange {
 
     /// The reasoning setting: the nearest effort the model accepts, or for a model whose effort can't be chosen,
     /// whether to reason at all. `off` turns off the reasoning of a model that can stop reasoning even when `none`
-    /// isn't among its efforts; a model that always reasons gets its nearest effort instead.
+    /// isn't among its efforts; a model that always reasons gets its nearest effort instead, or no setting when its
+    /// effort can't be chosen.
     ///
     /// - Returns: The setting, and the level asked for with the effort sent, when that effort isn't the level's own or
     ///   none is.

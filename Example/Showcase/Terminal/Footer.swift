@@ -2,8 +2,8 @@ import Foundation
 import FoundationModels
 import OpenRouterLanguageModels
 
-/// The line under an answer: its tokens, what the prompt cache did, its cost and the host that served it, such as
-/// `412 in (380 cached) · 37 out · $0.00021 · Anthropic`.
+/// The line under an answer: its tokens, what the prompt cache did, its cost, whether the response cache answered and
+/// the host that served it, such as `412 in (380 cached) · 37 out · $0.00021 · Anthropic`.
 struct Footer: CustomStringConvertible {
     let usage: LanguageModelSession.Usage
     let answer: Transcript.Response?

@@ -33,7 +33,7 @@ From OS 27.2, Foundation Models asks the model itself, with `supportsDataAttachm
 
 ``DetailedLanguageModel`` answers from the details of every model a request may reach: the model and its fallbacks. A
 provider module's model can answer for more than those details describe, such as for a PDF its provider reads for a
-model that can't.
+model that can't, or for an image that its image generation server tool draws.
 
 ### Apple's guides
 

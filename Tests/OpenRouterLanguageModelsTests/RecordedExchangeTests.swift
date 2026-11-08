@@ -7,8 +7,8 @@ import Testing
 
 @testable import OpenRouterLanguageModels
 
-/// Exchanges replayed from what OpenRouter really sent, so these pin how real streams and failures read. Ids and what shows
-/// the account or its location are swapped for fake values; encrypted reasoning stays as it came. The streams and
+/// Exchanges replayed from what OpenRouter really sent, so these pin how real streams and failures read. Ids and what
+/// shows the account or its location are swapped for fake values; encrypted reasoning stays as it came. The streams and
 /// failures a real host can't be made to send stay hand-built, in the other suites.
 @Suite("Recorded exchanges", .timeLimit(.minutes(1)))
 struct RecordedExchangeTests {

@@ -259,7 +259,7 @@ doesn't check again how tool-call fragments are joined. Each test target links w
 - **`confirmation`.** Use it where a count is the behavior and nothing records it. Where a stub records requests, a count
   of requests stays an `#expect`.
 - **`.bug`.** Put it on a test that pins a fixed defect, with its pull request or issue.
-- **Sockets.** Only the suite tagged `loopback` opens one. The rest answer through `HTTPStub`.
+- **Sockets.** Only the suites tagged `loopback` open one. The rest answer through `HTTPStub`.
 
 Test a provider's requests and answers through Foundation Models, as `ExactExchangeTests` does with
 `LanguageModelsTestSupport`'s `ExactExchange`: the bytes each request sends and what the session's transcript holds

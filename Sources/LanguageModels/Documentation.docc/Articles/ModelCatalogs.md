@@ -10,8 +10,8 @@ parameters, data kinds and reasoning levels. Its levels form the model's effort 
 ``DetailedLanguageModel/reasoningLevel(_:)`` offers only those, as <doc:ReasoningLevels> describes.
 
 A catalog holds what changes rarely about a model. What changes often, such as prices and the health of each host,
-the module reads from its provider when you ask. A model that's newer than the catalog can still be described
-by hand, with the initializer of the module's details type.
+stays out of it: OpenRouter's module reads that from OpenRouter when you ask. A model that's newer than the catalog can
+still be described by hand, with the initializer of the module's details type.
 
 ### How a catalog is made
 

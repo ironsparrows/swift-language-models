@@ -31,8 +31,9 @@ what each failure becomes.
 
 The entry that ends an answer carries facts about the answer: the model that answered, OpenAI's ids for the response
 and the request, why the answer ended, and the service tier that served it. The answer's usage carries the input,
-cached, output and reasoning tokens, and the prompt tokens written to the cache when OpenAI reports them. `openAI` on a
-response entry reads its facts as ``OpenAIResponseMetadata``, and on a usage as ``OpenAIUsageMetadata``:
+cached, output and reasoning tokens, the prompt tokens written to the cache when OpenAI reports them, and the searches a
+web search ran. `openAI` on a response entry reads its facts as ``OpenAIResponseMetadata``, and on a usage as
+``OpenAIUsageMetadata``:
 
 @Snippet(path: "swift-language-models/Snippets/OpenAIErrors", slice: "metadata")
 
@@ -56,9 +57,9 @@ OpenAI reports that other providers don't are the `phase` of each of an answer's
 
 Each round of tool calls is a request of its own. A response's `usage` has only its last request's tokens, and a
 session's own `usage` adds up the token counts of every request that answered. A request that fails, such as one the
-model refuses, reports no usage. The entry that ends each request carries only the prompt tokens written to the cache,
-when OpenAI reports them, so to count a whole response, read the session's `usage` before and after it. The package
-keeps no prices, so it reports what each request counted, not what it cost.
+model refuses, reports no usage. The entry that ends each request carries only the prompt tokens written to the cache
+and the web searches, when OpenAI reports them, so to count a whole response, read the session's `usage` before and
+after it. The package keeps no prices, so it reports what each request counted, not what it cost.
 
 ### Apple's guides
 

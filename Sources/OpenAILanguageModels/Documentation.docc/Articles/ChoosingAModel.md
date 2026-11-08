@@ -95,9 +95,9 @@ The catalog keeps no prices. What the answer's usage counts:
   cache, as <doc:Caching> describes.
 - **Output.** The usage counts the answer's tokens, its reasoning tokens among them.
 - **Tool calls.** Each round of tool calls is a request of its own, and a response's usage reports only the last one.
-- **Server tools.** A web search costs by the call, which ``OpenAIUsageMetadata/webSearchCount`` counts, an image by
-  its model, size and quality, and a file search by the call and the storage it searches, on top of the tokens, as
-  <doc:ServerTools> describes.
+- **Server tools.** A web search costs by the call, which ``OpenAIUsageMetadata/webSearchCount`` counts, an image at
+  the prices of the model that draws it, and a file search by the call and the storage it searches, on top of the
+  tokens, as <doc:ServerTools> describes.
 
 ``OpenAIOptions/serviceTier`` picks a processing tier, which trades speed against price, and the answer's metadata names
 the tier that served it.

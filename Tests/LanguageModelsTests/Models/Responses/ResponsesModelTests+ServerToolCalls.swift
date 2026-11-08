@@ -332,7 +332,7 @@ private func annotation(at index: Int, _ annotation: JSONValue) -> JSONValue {
     ["type": "response.output_text.annotation.added", "output_index": .integer(index), "annotation": annotation]
 }
 
-/// A `reasoning` item, with its reasoning encrypted unless it's `nil`.
+/// A `reasoning` item, with `encrypted` as its encrypted reasoning, or none when that's `nil`.
 private func reasoning(_ id: String, encrypted: String? = "blob") -> JSONValue {
     ["type": "reasoning", "id": .string(id), "summary": [], "encrypted_content": encrypted.map(JSONValue.string)]
 }

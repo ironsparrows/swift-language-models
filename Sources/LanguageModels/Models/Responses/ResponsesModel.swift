@@ -12,10 +12,10 @@ extension Responses {
     ///
     /// The model owns the whole exchange: it builds the body from Foundation Models' request, authenticates and sends it,
     /// retries a brief failure as its connection allows and once with the portable schema when a host rejects a
-    /// constraint, streams the answer into Foundation Models' channel, sends each answer's `reasoning` items back on
-    /// later turns in the order they came, maps a failed connection and logs. Its stored properties say what's true for
-    /// every request: a provider states the ones the initializer takes, and the rest default to the plain format. Its
-    /// ``exchange`` is the provider's part in each one.
+    /// constraint, streams the answer into Foundation Models' channel, sends each answer's `reasoning` items, messages
+    /// and kept server tools' calls back on later turns in the order they came, maps a failed connection and logs. Its
+    /// stored properties say what's true for every request: a provider states the ones the initializer takes, and the
+    /// rest default to the plain format. Its ``exchange`` is the provider's part in each one.
     package struct Model<Exchange: Responses.Exchange>: LanguageModel {
         // MARK: Where requests go
 
@@ -142,8 +142,9 @@ extension Responses.Model {
     /// A request is retried as the connection says, only before any data arrives, such as after a timeout, a server
     /// error or a briefly unavailable gateway or host, never when a response's `x-should-retry` is `false`, and once with
     /// the portable schema when the host rejects a constraint of the full one. The answer streams into the channel, and
-    /// its `reasoning` items go back on later turns in the order they came. A rejected response and a failure in the
-    /// stream become what the exchange's ``Responses/Exchange/error(for:)`` makes of them.
+    /// its `reasoning` items, messages and kept server tools' calls go back on later turns in the order they came. A
+    /// rejected response and a failure in the stream become what the exchange's ``Responses/Exchange/error(for:)`` makes
+    /// of them.
     ///
     /// - Parameters:
     ///   - generation: The transcript, tools, schema and options to send.
