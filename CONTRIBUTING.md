@@ -99,10 +99,10 @@ In this repository:
   [ARCHITECTURE](ARCHITECTURE.md#what-a-provider-states) lists. Pass `reaching:` every model a request may reach, in the
   order the provider tries them, so the shared model reports the removed ones.
 - A value saved transcripts hold never changes: `reasoningOrigin`, such as `openrouter` for OpenRouter's Chat Completions
-  reasoning and `openai-responses` for OpenAI's Responses reasoning, and `phasesKey`, such as `openAI.phases`. Each shared
-  model's initializer requires the ones it has, and `images`, so a provider can't forget one. Give each format its own
-  origin, since each sends reasoning back in another shape: reasoning a model wrote in one format is then skipped, not
-  sent back in the wrong one.
+  reasoning and `openai-responses` for OpenAI's Responses reasoning, `phasesKey`, such as `openAI.phases`, and
+  `serverToolsKey`, such as `openAI.serverTools`. Each shared model's initializer requires the ones it has, and
+  `images`, so a provider can't forget one. Give each format its own origin, since each sends reasoning back in another
+  shape: reasoning a model wrote in one format is then skipped, not sent back in the wrong one.
 - Keep what the model, the exchange and any info calls all rely on in the module's `Internal/API.swift`: the provider's
   name, base URL, paths and header names.
 - Give the model a public configuration of the module's own, such as `VendorConfiguration`, built only from the core's
@@ -114,8 +114,8 @@ In this repository:
   so a status named later stops the module's build until it decides. A status without a name is `.other`. Naming one also
   takes a row in `HTTPStatus.init(code:)` and in `HTTPStatusTests`, which no compiler checks. Read facts through
   `ProviderResponseMetadata`, `ProviderUsageMetadata` and `ProviderErrorMetadata`, and give apps a reader named for the
-  provider, such as `openRouter`. Its keys live in the module's metadata file, private to it, apart from a `phasesKey`
-  the shared model takes.
+  provider, such as `openRouter`. Its keys live in the module's metadata file, private to it, apart from the
+  `phasesKey` and `serverToolsKey` the shared Responses model takes.
 - Log through a `PackageLogger` with a category named after the module, which writes only at the levels the app's
   `LanguageModelsLogging.minimumLevel` lets through. Where the module works around a likely mistake, such as a setting
   the model doesn't take, log it at the info level and call `runtimeWarning(_:)`, which shows a runtime warning in a

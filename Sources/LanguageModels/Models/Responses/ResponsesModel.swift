@@ -58,6 +58,10 @@ extension Responses {
         /// later turns. Saved transcripts keep it, so a provider never changes it.
         let phasesKey: String
 
+        /// The metadata key under which an answer's entries keep what its server tools left, such as their calls, so the
+        /// calls go back on later turns. Saved transcripts keep it, so a provider never changes it.
+        let serverToolsKey: String
+
         // MARK: The provider's part in each request
 
         /// What the provider does in each exchange. Each request works on a copy of it.
@@ -73,13 +77,15 @@ extension Responses {
         ///   - images: How the request's image attachments are encoded.
         ///   - reasoningOrigin: The origin the reasoning entries of the provider's answers carry.
         ///   - phasesKey: The metadata key of an answer's message phases.
+        ///   - serverToolsKey: The metadata key of what an answer's server tools left.
         ///   - capabilities: What the model can do.
         ///   - models: The models a request may reach, in the order the provider tries them, so each request reports
         ///     the ones their provider stopped listing.
         ///   - exchange: What the provider does in each exchange.
         package init(
             name: String, url: URL, connection: Connection, providerName: String, images: ImageEncoding, reasoningOrigin: String,
-            phasesKey: String, capabilities: LanguageModelCapabilities, reaching models: [any ModelDetails], exchange: Exchange
+            phasesKey: String, serverToolsKey: String, capabilities: LanguageModelCapabilities, reaching models: [any ModelDetails],
+            exchange: Exchange
         ) {
             self.name = name
             self.url = url
@@ -88,6 +94,7 @@ extension Responses {
             self.images = images
             self.reasoningOrigin = reasoningOrigin
             self.phasesKey = phasesKey
+            self.serverToolsKey = serverToolsKey
             self.capabilities = capabilities
             reachableModels = models
             self.exchange = exchange
@@ -164,8 +171,8 @@ extension Responses.Model {
             let (bytes, headers) = try await open(body, imageEntries: request.imageEntries, exchange: exchange, log: log)
             // 5. Events into the answer's output. The stream owns the exchange from here.
             var stream = Responses.Stream(
-                channel: channel, model: self, exchange: exchange, headers: headers, imageEntries: request.imageEntries,
-                requiresCompleteAnswer: generation.schema != nil)
+                channel: channel, model: self, exchange: exchange, headers: headers, keeping: request.serverToolCalls,
+                imageEntries: request.imageEntries, requiresCompleteAnswer: generation.schema != nil)
             for try await event in ServerSentEvent.Events(bytes) {
                 try Task.checkCancellation()
                 if try await stream.receive(event) { break }
@@ -287,17 +294,19 @@ extension Responses {
 extension Responses.Model where Exchange == Responses.PlainExchange {
     /// Creates a model that speaks the plain format: to a server that needs no credentials, with no idle timeout of its
     /// own, retrying transient failures, with every capability Foundation Models names. The URL host stands
-    /// for the provider's name, which the log, error messages, and the tags on its answers' reasoning and messages use.
+    /// for the provider's name, which the log, error messages, and the tags on its answers' reasoning, messages and server
+    /// tools' calls use.
     ///
     /// - Parameters:
     ///   - name: The model's id, sent as `model`.
     ///   - url: The server's base URL.
     init(name: String, url: URL) {
         let providerName = url.host() ?? name
+        let keyPrefix = "\(providerName.prefix(1).lowercased())\(providerName.dropFirst())"
         self.init(
             name: name, url: url, connection: .unauthenticated, providerName: providerName, images: .standard,
-            reasoningOrigin: "\(providerName.lowercased())-responses",
-            phasesKey: "\(providerName.prefix(1).lowercased())\(providerName.dropFirst()).phases",
+            reasoningOrigin: "\(providerName.lowercased())-responses", phasesKey: "\(keyPrefix).phases",
+            serverToolsKey: "\(keyPrefix).serverTools",
             capabilities: LanguageModelCapabilities([.toolCalling, .guidedGeneration, .reasoning, .vision]), reaching: [],
             exchange: Responses.PlainExchange())
     }

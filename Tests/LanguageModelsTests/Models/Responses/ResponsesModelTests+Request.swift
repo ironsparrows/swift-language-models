@@ -137,7 +137,7 @@ extension ResponsesModelTests {
             var model = Responses.Model<ResponsesTestExchange>.test()
             model.exchange.prepares = { request in
                 request.storage = .notStored
-                request.asksForEncryptedReasoning = true
+                request.include = [.encryptedReasoning]
                 request.reasoning = .init(effort: "low", summary: "auto")
                 request.textMembers = ["verbosity": "low"]
             }
@@ -154,6 +154,15 @@ extension ResponsesModelTests {
             #expect(body["text"]?["format"]?["strict"] == true)
             #expect(body["text"]?["verbosity"] == "low")
             #expect(body["reasoning"] == ["effort": "low", "summary": "auto"])
+        }
+
+        @Test func `include lists what the exchange asks for, in its order`() throws {
+            var model = Responses.Model<ResponsesTestExchange>.test()
+            model.exchange.prepares = { $0.include = [.encryptedReasoning, "web_search_call.action.sources"] }
+
+            let body = try ResponsesSentRequest(generationRequest([prompt(text("Hi"))]), model: model).body
+
+            #expect(body["include"] == ["reasoning.encrypted_content", "web_search_call.action.sources"])
         }
 
         @Test func `storage the provider keeps sends store, and the provider's default sends none`() throws {

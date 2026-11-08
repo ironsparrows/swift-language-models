@@ -10,10 +10,11 @@ extension Responses {
     ///
     /// Instructions become a message in the model's instructions role, and prompts `user` messages. One answer
     /// becomes its `reasoning` items, an `assistant` message for each of its messages, with its text and `phase`, and a
-    /// reasoning block that the model wrote in its answer's text back at the start of the first, and a `function_call`
-    /// item for each of its tool calls, in the order they came, or with the `reasoning` items first when the order
-    /// isn't known. An answer with neither text nor tool calls, as one cut off while it reasoned, sends no reasoning
-    /// back, since a reasoning item needs an item after it. Each tool output becomes a `function_call_output` item,
+    /// reasoning block that the model wrote in its answer's text back at the start of the first, a `function_call`
+    /// item for each of its tool calls, and its server tools' calls whole, in the order they came, or with the
+    /// `reasoning` items first when the order isn't known and the server tools' calls before the messages when there's no
+    /// reasoning to place them. An answer with nothing after its reasoning, as one cut off while it reasoned, sends no
+    /// reasoning back, since a reasoning item needs an item after it. Each tool output becomes a `function_call_output` item,
     /// matched to its call by `call_id`. Prompts and tool outputs carry their attachments as input parts;
     /// generated data and an answer's attachments aren't sent back. Every entry turns into the same JSON each time, so
     /// a host's prompt cache stays valid from one request to the next.
@@ -27,6 +28,9 @@ extension Responses {
 
         /// The metadata key under which an answer's response entry keeps the phases of its messages.
         private let phasesKey: String
+
+        /// The metadata key under which an answer's response entry keeps its server tools' calls.
+        private let serverToolsKey: String
 
         /// Whether a reasoning entry goes back: one of the provider's own that its exchange sends back.
         private let replays: (Transcript.Reasoning) -> Bool
@@ -47,6 +51,7 @@ extension Responses {
                 makePart: { content, entry in try Self.part(for: content, in: entry, provider: provider) })
             instructionsRole = MessageRole(rawValue: model.instructionsRole.rawValue)
             phasesKey = model.phasesKey
+            serverToolsKey = model.serverToolsKey
             let origin = model.reasoningOrigin
             replays = { $0.origin == origin && exchange.replays($0) }
             for turn in try TranscriptTurn.turns(of: transcript, provider: provider) { try append(turn) }
@@ -57,21 +62,39 @@ extension Responses {
             reader.imageEntries
         }
 
-        /// The `input` member: the items a request with this storage sends.
+        /// The `input` member: the items a request with this storage sends, with the server tools' calls it keeps.
         ///
-        /// - Parameter storage: Whether the provider keeps the response.
+        /// A server tool's call goes back only while the request keeps its kind and, to a provider that doesn't keep
+        /// the response, only when its kind goes back unstored; the `reasoning` items right before it go back with it,
+        /// or neither does. A request the provider doesn't store also leaves out every other `reasoning` item that
+        /// carries no encrypted reasoning, since the provider can't look it up by its id.
+        ///
+        /// - Parameters:
+        ///   - storage: Whether the provider keeps the response.
+        ///   - calls: The kinds of server tool call the request keeps.
         /// - Returns: The items, as JSON.
         /// - Throws: An error when an item can't be encoded.
-        func json(for storage: Request.Storage) throws -> JSONValue {
-            try JSONValueEncoder.encode(storage == .notStored ? withEncryptedReasoningOnly : items)
-        }
-
-        /// The items without the `reasoning` items that carry no encrypted reasoning, which a request the provider
-        /// doesn't store can't send back, since the provider can't look them up by their ids.
-        private var withEncryptedReasoningOnly: [Item] {
-            items.filter { item in
-                if case .reasoning(let reasoning) = item { reasoning.hasEncryptedContent } else { true }
+        func json(for storage: Request.Storage, keeping calls: Set<ServerToolCall>) throws -> JSONValue {
+            let isStored = storage != .notStored
+            var sent: [Item] = []
+            // The `reasoning` items since the last item of another kind, which go back with the item after them.
+            var reasoning: [ReasoningItem] = []
+            for item in items {
+                switch item {
+                case .reasoning(let reasoningItem):
+                    reasoning.append(reasoningItem)
+                case .serverToolCall(let call, _):
+                    let goesBack =
+                        calls.contains(call) && (isStored || call.goesBackUnstored && reasoning.allSatisfy(\.hasEncryptedContent))
+                    if goesBack { sent += reasoning.map(Item.reasoning) + [item] }
+                    reasoning = []
+                case .message, .functionCall, .functionCallOutput:
+                    sent += reasoning.filter { isStored || $0.hasEncryptedContent }.map(Item.reasoning) + [item]
+                    reasoning = []
+                }
             }
+            sent += reasoning.filter { isStored || $0.hasEncryptedContent }.map(Item.reasoning)
+            return try JSONValueEncoder.encode(sent)
         }
 
         private mutating func append(_ turn: TranscriptTurn) throws {
@@ -99,19 +122,28 @@ extension Responses {
             }
         }
 
-        /// Adds one answer's items: its `reasoning` items, messages and function calls, in the order its signatures
-        /// keep, with any message or call they don't place after them.
+        /// Adds one answer's items: its `reasoning` items, messages, function calls and server tools' calls, in the
+        /// order its signatures keep, with any message or function call they don't place after them, and any server
+        /// tool's call they don't place before the messages.
         private mutating func appendAnswer(_ entries: [Transcript.Entry]) throws {
             var order: [OutputItem] = []
             var block = ""
             var text = ""
             var phases: [MessagePhase] = []
             var calls: [Item] = []
+            var serverToolCalls: [(call: ServerToolCall, item: JSONValue)] = []
+            // The server tools' calls that reasoning which doesn't go back placed, which don't go back either.
+            var skippedCalls: [ServerToolCall] = []
             for entry in entries {
                 switch entry {
                 case .reasoning(let entry):
                     // Reasoning that another provider wrote is in its own format, so only the provider's own goes back.
-                    guard replays(entry) else { continue }
+                    guard replays(entry) else {
+                        skippedCalls += OutputItem.items(inSignatureOf: entry).compactMap { item in
+                            if case .serverToolCall(let call) = item { call } else { nil }
+                        }
+                        continue
+                    }
                     // A block the model wrote in its answer's text goes back there, as it was written.
                     block = (TaggedReasoning.block(of: entry) ?? "") + block
                     order += OutputItem.items(inSignatureOf: entry)
@@ -119,11 +151,13 @@ extension Responses {
                     // An answer's attachments aren't sent back, since the format's assistant messages here take only text.
                     text += response.segments.compactMap(\.text).joined()
                     phases += MetadataValues(response.metadata).structures(phasesKey).compactMap(MessagePhase.init)
+                    serverToolCalls += kept(in: response.metadata)
                 case .toolCalls(let toolCalls):
-                    // An answer that ends in tool calls keeps its facts, its messages' phases among them, on its first
-                    // call.
-                    if phases.isEmpty, let first = toolCalls.first {
-                        phases = MetadataValues(first.metadata).structures(phasesKey).compactMap(MessagePhase.init)
+                    // An answer that ends in tool calls keeps its facts, its messages' phases and its server tools' calls
+                    // among them, on its first call.
+                    if let first = toolCalls.first {
+                        if phases.isEmpty { phases = MetadataValues(first.metadata).structures(phasesKey).compactMap(MessagePhase.init) }
+                        if serverToolCalls.isEmpty { serverToolCalls = kept(in: first.metadata) }
                     }
                     calls += toolCalls.map { call in
                         .functionCall(callID: call.id, name: call.toolName, arguments: JSONValue(call.arguments).text)
@@ -132,11 +166,14 @@ extension Responses {
                     continue
                 }
             }
+            for call in skippedCalls {
+                if let index = serverToolCalls.firstIndex(where: { $0.call == call }) { serverToolCalls.remove(at: index) }
+            }
             var messages = MessagePhase.split(text, into: phases).enumerated().map { index, message in
                 Item.message(role: .assistant, content: .text(index == 0 ? block + message.text : message.text), phase: message.phase)
             }[...]
             // A reasoning item needs an item after it, which a block alone isn't.
-            if messages.isEmpty, calls.isEmpty { order = [] }
+            if messages.isEmpty, calls.isEmpty, serverToolCalls.isEmpty { order = [] }
             if messages.isEmpty, !block.isEmpty {
                 messages = [.message(role: .assistant, content: .text(block), phase: nil)]
             }
@@ -146,10 +183,25 @@ extension Responses {
                 case .reasoning(let reasoning): items.append(.reasoning(reasoning))
                 case .message: if let message = messages.popFirst() { items.append(message) }
                 case .functionCall: if let call = rest.popFirst() { items.append(call) }
+                case .serverToolCall(let call):
+                    if let index = serverToolCalls.firstIndex(where: { $0.call == call }) {
+                        let placed = serverToolCalls.remove(at: index)
+                        items.append(.serverToolCall(placed.call, placed.item))
+                    }
                 }
             }
+            items += serverToolCalls.map { .serverToolCall($0.call, $0.item) }
             items += messages
             items += rest
+        }
+
+        /// The server tools' calls an entry's metadata keeps, each with its kind, leaving out a kind the format doesn't
+        /// know.
+        private func kept(in metadata: [String: GeneratedContent]) -> [(call: ServerToolCall, item: JSONValue)] {
+            ServerToolOutput(MetadataValues(metadata), key: serverToolsKey).calls.compactMap { item in
+                let type = item["type"]?.stringValue.map(ItemType.init(rawValue:))
+                return type.flatMap(ServerToolCall.init).map { ($0, item) }
+            }
         }
     }
 }
@@ -201,6 +253,9 @@ private enum Item: Encodable {
     /// One of an answer's `reasoning` items, as the provider sent it.
     case reasoning(ReasoningItem)
 
+    /// One of an answer's server tools' calls, as the answer keeps it.
+    case serverToolCall(Responses.ServerToolCall, JSONValue)
+
     func encode(to encoder: any Encoder) throws {
         switch self {
         case .message(let role, let content, let phase):
@@ -220,6 +275,8 @@ private enum Item: Encodable {
             try container.encode(callID, forKey: "call_id")
             try container.encode(output, forKey: "output")
         case .reasoning(let item):
+            try item.encode(to: encoder)
+        case .serverToolCall(_, let item):
             try item.encode(to: encoder)
         }
     }

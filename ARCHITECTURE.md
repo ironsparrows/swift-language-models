@@ -185,6 +185,7 @@ none of them, apart from the required values on the model and what a failure bec
 | `reasoningOrigin` | both, required | `openrouter` | `openai-responses` |
 | `instructionsRole` | Responses | | `developer` for a model that reasons, `system` otherwise |
 | `phasesKey` | Responses, required | | `openAI.phases` |
+| `serverToolsKey` | Responses, required | | `openAI.serverTools` |
 
 **On the exchange,** the methods of `ChatCompletions.Exchange` or `Responses.Exchange`, in the order a request calls them.
 The model holds one exchange value, and each request works on a copy, so what one answer reported never reaches the
@@ -202,9 +203,9 @@ next. Every method but `error(for:)` has a default that adds nothing:
 
 **On the request,** in `prepare(_:)`, what depends on the one request. Chat Completions has `headers`, `members`,
 `sendsSessionTools`, `serverTools`, `tokenLimitMember`, `usesPortableSchema`, `instructionsMark` and `movedEffort`.
-Responses has `members`, `sendsSessionTools`, `serverTools`, `reasoning`, `movedEffort`, `storage`,
-`asksForEncryptedReasoning`, `textMembers` and `leftOutMembers`. An exchange can't change what the messages say or the
-settings the app asked for.
+Responses has `members`, `sendsSessionTools`, `serverTools`, `serverToolCalls`, `reasoning`, `movedEffort`, `storage`,
+`include`, `textMembers` and `leftOutMembers`. An exchange can't change what the messages say or the settings the app
+asked for.
 
 Implement a method that has a default in the type that declares the conformance: only there does a misspelled one draw a
 warning, which CI's `-warnings-as-errors` turns into an error, instead of silently keeping the default.
@@ -213,7 +214,7 @@ warning, which CI's `-warnings-as-errors` turns into an error, instead of silent
 
 Facts are typed in code and flat keys in storage. Foundation Models keeps an answer's facts as flat metadata, and saved
 transcripts keep those keys, so their spellings never change. One file per module knows its keys, and they're private
-there, apart from `phasesKey`, which a provider hands its shared model:
+there, apart from `phasesKey` and `serverToolsKey`, which a provider hands its shared model:
 
 | Module | File | Reader |
 |---|---|---|

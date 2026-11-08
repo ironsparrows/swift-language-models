@@ -105,7 +105,9 @@ struct AnswerChannel {
     func sendData(_ data: GeneratedData) async {
         #if canImport(FoundationModels, _version: 2.1.14)
         guard #available(iOS 27.2, macOS 27.2, visionOS 27.2, watchOS 27.2, *) else { return }
-        await channel.send(.data(entryID: UUID().uuidString, action: .update(contentType: data.contentType, content: data.content)))
+        await channel.send(
+            .data(
+                entryID: UUID().uuidString, action: .update(contentType: data.contentType, content: data.content, metadata: data.metadata)))
         #endif
     }
 
@@ -523,10 +525,12 @@ extension TaggedReasoning {
 
 // MARK: - Generated data
 
-/// Data a model generated, of a kind, such as an image, which an answer sends as a data entry of its own.
+/// Data a model generated, of a kind, such as an image, which an answer sends as a data entry of its own, with what the
+/// provider reports about it in the entry's metadata.
 struct GeneratedData {
     let contentType: UTType
     let content: Data
+    var metadata = GeneratedContent(properties: [:])
 }
 
 // MARK: - Ending

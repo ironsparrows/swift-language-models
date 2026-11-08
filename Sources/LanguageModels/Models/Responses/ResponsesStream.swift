@@ -1,6 +1,7 @@
 import Foundation
 import FoundationModels
 import LanguageModelsCore
+import UniformTypeIdentifiers
 
 // MARK: - Stream
 
@@ -18,11 +19,17 @@ extension Responses {
     /// answer's text. In a guided answer, only the first message with no phase or the `final_answer` phase holds the
     /// answer: the text of the others, such as `commentary`, stays out of the response text, so the answer decodes, and
     /// goes in the metadata with its phase.
+    ///
+    /// The calls of the server tools the request keeps go in the metadata whole, with their places in the signature, and
+    /// so do the files the answer cites, which only a file search returns. A generated image becomes a data entry of its
+    /// own, which keeps the image's call. The calls of other server tools are passed over.
     struct Stream<Exchange: Responses.Exchange> {
         private let exchange: Exchange
         private let headers: ResponseHeaders
         private let provider: String
         private let phasesKey: String
+        private let serverToolsKey: String
+        private let keptCalls: Set<Responses.ServerToolCall>
         private let imageEntries: [Transcript.Entry]
         private let requiresCompleteAnswer: Bool
 
@@ -34,6 +41,12 @@ extension Responses {
 
         /// The answer's `reasoning` items, as `response.output_item.done` carried them, with their output indexes.
         private var reasoningItems: [(index: Int?, item: ReasoningItem)] = []
+
+        /// The calls of the server tools the request keeps, as the answer keeps them, with their output indexes.
+        private var serverToolCalls: [(index: Int?, call: Responses.ServerToolCall, item: JSONValue)] = []
+
+        /// The files the answer's text cites, when the request keeps file searches.
+        private var fileCitations: [Responses.FileCitation] = []
 
         /// The answer's messages, by output index.
         private var messages: [Int: Message] = [:]
@@ -57,17 +70,21 @@ extension Responses {
         ///   - model: The model, which names the provider and how its answers' reasoning and messages are tagged.
         ///   - exchange: The provider's part in the exchange.
         ///   - headers: The headers of the response whose stream carries the answer.
+        ///   - keptCalls: The kinds of server tool call the request keeps.
         ///   - imageEntries: The request's entries that carry an image, which an error for an image the host rejects names.
         ///   - requiresCompleteAnswer: Whether an answer cut off at its token limit is an error, as for guided generation,
         ///     where a partial answer would decode as a wrong value.
         init(
             channel: LanguageModelExecutorGenerationChannel, model: Responses.Model<Exchange>, exchange: Exchange,
-            headers: ResponseHeaders, imageEntries: [Transcript.Entry], requiresCompleteAnswer: Bool
+            headers: ResponseHeaders, keeping keptCalls: Set<Responses.ServerToolCall>, imageEntries: [Transcript.Entry],
+            requiresCompleteAnswer: Bool
         ) {
             self.exchange = exchange
             self.headers = headers
             provider = model.providerName
             phasesKey = model.phasesKey
+            serverToolsKey = model.serverToolsKey
+            self.keptCalls = keptCalls
             self.imageEntries = imageEntries
             self.requiresCompleteAnswer = requiresCompleteAnswer
             output = AnswerChannel(channel: channel, origin: ReasoningOrigin(rawValue: model.reasoningOrigin), readsTaggedReasoning: false)
@@ -166,6 +183,11 @@ extension Responses.Stream {
         case .annotationAdded:
             let start = textStart(of: event.outputIndex)
             if let citation = event.annotation.flatMap({ Citation($0, textStart: start) }) { output.cite(citation) }
+            if keptCalls.contains(.fileSearch), let citation = event.annotation.flatMap({ Responses.FileCitation($0, textStart: start) }),
+                !fileCitations.contains(citation)
+            {
+                fileCitations.append(citation)
+            }
         case .refusalDelta:
             refusal += event.delta ?? ""
         case .reasoningSummaryTextDelta:
@@ -215,8 +237,8 @@ extension Responses.Stream {
         }
     }
 
-    /// Ends an output item: keeps a reasoning item and a message's phase, and sends the rest of a function call's
-    /// arguments when they arrived whole.
+    /// Ends an output item: keeps a reasoning item, a message's phase and the call of a server tool the request keeps,
+    /// sends a generated image, and sends the rest of a function call's arguments when they arrived whole.
     private mutating func endItem(_ event: ResponseEvent) async {
         guard let item = event.item else { return }
         switch item.itemType {
@@ -231,9 +253,33 @@ extension Responses.Stream {
             let sent = sentArguments[id] ?? ""
             guard arguments.count > sent.count, arguments.hasPrefix(sent) else { return }
             await addArguments(String(arguments.dropFirst(sent.count)), callID: id, index: event.outputIndex)
-        default:
+        case let type?:
+            guard let call = Responses.ServerToolCall(type), keptCalls.contains(call) else { return }
+            let kept = call.kept(item)
+            serverToolCalls.append((event.outputIndex, call, kept))
+            switch call {
+            case .imageGeneration: await sendImage(of: item, kept: kept)
+            case .webSearch, .fileSearch: break
+            }
+        case nil:
             break
         }
+    }
+
+    /// Sends the image of an image's call as a data entry of its own, which keeps the call, as the answer keeps it. A
+    /// call without an image, such as one a moderation check stopped, sends none.
+    ///
+    /// - Parameters:
+    ///   - item: The call, with its image in base64 as `result` and its format, such as `png`, as `output_format`.
+    ///   - kept: The call as the answer keeps it.
+    private func sendImage(of item: JSONValue, kept: JSONValue) async {
+        guard let base64 = item["result"]?.stringValue, let image = Data(base64Encoded: base64), !image.isEmpty else { return }
+        // A call that names no format made a PNG, the default.
+        let format = item["output_format"]?.stringValue ?? "png"
+        let metadata = GeneratedContent(properties: [serverToolsKey: Responses.ServerToolOutput(calls: [kept]).metadataValue])
+        await output.sendData(
+            GeneratedData(
+                contentType: UTType(filenameExtension: format, conformingTo: .image) ?? .image, content: image, metadata: metadata))
     }
 
     /// Sends the next part of a message's text, unless the message is held out of the answer's text, and keeps it with
@@ -302,6 +348,21 @@ extension Citation {
     }
 }
 
+extension Responses.FileCitation {
+    /// The citation of a file, with its place moved from its message's text to the answer's, or `nil` for another kind
+    /// of annotation.
+    ///
+    /// - Parameters:
+    ///   - annotation: The annotation, with its place in its message's text.
+    ///   - textStart: Where the message's text starts in the answer's text, or `nil` when that isn't known, so the
+    ///     citation has no place.
+    fileprivate init?(_ annotation: ResponseEvent.Annotation, textStart: Int?) {
+        guard annotation.type == "file_citation", let fileID = annotation.fileID else { return nil }
+        let offset = textStart.flatMap { start in annotation.index.map { $0 + start } }
+        self.init(fileID: fileID, filename: annotation.filename, offset: offset)
+    }
+}
+
 extension AnswerReport {
     /// Takes the facts that a lifecycle event's response reports.
     fileprivate mutating func update(with response: ResponseEvent.Response) {
@@ -355,7 +416,7 @@ extension Responses.Stream {
     }
 
     /// The exchange's additions, with the answer's `reasoning` items and the places of its messages and calls among them
-    /// as the reasoning signature, and the phases of its messages.
+    /// as the reasoning signature, the phases of its messages, and its server tools' calls and cited files.
     private var answerAdditions: AnswerAdditions {
         var answerAdditions = additions
         answerAdditions.reasoningSignature = OutputItem.signature(of: outputOrder)
@@ -363,16 +424,22 @@ extension Responses.Stream {
         if phases.contains(where: { $0.phase != nil || $0.heldText != nil }) {
             answerAdditions.metadata[phasesKey] = phases.map(\.metadataValue)
         }
+        let serverTools = Responses.ServerToolOutput(calls: serverToolCalls.map(\.item), fileCitations: fileCitations)
+        if !serverTools.isEmpty {
+            answerAdditions.metadata[serverToolsKey] = serverTools.metadataValue
+        }
         return answerAdditions
     }
 
-    /// The answer's output items in their order: its `reasoning` items, the messages that have text and the function
-    /// calls, by output index. A `reasoning` item whose event has no index goes first.
+    /// The answer's output items in their order: its `reasoning` items, the messages that have text, the function calls
+    /// and the server tools' calls, by output index. A `reasoning` item or a server tool's call whose event has no index
+    /// goes first.
     private var outputOrder: [OutputItem] {
         let placed: [(index: Int, item: OutputItem)] =
             reasoningItems.map { ($0.index ?? -1, .reasoning($0.item)) }
             + messages.filter { !$0.value.text.isEmpty }.map { ($0.key, .message) }
             + callIDs.keys.map { ($0, .functionCall) }
+            + serverToolCalls.map { ($0.index ?? -1, .serverToolCall($0.call)) }
         return placed.enumerated().sorted { ($0.element.index, $0.offset) < ($1.element.index, $1.offset) }.map(\.element.item)
     }
 
@@ -525,7 +592,8 @@ extension ResponseEvent {
         }
     }
 
-    /// An annotation of an answer's text: a cited page, as `url_citation`, or a kind the format doesn't read.
+    /// An annotation of an answer's text: a cited page, as `url_citation`, a cited file, as `file_citation`, or a kind
+    /// the format doesn't read.
     struct Annotation: Decodable {
         let type: String?
         let url: String?
@@ -533,12 +601,34 @@ extension ResponseEvent {
         let startIndex: Int?
         let endIndex: Int?
 
+        /// A cited file's id, its name, and the place in the message's text where the citation goes.
+        let fileID: String?
+        let filename: String?
+        let index: Int?
+
+        init(from decoder: any Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            type = try container.decodeIfPresent(String.self, forKey: .type)
+            url = try container.decodeIfPresent(String.self, forKey: .url)
+            title = try container.decodeIfPresent(String.self, forKey: .title)
+            startIndex = try container.decodeIfPresent(Int.self, forKey: .startIndex)
+            endIndex = try container.decodeIfPresent(Int.self, forKey: .endIndex)
+            // Read leniently, so a member of another shape, in a kind of annotation the format doesn't read, can't make
+            // the event unreadable.
+            fileID = try? container.decodeIfPresent(String.self, forKey: .fileID)
+            filename = try? container.decodeIfPresent(String.self, forKey: .filename)
+            index = try? container.decodeIfPresent(Int.self, forKey: .index)
+        }
+
         private enum CodingKeys: String, CodingKey {
             case type
             case url
             case title
             case startIndex = "start_index"
             case endIndex = "end_index"
+            case fileID = "file_id"
+            case filename
+            case index
         }
     }
 

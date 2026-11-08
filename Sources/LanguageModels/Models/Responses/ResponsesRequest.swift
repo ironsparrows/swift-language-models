@@ -40,6 +40,11 @@ extension Responses {
         /// Tools that run on the provider's servers, sent after the session's in `tools`.
         package var serverTools: [JSONValue] = []
 
+        /// The kinds of call of the server tools the request sends, which the answer keeps, so they go back on later turns.
+        /// A kept kind's calls in the transcript go back too, and the calls of a kind not kept don't. Empty, the answer
+        /// passes over every server tool's call, as for a request without server tools.
+        package var serverToolCalls: Set<Responses.ServerToolCall> = []
+
         /// The `reasoning` member, or `nil` to leave it out, so the model reasons as it does by default.
         package var reasoning: Reasoning?
 
@@ -49,9 +54,10 @@ extension Responses {
         /// Whether the provider keeps the response, as `store` asks.
         package var storage = Storage.automatic
 
-        /// Whether the response carries each reasoning item's reasoning encrypted, as `include` asks, so the item can go
-        /// back on later turns whether or not the provider keeps the response.
-        package var asksForEncryptedReasoning = false
+        /// What the response carries beyond what it always does, as `include` asks, in the order given, such as each
+        /// reasoning item's reasoning encrypted, so the item can go back on later turns whether or not the provider keeps
+        /// the response. Empty, `include` stays out of the body.
+        package var include: [Responses.Include] = []
 
         /// Members added to `text` after its format, such as `verbosity`.
         package var textMembers = JSONObject()
@@ -86,7 +92,8 @@ extension Responses.Request {
         case stored
 
         /// `store` is `false`, so later turns send back only the reasoning items that carry their reasoning encrypted,
-        /// which ``Responses/Request/asksForEncryptedReasoning`` asks for.
+        /// which ``Responses/Include/encryptedReasoning`` asks for, and no image's call, which the provider couldn't look
+        /// up.
         case notStored
     }
 }
@@ -112,6 +119,19 @@ extension Responses {
         static var nonOptions: Set<String> {
             [model.rawValue, input.rawValue, stream.rawValue]
         }
+
+        package let rawValue: String
+
+        package init(rawValue: String) {
+            self.rawValue = rawValue
+        }
+    }
+
+    /// A value of a request's `include`: something the response carries only when asked.
+    package struct Include: ProviderVocabulary {
+        /// Each reasoning item's reasoning, encrypted, which a later request that the provider doesn't store can send
+        /// back.
+        package static let encryptedReasoning: Self = "reasoning.encrypted_content"
 
         package let rawValue: String
 
@@ -184,10 +204,10 @@ extension Responses.Request {
         let tokenLimit = options.maximumResponseTokens.map { max($0, Self.fewestOutputTokens) }
         var body: JSONObject = [
             Responses.Member.model.rawValue: .string(name),
-            Responses.Member.input.rawValue: try input.json(for: storage),
+            Responses.Member.input.rawValue: try input.json(for: storage, keeping: serverToolCalls),
             Responses.Member.stream.rawValue: true,
             Responses.Member.store.rawValue: Self.store(storage),
-            Responses.Member.include.rawValue: asksForEncryptedReasoning ? .array([.string(Self.encryptedReasoning)]) : nil,
+            Responses.Member.include.rawValue: include.isEmpty ? nil : .array(include.map { .string($0.rawValue) }),
             Responses.Member.tools.rawValue: tools.isEmpty ? nil : .array(tools),
             Responses.Member.toolChoice.rawValue: sendsTools ? options.toolCallingMode?.toolChoice : nil,
             Responses.Member.text.rawValue: try text(format: textFormats?.full),
@@ -248,9 +268,6 @@ extension Responses.Request {
         case .notStored: false
         }
     }
-
-    /// What `include` asks for so that each reasoning item carries its reasoning encrypted.
-    private static let encryptedReasoning = "reasoning.encrypted_content"
 
     /// The names of the sampling settings the format has no member for.
     private static let topK = "top_k"

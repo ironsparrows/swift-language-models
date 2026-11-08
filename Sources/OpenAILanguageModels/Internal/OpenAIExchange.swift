@@ -16,7 +16,8 @@ extension OpenAILanguageModel {
         var model = Responses.Model(
             name: details.id.rawValue, url: try API.baseURL(configuration.baseURL), connection: connection(configuration.settings),
             providerName: API.name, images: configuration.settings.images, reasoningOrigin: API.reasoningOrigin,
-            phasesKey: OpenAIResponseMetadata.phasesKey, capabilities: capabilities, reaching: [details] + fallbacks, exchange: exchange)
+            phasesKey: OpenAIResponseMetadata.phasesKey, serverToolsKey: OpenAIResponseMetadata.serverToolsKey, capabilities: capabilities,
+            reaching: [details] + fallbacks, exchange: exchange)
         model.unsupportedMembers = OpenAIExchange.listedMembers.filter { !exchange.lists($0) }
         // `developer` for a model that reasons, and `system` for one that doesn't, as models before reasoning models take
         // instructions.
@@ -117,7 +118,7 @@ struct OpenAIExchange: Responses.Exchange {
         request.movedEffort = movedEffort
         if details.reasoning.isSupported {
             request.reasoning = Responses.Request.Reasoning(effort: effort, summary: options.reasoningSummary?.rawValue)
-            request.asksForEncryptedReasoning = true
+            request.include = [.encryptedReasoning]
             let reasons = effort.map { $0 != ContextOptions.ReasoningLevel.off.effortWord } ?? (details.reasoning == .mandatory)
             if reasons { request.leftOutMembers = [.temperature, .topP] }
         }

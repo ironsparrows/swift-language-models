@@ -34,6 +34,7 @@ extension Responses.Model<ResponsesTestExchange> {
                 session: session, authentication: Connection.Authentication(baseURL: nil) { [:] }, idleTimeout: nil, retries: .disabled,
                 retrying: .serverErrors),
             providerName: "Test", images: .standard, reasoningOrigin: "test-responses", phasesKey: "test.phases",
+            serverToolsKey: "test.serverTools",
             capabilities: LanguageModelCapabilities([.guidedGeneration, .toolCalling, .reasoning]),
             reaching: models, exchange: ResponsesTestExchange())
     }

@@ -456,6 +456,16 @@ package struct MetadataValues {
         array(key).compactMap(MetadataValues.init)
     }
 
+    /// The texts in a list, skipping any element that isn't one.
+    package func strings(_ key: String) -> [String] {
+        array(key).compactMap { if case .string(let value) = $0.kind { value } else { nil } }
+    }
+
+    /// The properties of a structure, or `nil` when the value isn't one.
+    package func structure(_ key: String) -> MetadataValues? {
+        values[key].flatMap(MetadataValues.init)
+    }
+
     private func number(_ key: String) -> Double? {
         if case .number(let value)? = values[key]?.kind { value } else { nil }
     }

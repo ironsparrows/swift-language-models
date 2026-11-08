@@ -231,4 +231,12 @@ extension OpenAIResponseMetadata {
     /// It starts with `openAI.`, so it never collides with another provider's keys. Saved transcripts keep it, so its
     /// spelling never changes.
     static let phasesKey = "openAI.phases"
+
+    /// The key of what an answer's server tools left, on the entry that ends the answer: their calls, in their order,
+    /// each as the JSON text of its item, without an image, and the files the answer cites. A generated image's data
+    /// entry keeps the image's call under it too. The calls go back on later turns.
+    ///
+    /// It starts with `openAI.`, so it never collides with another provider's keys. Saved transcripts keep it, so its
+    /// spelling never changes.
+    static let serverToolsKey = "openAI.serverTools"
 }
