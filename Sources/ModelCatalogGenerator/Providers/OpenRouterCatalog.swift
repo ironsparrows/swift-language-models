@@ -67,6 +67,9 @@ struct OpenRouterModelsResponse: Decodable {
         let expirationDate: CatalogDay?
         let contextLength: Int?
         let architecture: Architecture
+        /// The request paths that serve the model, such as `/api/v1/images` for one that generates images. A model
+        /// without them fails the fetch.
+        let endpoints: [String]
         let supportedParameters: [String]?
         let reasoning: Reasoning?
         let pricing: Pricing?
@@ -93,17 +96,24 @@ extension OpenRouterModelsResponse {
     /// The vendor prefix of Alibaba's Qwen model ids.
     private static let qwenVendor = "qwen"
 
+    /// The output kind of a model that generates images.
+    private static let imageModality = "image"
+
+    /// The end of the path that serves image generation, `/api/v1/images`.
+    private static let imagesPathEnd = "/images"
+
     /// The models in catalog form.
     ///
     /// A model whose id ends in `:batch` is left out, because it works only through the Batch API. A model that
     /// accepts every effort lists `everyEffort`, and a model that doesn't list its efforts gets none, as its effort
     /// can't be chosen. A model whose reasoning is mandatory can't take `none`, so it never lists it. A default effort
-    /// the model doesn't list is dropped.
+    /// the model doesn't list is dropped. A model keeps images among its output kinds only when OpenRouter serves it on
+    /// its images path.
     ///
     /// - Parameter everyEffort: Every effort word, highest first.
     /// - Returns: The models, in OpenRouter's order.
     func catalogModels(everyEffort: [String]) -> [CatalogModel] {
-        data.filter { !$0.id.hasSuffix(Self.batchSuffix) }.map { model in
+        catalogEntries.map { model in
             let isReasoningMandatory = model.reasoning?.mandatory ?? false
             let parameters = Set(model.supportedParameters ?? []).sorted()
             var efforts =
@@ -122,7 +132,7 @@ extension OpenRouterModelsResponse {
                 expirationDate: model.expirationDate,
                 contextSize: model.contextLength,
                 inputModalities: Set(model.architecture.inputModalities).sorted(),
-                outputModalities: Set(model.architecture.outputModalities).sorted(),
+                outputModalities: Self.outputModalities(of: model),
                 supportedParameters: parameters,
                 reasoningEfforts: efforts,
                 defaultReasoningEffort: model.reasoning?.defaultEffort.flatMap { efforts.contains($0) ? $0 : nil },
@@ -134,6 +144,34 @@ extension OpenRouterModelsResponse {
                 cachesOnlyMarkedPrompts: Self.cachesOnlyMarkedPrompts(model)
             )
         }
+    }
+
+    /// Whether some model the catalog lists with images among its output kinds is served on the images path, or none
+    /// lists them. When none is served there, such as after the path changes, the paths no longer tell which models
+    /// return images, and the fetch fails until the generator follows them.
+    var servesImagesOnImagesPath: Bool {
+        let imageModels = catalogEntries.filter { $0.architecture.outputModalities.contains(Self.imageModality) }
+        return imageModels.isEmpty || imageModels.contains(where: Self.isServedOnImagesPath)
+    }
+
+    /// The models the catalog can list: all but those that work only through the Batch API.
+    private var catalogEntries: [Model] {
+        data.filter { !$0.id.hasSuffix(Self.batchSuffix) }
+    }
+
+    /// The kinds of output a model generates: those it lists, without images when OpenRouter doesn't serve the model on
+    /// its images path. A router such as `openrouter/auto` lists images but isn't served there, and a request that asks
+    /// it for images can find no endpoint that returns them. This assumes a model that returns images in chat is served
+    /// on the images path too.
+    private static func outputModalities(of model: Model) -> [String] {
+        var outputs = Set(model.architecture.outputModalities)
+        if !isServedOnImagesPath(model) { outputs.remove(imageModality) }
+        return outputs.sorted()
+    }
+
+    /// Whether OpenRouter serves a model on its images path.
+    private static func isServedOnImagesPath(_ model: Model) -> Bool {
+        model.endpoints.contains { $0.hasSuffix(imagesPathEnd) }
     }
 
     /// Whether and when a model reasons: mandatory reasoning wins, and otherwise a model reasons only when it takes

@@ -5,9 +5,10 @@ Update your code from 1.x of this package to 2.0.
 ## Overview
 
 2.0 reads what a provider reports through typed values, and a provider module of your own writes Foundation Models'
-executor itself. Requests, answers, retries, errors and logs stay as they were, apart from two changes: usage out of
-range no longer stops your app, and an OpenRouter model's executor refuses a required tool call that the model can't
-make. A transcript you saved with 1.x keeps working: its metadata is stored under the same keys.
+executor itself. Requests, answers, retries, errors and logs stay as they were, apart from three changes: usage out of
+range no longer stops your app, an OpenRouter model's executor refuses a required tool call that the model can't make,
+and a request to one of OpenRouter's routers no longer asks for images. A transcript you saved with 1.x keeps working:
+its metadata is stored under the same keys.
 
 ### Reading what a provider reports
 
@@ -210,6 +211,16 @@ When a request requires a tool call and the OpenRouter model, or one of its fall
 OpenAI model's `Executor` does. In 1.x, the request went out without the session's tools, so the model couldn't call
 one. A session never reaches this: Foundation Models refuses a session's tools for a model without `.toolCalling` before
 the model sees the request. Only code that calls the `Executor` itself sees the change.
+
+### Images from OpenRouter's routers
+
+`openrouter/auto`, `openrouter/auto-beta` and `openrouter/auto-code` list images among their outputs, but OpenRouter
+doesn't serve them on its images path. In 1.x, from OS 27.2 in an app built with Xcode 27.2, a request to one of them
+asked for images, and OpenRouter could answer with 404, having found no endpoint that returns them. 2.0's catalog
+records only text for a model OpenRouter doesn't serve on that path, so their `OpenRouterModel.outputModalities` is
+`[.text]`, and `supportsDataEntryType(_:)` says no to images for them. A request to one of them leaves `modalities` out,
+and so does a request with one of them as a fallback, since a request asks for images only when every model it may reach
+generates them.
 
 ### OpenAI's default efforts
 

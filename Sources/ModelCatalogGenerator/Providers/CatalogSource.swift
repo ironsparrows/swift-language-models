@@ -149,7 +149,8 @@ enum CatalogSource: String, Codable, CaseIterable, Sendable {
     ///   - documents: The response bodies.
     ///   - today: The day of the fetch, in UTC, before which a model's shutdown has passed.
     /// - Returns: The models, which a snapshot sorts, the words of each vocabulary and the efforts.
-    /// - Throws: ``GeneratorError/brokenSource(_:)`` when a document doesn't decode.
+    /// - Throws: ``GeneratorError/brokenSource(_:)`` when a document doesn't decode, or when OpenRouter's model list
+    ///   serves none of the models that list images on its images path.
     func catalog(from documents: CatalogSource.Documents, today: CatalogDay) throws(GeneratorError) -> FetchedCatalog {
         switch self {
         case .openrouter:
@@ -157,10 +158,14 @@ enum CatalogSource: String, Codable, CaseIterable, Sendable {
                 let description = try OpenRouterAPIDescription.decoded(from: documents.apiDescription)
                 return (try description.vocabularies(), try description.efforts())
             }
-            let models = try reading(.modelList, "doesn't decode") {
-                try OpenRouterModelsResponse.decoded(from: documents.modelList).catalogModels(everyEffort: efforts)
+            let response = try reading(.modelList, "doesn't decode") { try OpenRouterModelsResponse.decoded(from: documents.modelList) }
+            // The images path tells which models return images, so a list that serves none of them there has changed.
+            guard response.servesImagesOnImagesPath else {
+                throw .brokenSource(
+                    "\(displayName)'s model list serves none of the models that list images on its images path, so it no longer "
+                        + "tells which models return images.")
             }
-            return FetchedCatalog(models: models, vocabularies: vocabularies, efforts: efforts)
+            return FetchedCatalog(models: response.catalogModels(everyEffort: efforts), vocabularies: vocabularies, efforts: efforts)
         case .openai:
             let description = try reading(.apiDescription, "doesn't decode") {
                 try OpenAIAPIDescription.decoded(from: documents.apiDescription)

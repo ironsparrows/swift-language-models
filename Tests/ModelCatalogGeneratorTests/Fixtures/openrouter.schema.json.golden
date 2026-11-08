@@ -6,6 +6,7 @@
     "data[].architecture.output_modalities[]",
     "data[].context_length",
     "data[].created",
+    "data[].endpoints[]",
     "data[].expiration_date",
     "data[].id",
     "data[].name",

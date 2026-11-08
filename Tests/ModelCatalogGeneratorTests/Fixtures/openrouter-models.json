@@ -15,6 +15,12 @@
       },
       "context_length": 1000000,
       "created": 1790363560,
+      "endpoints": [
+        "/api/v1/chat/completions",
+        "/api/v1/completions",
+        "/api/v1/messages",
+        "/api/v1/responses"
+      ],
       "expiration_date": null,
       "id": "typesafe/jev-router",
       "knowledge_cutoff": null,
@@ -68,6 +74,12 @@
       },
       "context_length": 1000000,
       "created": 1771342990,
+      "endpoints": [
+        "/api/v1/chat/completions",
+        "/api/v1/completions",
+        "/api/v1/messages",
+        "/api/v1/responses"
+      ],
       "expiration_date": null,
       "id": "anthropic/claude-sonnet-4.6",
       "knowledge_cutoff": null,
@@ -139,6 +151,9 @@
       },
       "context_length": 1000000,
       "created": 1771342990,
+      "endpoints": [
+        "/api/v1/batches"
+      ],
       "expiration_date": null,
       "id": "anthropic/claude-sonnet-4.6:batch",
       "knowledge_cutoff": null,
@@ -195,6 +210,12 @@
       },
       "context_length": 1048576,
       "created": 1791907477,
+      "endpoints": [
+        "/api/v1/chat/completions",
+        "/api/v1/completions",
+        "/api/v1/messages",
+        "/api/v1/responses"
+      ],
       "expiration_date": null,
       "id": "google/gemini-4-argon",
       "knowledge_cutoff": null,
@@ -254,6 +275,12 @@
       },
       "context_length": 1048576,
       "created": 1792073620,
+      "endpoints": [
+        "/api/v1/chat/completions",
+        "/api/v1/completions",
+        "/api/v1/messages",
+        "/api/v1/responses"
+      ],
       "expiration_date": null,
       "id": "unbiased/pareto-26.10",
       "knowledge_cutoff": null,
@@ -288,6 +315,12 @@
       },
       "context_length": 1048576,
       "created": 1789399174,
+      "endpoints": [
+        "/api/v1/chat/completions",
+        "/api/v1/completions",
+        "/api/v1/messages",
+        "/api/v1/responses"
+      ],
       "expiration_date": null,
       "id": "~deepseek/deepseek-pro-latest",
       "knowledge_cutoff": null,
@@ -371,6 +404,12 @@
       },
       "context_length": 512000,
       "created": 1786680361,
+      "endpoints": [
+        "/api/v1/chat/completions",
+        "/api/v1/completions",
+        "/api/v1/messages",
+        "/api/v1/responses"
+      ],
       "expiration_date": "2026-12-31",
       "id": "dots-studio/dots-3-note-preview:free",
       "knowledge_cutoff": null,
@@ -412,6 +451,13 @@
       },
       "context_length": 65536,
       "created": 1791300825,
+      "endpoints": [
+        "/api/v1/chat/completions",
+        "/api/v1/completions",
+        "/api/v1/messages",
+        "/api/v1/responses",
+        "/api/v1/images"
+      ],
       "expiration_date": null,
       "id": "google/gemini-nano-banana-2.1",
       "knowledge_cutoff": null,

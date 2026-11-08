@@ -37,6 +37,11 @@ warning.
 <doc:/LanguageModels/ModelCatalogs>
 says how every provider module's catalog changes, and which release each change needs.
 
+A catalog model keeps images among its ``OpenRouterModel/outputModalities`` only when the list names OpenRouter's images
+path, `/api/v1/images`, among the paths that serve it. A router such as `openrouter/auto` lists images but isn't served
+on that path, so its catalog member records only text, and a request to it doesn't ask for images, nor does one with it
+as a fallback.
+
 ### Aliases and routers
 
 An alias, such as `~anthropic/claude-haiku-latest`, follows a vendor's newest model, and ``OpenRouterModel/aliasTarget``

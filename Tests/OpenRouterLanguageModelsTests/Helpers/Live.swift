@@ -108,10 +108,13 @@ enum HostUnavailability {
                 self = .excludedByAccountSettings
                 return
             }
+            // A 404 because no endpoint returns the output kinds the request asks for, "No endpoints found that support
+            // the requested output modalities", fails the test.
             let isBrief =
                 [OpenRouterError.Code.providerUnavailable, .providerOverloaded].contains(error.code)
                 || error.status.map(transientStatuses.contains) == true
-                || (error.status == 404 && error.message.localizedCaseInsensitiveContains("no endpoints"))
+                || (error.status == 404 && error.message.localizedCaseInsensitiveContains("no endpoints")
+                    && !error.message.localizedCaseInsensitiveContains("output modalities"))
             guard isBrief else { return nil }
             self = .brief
         default:

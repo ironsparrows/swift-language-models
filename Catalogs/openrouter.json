@@ -8254,7 +8254,6 @@
         "video"
       ],
       "outputModalities" : [
-        "image",
         "text"
       ],
       "reasoning" : "offByDefault",
@@ -8301,7 +8300,6 @@
         "video"
       ],
       "outputModalities" : [
-        "image",
         "text"
       ],
       "reasoning" : "offByDefault",
@@ -8349,7 +8347,6 @@
         "video"
       ],
       "outputModalities" : [
-        "image",
         "text"
       ],
       "reasoning" : "offByDefault",

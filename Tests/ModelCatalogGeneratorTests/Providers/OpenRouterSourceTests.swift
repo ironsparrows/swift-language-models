@@ -1,4 +1,5 @@
 import Foundation
+import LanguageModelsTestSupport
 import Testing
 
 @testable import ModelCatalogGenerator
@@ -49,6 +50,45 @@ struct OpenRouterSourceTests {
         #expect(model.defaultReasoningEffort == nil)
     }
 
+    @Test(arguments: [
+        (#"["/api/v1/chat/completions", "/api/v1/images"]"#, ["image", "text"]),
+        (#"["/api/v1/chat/completions", "/api/v1/responses"]"#, ["text"]),
+    ])
+    func `images stay among a model's outputs only when OpenRouter serves it on its images path`(
+        endpoints: String,
+        expected: [String]
+    ) throws {
+        #expect(try catalogModel(outputs: #"["text", "image"]"#, endpoints: endpoints).outputModalities == expected)
+    }
+
+    @Test func `a model that doesn't list the paths that serve it fails to decode`() {
+        #expect(throws: DecodingError.self) { try catalogModel(endpoints: nil) }
+    }
+
+    @Test(arguments: [
+        [("vendor/model", "/api/v1/chat/completions")],
+        [("vendor/model", "/api/v1/chat/completions"), ("vendor/model:batch", "/api/v1/images")],
+    ])
+    func `a model list that serves none of the catalog's image models on the images path fails the fetch`(
+        models: [(id: String, path: String)]
+    ) throws {
+        let entries = models.map { model in
+            #"{"id": "\#(model.id)", "name": "Model", "created": 0, "endpoints": ["\#(model.path)"], "#
+                + #""architecture": {"input_modalities": ["text"], "output_modalities": ["text", "image"]}}"#
+        }
+        let documents = CatalogSource.Documents(
+            modelList: Data(#"{"data": [\#(entries.joined(separator: ", "))]}"#.utf8),
+            apiDescription: try Bundle.module.fixture("openrouter-openapi.json"))
+
+        #expect(
+            throws: GeneratorError.brokenSource(
+                "OpenRouter's model list serves none of the models that list images on its images path, so it no longer tells "
+                    + "which models return images.")
+        ) {
+            _ = try CatalogSource.openrouter.catalog(from: documents, today: "2026-10-29")
+        }
+    }
+
     @Test func `an alias keeps the id of the model it points to`() throws {
         let model = try catalogModel(fields: #""alias_target": {"name": "Vendor: Model 2", "slug": "vendor/model-2"}"#)
 
@@ -82,11 +122,12 @@ struct OpenRouterSourceTests {
     }
 
     @Test func `a model that works only through the Batch API is left out`() throws {
-        let architecture = #""architecture": {"input_modalities": ["text"], "output_modalities": ["text"]}"#
+        let fields =
+            #""architecture": {"input_modalities": ["text"], "output_modalities": ["text"]}, "endpoints": ["/api/v1/chat/completions"]"#
         let json = #"""
             {"data": [
-                {"id": "vendor/model", "name": "Model", "created": 0, \#(architecture)},
-                {"id": "vendor/model:batch", "name": "Model (batch)", "created": 0, \#(architecture)}
+                {"id": "vendor/model", "name": "Model", "created": 0, \#(fields)},
+                {"id": "vendor/model:batch", "name": "Model (batch)", "created": 0, \#(fields)}
             ]}
             """#
 
@@ -184,11 +225,14 @@ struct OpenRouterSourceTests {
         id: String = "vendor/model",
         reasoning: String? = nil,
         parameters: String = #"["reasoning"]"#,
+        outputs: String = #"["text"]"#,
+        endpoints: String? = #"["/api/v1/chat/completions"]"#,
         fields: String? = nil
     ) throws -> CatalogModel {
         let model = [
             #""id": "\#(id)", "name": "Model", "created": 0"#,
-            #""architecture": {"input_modalities": ["text"], "output_modalities": ["text"]}"#,
+            #""architecture": {"input_modalities": ["text"], "output_modalities": \#(outputs)}"#,
+            endpoints.map { #""endpoints": \#($0)"# },
             #""supported_parameters": \#(parameters)"#,
             reasoning.map { #""reasoning": \#($0)"# },
             fields,

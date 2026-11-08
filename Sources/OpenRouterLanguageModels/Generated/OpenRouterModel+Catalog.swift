@@ -6703,7 +6703,6 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.OpenRoute
             releaseDate: Date(timeIntervalSince1970: 1_793_885_889),
             contextSize: 2_000_000,
             inputModalities: [.audio, .file, .image, .text, .video],
-            outputModalities: [.image, .text],
             supportedParameters: [
                 .frequencyPenalty,
                 .includeReasoning,
@@ -6743,7 +6742,6 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.OpenRoute
             releaseDate: Date(timeIntervalSince1970: 1_784_311_165),
             contextSize: 2_000_000,
             inputModalities: [.audio, .file, .image, .text, .video],
-            outputModalities: [.image, .text],
             supportedParameters: [
                 .frequencyPenalty,
                 .includeReasoning,
@@ -6784,7 +6782,6 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.OpenRoute
             releaseDate: Date(timeIntervalSince1970: 1_793_884_321),
             contextSize: 2_000_000,
             inputModalities: [.audio, .file, .image, .text, .video],
-            outputModalities: [.image, .text],
             supportedParameters: [
                 .frequencyPenalty,
                 .includeReasoning,
