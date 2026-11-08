@@ -49,7 +49,6 @@
     "data[].pricing.overrides[].input_cache_write_1h",
     "data[].pricing.overrides[].min_prompt_tokens",
     "data[].pricing.overrides[].prompt",
-    "data[].pricing.overrides[].utc_days[]",
     "data[].pricing.overrides[].utc_end",
     "data[].pricing.overrides[].utc_start",
     "data[].pricing.prompt",

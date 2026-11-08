@@ -6,6 +6,9 @@ import LanguageModels
 extension ModelRemovals {
     /// The models OpenRouter stopped listing, which its catalog keeps as deprecated members.
     static let openRouter = ModelRemovals([
+        "inception/mercury-2": Date(timeIntervalSince1970: 1_794_096_000),
+        "inception/mercury-2.5": Date(timeIntervalSince1970: 1_794_096_000),
+        "inception/mercury-3": Date(timeIntervalSince1970: 1_794_096_000),
         "minimax/minimax-01": Date(timeIntervalSince1970: 1_793_836_800),
         "minimax/minimax-m2": Date(timeIntervalSince1970: 1_793_836_800),
         "minimax/minimax-m2-her": Date(timeIntervalSince1970: 1_793_836_800),

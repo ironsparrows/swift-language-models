@@ -641,6 +641,18 @@ public enum OpenRouterCatalog {
         public static var efforts: [String] { [] }
     }
 
+    /// LiquidAI: LFM3-1.7B
+    public enum LiquidLfm3_1_7b: Efforts.List {
+        /// The levels the model accepts, highest first.
+        public static var efforts: [String] { [] }
+    }
+
+    /// LiquidAI: LFM3-1.7B (free)
+    public enum LiquidLfm3_1_7bFree: Efforts.List {
+        /// The levels the model accepts, highest first.
+        public static var efforts: [String] { [] }
+    }
+
     /// Mancer: Weaver (alpha)
     public enum MancerWeaver: Efforts.List {
         /// The levels the model accepts, highest first.
@@ -1859,7 +1871,7 @@ public enum OpenRouterCatalog {
         public static var efforts: [String] { [] }
     }
 
-    /// ricursiveAI/Ripple-65B-Preview
+    /// Ricursive: Ripple 65B Preview
     public enum RicursiveaiRipple65bPreview: Efforts.List {
         /// The levels the model accepts, highest first.
         public static var efforts: [String] { [] }
