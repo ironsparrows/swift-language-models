@@ -53,7 +53,7 @@ member a provider starts to refuse throws its error, and a member it starts to t
 | Refused before sending | | a schema with tools | a required tool call while the model reasons | | |
 | Finish words of its own | | | `insufficient_system_resource` and `aborted` fail the answer | `model_length` counts as the token limit | |
 | Responses kept | | | | | only when the options ask |
-| Retries | none | up to twice | up to twice | none | up to twice, but after a failed response only for a rate limit |
+| Retries | none | up to twice | up to twice | none | up to twice, only after a rate limit |
 | Wait for the next data | 10 minutes | 60 seconds | 10 minutes | 300 seconds | 10 minutes |
 | Host | `Google AI Studio` | `Groq` | `DeepSeek` | `Mistral` | `xAI` |
 
@@ -211,8 +211,9 @@ provider caches.
   xAI's Responses has no `seed`.
 - **The token limit**, `max_output_tokens`, caps the visible answer, not the reasoning or the tool calls.
 - **Left out.** Request metadata, which xAI doesn't support.
-- **Retries and waits.** A failed connection is sent again, but a failed response only after a rate limit, or when its
-  `x-should-retry` is `true`: xAI may bill a request that failed once its work began, such as one with a 5xx status.
+- **Retries and waits.** A failed request is sent again only after a rate limit, or when its `x-should-retry` is `true`:
+  xAI may bill a request that failed once its work began, such as one with a 5xx status, or one whose connection failed
+  after it was sent.
   Requests wait up to 10 minutes for the next data, since a model that reasons can send nothing for minutes.
 - **Prompt cache.** xAI routes requests that share a `prompt_cache_key` to the same cache, which
   ``OpenAICompatibleOptions/cacheKey`` sends: ``OpenAICompatibleOptions/CacheKey/session`` keeps each conversation on

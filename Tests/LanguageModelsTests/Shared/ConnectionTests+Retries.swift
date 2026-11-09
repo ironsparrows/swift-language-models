@@ -205,6 +205,17 @@ extension ConnectionTests {
             #expect(stub.requests.count == 3)
         }
 
+        @Test(arguments: [URLError.Code.timedOut, .cannotConnectToHost, .networkConnectionLost])
+        func `a policy that retries rate limits alone sends nothing again after a failed connection`(code: URLError.Code) async {
+            let stub = HTTPStub(.failure(URLError(code)), .json("{}"))
+            let policy = HTTPClient.RetryPolicy.exponentialBackoff(
+                retries: 2, statuses: .rateLimits, delay: .zero, longestDelay: .zero, longestRetryAfter: .seconds(120))
+
+            await #expect(throws: (any Error).self) { try await http(stub, policy).data(for: request(stub)) }
+
+            #expect(stub.requests.count == 1)
+        }
+
         @Test func `a connection that keeps timing out throws the timeout after the retries`() async throws {
             let timeout = StubResponse.failure(URLError(.timedOut))
             let stub = HTTPStub(timeout, timeout, timeout, .json("{}"))

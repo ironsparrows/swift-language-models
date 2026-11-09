@@ -213,7 +213,8 @@ public struct OpenAICompatibleConfiguration: Sendable, Hashable {
 
     /// How a request that fails before any data arrives is sent again: after a failed connection, a failed response
     /// whose status the provider retries, which for a provider described by its name and URL is a 408, 409 or 429 or
-    /// any status from 500 up, or any status whose `x-should-retry` is `true`, but never when it's `false`.
+    /// any status from 500 up, or any status whose `x-should-retry` is `true`, but never when it's `false`. xAI's
+    /// preset sends a request again only after a 429 or an `x-should-retry` of `true`.
     public var retries: RequestRetries
 
     /// How image attachments are encoded before they're sent.
@@ -275,11 +276,12 @@ extension OpenAICompatibleLanguageModel {
         /// Sends one request and streams its answer, in the provider's format.
         ///
         /// A failed request is sent again as ``OpenAICompatibleConfiguration/retries`` says, only before any data
-        /// arrives: after a failed connection, a failed response whose status the provider retries, which for a provider
-        /// described by its name and URL is a 408, 409 or 429 or any status from 500 up, or any status whose
-        /// `x-should-retry` is `true`, unless its `x-should-retry` is `false` or its `retry-after-ms` or `Retry-After`
-        /// asks for a longer wait than ``RequestRetries/longestServerWait``. A request whose schema has a constraint the
-        /// provider rejects is sent once more with the portable schema, which carries its constraints in descriptions.
+        /// arrives: after a failed connection, a failed response whose status the provider retries, which for a
+        /// provider described by its name and URL is a 408, 409 or 429 or any status from 500 up, or any status whose
+        /// `x-should-retry` is `true`, and to xAI only after a 429 or an `x-should-retry` of `true`, unless its
+        /// `x-should-retry` is `false` or its `retry-after-ms` or `Retry-After` asks for a longer wait than
+        /// ``RequestRetries/longestServerWait``. A request whose schema has a constraint the provider rejects is sent
+        /// once more with the portable schema, which carries its constraints in descriptions.
         ///
         /// The answer is checked against the schema's guides last, as ``DetailedLanguageModel/checkGuides(ofResponseText:for:)``
         /// does, since a provider may ignore a guide.

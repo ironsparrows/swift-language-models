@@ -47,18 +47,18 @@ any, such as vLLM's `code`. <doc:Providers> lists each preset's failures, as see
 
 ### Retries
 
-A failed connection, and a failed response whose status the provider retries, are sent again before any data arrives,
-as the model's ``OpenAICompatibleConfiguration/retries`` allow, and never after: a request whose answer has started
-streaming isn't sent again. For a provider you describe, the statuses are 408, 409, 429 and any from 500 up, and any
-status whose `x-should-retry` is `true`; `x-should-retry: false` throws without a retry. A wait the provider asks for in
-`retry-after-ms` or `Retry-After` is taken, unless it's longer than ``RequestRetries/longestServerWait``, which throws
-at once with the wait on the error. The presets retry and wait this way:
+A failed connection, but not to xAI, and a failed response whose status the provider retries, are sent again before any
+data arrives, as the model's ``OpenAICompatibleConfiguration/retries`` allow, and never after: a request whose answer
+has started streaming isn't sent again. For a provider you describe, the statuses are 408, 409, 429 and any from 500 up,
+and any status whose `x-should-retry` is `true`; `x-should-retry: false` throws without a retry. A wait the provider
+asks for in `retry-after-ms` or `Retry-After` is taken, unless it's longer than ``RequestRetries/longestServerWait``,
+which throws at once with the wait on the error. The presets retry and wait this way:
 
 | Preset | Retries | Wait for the next data |
 |---|---|---|
 | Gemini, Mistral, Ollama | none | 10 minutes; 300 seconds on Mistral |
 | Groq, DeepSeek, LM Studio, vLLM | up to twice | 60 seconds on Groq; 10 minutes on the others |
-| xAI | up to twice, after a failed connection, a rate limit or an `x-should-retry` of `true`, but after no other failed response, since xAI may bill a request that failed once its work began | 10 minutes |
+| xAI | up to twice, after a rate limit or an `x-should-retry` of `true`, but after no other failed response or failed connection, since xAI may bill a request that failed once its work began | 10 minutes |
 
 The model's ``OpenAICompatibleLanguageModel/configuration`` replaces a preset's retries and wait.
 
