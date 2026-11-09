@@ -192,7 +192,7 @@ struct OpenAICompatibleExchange: ChatCompletions.Exchange, Responses.Exchange {
         if let effort { request.reasoning = Responses.Request.Reasoning(effort: effort) }
         request.movedEffort = movedEffort
         request.storage = (options.storage == .automatic ? provider.automaticStorage : options.storage).storage
-        request.include = provider.include
+        request.include = provider.include.filter { $0 != .encryptedReasoning || details.reasoning.isSupported }
         if provider.sendsTopK, let topK = Self.topK(of: request.generation) {
             request.members[Responses.Member.topK.rawValue] = .integer(topK)
         }

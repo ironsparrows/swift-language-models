@@ -86,6 +86,16 @@ extension PresetTests {
             #expect(sent["include"] == ["reasoning.encrypted_content"])
         }
 
+        @Test func `a model that doesn't reason doesn't ask for encrypted reasoning`() async throws {
+            let stub = HTTPStub(events(textDelta("Hi"), completed()))
+            let details = OpenAICompatibleModel("grok-3", on: .xAI.at(stub.baseURL), reasoning: .unsupported)
+            let model = OpenAICompatibleLanguageModel(details, session: stub.session, configuration: .stubbed, auth: .apiKey { "sk-test" })
+
+            _ = try await LanguageModelSession(model: model).respond(to: "Hi")
+
+            #expect(try body(stub)["include"] == nil)
+        }
+
         @Test(arguments: [(429, 2), (503, 1), (500, 1)])
         func `a failed request is sent again only after a rate limit`(status: Int, requests: Int) async {
             // xAI's flat error body, with words written for the test.

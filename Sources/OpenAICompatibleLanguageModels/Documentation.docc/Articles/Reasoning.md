@@ -102,7 +102,7 @@ A provider on Responses keeps each response as its `store` says, which ``OpenAIC
 - ``OpenAICompatibleOptions/Storage/notStored`` sends `store: false`. A `reasoning` item that carries no encrypted
   reasoning is left out of the request, since the provider can't look it up by its id.
 
-xAI's preset asks for each answer's reasoning encrypted, in `include`, so it goes back whether or not xAI keeps the
-response. A provider you describe on Responses gets no `include`, so its reasoning items go back with their ids for the
-provider to look up, and with ``OpenAICompatibleOptions/Storage/notStored`` they're left out. Chat Completions has no
-`store`, and the module never sends it there.
+xAI's preset asks a model that reasons for each answer's reasoning encrypted, in `include`, so it goes back whether or
+not xAI keeps the response. A provider you describe on Responses gets no `include`, so its reasoning items go back with
+their ids for the provider to look up, and with ``OpenAICompatibleOptions/Storage/notStored`` they're left out. Chat
+Completions has no `store`, and the module never sends it there.

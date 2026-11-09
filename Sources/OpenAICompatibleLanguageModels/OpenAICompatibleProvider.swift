@@ -127,7 +127,8 @@ public struct OpenAICompatibleProvider: Sendable, Hashable {
     var automaticStorage = OpenAICompatibleOptions.Storage.automatic
 
     /// What a Responses request asks each response to carry beyond what it always does, such as each reasoning item's
-    /// reasoning encrypted, so the item can go back on later turns whether or not the provider keeps the response.
+    /// reasoning encrypted, so the item can go back on later turns whether or not the provider keeps the response,
+    /// which a request to a model that doesn't reason leaves out.
     var include: [Responses.Include] = []
 
     /// The provider's finish reasons that stand for one of the format's, such as its word for an answer its servers cut
@@ -328,12 +329,12 @@ extension OpenAICompatibleProvider {
     /// By default, a model on it reasons unless a request turns reasoning off, and accepts the efforts `xhigh`, `high`,
     /// `medium`, `low` and `none`. xAI's models take different efforts, and its newest can't turn reasoning off, so
     /// name a model's own. Requests ask xAI not to keep each response, unless the app's options ask for stored ones,
-    /// and ask for each answer's reasoning encrypted, so it goes back on later turns either way. They send the `top_k`
-    /// that sampling asks for and a cache key from ``OpenAICompatibleOptions/cacheKey`` as `prompt_cache_key`, and
-    /// leave out request metadata, which xAI doesn't support. A failed connection is sent again, but a failed response
-    /// only after a rate limit, since xAI may bill a request that failed once its work began. A 400 for an incorrect
-    /// key has the code `authentication`, as a 401 has. The preset follows xAI's documentation and SDKs and hasn't been
-    /// run against its API; <doc:Providers> says what was checked.
+    /// and, for a model that reasons, ask for each answer's reasoning encrypted, so it goes back on later turns either
+    /// way. They send the `top_k` that sampling asks for and a cache key from ``OpenAICompatibleOptions/cacheKey`` as
+    /// `prompt_cache_key`, and leave out request metadata, which xAI doesn't support. A failed connection is sent
+    /// again, but a failed response only after a rate limit, since xAI may bill a request that failed once its work
+    /// began. A 400 for an incorrect key has the code `authentication`, as a 401 has. The preset follows xAI's
+    /// documentation and SDKs and hasn't been run against its API; <doc:Providers> says what was checked.
     public static let xAI: Self = {
         var xAI = Self(name: "xAI", url: url("https://api.x.ai/v1"), format: .responses)
         xAI.retriedStatuses = .rateLimits

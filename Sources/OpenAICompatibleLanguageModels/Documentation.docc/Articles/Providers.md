@@ -197,9 +197,9 @@ provider caches.
 - **Responses.** xAI's Chat Completions is deprecated, so the preset speaks Responses. Instructions go in the
   `developer` role, which xAI's API lists; how its models follow them wasn't seen.
 - **Kept responses.** Requests send `store: false` unless ``OpenAICompatibleOptions/storage`` asks for stored responses,
-  which xAI keeps for 30 days. Every request asks for each answer's reasoning encrypted, in `include`, so the reasoning
-  goes back on later turns whether or not xAI keeps the response: each request sends the whole transcript, never a
-  stored response's id.
+  which xAI keeps for 30 days. Every request to a model that reasons asks for each answer's reasoning encrypted, in
+  `include`, so the reasoning goes back on later turns whether or not xAI keeps the response: each request sends the
+  whole transcript, never a stored response's id.
 - **Efforts** differ by model: xAI's newest models can't turn reasoning off, and some don't take `xhigh`. xAI lists a
   model's own at `GET /v1/language-models/{id}`, in `capabilities.reasoning_effort`.
 - **Sampling.** A `top_k` that sampling asks for goes out, which xAI documents. A seed is left out and logged, since
