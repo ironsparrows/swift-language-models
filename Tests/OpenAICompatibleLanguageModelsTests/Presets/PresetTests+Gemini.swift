@@ -125,6 +125,22 @@ extension PresetTests {
                 error: OpenAICompatibleError(
                     providerName: "Gemini", status: 400, message: "Missing or invalid Authorization header.", code: .authentication,
                     errorType: "INVALID_ARGUMENT")),
+            // An expired key's words, as Gemini's API answered it elsewhere; not captured on this endpoint.
+            PresetTests.Rejection(
+                name: "an expired key", status: 400,
+                body: #"""
+                    [{
+                      "error": {
+                        "code": 400,
+                        "message": "API key expired. Please renew the API key.",
+                        "status": "INVALID_ARGUMENT"
+                      }
+                    }
+                    ]
+                    """#,
+                error: OpenAICompatibleError(
+                    providerName: "Gemini", status: 400, message: "API key expired. Please renew the API key.", code: .authentication,
+                    errorType: "INVALID_ARGUMENT")),
             // An invalid key's 400 is the recorded exchange's.
             PresetTests.Rejection(
                 name: "an overloaded model, sent once", status: 503,
