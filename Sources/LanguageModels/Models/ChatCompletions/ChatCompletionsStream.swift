@@ -188,15 +188,31 @@ extension AnswerUsage {
     fileprivate init(_ usage: Chunk.Usage, countingUnlistedTokensAsReasoning: Bool) {
         let promptTokens = usage.promptTokens ?? 0
         let completionTokens = usage.completionTokens ?? 0
+        let reasoningTokens = usage.completionTokensDetails?.reasoningTokens ?? 0
         let unlistedTokens =
-            countingUnlistedTokensAsReasoning ? max((usage.totalTokens ?? 0) - promptTokens - completionTokens, 0) : 0
+            countingUnlistedTokensAsReasoning
+            ? Self.unlistedTokens(of: usage.totalTokens, beyond: promptTokens, completionTokens, reasoningTokens) : 0
         self.init(
             inputTokens: promptTokens,
             cachedTokens: usage.promptTokensDetails?.cachedTokens ?? 0,
             cacheWriteTokens: usage.promptTokensDetails?.cacheWriteTokens,
             outputTokens: completionTokens + unlistedTokens,
-            reasoningTokens: (usage.completionTokensDetails?.reasoningTokens ?? 0) + unlistedTokens
+            reasoningTokens: reasoningTokens + unlistedTokens
         )
+    }
+
+    /// The tokens a total counts beyond the prompt and the completion, or zero when there are none, or when the counts
+    /// are too large to subtract or to add to the completion's and the reasoning's.
+    private static func unlistedTokens(
+        of totalTokens: Int?, beyond promptTokens: Int, _ completionTokens: Int, _ reasoningTokens: Int
+    ) -> Int {
+        guard let totalTokens else { return 0 }
+        let (afterPrompt, promptOverflow) = totalTokens.subtractingReportingOverflow(promptTokens)
+        let (unlisted, completionOverflow) = afterPrompt.subtractingReportingOverflow(completionTokens)
+        guard !promptOverflow, !completionOverflow, unlisted > 0, !completionTokens.addingReportingOverflow(unlisted).overflow,
+            !reasoningTokens.addingReportingOverflow(unlisted).overflow
+        else { return 0 }
+        return unlisted
     }
 }
 

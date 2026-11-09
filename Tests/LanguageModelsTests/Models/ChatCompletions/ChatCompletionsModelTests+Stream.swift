@@ -153,6 +153,26 @@ extension ChatCompletionsModelTests {
             #expect(exchange.usage == "input 15 cached 0, \(output), metadata: {}")
         }
 
+        @Test(arguments: [(0, Int.max), (Int.min, 10)])
+        func `counts out of range leave a usage's tokens as reported, with none counted as reasoning`(
+            promptTokens: Int, totalTokens: Int
+        ) async {
+            let usage: JSONValue = [
+                "prompt_tokens": .integer(promptTokens), "completion_tokens": 1, "total_tokens": .integer(totalTokens),
+                "completion_tokens_details": ["reasoning_tokens": 5],
+            ]
+            let stub = HTTPStub(chatCompletionsEvents(textChunk("Hi"), finishChunk(usage: usage)))
+            var model = plainModel(stub)
+            model.countsUnlistedTokensAsReasoning = true
+
+            let exchange = await ExactExchange(stub, LanguageModelSession(model: model), recordingHeaders: /^X-/) { session, _ in
+                try await session.respond(to: "Hello").usage
+            }
+
+            #expect(exchange.error == nil)
+            #expect(exchange.usage == "input 0 cached 0, output 1 reasoning 5, metadata: {}")
+        }
+
         @Test func `a usage's total that isn't a whole number is passed over`() async {
             let usage: JSONValue = ["prompt_tokens": 15, "completion_tokens": 290, "total_tokens": "1184"]
             let stub = HTTPStub(chatCompletionsEvents(textChunk("Hi"), finishChunk(usage: usage)))
