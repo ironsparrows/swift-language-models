@@ -227,6 +227,19 @@ struct ToolCallAssemblerTests {
         #expect(try calls.finish().isEmpty)
     }
 
+    @Test func `a call whose fragments each repeat its name without an id assembles quickly, however long its arguments`() throws {
+        var calls = ToolCallAssembler()
+        _ = calls.add(fragment(index: 0, id: "call_1", name: "write", arguments: #"{"text":""#))
+
+        let elapsed = ContinuousClock().measure {
+            for _ in 0..<40_000 { _ = calls.add(fragment(index: 0, name: "write", arguments: "abcdefghij")) }
+        }
+        _ = calls.add(fragment(index: 0, name: "write", arguments: #""}"#))
+
+        #expect(try calls.finish().isEmpty)
+        #expect(elapsed < .seconds(2))
+    }
+
     @Test func `no fragment leaves the assembler empty`() {
         var calls = ToolCallAssembler()
         #expect(calls.isEmpty)

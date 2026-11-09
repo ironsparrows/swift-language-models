@@ -368,7 +368,8 @@ struct ToolCallAssembler {
         guard let name, calls[latest]?.name != nil else { return latest }
         guard let named = atIndex.last(where: { calls[$0]?.name == name }), let call = calls[named] else { return next }
         let startsValue = arguments?.first { !$0.isWhitespace }.map { $0 == "{" || $0 == "[" } ?? false
-        return call.hasWholeArguments && (startsValue || (id != nil && !call.ids.isEmpty)) ? next : named
+        // The arguments are read whole last, since that reads all their text.
+        return (startsValue || (id != nil && !call.ids.isEmpty)) && call.hasWholeArguments ? next : named
     }
 }
 
