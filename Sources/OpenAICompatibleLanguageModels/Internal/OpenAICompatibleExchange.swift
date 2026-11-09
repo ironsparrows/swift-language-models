@@ -161,7 +161,9 @@ struct OpenAICompatibleExchange: ChatCompletions.Exchange, Responses.Exchange {
         let appThinking = provider.sendsThinking ? appMembers[ChatCompletions.Member.thinking.rawValue].map { JSONValue($0) } : nil
         // The provider's own `thinking` follows the level, so it never goes with an app's effort.
         let thinking = appEffort == nil && provider.sendsThinking ? Thinking(level: level, reasons: details.reasoning.isSupported) : nil
-        let reasons = Thinking.reasons(thinking: appThinking ?? thinking?.json, effort: appEffort?.stringValue ?? effort)
+        let reasons = Thinking.reasons(
+            thinking: appThinking ?? thinking?.json, effort: appEffort?.stringValue ?? effort,
+            byDefault: details.reasoning.isEnabledByDefault)
         if provider.refusesRequiredCallWhileReasoning, reasons, requiresCall {
             let description = """
                 \(provider.name) takes a required tool call only with reasoning off, so a request that requires one needs the \

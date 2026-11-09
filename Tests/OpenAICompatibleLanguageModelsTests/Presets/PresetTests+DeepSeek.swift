@@ -142,6 +142,18 @@ extension PresetTests {
             }
         }
 
+        @Test func `a required tool call goes to a model that reasons only when asked, with no level set`() async throws {
+            let stub = HTTPStub(chunks(text("Hi"), finish()))
+            let details = OpenAICompatibleModel("deepseek-chat", on: .deepSeek.at(stub.baseURL), reasoning: .offByDefault)
+            let model = OpenAICompatibleLanguageModel(details, session: stub.session, configuration: .stubbed, auth: .apiKey { "sk-test" })
+            let session = LanguageModelSession(model: model, tools: [WeatherTool()])
+
+            _ = try await session.respond(to: "Hi", options: GenerationOptions(toolCallingMode: .required))
+
+            #expect(try body(stub)["tool_choice"] == "required")
+            #expect(try body(stub)["thinking"] == nil)
+        }
+
         @Test func `reasoning goes back as reasoning_content in a tool loop, and usage comes from the last content chunk`() async throws {
             let stub = HTTPStub(.eventStream(Data(Self.toolRound.utf8)), .eventStream(Data(Self.answer.utf8)))
             let session = LanguageModelSession(model: model(stub, on: .deepSeek.at(stub.baseURL)), tools: [WeatherTool()])

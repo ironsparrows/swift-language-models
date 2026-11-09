@@ -114,15 +114,17 @@ struct Thinking: Encodable {
         ["type": .string(type)]
     }
 
-    /// Whether the model reasons for a request: as its `thinking` says, when it has one, and otherwise unless its effort
-    /// is `none`.
+    /// Whether the model reasons for a request: as its `thinking` says, when it has one, otherwise unless its effort is
+    /// `none`, and with neither, as it does by default.
     ///
     /// - Parameters:
     ///   - thinking: The request's `thinking`, if any.
     ///   - effort: The request's effort, if any.
+    ///   - byDefault: Whether the model reasons for a request that asks for neither.
     /// - Returns: Whether the model reasons.
-    static func reasons(thinking: JSONValue?, effort: String?) -> Bool {
+    static func reasons(thinking: JSONValue?, effort: String?, byDefault: Bool) -> Bool {
         if let type = thinking?["type"]?.stringValue { return type != disabled }
+        guard let effort else { return byDefault }
         return effort != ContextOptions.ReasoningLevel.off.effortWord
     }
 
