@@ -18,6 +18,11 @@ struct ChatCompletionsTestExchange: ChatCompletions.Exchange {
     /// The key under which an assistant message carries the text of the reasoning it sends back, or `nil` to send none.
     var reasoningMember: String?
 
+    /// What the exchange adds to an answer that goes back, beside the reasoning ``reasoningMember`` names.
+    var answerMembers: @Sendable (ChatCompletions.ReplayedAnswer) -> ChatCompletions.ReplayMembers = { _ in
+        ChatCompletions.ReplayMembers()
+    }
+
     /// The host the chunks named.
     private var host: String?
 
@@ -30,9 +35,12 @@ struct ChatCompletionsTestExchange: ChatCompletions.Exchange {
         try prepares(&request)
     }
 
-    func replayMembers(for reasoning: [(entry: Transcript.Reasoning, text: String)]) -> JSONObject {
-        guard let reasoningMember else { return JSONObject() }
-        return [reasoningMember: .string(reasoning.map(\.text).joined())]
+    func replayMembers(for answer: ChatCompletions.ReplayedAnswer) -> ChatCompletions.ReplayMembers {
+        var members = answerMembers(answer)
+        if let reasoningMember, !answer.reasoning.isEmpty {
+            members.message[reasoningMember] = .string(answer.reasoning.map(\.text).joined())
+        }
+        return members
     }
 
     mutating func read(_ extras: TestExtras) -> ChatCompletions.ChunkAdditions {

@@ -241,14 +241,15 @@ extension ChatCompletions {
         /// wrote never does. The default sends back every one.
         func replays(_ reasoning: Transcript.Reasoning) -> Bool
 
-        /// The members an assistant message carries for the reasoning it sends back. A member whose value is `null`, an
-        /// empty list or empty text carries no reasoning, so an answer with nothing else isn't sent back. The default
-        /// sends none.
+        /// The members an answer's `assistant` message, and each of its tool calls, carry when the answer goes back,
+        /// such as the reasoning the message sends back. The transcript asks for every answer, whether or not reasoning
+        /// goes back with it. A message member whose value is `null`, an empty list or empty text carries no reasoning,
+        /// and neither does any member of an answer whose reasoning doesn't go back, so an answer with nothing else
+        /// isn't sent back. The default sends none.
         ///
-        /// - Parameter reasoning: The answer's reasoning entries that go back, in their order, each with its text, or
-        ///   empty text for a block the model wrote at the start of its answer's text, which goes back there instead.
-        /// - Returns: The members, after the message's content.
-        func replayMembers(for reasoning: [(entry: Transcript.Reasoning, text: String)]) -> JSONObject
+        /// - Parameter answer: The answer's reasoning that goes back, and its tool calls.
+        /// - Returns: The members, after the message's content and after each call's `function`.
+        func replayMembers(for answer: ReplayedAnswer) -> ReplayMembers
 
         // MARK: Before it is sent
 
@@ -296,6 +297,33 @@ extension ChatCompletions {
             self.imageURLs = imageURLs
         }
     }
+
+    /// An answer that goes back in a later request as an `assistant` message, as an exchange's
+    /// ``Exchange/replayMembers(for:)`` sees it.
+    package struct ReplayedAnswer {
+        /// The answer's reasoning entries that go back, in their order, each with its text, or empty text for a block the
+        /// model wrote at the start of its answer's text, which goes back there instead. Empty when none goes back, such
+        /// as for an answer whose reasoning another provider wrote.
+        package let reasoning: [(entry: Transcript.Reasoning, text: String)]
+
+        /// The answer's tool calls, in their order.
+        package let toolCalls: [Transcript.ToolCall]
+    }
+
+    /// What an exchange adds to an answer that goes back, as its ``Exchange/replayMembers(for:)`` returns it.
+    package struct ReplayMembers {
+        /// The members of the answer's `assistant` message, after its content.
+        package var message: JSONObject
+
+        /// The members of each of the answer's tool calls, in their order, after the call's `function`. A call past the
+        /// end of the list carries none.
+        package var toolCalls: [JSONObject]
+
+        package init(message: JSONObject = JSONObject(), toolCalls: [JSONObject] = []) {
+            self.message = message
+            self.toolCalls = toolCalls
+        }
+    }
 }
 
 /// No members: what a provider reads from a response when it reads nothing beyond the format's own.
@@ -340,7 +368,9 @@ extension ChatCompletions.Exchange {
 
     package func replays(_ reasoning: Transcript.Reasoning) -> Bool { true }
 
-    package func replayMembers(for reasoning: [(entry: Transcript.Reasoning, text: String)]) -> JSONObject { JSONObject() }
+    package func replayMembers(for answer: ChatCompletions.ReplayedAnswer) -> ChatCompletions.ReplayMembers {
+        ChatCompletions.ReplayMembers()
+    }
 
     package mutating func prepare(_ request: inout ChatCompletions.Request) throws {}
 

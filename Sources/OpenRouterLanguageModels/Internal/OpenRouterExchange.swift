@@ -148,9 +148,10 @@ struct OpenRouterExchange: ChatCompletions.Exchange {
         model.replaysReasoning(writtenBy: reasoning.writer)
     }
 
-    /// The assistant message's `reasoning` and `reasoning_details` for the reasoning it sends back.
-    func replayMembers(for reasoning: [(entry: Transcript.Reasoning, text: String)]) -> JSONObject {
-        ReasoningDetails.replayMembers(for: reasoning)
+    /// The assistant message's `reasoning` and `reasoning_details` for the reasoning it sends back. Its tool calls carry
+    /// no members of OpenRouter's.
+    func replayMembers(for answer: ChatCompletions.ReplayedAnswer) -> ChatCompletions.ReplayMembers {
+        ChatCompletions.ReplayMembers(message: ReasoningDetails.replayMembers(for: answer.reasoning))
     }
 
     // MARK: Before it is sent

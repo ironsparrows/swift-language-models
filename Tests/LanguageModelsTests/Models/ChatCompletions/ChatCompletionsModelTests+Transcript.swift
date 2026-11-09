@@ -68,6 +68,47 @@ extension ChatCompletionsModelTests {
             #expect(assistants.map { $0["reasoning"] } == ["Think.", "Think."])
         }
 
+        @Test func `the exchange's members go on every answer's message and on each of its calls, whether or not reasoning goes back`()
+            throws
+        {
+            var model = ChatCompletions.Model<ChatCompletionsTestExchange>.test()
+            // A signature that goes back with the answer's own reasoning goes on its first call, and a placeholder takes its
+            // place on the first call of an answer whose reasoning doesn't go back, which also gets a member of its own.
+            model.exchange.answerMembers = { answer in
+                let signature = answer.reasoning.first?.entry.signature.map { String(decoding: $0, as: UTF8.self) }
+                return ChatCompletions.ReplayMembers(
+                    message: answer.reasoning.isEmpty ? ["reasoning_content": " "] : [:],
+                    toolCalls: answer.toolCalls.isEmpty ? [] : [["signature": .string(signature ?? "placeholder")]])
+            }
+            let own = Transcript.Reasoning(metadata: ["reasoningOrigin": "test"], segments: [], signature: Data("signed".utf8))
+            let other = Transcript.Reasoning(metadata: ["reasoningOrigin": "other"], segments: [text("Other.")])
+            let calls = ["call_1", "call_2", "call_3"].map { id in
+                Transcript.ToolCall(id: id, toolName: "lookUp", arguments: GeneratedContent(properties: ["word": "egg"]))
+            }
+            let entries: [Transcript.Entry] = [
+                prompt(text("Define egg.")), .reasoning(other), .toolCalls(Transcript.ToolCalls(calls.prefix(2))),
+                .toolOutput(Transcript.ToolOutput(id: "call_1", toolName: "lookUp", segments: [text("egg")])),
+                .toolOutput(Transcript.ToolOutput(id: "call_2", toolName: "lookUp", segments: [text("egg")])),
+                .reasoning(own), .toolCalls(Transcript.ToolCalls([calls[2]])),
+                .toolOutput(Transcript.ToolOutput(id: "call_3", toolName: "lookUp", segments: [text("egg")])),
+                .response(Transcript.Response(assetIDs: [], segments: [text("An oval.")])),
+                // An answer with nothing to send back, which a member alone doesn't send.
+                prompt(text("And rice?")), .response(Transcript.Response(assetIDs: [], segments: [])),
+            ]
+
+            let assistants = messages(try ChatCompletionsSentRequest(generationRequest(entries), model: model).body)
+                .filter { $0["role"] == "assistant" }
+
+            try #require(assistants.count == 3)
+            #expect(assistants[0]["reasoning_content"] == " ")
+            #expect(assistants[0]["tool_calls"]?[0]?["signature"] == "placeholder")
+            #expect(keys(assistants[0]["tool_calls"]?[0]) == ["id", "type", "function", "signature"])
+            #expect(keys(assistants[0]["tool_calls"]?[1]) == ["id", "type", "function"])
+            #expect(assistants[1]["reasoning_content"] == nil)
+            #expect(assistants[1]["tool_calls"]?[0]?["signature"] == "signed")
+            #expect(assistants[2] == ["role": "assistant", "content": "An oval.", "reasoning_content": " "])
+        }
+
         @Test func `an answer with nothing to send back has no message`() throws {
             let entries: [Transcript.Entry] = [prompt(text("Hi")), .response(Transcript.Response(assetIDs: [], segments: []))]
 

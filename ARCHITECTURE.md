@@ -195,7 +195,7 @@ next. Every method but `error(for:)` has a default that adds nothing:
 |---|---|---|---|
 | `checkAttachment(_:in:)` | both | which inputs the models take | which inputs the model takes |
 | `replays(_:)` | both | only to the model that wrote it, not a fallback | only to the model that wrote it, or to the model it's a dated snapshot of |
-| `replayMembers(for:)` | Chat Completions | `reasoning` and `reasoning_details` | |
+| `replayMembers(for:)` | Chat Completions | `reasoning` and `reasoning_details` on the message, none on its tool calls | |
 | `prepare(_:)` | both | the app's name, address and categories, the response cache, router metadata; fallbacks, routing, plugins, reasoning, penalties, server tools, cache marks | the effort, summary and storage, `text.verbosity`, `parallel_tool_calls` with the session's tools, the service tier, cache key and end user, server tools and the calls the answer keeps, `include`, the sampling a reasoning model doesn't take |
 | `read(_:)` | Chat Completions | images and reasoning details | |
 | `additions(header:)` | both | the host, cost, router report, cache status | the request's id |
