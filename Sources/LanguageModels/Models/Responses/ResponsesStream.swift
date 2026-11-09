@@ -154,8 +154,8 @@ extension Responses.Stream {
     ///
     /// An event the provider named `ping` is passed over, whatever its data holds. One it named `error`, whatever JSON
     /// or other text its data holds, one with no `type` that carries an `error`, and one of a kind the format doesn't
-    /// read that carries a non-empty `error`, is an error event. An event with empty data is passed over, and a `[DONE]`
-    /// ends the stream, whatever their names.
+    /// read that carries a non-empty `error`, is an error event. Any other event with empty data is passed over, and
+    /// any other `[DONE]` ends the stream, whatever its name.
     ///
     /// - Returns: Whether the event ends the stream: `response.completed`, `response.incomplete`, or a `[DONE]`.
     /// - Throws: The exchange's error for an event that can't be read, an error event and a failed response.

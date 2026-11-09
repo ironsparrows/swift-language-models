@@ -85,8 +85,8 @@ extension ChatCompletions.Stream {
     /// Sends the events for one server-sent event.
     ///
     /// An event the provider named `ping` is passed over, and one it named `error` is an error event, whatever JSON or
-    /// other text its data holds; an event with empty data is passed over, and a `[DONE]` ends the stream, whatever
-    /// their names.
+    /// other text its data holds; any other event with empty data is passed over, and any other `[DONE]` ends the
+    /// stream, whatever its name.
     ///
     /// - Returns: Whether the event is the `[DONE]` that ends the stream.
     /// - Throws: The exchange's error for an event that isn't a chunk, and for an error event.

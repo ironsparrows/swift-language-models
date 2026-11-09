@@ -82,7 +82,7 @@ SDKs lack them. Built with an earlier Xcode, the package takes no data attachmen
 | `reasoning` items, as `response.output_item.done` carries them | The reasoning entry's signature, with every member OpenAI sent, and with the places of the messages and calls that came between them, so they go back on later turns in their order |
 | A `message` item's `phase` | The `phase` and the text's length of each message, which ``OpenAIResponseMetadata/messages`` reads |
 | The messages of a guided answer | Only the first message with no phase or the `final_answer` phase is the answer that decodes. The others, such as `commentary`, stay out of the response text, and ``OpenAIResponseMetadata/Message/heldText`` keeps their text, with their phase, so they go back on later turns in their places |
-| `function_call` items and `response.function_call_arguments.delta` | One tool-calls entry per answer, so parallel calls make one round; a call whose arguments arrive only in `response.output_item.done` gets them from there |
+| `function_call` items and `response.function_call_arguments.delta` | One tool-calls entry per answer, so parallel calls make one round; a call whose arguments arrive only in `response.output_item.done` gets them from there, and arguments of only whitespace are read as an empty object |
 | `response.output_text.annotation.added` of type `url_citation` | ``Citation`` values on the response entry, which ``OpenAIResponseMetadata/citations`` reads, once each, with offsets that count from the start of the answer's text, or none when the cited message is held out of the text or text that isn't ASCII comes before it; they aren't sent back |
 | `response.output_text.annotation.added` of type `file_citation`, with a file search | ``OpenAIResponseMetadata/fileCitations``, on the entry that ends the answer, once each, with the `index` moved to count from the start of the answer's text, as for a cited page; they aren't sent back |
 | `web_search_call`, `image_generation_call` and `file_search_call` items of the request's server tools, as `response.output_item.done` carries them | Kept in the metadata of the entry that ends the answer, whole, an image's without its image, with whether OpenAI keeps the response and their places in the reasoning entry's signature, which ``OpenAIResponseMetadata/serverToolCalls`` and ``OpenAIResponseMetadata/sources`` read; the calls of a tool the request doesn't send are passed over |
@@ -96,7 +96,8 @@ SDKs lack them. Built with an earlier Xcode, the package takes no data attachmen
 | `response.incomplete` with `incomplete_details.reason` `content_filter` | `LanguageModelError.guardrailViolation` |
 | Another `incomplete_details.reason` | The reason as the finish reason, or `incomplete` when there's none |
 | An event named `ping` | Passed over, whatever its data holds |
-| An `error` event, an event named `error`, an event with no `type` that carries an `error`, an event of a type this table doesn't list that carries a non-empty `error`, `response.failed` | The error its `error` object stands for, as the next table says; when the object has no message, or the data isn't JSON, its text is the message, up to 1,000 characters, beside the object's other members |
+| An `error` event, an event named `error`, an event with no `type` that carries an `error`, and an event that carries a non-empty `error` and whose type this table doesn't list, other than `response.created`, `response.in_progress` and `response.output_item.added`, which are read by their type | The error its `error` object stands for, as the next table says; when the object has no message, or the data isn't JSON, its text is the message, up to 1,000 characters, beside the object's other members |
+| `response.failed` | The error its `error` object stands for, as the next table says |
 
 ### Metadata
 
@@ -132,7 +133,7 @@ the ones any provider can report, the same way for every provider module, as
 | `invalid_image`, `invalid_image_format`, `invalid_base64_image`, `invalid_image_url`, `image_too_large`, `image_too_small`, `image_parse_error`, `invalid_image_mode`, `image_file_too_large`, `unsupported_image_media_type`, `empty_image_file` | `LanguageModelError.unsupportedTranscriptContent`, naming the entries with images |
 | 408, 504, `vector_store_timeout`, a timed-out connection | `LanguageModelError.timeout` |
 | A connection that fails otherwise, such as without a network | Its `URLError`, unchanged |
-| A stream that ends before it's complete, an event that can't be read, a tool call without a name, with arguments that aren't a whole JSON object, or that reached the token limit | ``OpenAIError`` with ``OpenAIError/Code/invalidResponse`` |
+| A stream that ends before it's complete, an event that can't be read, such as a `response.failed` whose `error` has no message, a tool call without a name, with arguments that are neither a whole JSON object nor only whitespace, or that reached the token limit | ``OpenAIError`` with ``OpenAIError/Code/invalidResponse`` |
 | Anything else | ``OpenAIError``, with its status, message, code, error type, parameter, request id and retry delay |
 
 An error's ``OpenAIError/code`` is OpenAI's `code`, or else its error `type`, such as `invalid_request_error`, which
