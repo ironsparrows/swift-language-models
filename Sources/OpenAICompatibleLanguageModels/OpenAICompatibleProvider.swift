@@ -205,7 +205,7 @@ extension OpenAICompatibleProvider {
         gemini.unsupportedMembers = [.seed, .metadata]
         gemini.reasoningReplay = .thoughtSignatures
         gemini.host = "Google AI Studio"
-        gemini.failureWords.refusedKey = ["Missing or invalid Authorization header", "API key not valid"]
+        gemini.failureWords.refusedKey = ["Missing or invalid Authorization header", "Please pass a valid API key"]
         gemini.failureWords.oversizedContext = ["exceeds the maximum number of tokens allowed"]
         return gemini
     }()

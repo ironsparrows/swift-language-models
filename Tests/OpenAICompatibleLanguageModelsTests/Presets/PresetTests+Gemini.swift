@@ -242,13 +242,20 @@ extension PresetTests {
                 error: OpenAICompatibleError(
                     providerName: "Gemini", status: 400, message: "Missing or invalid Authorization header.", code: .authentication,
                     errorType: "INVALID_ARGUMENT")),
-            // An invalid key, written from the Gemini API's wording for one; not captured.
             PresetTests.Rejection(
                 name: "an invalid key", status: 400,
-                body:
-                    #"[{"error":{"code":400,"message":"API key not valid. Please pass a valid API key.","status":"INVALID_ARGUMENT"}}]"#,
+                body: #"""
+                    [{
+                      "error": {
+                        "code": 400,
+                        "message": "Please pass a valid API key",
+                        "status": "INVALID_ARGUMENT"
+                      }
+                    }
+                    ]
+                    """#,
                 error: OpenAICompatibleError(
-                    providerName: "Gemini", status: 400, message: "API key not valid. Please pass a valid API key.", code: .authentication,
+                    providerName: "Gemini", status: 400, message: "Please pass a valid API key", code: .authentication,
                     errorType: "INVALID_ARGUMENT")),
             PresetTests.Rejection(
                 name: "an overloaded model, sent once", status: 503,
