@@ -21,11 +21,14 @@ and [LanguageModelSession](https://developer.apple.com/documentation/foundationm
 
 ### Use a preset
 
-Gemini, Groq, DeepSeek and Mistral have presets, which carry their URLs and what each does differently, such as the
-members it refuses and the efforts its models accept:
+Gemini, Groq, DeepSeek, Mistral and xAI have presets, which carry their URLs and what each does differently, such as
+the members it refuses and the efforts its models accept:
 
 @Snippet(path: "swift-language-models/Snippets/OpenAICompatibleQuickStart", slice: "preset")
 
+So do the servers Ollama, LM Studio and vLLM, at their default local addresses, which take no key unless the server
+asks for one: `OpenAICompatibleModel("qwen3:8b", on: .ollama, reasoning: .onByDefault)` with
+``OpenAICompatibleAuthentication/unauthenticated``.
 <doc:Providers> says what each preset does, and which were checked against their provider.
 ``OpenAICompatibleProvider/at(_:)`` points a preset at another address, such as a gateway in front of the provider,
 and keeps everything else.

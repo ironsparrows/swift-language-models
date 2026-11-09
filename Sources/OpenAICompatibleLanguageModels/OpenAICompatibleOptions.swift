@@ -4,7 +4,8 @@ import LanguageModels
 /// Request settings beyond Foundation Models' generation options: members of a provider's own that the module doesn't
 /// write, and whether a provider that speaks Responses keeps each response.
 ///
-/// Every setting left at its default stays out of the request, so the provider's own default applies.
+/// Every setting left at its default stays out of the request, so the provider's own default applies, but for the
+/// storage of a preset that asks its provider not to keep responses, as ``OpenAICompatibleProvider/xAI`` does.
 public struct OpenAICompatibleOptions: Sendable, Hashable {
     /// Members that every request's body carries as written, such as a setting only the provider has, or one the module
     /// writes another way.
@@ -48,10 +49,12 @@ extension OpenAICompatibleOptions {
     /// Whether a provider that speaks Responses keeps a response.
     ///
     /// The package sends each request's whole transcript, so later turns work whether or not the provider keeps the
-    /// response. With ``notStored``, later turns send no `reasoning` items back, since the module doesn't ask for their
-    /// reasoning encrypted; otherwise each goes back as it came.
+    /// response. After a request that asks the provider not to keep it, with `store` false, later turns send back only
+    /// the `reasoning` items that carry their reasoning encrypted, which a preset asks for where its provider sends it,
+    /// as ``OpenAICompatibleProvider/xAI`` does; otherwise each goes back as it came.
     public enum Storage: Sendable, Hashable {
-        /// The provider's own default, with no `store` in the request.
+        /// The provider's own default, with no `store` in the request, or for a preset that asks its provider not to
+        /// keep responses, as ``OpenAICompatibleProvider/xAI`` does, ``notStored``.
         case automatic
 
         /// The provider keeps the response.

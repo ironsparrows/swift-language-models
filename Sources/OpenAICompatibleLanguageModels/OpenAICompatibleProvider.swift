@@ -76,9 +76,17 @@ public struct OpenAICompatibleProvider: Sendable, Hashable {
     /// The effort words a model on the provider accepts when its details don't say, highest first.
     var defaultEffortWords = ["xhigh", "high", "medium", "low", "minimal", "none"]
 
-    /// The Chat Completions members the provider refuses, or doesn't document, which a request leaves out and logs,
-    /// unless the app's members carry them.
+    /// The Chat Completions members the provider refuses, ignores or doesn't document, which a request leaves out and
+    /// logs, unless the app's members carry them.
     var unsupportedMembers: Set<ChatCompletions.Member> = []
+
+    /// The Responses members the provider refuses, ignores or doesn't document, which a request leaves out and logs,
+    /// unless the app's members carry them.
+    var unsupportedResponsesMembers: Set<Responses.Member> = []
+
+    /// Whether a request sends the `top_k` its sampling asks for, for a provider whose sampler honors it. Otherwise the
+    /// request leaves it out and logs it.
+    var sendsTopK = false
 
     /// The member a Chat Completions request's token limit goes in.
     var tokenLimitMember = ChatCompletions.Member.maxTokens
@@ -101,6 +109,22 @@ public struct OpenAICompatibleProvider: Sendable, Hashable {
     /// Whether a request that requires a tool call is refused before it's sent while the model reasons, for a provider
     /// that takes a required call only with reasoning off.
     var refusesRequiredCallWhileReasoning = false
+
+    /// Whether a Chat Completions request that requires a tool call is refused before it's sent, for a provider that
+    /// ignores `tool_choice`, whose model may answer without the call.
+    var refusesRequiredCall = false
+
+    /// Whether a request with an image at a web address is refused before it's sent, for a provider that takes only
+    /// images sent as data.
+    var refusesWebImages = false
+
+    /// The storage a Responses request asks for when the app's options leave it
+    /// ``OpenAICompatibleOptions/Storage/automatic``, which sends no `store`, so the provider's own default applies.
+    var automaticStorage = OpenAICompatibleOptions.Storage.automatic
+
+    /// What a Responses request asks each response to carry beyond what it always does, such as each reasoning item's
+    /// reasoning encrypted, so the item can go back on later turns whether or not the provider keeps the response.
+    var include: [Responses.Include] = []
 
     /// The provider's finish reasons that stand for one of the format's, such as its word for an answer its servers cut
     /// short, which fails the answer as `error` does.
@@ -284,6 +308,119 @@ extension OpenAICompatibleProvider {
         return mistral
     }()
 
+    /// xAI, at `https://api.x.ai/v1`, with the key as a bearer token, in the Responses format.
+    ///
+    /// ```swift
+    /// let model = OpenAICompatibleLanguageModel(
+    ///     OpenAICompatibleModel("grok-4.3", on: .xAI),
+    ///     auth: .apiKey { try await keyStore.xAIKey() }
+    /// )
+    /// ```
+    ///
+    /// By default, a model on it reasons unless a request turns reasoning off, and accepts the efforts `xhigh`, `high`,
+    /// `medium`, `low` and `none`. xAI's models take different efforts, and its newest can't turn reasoning off, so name
+    /// a model's own. Requests ask xAI not to keep each response, unless the app's options ask for stored ones, and ask
+    /// for each answer's reasoning encrypted, so it goes back on later turns either way. They send the `top_k` that
+    /// sampling asks for, and leave out request metadata, which xAI doesn't support. A failed request is sent again
+    /// only after a rate limit, since xAI may bill a request that failed once its work began. A 400 for an incorrect
+    /// key has the code `authentication`, as a 401 has. The preset follows xAI's documentation and SDKs and hasn't been
+    /// run against its API; <doc:Providers> says what was checked.
+    public static let xAI: Self = {
+        var xAI = Self(name: "xAI", url: url("https://api.x.ai/v1"), format: .responses)
+        xAI.retriedStatuses = .rateLimits
+        xAI.defaultReasoning = .onByDefault
+        xAI.defaultEffortWords = ["xhigh", "high", "medium", "low", "none"]
+        xAI.unsupportedResponsesMembers = ["metadata"]
+        xAI.sendsTopK = true
+        xAI.automaticStorage = .notStored
+        xAI.include = [.encryptedReasoning]
+        xAI.host = "xAI"
+        xAI.failureWords.refusedKey = ["Incorrect API key provided"]
+        return xAI
+    }()
+
+    /// Ollama on the same Mac, at `http://localhost:11434/v1/`, which takes no key.
+    ///
+    /// ```swift
+    /// let model = OpenAICompatibleLanguageModel(
+    ///     OpenAICompatibleModel("qwen3:8b", on: .ollama, reasoning: .onByDefault),
+    ///     auth: .unauthenticated
+    /// )
+    /// ```
+    ///
+    /// Ollama runs models of every kind, so say what each one does, such as whether it reasons: by default, a model on
+    /// it is taken to reason only when a request asks it to, and to accept the efforts `max`, `xhigh`, `high`,
+    /// `medium`, `low`, `minimal` and `none`, which Ollama maps onto each model's own. Requests leave out request
+    /// metadata and `tool_choice`, which Ollama ignores. A model's reasoning goes back on later turns as `reasoning`, to
+    /// that model only. A request with an image at a web address, or one that requires a tool call, is refused before
+    /// it's sent, since Ollama takes only images sent as data and doesn't hold its model to a required call. A failed
+    /// request isn't sent again. A conversation longer than the model's context loses its oldest messages on Ollama's
+    /// side, with no error. Ollama on another Mac or port is `.ollama.at(_:)` with its address.
+    public static let ollama: Self = {
+        var ollama = Self(name: "Ollama", url: url("http://localhost:11434/v1/"))
+        ollama.configuration.retries = .disabled
+        ollama.defaultEffortWords = ["max", "xhigh", "high", "medium", "low", "minimal", "none"]
+        ollama.unsupportedMembers = [.toolChoice, .metadata]
+        ollama.reasoningReplay = .reasoning
+        ollama.refusesRequiredCall = true
+        ollama.refusesWebImages = true
+        return ollama
+    }()
+
+    /// LM Studio on the same Mac, at `http://localhost:1234/v1`, which takes no key unless its server asks for a token.
+    ///
+    /// ```swift
+    /// let model = OpenAICompatibleLanguageModel(
+    ///     OpenAICompatibleModel("qwen/qwen3-8b", on: .lmStudio, reasoning: .onByDefault),
+    ///     auth: .unauthenticated
+    /// )
+    /// ```
+    ///
+    /// LM Studio runs models of every kind, so say what each one does, such as whether it reasons: by default, a model
+    /// on it is taken to reason only when a request asks it to, and to accept the efforts `xhigh`, `high`, `medium`,
+    /// `low`, `minimal` and `none`, which LM Studio is reported to ignore in this format. Requests leave out request
+    /// metadata, which LM Studio's documentation doesn't list. A prompt over the model's context is cut to fit, unless
+    /// the model's settings stop at the limit, which throws `LanguageModelError.contextSizeExceeded` with the sizes LM
+    /// Studio names. A server that asks for a token takes it with
+    /// ``OpenAICompatibleAuthentication/apiKey(_:)``. The preset follows LM Studio's documentation and what its users
+    /// report, and hasn't been run against its server; <doc:Providers> says what was checked.
+    public static let lmStudio: Self = {
+        var lmStudio = Self(name: "LM Studio", url: url("http://localhost:1234/v1"))
+        lmStudio.unsupportedMembers = [.metadata]
+        return lmStudio
+    }()
+
+    /// vLLM, at `http://localhost:8000/v1`, its server's default address, which takes no key unless its server was
+    /// started with one.
+    ///
+    /// ```swift
+    /// let model = OpenAICompatibleLanguageModel(
+    ///     OpenAICompatibleModel("Qwen/Qwen3-8B", on: .vLLM, reasoning: .onByDefault),
+    ///     auth: .unauthenticated
+    /// )
+    /// ```
+    ///
+    /// vLLM serves models of every kind, so say what each one does, such as whether it reasons: by default, a model on
+    /// it is taken to reason only when a request asks it to, and to accept the efforts `max`, `xhigh`, `high`,
+    /// `medium`, `low`, `minimal` and `none`. Requests send the token limit as `max_completion_tokens` and the `top_k`
+    /// that sampling asks for, and leave out request metadata, which vLLM ignores. A model's reasoning, which vLLM sends
+    /// from a server started with a reasoning parser, goes back on later turns as `reasoning`, to that model only. An
+    /// answer that ends with `abort` throws ``OpenAICompatibleError``, and one that ends with `repetition`, where a
+    /// request's repetition detection stopped a model that repeats itself, counts as one that reached its token limit. A server started without
+    /// `--enable-auto-tool-choice` and a `--tool-call-parser` refuses every request with tools. A server elsewhere is
+    /// `.vLLM.at(_:)` with its address. The preset follows vLLM's server source and documentation and hasn't been run
+    /// against a server; <doc:Providers> says what was checked.
+    public static let vLLM: Self = {
+        var vLLM = Self(name: "vLLM", url: url("http://localhost:8000/v1"))
+        vLLM.defaultEffortWords = ["max", "xhigh", "high", "medium", "low", "minimal", "none"]
+        vLLM.unsupportedMembers = [.metadata]
+        vLLM.sendsTopK = true
+        vLLM.tokenLimitMember = .maxCompletionTokens
+        vLLM.reasoningReplay = .reasoning
+        vLLM.finishReasons = ["abort": .failed, "repetition": .length]
+        return vLLM
+    }()
+
     /// The URL of a preset's API.
     private static func url(_ string: StaticString) -> URL {
         guard let url = URL(string: "\(string)") else { preconditionFailure("\(string) isn't a valid URL.") }
@@ -346,7 +483,7 @@ extension OpenAICompatibleProvider {
         case reasoningContent
 
         /// As each answer's `reasoning`, only to the model that wrote it, or one it's a dated version of, since a model
-        /// that doesn't reason may refuse the member.
+        /// that doesn't reason may refuse the member, and another model would read it as its own.
         case reasoning
 
         /// As each answer's thought signature, only to the model that wrote it, or one it's a dated version of: on the

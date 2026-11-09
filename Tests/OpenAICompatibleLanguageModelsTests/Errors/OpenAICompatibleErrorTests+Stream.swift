@@ -90,6 +90,31 @@ extension OpenAICompatibleErrorTests {
             #expect(error?.openAICompatible.providerName == "Gateway")
         }
 
+        @Test func `an oversized prompt that a stream reports with no status throws Foundation Models' error with its sizes`()
+            async throws
+        {
+            // LM Studio's event for a prompt over the model's context, after its HTTP 200, written from a reported capture.
+            let event = #"""
+                event: error
+                data: {"error":{"message":"Input does not fit in context length. The input has 31430 tokens, but the context length only supports 30000 tokens."},"message":"Input does not fit in context length. The input has 31430 tokens, but the context length only supports 30000 tokens."}
+
+
+                """#
+            let stub = HTTPStub(.eventStream(Data(event.utf8)))
+
+            let error = await #expect(throws: LanguageModelError.self) {
+                try await LanguageModelSession(model: model(stub)).respond(to: "Hi")
+            }
+
+            guard case .contextSizeExceeded(let context)? = error else {
+                Issue.record("The answer ended with \(String(describing: error))")
+                return
+            }
+            #expect(context.contextSize == 30_000)
+            #expect(context.tokenCount == 31_430)
+            #expect(error?.openAICompatible.status == nil)
+        }
+
         @Test func `a Responses error event becomes the module's error, or Foundation Models' for a rate limit`() async throws {
             let nested = HTTPStub(
                 events([

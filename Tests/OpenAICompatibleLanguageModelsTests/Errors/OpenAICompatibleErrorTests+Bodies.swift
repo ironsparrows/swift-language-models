@@ -200,6 +200,15 @@ extension OpenAICompatibleErrorTests {
                 error: OpenAICompatibleError(
                     providerName: "Gateway", status: 404, message: "The model `no-such-model` does not exist.", code: .notFound,
                     errorType: "NotFoundError", parameter: "model")),
+            // vLLM's 400 for tools on a server started without its tool flags, written from its server source.
+            Row(
+                name: "vLLM, tools on a server without its tool flags", status: 400,
+                body:
+                    #"{"error":{"message":"\"auto\" tool choice requires --enable-auto-tool-choice and --tool-call-parser to be set","type":"BadRequestError","param":null,"code":400}}"#,
+                error: OpenAICompatibleError(
+                    providerName: "Gateway", status: 400,
+                    message: #""auto" tool choice requires --enable-auto-tool-choice and --tool-call-parser to be set"#,
+                    code: "BadRequestError", errorType: "BadRequestError")),
             Row(
                 name: "an empty HTML body, as Gemini's Responses path sends it", status: 404, headers: ["Content-Type": "text/html"],
                 body: "",

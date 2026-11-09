@@ -9,6 +9,10 @@
 - ``groq``
 - ``deepSeek``
 - ``mistral``
+- ``xAI``
+- ``ollama``
+- ``lmStudio``
+- ``vLLM``
 
 ### Describing a provider
 

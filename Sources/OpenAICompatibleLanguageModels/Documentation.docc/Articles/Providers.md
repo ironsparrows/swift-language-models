@@ -1,6 +1,7 @@
 # Providers
 
-Use a model on Gemini, Groq, DeepSeek or Mistral through its preset, and know what each preset does differently.
+Use a model on Gemini, Groq, DeepSeek, Mistral or xAI, or on an Ollama, LM Studio or vLLM server, through its preset,
+and know what each preset does differently.
 
 ## Overview
 
@@ -11,44 +12,71 @@ Name the model as its provider's API does, and the preset does the rest:
 @Snippet(path: "swift-language-models/Snippets/OpenAICompatibleQuickStart", slice: "preset")
 
 A preset's model takes the preset's defaults for what its details leave out, such as the efforts it accepts. Requests
-leave out the members the provider refuses or doesn't document, and log them, put the token limit in the member the
-provider reads, ask
-for a usage chunk only where the provider needs the ask, send reasoning back the way the provider reads it, and refuse
-before sending a request the provider is known to refuse. A failure throws the provider's words, with the member a
-rejection names in ``OpenAICompatibleError/parameter``. An answer names the company that ran the model as its host, in
-`providerMetadata.host`.
+leave out the members the tables below list for the provider, ones it refuses, ignores or doesn't document, and log
+them, put the token limit in the member the provider reads, ask for a usage chunk only where the provider needs the
+ask, send reasoning back the way the provider reads it, and refuse before sending a request the provider is known to
+refuse. A failure throws the provider's words, with the member a rejection names in
+``OpenAICompatibleError/parameter``. An answer names the company that ran the model as its host, in
+`providerMetadata.host`; a server's preset names none.
 
-``OpenAICompatibleProvider/at(_:)`` points a preset at another address, such as a gateway in front of the provider or
-one of its regional servers, and keeps everything else.
+``OpenAICompatibleProvider/at(_:)`` points a preset at another address, such as a gateway in front of the provider, one
+of its regional servers, or a server on another Mac or port, and keeps everything else.
 
 This page describes the presets as of 9 November 2026. Gemini's and Groq's were checked against their APIs on 8 and 9
-November 2026, on `gemini-3.1-flash-lite`, `openai/gpt-oss-20b` and `qwen/qwen3.8-27b`, apart from what their sections
-say wasn't seen there. DeepSeek's and Mistral's follow their providers' documentation and SDKs, and what users of their
-APIs report, and haven't been run against their APIs yet. Providers change what they take, so
-a preset can fall behind: a member a provider starts to refuse throws its error, and a member it starts to take goes
-out through ``OpenAICompatibleOptions/additionalMembers``.
+November 2026, on `gemini-3.1-flash-lite`, `openai/gpt-oss-20b` and `qwen/qwen3.8-27b`, and Ollama's against Ollama
+0.40.15 on the same days, on `qwen3:0.6b`, and on `qwen3.5:4b` for images, schemas and a required tool call, apart
+from what their sections
+say wasn't seen there. Of xAI's, only the error for an incorrect key was seen. DeepSeek's, Mistral's and xAI's follow
+their providers' documentation and SDKs, LM Studio's its documentation, and vLLM's its server's source at v0.33.0 and
+its documentation, with what their users report, and haven't been run against their APIs or servers yet. Providers
+change what they take, so a preset can fall behind: a member a provider starts to refuse throws its error, and a member
+it starts to take goes out through ``OpenAICompatibleOptions/additionalMembers``.
 
 ### At a glance
 
-| | Gemini | Groq | DeepSeek | Mistral |
-|---|---|---|---|---|
-| Base URL | `https://generativelanguage.googleapis.com/v1beta/openai/` | `https://api.groq.com/openai/v1` | `https://api.deepseek.com` | `https://api.mistral.ai/v1` |
-| Reasons | unless a request turns it off | when a request asks | unless a request turns it off | when a request asks |
-| Efforts | `high`, `medium`, `low`, `minimal`, `none` | `high`, `medium`, `low`, `none` | `max`, `high`, `medium`, `low`, `none` | `max`, `xhigh`, `high`, `medium`, `low`, `minimal`, `none` |
-| Guided generation | yes | yes, but not with tools | no | yes |
-| Token limit | `max_tokens` | `max_completion_tokens` | `max_tokens` | `max_tokens` |
-| Usage | asked for | sent unasked | asked for | sent unasked |
-| Left out and logged | `seed`, `metadata` | `metadata` | `seed`, `metadata` | `seed` |
-| Reasoning back | its thought signature, to the model that wrote it | `reasoning`, to the model that wrote it | `reasoning_content` | none |
-| Refused before sending | | a schema with tools | a required tool call while the model reasons | |
-| Finish words of its own | | | `insufficient_system_resource` and `aborted` fail the answer | `model_length` counts as the token limit |
-| Retries | none | up to twice | up to twice | none |
-| Wait for the next data | 10 minutes | 60 seconds | 10 minutes | 300 seconds |
-| Host | `Google AI Studio` | `Groq` | `DeepSeek` | `Mistral` |
+| | Gemini | Groq | DeepSeek | Mistral | xAI |
+|---|---|---|---|---|---|
+| Base URL | `https://generativelanguage.googleapis.com/v1beta/openai/` | `https://api.groq.com/openai/v1` | `https://api.deepseek.com` | `https://api.mistral.ai/v1` | `https://api.x.ai/v1` |
+| Format | Chat Completions | Chat Completions | Chat Completions | Chat Completions | Responses |
+| Reasons | unless a request turns it off | when a request asks | unless a request turns it off | when a request asks | unless a request turns it off |
+| Efforts | `high`, `medium`, `low`, `minimal`, `none` | `high`, `medium`, `low`, `none` | `max`, `high`, `medium`, `low`, `none` | `max`, `xhigh`, `high`, `medium`, `low`, `minimal`, `none` | `xhigh`, `high`, `medium`, `low`, `none` |
+| Guided generation | yes | yes, but not with tools | no | yes | yes |
+| Token limit | `max_tokens` | `max_completion_tokens` | `max_tokens` | `max_tokens` | `max_output_tokens` |
+| Usage | asked for | sent unasked | asked for | sent unasked | sent unasked |
+| `top_k` | left out | left out | left out | left out | sent |
+| Left out and logged | `seed`, `metadata` | `metadata` | `seed`, `metadata` | `seed` | `metadata` |
+| Reasoning back | its thought signature, to the model that wrote it | `reasoning`, to the model that wrote it | `reasoning_content` | none | its encrypted reasoning, to the model that wrote it |
+| Refused before sending | | a schema with tools | a required tool call while the model reasons | | |
+| Finish words of its own | | | `insufficient_system_resource` and `aborted` fail the answer | `model_length` counts as the token limit | |
+| Responses kept | | | | | only when the options ask |
+| Retries | none | up to twice | up to twice | none | up to twice, after a rate limit only |
+| Wait for the next data | 10 minutes | 60 seconds | 10 minutes | 300 seconds | 10 minutes |
+| Host | `Google AI Studio` | `Groq` | `DeepSeek` | `Mistral` | `xAI` |
 
-Every preset sends a reasoning level as `reasoning_effort`, with the nearest effort the model accepts, and leaves out
-a `top_k` sampling asks for, and logs it: Gemini and Groq refuse it, and DeepSeek and Mistral don't say what it does
-there. A model's own efforts often differ from its preset's: name them with `efforts:` on
+The servers' presets reach a server at its default local address, and take no key unless the server asks for one;
+`at(_:)` reaches one elsewhere:
+
+| | Ollama | LM Studio | vLLM |
+|---|---|---|---|
+| Base URL | `http://localhost:11434/v1/` | `http://localhost:1234/v1` | `http://localhost:8000/v1` |
+| Efforts | `max`, `xhigh`, `high`, `medium`, `low`, `minimal`, `none` | `xhigh`, `high`, `medium`, `low`, `minimal`, `none` | `max`, `xhigh`, `high`, `medium`, `low`, `minimal`, `none` |
+| Token limit | `max_tokens` | `max_tokens` | `max_completion_tokens` |
+| `top_k` | left out | left out | sent |
+| Left out and logged | `metadata`, `tool_choice` | `metadata` | `metadata` |
+| Reasoning back | `reasoning`, to the model that wrote it | none | `reasoning`, to the model that wrote it |
+| Refused before sending | an image at a web address, a required tool call | | |
+| Finish words of its own | | | `abort` fails the answer, `repetition` counts as the token limit |
+| Retries | none | up to twice | up to twice |
+| Wait for the next data | 10 minutes | 10 minutes | 10 minutes |
+
+On every server, a model is taken to reason only when a request asks it to, and to take tools, guided generation and
+images, unless its details say otherwise, and requests ask for a usage chunk. A server runs models of every kind, so
+describe each one, such as whether it reasons.
+
+Every Chat Completions preset sends a reasoning level as `reasoning_effort`, and xAI's in `reasoning`, with the nearest
+effort the model accepts. A `top_k` that sampling asks for is left out and logged where the table says so: Gemini and
+Groq refuse it, Ollama ignores it, and DeepSeek, Mistral and LM Studio don't say what it does there. A model's own
+efforts often differ from its preset's: name them with `efforts:` on
 ``OpenAICompatibleModel/init(_:on:displayName:capabilities:contextSize:reasoning:efforts:attachments:)``. The model's
 ``OpenAICompatibleLanguageModel/configuration`` replaces the preset's retries and wait.
 
@@ -128,8 +156,107 @@ there. A model's own efforts often differ from its preset's: name them with `eff
   calls another provider made may fail there, with Mistral's code in ``OpenAICompatibleError/code``.
 - **Regional servers** are `.mistral.at(_:)` with `https://api.eu.mistral.ai/v1` or `https://api.us.mistral.ai/v1`.
 
+### xAI
+
+- **Responses.** xAI's Chat Completions is deprecated, so the preset speaks Responses. Instructions go in the
+  `developer` role, which xAI's API lists; how its models follow them wasn't seen.
+- **Kept responses.** Requests send `store: false` unless ``OpenAICompatibleOptions/storage`` asks for stored responses,
+  which xAI keeps for 30 days. Every request asks for each answer's reasoning encrypted, in `include`, so the reasoning
+  goes back on later turns whether or not xAI keeps the response: each request sends the whole transcript, never a
+  stored response's id.
+- **Efforts** differ by model: xAI's newest models can't turn reasoning off, and some don't take `xhigh`. xAI lists a
+  model's own at `GET /v1/language-models/{id}`, in `capabilities.reasoning_effort`.
+- **Sampling.** A `top_k` that sampling asks for goes out, which xAI documents. A seed is left out and logged, since
+  xAI's Responses has no `seed`.
+- **The token limit**, `max_output_tokens`, caps the visible answer, not the reasoning or the tool calls.
+- **Left out.** Request metadata, which xAI takes only for compatibility.
+- **Retries and waits.** A failed request is sent again only after a rate limit: xAI may bill a request that failed
+  once its work began, such as one with a 5xx status. Requests wait up to 10 minutes for the next data, since a model
+  that reasons can send nothing for minutes.
+- **Prompt cache.** xAI routes requests that share a `prompt_cache_key` to the same cache. The preset sends none, and
+  one set through ``OpenAICompatibleOptions/additionalMembers`` goes with every request of the model.
+- **Failures.** An incorrect key is a 400 with xAI's code `invalid-argument`, which has the code
+  ``OpenAICompatibleError/Code/authentication``, as a 401 has; it was seen on xAI's Chat Completions endpoint.
+
+### Ollama
+
+- **Efforts.** Ollama maps each effort onto the model's own levels: `none` turns reasoning off, and on a model without
+  levels of its own, `minimal` counts as `low` and `xhigh` as `max`. On `qwen3:0.6b`, only `none` changed what the
+  model did.
+- **Reasoning** arrives as each delta's `reasoning`, and goes back as the assistant message's `reasoning`, with its tool
+  calls, to the model that wrote it only, since another model on the server would read it as its own.
+- **Left out.** Request metadata, `tool_choice` and `top_k`, which Ollama ignores. It ignores `max_completion_tokens`
+  too, so the token limit goes as `max_tokens`.
+- **An image at a web address** is refused before it's sent with `LanguageModelError.unsupportedTranscriptContent`,
+  since Ollama answers one with a 400: attach the image itself. Every image sent as data goes as JPEG, which Ollama
+  takes.
+- **A required tool call** is refused before it's sent with `LanguageModelError.unsupportedCapability`, since Ollama
+  ignores `tool_choice`: the models checked answered such a request without a call.
+- **Usage** comes only when asked, so the preset asks.
+- **Waits and retries.** A failed request isn't sent again, and requests wait up to 10 minutes for the next data,
+  since loading a model can take a while. An ``OpenAICompatibleConfiguration/idleTimeout`` of `nil` waits as long as
+  the URL session's own timeout, which is 60 seconds for `URLSession.shared`.
+- **A long conversation** loses its oldest messages on Ollama's side, with no error, once it's longer than the model's
+  context: Ollama keeps the system messages and the latest one. This format can't raise a model's context; a
+  Modelfile's `num_ctx` does. This was read from Ollama's source, not seen.
+- **Failures.** Ollama sends no request id. A model it doesn't have is a 404, with the code
+  ``OpenAICompatibleError/Code/notFound``.
+- **Server options**, such as `keep_alive`, which Ollama's source reads in this format, go out through
+  ``OpenAICompatibleOptions/additionalMembers``; `keep_alive` wasn't sent here.
+
+### LM Studio
+
+- **Not run.** LM Studio's server isn't open source, and none ran here, so the preset follows its documentation and
+  what its users report.
+- **Reasoning** arrives as `reasoning_content` or `reasoning`, depending on the model, and doesn't go back on later
+  turns, since nothing shows LM Studio reads it there.
+- **Efforts** are reported to have no effect in this format, and LM Studio is reported to refuse `max`, which the
+  preset's efforts leave out.
+- **Left out.** Request metadata, which LM Studio's documentation doesn't list, and `top_k`, which it lists for this
+  format without saying what it does there.
+- **Tool calls.** LM Studio makes a required call only with its llama.cpp engine, and is reported to answer one empty
+  there too.
+- **A prompt over the model's context** is cut in the middle to fit, with no error, by LM Studio's default setting.
+  With the model's context overflow set to stop at the limit, LM Studio is reported to end the stream with an error,
+  after its HTTP 200, which throws `LanguageModelError.contextSizeExceeded` with the sizes LM Studio names.
+- **Tool calls as text.** LM Studio is reported to send some models' tool calls as `[TOOL_REQUEST]` text, which reaches
+  the app as text.
+- **A token.** A server that asks for one, which LM Studio allows since 0.4.0, takes it with
+  ``OpenAICompatibleAuthentication/apiKey(_:)``.
+- **Server options**, such as `ttl`, go out through ``OpenAICompatibleOptions/additionalMembers``.
+
+### vLLM
+
+- **Not run.** No vLLM server ran here, so the preset follows its server's source at v0.33.0 and its documentation.
+- **Tools** need a server started with `--enable-auto-tool-choice` and a `--tool-call-parser`: without them, every
+  request with tools is a 400 whose message names the flags it needs, which throws ``OpenAICompatibleError``.
+- **Reasoning** arrives as each delta's `reasoning` from a server started with `--reasoning-parser`, and goes back as
+  the assistant message's `reasoning`, to the model that wrote it only. vLLM answers with the first name the server
+  serves the model under, so name the model by that one: under another of its names, its reasoning doesn't go back.
+  Without a parser, reasoning stays in the text: a text that opens with a `<think>` block has the block read as
+  reasoning, which goes back in the text as it came, to the same model, while a template that opens the block in the
+  prompt leaves the reasoning in the answer's text.
+- **Efforts** reach the model's chat template, which may ignore them; vLLM refuses any other word. A template that
+  reads `thinking` rather than `enable_thinking` takes it in `chat_template_kwargs`, through
+  ``OpenAICompatibleOptions/additionalMembers``.
+- **Sampling.** A `top_k` that sampling asks for goes out. Greedy sampling goes as temperature 0, which vLLM samples
+  greedily.
+- **The token limit** goes as `max_completion_tokens`, which vLLM reads over `max_tokens`.
+- **Left out.** Request metadata, which vLLM ignores.
+- **Finish words.** An answer that ends with `abort`, which vLLM sends for a request it stopped serving, throws
+  ``OpenAICompatibleError`` with the code `server` rather than ending as complete. One that ends with `repetition`,
+  which vLLM sends when the repetition detection a request turns on stops a model that repeats itself, counts as one
+  that reached its token limit: a guided answer or tool calls cut there throw, and a text
+  answer ends with `repetition` as its ``OpenAICompatibleResponseMetadata/finishReason``.
+- **Failures in the stream** arrive as an error event whose `code` is the status, which the error's
+  ``OpenAICompatibleError/status`` takes.
+- **Request ids** come only from a server started with `--enable-request-id-headers`.
+- **Images** at a web address are fetched by the server, which waits up to 5 seconds for one by default.
+
 ### What a preset can't see
 
 A provider that ignores a member, rather than refusing it, answers as if it were never sent, and nothing in its
-answer says so. A setting that a model of a preset's provider doesn't take, though others do, such as an effort,
-throws the provider's error, with the member it names when it names one.
+answer says so; Ollama and vLLM ignore any member they don't know. A server that cuts a long conversation to fit the
+model's context, as Ollama does and LM Studio does by default, answers as if the cut messages were never sent. A
+setting that a model of a preset's provider doesn't take, though others do, such as an effort, throws the provider's
+error, with the member it names when it names one.

@@ -29,21 +29,23 @@ extension OpenAICompatibleLanguageModel {
     /// - Returns: The model.
     func responses(_ configuration: Executor.Configuration) -> Responses.Model<OpenAICompatibleExchange> {
         let provider = configuration.provider
-        return Responses.Model(
+        var model = Responses.Model(
             name: details.id.rawValue, url: configuration.baseURL, connection: connection(configuration), providerName: provider.name,
             images: configuration.settings.images,
             reasoningOrigin: API.reasoningOrigin(provider: provider.reasoningName, format: .responses),
             phasesKey: OpenAICompatibleResponseMetadata.phasesKey, serverToolsKey: OpenAICompatibleResponseMetadata.serverToolsKey,
             capabilities: capabilities, reaching: [details] + fallbacks, exchange: OpenAICompatibleExchange(model: self))
+        model.unsupportedMembers = provider.unsupportedResponsesMembers
+        return model
     }
 }
 
 // MARK: - Exchange
 
 /// A provider's part in one exchange, in either format: the attachments the model takes, the requests the provider
-/// refuses, the reasoning effort, the usage chunk and the token limit's member it asks for, the app's own members, the
-/// storage, the reasoning that goes back, the reasoning and thought signature in each chunk, the host and request id,
-/// and what the provider's failures become.
+/// refuses, the reasoning effort, the usage chunk, the token limit's member and the `top_k` it asks for, the app's own
+/// members, the storage and what each response carries, the reasoning that goes back, the reasoning and thought
+/// signature in each chunk, the host and request id, and what the provider's failures become.
 ///
 /// Every method with a default is here, in the type that declares the conformances, so a misspelled one draws a warning
 /// instead of silently keeping the default, and neither format's default is picked over the other's.
@@ -62,7 +64,7 @@ struct OpenAICompatibleExchange: ChatCompletions.Exchange, Responses.Exchange {
     /// sorted by key.
     fileprivate static let memberOrder: [ChatCompletions.Member] = [
         .model, .messages, .stream, .streamOptions, .tools, .toolChoice, .responseFormat, .reasoningEffort, .thinking, .temperature,
-        .topP, .seed, .maxCompletionTokens, .maxTokens, .metadata,
+        .topP, .topK, .seed, .maxCompletionTokens, .maxTokens, .metadata,
     ]
 
     fileprivate init(model: OpenAICompatibleLanguageModel) {
@@ -77,15 +79,21 @@ struct OpenAICompatibleExchange: ChatCompletions.Exchange, Responses.Exchange {
 
     // MARK: While the request is read
 
-    /// Checks that the model takes an attachment, as Foundation Models does before a request.
+    /// Checks that the model takes an attachment, as Foundation Models does before a request, and that the provider
+    /// takes an image where it is.
     ///
     /// - Throws: `LanguageModelError.unsupportedCapability` with `.vision` for an image when the model doesn't take
-    ///   images, and `LanguageModelError.unsupportedTranscriptContent` for data of a kind the model doesn't take.
+    ///   images, and `LanguageModelError.unsupportedTranscriptContent` for an image at a web address to a provider that
+    ///   takes only images sent as data, and for data of a kind the model doesn't take.
     func checkAttachment(_ kind: AttachmentKind, in entry: Transcript.Entry) throws(LanguageModelError) {
         switch kind {
-        case .image:
+        case .image(let webAddress):
             guard details.capabilities.contains(.vision) else {
                 throw LanguageModelError.unsupported(.vision, "The model doesn't take images.")
+            }
+            if provider.refusesWebImages, webAddress != nil {
+                throw LanguageModelError.unsupported(
+                    entry, "\(provider.name) takes only images sent as data, not at a web address, so attach the image itself.")
             }
         case .data(let type):
             guard details.supportsDataAttachmentType(type) else {
@@ -120,9 +128,9 @@ struct OpenAICompatibleExchange: ChatCompletions.Exchange, Responses.Exchange {
 
     // MARK: Before it is sent
 
-    /// Asks for a usage chunk unless the provider reports usage unasked, sends the token limit in the provider's member
-    /// and the reasoning effort as `reasoning_effort`, with `thinking` for a provider that takes it, and adds the app's
-    /// own members over the format's.
+    /// Asks for a usage chunk unless the provider reports usage unasked, sends the token limit in the provider's member,
+    /// the reasoning effort as `reasoning_effort`, with `thinking` for a provider that takes it, and the `top_k` that
+    /// sampling asks for to a provider that honors it, and adds the app's own members over the format's.
     ///
     /// A request that sets a reasoning level sends the nearest effort the model accepts, for a model that reasons, and
     /// to a provider that takes `thinking`, `thinking` too: disabled for the level `off` and for a model that doesn't
@@ -131,13 +139,18 @@ struct OpenAICompatibleExchange: ChatCompletions.Exchange, Responses.Exchange {
     /// the app's members carry the effort or the model doesn't reason for the request.
     ///
     /// - Throws: `LanguageModelError.unsupportedCapability` with `.guidedGeneration` for a schema sent with tools to a
-    ///   provider that refuses the two together, and with `.toolCalling` for a required tool call while the model
-    ///   reasons, to a provider that takes one only with reasoning off.
+    ///   provider that refuses the two together, and with `.toolCalling` for a required tool call to a provider that
+    ///   ignores `tool_choice`, or while the model reasons, to a provider that takes one only with reasoning off.
     func prepare(_ request: inout ChatCompletions.Request) throws {
         let generation = request.generation
         if provider.refusesSchemaWithTools, generation.schema != nil, request.hasSessionTools {
             let description = "\(provider.name) doesn't take a schema in a request that also sends tools."
             throw LanguageModelError.unsupported(.guidedGeneration, description)
+        }
+        let requiresCall = request.hasSessionTools && generation.generationOptions.toolCallingMode?.kind == .required
+        if provider.refusesRequiredCall, requiresCall {
+            let description = "\(provider.name) ignores tool_choice, so its model can't be made to call a tool."
+            throw LanguageModelError.unsupported(.toolCalling, description)
         }
         let level = generation.contextOptions.reasoningLevel
         let (effort, movedEffort) = reasoningEffort(level)
@@ -147,9 +160,7 @@ struct OpenAICompatibleExchange: ChatCompletions.Exchange, Responses.Exchange {
         // The provider's own `thinking` follows the level, so it never goes with an app's effort.
         let thinking = appEffort == nil && provider.sendsThinking ? Thinking(level: level, reasons: details.reasoning.isSupported) : nil
         let reasons = Thinking.reasons(thinking: appThinking ?? thinking?.json, effort: appEffort?.stringValue ?? effort)
-        if provider.refusesRequiredCallWhileReasoning, reasons, request.hasSessionTools,
-            generation.generationOptions.toolCallingMode?.kind == .required
-        {
+        if provider.refusesRequiredCallWhileReasoning, reasons, requiresCall {
             let description = """
                 \(provider.name) takes a required tool call only with reasoning off, so a request that requires one needs the \
                 reasoning level off.
@@ -159,21 +170,26 @@ struct OpenAICompatibleExchange: ChatCompletions.Exchange, Responses.Exchange {
         request.members = try JSONValueEncoder.members(
             of: ChatCompletionsMembers(
                 streamOptions: provider.asksForUsage ? ChatCompletionsMembers.StreamOptions(includeUsage: true) : nil,
-                reasoningEffort: effort, thinking: thinking))
+                reasoningEffort: effort, thinking: thinking, topK: provider.sendsTopK ? Self.topK(of: generation) : nil))
         request.tokenLimitMember = provider.tokenLimitMember
         request.overridingMembers = options.overridingMembers
         request.movedEffort = appEffort == nil && reasons ? movedEffort : nil
     }
 
-    /// Sends the reasoning effort in `reasoning`, the storage the options ask for, and the app's own members over the
-    /// format's.
+    /// Sends the reasoning effort in `reasoning`, the storage the options ask for, or for automatic storage the
+    /// provider's, what the provider asks each response to carry, the `top_k` that sampling asks for to a provider that
+    /// honors it, and the app's own members over the format's.
     ///
     /// A request that sets a reasoning level sends the nearest effort the model accepts, for a model that reasons.
     func prepare(_ request: inout Responses.Request) throws {
         let (effort, movedEffort) = reasoningEffort(request.generation.contextOptions.reasoningLevel)
         if let effort { request.reasoning = Responses.Request.Reasoning(effort: effort) }
         request.movedEffort = movedEffort
-        request.storage = options.storage.storage
+        request.storage = (options.storage == .automatic ? provider.automaticStorage : options.storage).storage
+        request.include = provider.include
+        if provider.sendsTopK, let topK = Self.topK(of: request.generation) {
+            request.members[Responses.Member.topK.rawValue] = .integer(topK)
+        }
         request.overridingMembers = options.overridingMembers
     }
 
@@ -182,6 +198,12 @@ struct OpenAICompatibleExchange: ChatCompletions.Exchange, Responses.Exchange {
     private func reasoningEffort(_ level: ContextOptions.ReasoningLevel?) -> (String?, MovedEffort?) {
         guard let level, details.reasoning.isSupported else { return (nil, nil) }
         return level.sentEffort(supporting: details.reasoningEfforts)
+    }
+
+    /// The `top_k` a request's sampling asks for, or `nil` for sampling of another kind, such as greedy sampling, which
+    /// goes as temperature 0.
+    private static func topK(of generation: LanguageModelExecutorGenerationRequest) -> Int? {
+        if case .randomTopK(let topK, _)? = generation.generationOptions.samplingMode?.kind { topK } else { nil }
     }
 
     // MARK: While the answer streams
@@ -304,8 +326,8 @@ struct OpenAICompatibleChunkExtras: Decodable {
     }
 }
 
-/// The members the module adds to a Chat Completions request: the ask for a usage chunk, and the reasoning effort, with
-/// `thinking`, when one is sent.
+/// The members the module adds to a Chat Completions request: the ask for a usage chunk, the reasoning effort, with
+/// `thinking`, when one is sent, and `top_k`.
 private struct ChatCompletionsMembers: Encodable {
     struct StreamOptions: Encodable {
         let includeUsage: Bool
@@ -318,12 +340,14 @@ private struct ChatCompletionsMembers: Encodable {
     let streamOptions: StreamOptions?
     let reasoningEffort: String?
     let thinking: Thinking?
+    let topK: Int?
 
     func encode(to encoder: any Encoder) throws {
         var container = encoder.container(keyedBy: ChatCompletions.Member.self)
         try container.encodeIfPresent(streamOptions, forKey: .streamOptions)
         try container.encodeIfPresent(reasoningEffort, forKey: .reasoningEffort)
         try container.encodeIfPresent(thinking, forKey: .thinking)
+        try container.encodeIfPresent(topK, forKey: .topK)
     }
 }
 
@@ -331,6 +355,11 @@ extension ChatCompletions.Member {
     fileprivate static let streamOptions: Self = "stream_options"
     fileprivate static let reasoningEffort: Self = "reasoning_effort"
     fileprivate static let thinking: Self = "thinking"
+    fileprivate static let topK: Self = "top_k"
+}
+
+extension Responses.Member {
+    fileprivate static let topK: Self = "top_k"
 }
 
 extension OpenAICompatibleOptions.Storage {

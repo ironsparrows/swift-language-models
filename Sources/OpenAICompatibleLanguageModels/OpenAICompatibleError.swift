@@ -480,12 +480,13 @@ struct OpenAICompatibleFailure: Sendable {
 
     /// The `LanguageModelError` case the failure becomes, or `nil` when it becomes an `OpenAICompatibleError`. A quota
     /// that ran out stays the module's, since waiting doesn't clear it, although it can arrive as a 429, and so does a
-    /// 413 whose code says rate limit, a request too large for the account's limits, since no wait lets it through.
+    /// 413 whose code says rate limit, a request too large for the account's limits, since no wait lets it through. An
+    /// oversized context is a 400, or a failure in the stream that names no status, whose message names the context.
     private func providerFailure(contextSize: Int?, imageEntries: [Transcript.Entry], now: Date) -> LanguageModelError.ProviderFailure? {
         let code = body?.code
         if isQuotaExhausted { return nil }
         if code == "context_length_exceeded"
-            || (status == .badRequest
+            || ((status == .badRequest || status == nil)
                 && (LanguageModelError.ProviderFailure.namesContext(message) || Self.says(message, any: words.oversizedContext)))
         {
             return Self.contextSizes(in: message) ?? .contextSizeExceeded(message: message, contextSize: contextSize)
@@ -508,11 +509,13 @@ struct OpenAICompatibleFailure: Sendable {
     }
 
     /// An oversized prompt with the sizes a message names as `The input token count (9000) exceeds the maximum number of
-    /// tokens allowed (8192)`, or `nil` for a message that doesn't.
+    /// tokens allowed (8192)` or `The input has 9000 tokens, but the context length only supports 8192 tokens`, or `nil`
+    /// for a message that doesn't.
     private static func contextSizes(in message: String) -> LanguageModelError.ProviderFailure? {
-        guard let match = message.firstMatch(of: /\((\d+)\) exceeds the maximum number of tokens allowed \((\d+)\)/),
-            let tokenCount = Int(match.1), let contextSize = Int(match.2)
-        else { return nil }
+        let sizes =
+            message.firstMatch(of: /\((\d+)\) exceeds the maximum number of tokens allowed \((\d+)\)/).map { ($0.1, $0.2) }
+            ?? message.firstMatch(of: /The input has (\d+) tokens, but the context length only supports (\d+) tokens/).map { ($0.1, $0.2) }
+        guard let sizes, let tokenCount = Int(sizes.0), let contextSize = Int(sizes.1) else { return nil }
         return .contextSizeExceeded(contextSize: contextSize, tokenCount: tokenCount)
     }
 
