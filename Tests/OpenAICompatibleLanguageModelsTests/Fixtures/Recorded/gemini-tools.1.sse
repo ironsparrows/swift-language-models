@@ -1,0 +1,8 @@
+data: {"choices":[{"delta":{"role":"assistant","tool_calls":[{"extra_content":{"google":{"thought_signature":"EnIKcAFpFH0TcCeqfKJmpjuQpCdaWbHGCbskyLboVUx7sSMR1SsB63j8+VI4mdw/ETRS+S9Cg0evt95qDwZG0+K+QQUbS8ZZPdpNHP62FV96ryjvfFOJPb8vXgfHl/DvHUYPZJdgYz1bf0S/FTmVdyISKWo="}},"function":{"arguments":"{\"city\":\"Lisbon\"}","name":"getWeather"},"id":"call_06216130476596394483","type":"function"}]},"index":0}],"created":1794235064,"id":"435AnFdzEs9obB2me8Jw8yY","model":"gemini-3.1-flash-lite","object":"chat.completion.chunk","usage":{"completion_tokens":16,"prompt_tokens":92,"total_tokens":108}}
+
+data: {"choices":[{"delta":{"role":"assistant","tool_calls":[{"function":{"arguments":"{\"city\":\"Porto\"}","name":"getWeather"},"id":"call_94725008544535761356","type":"function"}]},"index":0}],"created":1794235064,"id":"435AnFdzEs9obB2me8Jw8yY","model":"gemini-3.1-flash-lite","object":"chat.completion.chunk","usage":{"completion_tokens":32,"prompt_tokens":92,"total_tokens":124}}
+
+data: {"choices":[{"delta":{"role":"assistant"},"finish_reason":"stop","index":0}],"created":1794235064,"id":"435AnFdzEs9obB2me8Jw8yY","model":"gemini-3.1-flash-lite","object":"chat.completion.chunk","usage":{"completion_tokens":32,"prompt_tokens":92,"total_tokens":124}}
+
+data: [DONE]
+

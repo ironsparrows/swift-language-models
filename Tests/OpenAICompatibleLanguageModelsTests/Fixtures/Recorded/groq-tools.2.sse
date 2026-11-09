@@ -1,0 +1,8 @@
+data: {"id":"chatcmpl-8a983ce6-bbb9-c610-dcdc-f3666bfdb862","object":"chat.completion.chunk","created":1794235184,"model":"openai/gpt-oss-20b","system_fingerprint":"fp_d3e146e1a5","choices":[{"index":0,"delta":{"role":"assistant","content":""},"logprobs":null,"finish_reason":null}],"x_groq":{"id":"req_01ibnie42qgnnk437sxohh6goi","seed":1744490967}}
+
+data: {"id":"chatcmpl-8a983ce6-bbb9-c610-dcdc-f3666bfdb862","object":"chat.completion.chunk","created":1794235184,"model":"openai/gpt-oss-20b","system_fingerprint":"fp_d3e146e1a5","choices":[{"index":0,"delta":{"tool_calls":[{"id":"fc_4abc1963-0109-fc37-9934-16d43a8da737","type":"function","function":{"name":"getWeather","arguments":"{\"city\":\"Porto\"}"},"index":0}]},"logprobs":null,"finish_reason":null}]}
+
+data: {"id":"chatcmpl-8a983ce6-bbb9-c610-dcdc-f3666bfdb862","object":"chat.completion.chunk","created":1794235184,"model":"openai/gpt-oss-20b","system_fingerprint":"fp_d3e146e1a5","choices":[{"index":0,"delta":{},"logprobs":null,"finish_reason":"tool_calls"}],"x_groq":{"id":"req_01ibnie42qgnnk437sxohh6goi","usage":{"queue_time":0.248445178,"prompt_tokens":205,"prompt_time":0.009960799,"completion_tokens":14,"completion_time":0.017213392,"total_tokens":219,"total_time":0.027174191}},"usage":{"queue_time":0.248445178,"prompt_tokens":205,"prompt_time":0.009960799,"completion_tokens":14,"completion_time":0.017213392,"total_tokens":219,"total_time":0.027174191}}
+
+data: [DONE]
+

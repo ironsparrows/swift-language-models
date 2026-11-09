@@ -112,9 +112,11 @@ extension PresetTests {
             }
         }
 
-        @Test func `a model's reasoning goes back with its tool calls as reasoning, to that model only`() async throws {
-            let recorded = try Bundle.module.fixture("Captured/ollama-tool-round.sse")
-            let stub = HTTPStub(.eventStream(recorded), chunks(text("It's 17 degrees in Paris."), finish()))
+        // The recorded tool round shows a model's reasoning going back with its call to the model that wrote it.
+        @Test func `a model's reasoning doesn't go back with its tool calls to another model on the server`() async throws {
+            let stub = HTTPStub(
+                .eventStream(try Bundle.module.fixture("Recorded/ollama-tools.1.sse")), chunks(text("It's 17 degrees in Lisbon."), finish())
+            )
             let other = HTTPStub(chunks(text("Still 17 degrees."), finish()))
             let qwen = OpenAICompatibleLanguageModel(
                 OpenAICompatibleModel("qwen3:0.6b", on: .ollama.at(stub.baseURL)), session: stub.session, configuration: .stubbed,
@@ -124,16 +126,12 @@ extension PresetTests {
                 configuration: .stubbed, auth: .unauthenticated)
             let session = LanguageModelSession(model: qwen, tools: [WeatherTool()])
 
-            _ = try await session.respond(to: "What is the weather in Paris?")
+            _ = try await session.respond(to: "What's the temperature in Lisbon? Use the tool.")
             _ = try await LanguageModelSession(model: llama, tools: [WeatherTool()], transcript: session.transcript).respond(
-                to: "And tomorrow?")
+                to: "And in Porto?")
 
-            let replayed = try #require(try body(stub, 1)["messages"]?[1])
-            #expect(replayed["role"] == "assistant")
-            #expect(replayed["reasoning"]?.stringValue?.hasPrefix("Okay, the user is asking about the weather in Paris.") == true)
-            #expect(replayed["tool_calls"]?[0]?["id"] == "call_test0001")
             let elsewhere = try #require(try body(other)["messages"]?[1])
-            #expect(elsewhere["tool_calls"]?[0]?["id"] == "call_test0001")
+            #expect(elsewhere["tool_calls"]?[0]?["id"] == "call_eds04pjl")
             #expect(elsewhere["reasoning"] == nil)
         }
     }

@@ -1,0 +1,16 @@
+data: {"choices":[{"delta":{"content":"{\n  \"city\": \"Lisbon\",","role":"assistant"},"index":0}],"created":1794235086,"id":"SqkK2DituwOEXlDiJ3mv9Sf","model":"gemini-3.1-flash-lite","object":"chat.completion.chunk","usage":{"completion_tokens":10,"prompt_tokens":207,"total_tokens":217}}
+
+data: {"choices":[{"delta":{"content":"\n  \"season\": \"spring\",\n  \"activities\": [\n    {\n      \"name\": \"Explore","role":"assistant"},"index":0}],"created":1794235086,"id":"SqkK2DituwOEXlDiJ3mv9Sf","model":"gemini-3.1-flash-lite","object":"chat.completion.chunk","usage":{"completion_tokens":34,"prompt_tokens":207,"total_tokens":241}}
+
+data: {"choices":[{"delta":{"content":" Belém Tower\",\n      \"hours\": 3\n    },\n    {\n      \"name\": \"Ride","role":"assistant"},"index":0}],"created":1794235086,"id":"SqkK2DituwOEXlDiJ3mv9Sf","model":"gemini-3.1-flash-lite","object":"chat.completion.chunk","usage":{"completion_tokens":58,"prompt_tokens":207,"total_tokens":265}}
+
+data: {"choices":[{"delta":{"content":" Tram 28 through Alfama\",\n      \"hours\": 2\n    },\n    {\n      \"","role":"assistant"},"index":0}],"created":1794235086,"id":"SqkK2DituwOEXlDiJ3mv9Sf","model":"gemini-3.1-flash-lite","object":"chat.completion.chunk","usage":{"completion_tokens":82,"prompt_tokens":207,"total_tokens":289}}
+
+data: {"choices":[{"delta":{"content":"name\": \"Visit Jerónimos Monastery\",\n      \"hours\": 4\n    }\n  ],\n  \"days","role":"assistant"},"index":0}],"created":1794235086,"id":"SqkK2DituwOEXlDiJ3mv9Sf","model":"gemini-3.1-flash-lite","object":"chat.completion.chunk","usage":{"completion_tokens":108,"prompt_tokens":207,"total_tokens":315}}
+
+data: {"choices":[{"delta":{"content":"\": 3,\n  \"note\": \"Don't forget to try the local pastéis de nata.\"\n}","role":"assistant"},"index":0}],"created":1794235086,"id":"SqkK2DituwOEXlDiJ3mv9Sf","model":"gemini-3.1-flash-lite","object":"chat.completion.chunk","usage":{"completion_tokens":133,"prompt_tokens":207,"total_tokens":340}}
+
+data: {"choices":[{"delta":{"extra_content":{"google":{"thought_signature":"EnIKcAFpFH0TVpRp89Xg/804BtU1zd8Iho/kpznk+9d3Y5ktD2LkNJjV5uGkypProh1T9IsLpPS+Adbfmw9dzqlYiKOblKL5OUToAr5HzOjjRuAwMj3boY3l1mLQRCAVqeHPKDdhKFkcWwNp7I3EAD+kKVc="}},"role":"assistant"},"finish_reason":"stop","index":0}],"created":1794235086,"id":"SqkK2DituwOEXlDiJ3mv9Sf","model":"gemini-3.1-flash-lite","object":"chat.completion.chunk","usage":{"completion_tokens":133,"prompt_tokens":207,"total_tokens":340}}
+
+data: [DONE]
+

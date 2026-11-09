@@ -1,0 +1,8 @@
+data: {"choices":[{"delta":{"content":"The temperature","role":"assistant"},"index":0}],"created":1794235074,"id":"H8ZKYk689yB9JwuxXR4FpL","model":"gemini-3.1-flash-lite","object":"chat.completion.chunk","usage":{"completion_tokens":2,"prompt_tokens":165,"total_tokens":167}}
+
+data: {"choices":[{"delta":{"content":" is 17 degrees in both Lisbon and Porto.","role":"assistant"},"index":0}],"created":1794235074,"id":"H8ZKYk689yB9JwuxXR4FpL","model":"gemini-3.1-flash-lite","object":"chat.completion.chunk","usage":{"completion_tokens":13,"prompt_tokens":165,"total_tokens":178}}
+
+data: {"choices":[{"delta":{"extra_content":{"google":{"thought_signature":"EnIKcAFpFH0TuPDXT2IETuo3JwoijYjaAq9DmQaLI+o7GfAqwDgh+fUoN4O8zfi8UKq8aPKB8PPGFOZCTn3HfgBpZbKlBtTaF++j23n9CVdBds5KhlKSevpFsQ04SVSf9LoTMJSA8yKl9i9vBMN3xuTLvgc="}},"role":"assistant"},"finish_reason":"stop","index":0}],"created":1794235074,"id":"H8ZKYk689yB9JwuxXR4FpL","model":"gemini-3.1-flash-lite","object":"chat.completion.chunk","usage":{"completion_tokens":13,"prompt_tokens":165,"total_tokens":178}}
+
+data: [DONE]
+

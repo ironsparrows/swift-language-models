@@ -1,0 +1,58 @@
+{
+  "transcript" : {
+    "entries" : [
+      {
+        "contents" : [
+          {
+            "id" : "284D4B40-2A10-4DEA-8E90-026CFB7B0F17",
+            "text" : "What is 12 plus 30? Reply with the number only.",
+            "type" : "text"
+          }
+        ],
+        "contextOptions" : {
+
+        },
+        "id" : "BDEA5AFC-0DEC-4A31-8C22-A289E397215C",
+        "options" : {
+          "maximumResponseTokens" : 1500
+        },
+        "role" : "user"
+      },
+      {
+        "id" : "69D66A4E-25C9-4031-BF62-8E44180C9DE4",
+        "metadata" : {
+          "model" : "qwen3:0.6b",
+          "reasoningOrigin" : "openai-compatible\/ollama"
+        },
+        "reasoning" : {
+          "contents" : [
+            {
+              "id" : "890390DB-9012-49AC-A0B1-4D2125077B0D",
+              "text" : "Okay, let's see. The question is asking, \"What is 12 plus 30?\" and they want the answer in numbers only. Hmm, so first, I need to add 12 and 30. Let me think... 12 plus 30. Well, adding them together... let's break it down. 12 is two tens and zero ones. 30 is three tens and zero ones. Adding the tens first: 2 + 3 is 5. Then the ones: 0 + 0 is 0. So altogether, it's 50. That makes sense. Wait, but maybe I should check again. 12 plus 30, adding the ones first: 12 + 30. So if I add 12 to 30, it's 42? Wait, no, that's not right. Wait, no, 12 plus 30. Let me do it in another way. 12 + 30. Let's think of 12 + 30 as (10 + 2) + (30). So that's 10 + 30 which is 40, plus 2 is 42. Oh, so that's 42. Wait, but earlier I thought it was 50. Which is correct? Wait, no, I think I made a mistake here. If 12 plus 30, adding the ones first: 12 + 30. So the ones are 12 and 30. So 12 + 30. So the ones are 12 and 30. Wait, no, the ones are 2 and 0. So 2 + 0 = 2. Then the tens: 1 + 3 = 4. So total is 42. Oh my goodness, I confused the tens and ones. So 12 plus 30 is 42. So why did I get confused before? Oh right, when I first thought, I thought of 12 as two tens and zero ones, and 30 as three tens and zero ones. Then adding the tens: 2 + 3 = 5, and the ones: 0 + 0 = 0. So 50. But that's wrong because 12 is 10 + 2 and 30 is 30. So adding them gives 40 + 2 = 42. So the correct answer is 42. So why did I think it was 50 before? Because I thought of 12 as two tens and zero ones, and 30 as three tens and zero ones, so adding the tens gives 5, and the ones gives 0. But that's incorrect because when you have 12 + 30, the ones are 2 (from 12) and 0 (from 30), so adding them gives 2. So the correct answer is 42. I must have made a mistake in the addition process earlier. So the final answer is 42.\n",
+              "type" : "text"
+            }
+          ]
+        },
+        "role" : "reasoning"
+      },
+      {
+        "contents" : [
+          {
+            "id" : "68FF71A0-29A2-451E-BD7C-45C6635648DE",
+            "text" : "42",
+            "type" : "text"
+          }
+        ],
+        "id" : "53285667-4DC6-4E62-9295-3A1A3007731A",
+        "metadata" : {
+          "finishReason" : "stop",
+          "model" : "qwen3:0.6b",
+          "responseID" : "chatcmpl-242"
+        },
+        "role" : "response"
+      }
+    ]
+  },
+  "type" : "FoundationModels.Transcript",
+  "version" : "1.1"
+}

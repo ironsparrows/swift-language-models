@@ -9,8 +9,8 @@ import Testing
 @Suite("Public API", .tags(.loopback), .timeLimit(.minutes(1)))
 struct PublicAPITests {
     @Test func `a model on a provider the app describes answers in a session, with its reasoning and facts`() async throws {
-        // Groq's answer, ids swapped, as a provider described by its name and URL gets it.
-        let recorded = String(decoding: try Bundle.module.fixture("Captured/groq-text.sse"), as: UTF8.self)
+        // Groq's recorded answer, ids swapped, as a provider described by its name and URL gets it.
+        let recorded = String(decoding: try Bundle.module.fixture("Recorded/groq-text.1.sse"), as: UTF8.self)
         let server = try await LoopbackServer(
             LoopbackReply(
                 headers: ["Content-Type": "text/event-stream", "x-request-id": "req_01test00000000000000000001"],
@@ -21,10 +21,10 @@ struct PublicAPITests {
         let session = LanguageModelSession(model: model)
 
         let response = try await session.respond(
-            to: "Write one unusual English word, nothing else.", contextOptions: ContextOptions(reasoningLevel: .light))
+            to: "Name one color of the sea.", contextOptions: ContextOptions(reasoningLevel: .light))
 
-        #expect(response.content == "quixotry")
-        #expect(response.usage.input.totalTokenCount == 80)
+        #expect(response.content == "Blue.")
+        #expect(response.usage.input.totalTokenCount == 78)
         guard case .response(let answer)? = session.transcript.last else {
             Issue.record("The transcript ends with \(String(describing: session.transcript.last))")
             return

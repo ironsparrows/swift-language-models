@@ -1,0 +1,161 @@
+{
+  "transcript" : {
+    "entries" : [
+      {
+        "contents" : [
+          {
+            "id" : "02539DAF-776A-47A0-AB73-E304BE7EF71E",
+            "text" : "Plan a short trip to Lisbon.",
+            "type" : "text"
+          }
+        ],
+        "contextOptions" : {
+          "includeSchemaInPrompt" : true
+        },
+        "id" : "C22CEECF-FFD4-485C-AEF3-5E7F5257417E",
+        "options" : {
+          "maximumResponseTokens" : 1000
+        },
+        "responseFormat" : {
+          "jsonSchema" : {
+            "name" : "Trip",
+            "schema" : {
+              "$defs" : {
+                "Activity" : {
+                  "additionalProperties" : false,
+                  "properties" : {
+                    "hours" : {
+                      "description" : "How many hours it takes.",
+                      "maximum" : 12,
+                      "minimum" : 1,
+                      "type" : "integer"
+                    },
+                    "name" : {
+                      "type" : "string"
+                    }
+                  },
+                  "required" : [
+                    "name",
+                    "hours"
+                  ],
+                  "title" : "Activity",
+                  "type" : "object",
+                  "x-order" : [
+                    "name",
+                    "hours"
+                  ]
+                }
+              },
+              "additionalProperties" : false,
+              "properties" : {
+                "activities" : {
+                  "description" : "Three things to do.",
+                  "items" : {
+                    "$ref" : "#\/$defs\/Activity"
+                  },
+                  "maxItems" : 3,
+                  "minItems" : 3,
+                  "type" : "array"
+                },
+                "city" : {
+                  "description" : "The city to visit.",
+                  "type" : "string"
+                },
+                "days" : {
+                  "description" : "How many days to stay.",
+                  "maximum" : 14,
+                  "minimum" : 1,
+                  "type" : "integer"
+                },
+                "note" : {
+                  "type" : "string"
+                },
+                "season" : {
+                  "enum" : [
+                    "spring",
+                    "summer",
+                    "autumn",
+                    "winter"
+                  ],
+                  "type" : "string"
+                }
+              },
+              "required" : [
+                "city",
+                "season",
+                "activities",
+                "days"
+              ],
+              "title" : "Trip",
+              "type" : "object",
+              "x-order" : [
+                "city",
+                "season",
+                "activities",
+                "days",
+                "note"
+              ]
+            }
+          },
+          "type" : "jsonSchema"
+        },
+        "role" : "user"
+      },
+      {
+        "contents" : [
+          {
+            "id" : "4BB77070-EFEC-413A-BA03-10034D920D44",
+            "structure" : {
+              "content" : {
+                "activities" : [
+                  {
+                    "hours" : 3,
+                    "name" : "Explore Belém Tower"
+                  },
+                  {
+                    "hours" : 2,
+                    "name" : "Ride Tram 28 through Alfama"
+                  },
+                  {
+                    "hours" : 4,
+                    "name" : "Visit Jerónimos Monastery"
+                  }
+                ],
+                "city" : "Lisbon",
+                "days" : 3,
+                "note" : "Don't forget to try the local pastéis de nata.",
+                "season" : "spring"
+              },
+              "source" : "Trip"
+            },
+            "type" : "structure"
+          }
+        ],
+        "id" : "D357B141-E7A8-4D74-B663-FE6008EA1D45",
+        "metadata" : {
+          "finishReason" : "stop",
+          "model" : "gemini-3.1-flash-lite",
+          "provider" : "Google AI Studio",
+          "responseID" : "SqkK2DituwOEXlDiJ3mv9Sf"
+        },
+        "role" : "response"
+      },
+      {
+        "id" : "7252B42E-427D-43E6-91E4-322936F519A5",
+        "metadata" : {
+          "model" : "gemini-3.1-flash-lite",
+          "reasoningOrigin" : "openai-compatible\/gemini"
+        },
+        "reasoning" : {
+          "contents" : [
+
+          ],
+          "signature" : "RW5JS2NBRnBGSDBUVnBScDg5WGcvODA0QnRVMXpkOEloby9rcHpuays5ZDNZNWt0RDJMa05KalY1dUdreXBQcm9oMVQ5SXNMcFBTK0FkYmZtdzlkenFsWWlLT2JsS0w1T1VUb0FyNUh6T2pqUnVBd01qM2JvWTNsMW1MUVJDQVZxZUhQS0RkaEtGa2NXd05wN0kzRUFEK2tLVmM9"
+        },
+        "role" : "reasoning"
+      }
+    ]
+  },
+  "type" : "FoundationModels.Transcript",
+  "version" : "1.1"
+}

@@ -1,0 +1,169 @@
+{
+  "gemini-cached.1": {
+    "headers": {
+      "content-type": "text/event-stream"
+    },
+    "status": 200
+  },
+  "gemini-cached.2": {
+    "headers": {
+      "content-type": "text/event-stream"
+    },
+    "status": 200
+  },
+  "gemini-guided.1": {
+    "headers": {
+      "content-type": "text/event-stream"
+    },
+    "status": 200
+  },
+  "gemini-reasoning.1": {
+    "headers": {
+      "content-type": "text/event-stream"
+    },
+    "status": 200
+  },
+  "gemini-refused-key.1": {
+    "headers": {
+      "content-type": "application/json; charset=UTF-8"
+    },
+    "status": 400
+  },
+  "gemini-text.1": {
+    "headers": {
+      "content-type": "text/event-stream"
+    },
+    "status": 200
+  },
+  "gemini-tools.1": {
+    "headers": {
+      "content-type": "text/event-stream"
+    },
+    "status": 200
+  },
+  "gemini-tools.2": {
+    "headers": {
+      "content-type": "text/event-stream"
+    },
+    "status": 200
+  },
+  "groq-cached.1": {
+    "headers": {
+      "content-type": "text/event-stream",
+      "x-request-id": "req_01avt4ljjx5f8bswvc27jahijh"
+    },
+    "status": 200
+  },
+  "groq-cached.2": {
+    "headers": {
+      "content-type": "text/event-stream",
+      "x-request-id": "req_01oyyfy080bapourji52vltzbo"
+    },
+    "status": 200
+  },
+  "groq-guided.1": {
+    "headers": {
+      "content-type": "text/event-stream",
+      "x-request-id": "req_01nmsodw4x2ai9ocuyybln1t4v"
+    },
+    "status": 200
+  },
+  "groq-reasoning.1": {
+    "headers": {
+      "content-type": "text/event-stream",
+      "x-request-id": "req_016qim5yjxl1qfg5rgli8biv4e"
+    },
+    "status": 200
+  },
+  "groq-refused-key.1": {
+    "headers": {
+      "content-type": "application/json",
+      "x-request-id": "req_01gr51bg2v2d7yoizkz847m9rr"
+    },
+    "status": 401
+  },
+  "groq-text.1": {
+    "headers": {
+      "content-type": "text/event-stream",
+      "x-request-id": "req_015qz8ld8tvjhzmt437ut7mv81"
+    },
+    "status": 200
+  },
+  "groq-too-large.1": {
+    "headers": {
+      "content-type": "application/json",
+      "retry-after": "31",
+      "x-request-id": "req_01ah5r5u7xeqqy4rygxa2bg6zn"
+    },
+    "status": 413
+  },
+  "groq-tools.1": {
+    "headers": {
+      "content-type": "text/event-stream",
+      "x-request-id": "req_0190bp78kxg94b5obylemwhfjv"
+    },
+    "status": 200
+  },
+  "groq-tools.2": {
+    "headers": {
+      "content-type": "text/event-stream",
+      "x-request-id": "req_01ibnie42qgnnk437sxohh6goi"
+    },
+    "status": 200
+  },
+  "groq-tools.3": {
+    "headers": {
+      "content-type": "text/event-stream",
+      "x-request-id": "req_01jo59m8yl9g86phb3gd7gx6re"
+    },
+    "status": 200
+  },
+  "ollama-cached.1": {
+    "headers": {
+      "content-type": "text/event-stream"
+    },
+    "status": 200
+  },
+  "ollama-cached.2": {
+    "headers": {
+      "content-type": "text/event-stream"
+    },
+    "status": 200
+  },
+  "ollama-guided.1": {
+    "headers": {
+      "content-type": "text/event-stream"
+    },
+    "status": 200
+  },
+  "ollama-reasoning.1": {
+    "headers": {
+      "content-type": "text/event-stream"
+    },
+    "status": 200
+  },
+  "ollama-text.1": {
+    "headers": {
+      "content-type": "text/event-stream"
+    },
+    "status": 200
+  },
+  "ollama-tools.1": {
+    "headers": {
+      "content-type": "text/event-stream"
+    },
+    "status": 200
+  },
+  "ollama-tools.2": {
+    "headers": {
+      "content-type": "text/event-stream"
+    },
+    "status": 200
+  },
+  "ollama-unknown-model.1": {
+    "headers": {
+      "content-type": "application/json"
+    },
+    "status": 404
+  }
+}

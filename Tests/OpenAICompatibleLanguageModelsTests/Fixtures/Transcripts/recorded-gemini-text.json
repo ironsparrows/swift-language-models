@@ -1,0 +1,56 @@
+{
+  "transcript" : {
+    "entries" : [
+      {
+        "contents" : [
+          {
+            "id" : "BFBDF036-1194-4B88-AC5A-933D39F3F5FE",
+            "text" : "Name one color of the sea.",
+            "type" : "text"
+          }
+        ],
+        "contextOptions" : {
+
+        },
+        "id" : "747DDD56-C2E3-4923-B4EE-07DE34E3898C",
+        "options" : {
+          "maximumResponseTokens" : 300
+        },
+        "role" : "user"
+      },
+      {
+        "contents" : [
+          {
+            "id" : "5F930B56-656B-4B5D-B00B-EFC4E76A3552",
+            "text" : "Blue",
+            "type" : "text"
+          }
+        ],
+        "id" : "40538F54-78BF-4651-B65A-1AF523AFED7B",
+        "metadata" : {
+          "finishReason" : "stop",
+          "model" : "gemini-3.1-flash-lite",
+          "provider" : "Google AI Studio",
+          "responseID" : "CUzWRFY6bCGlgpa13cm9eh"
+        },
+        "role" : "response"
+      },
+      {
+        "id" : "38FA6F0D-0EFE-4BA6-ABBC-C752DD2FF160",
+        "metadata" : {
+          "model" : "gemini-3.1-flash-lite",
+          "reasoningOrigin" : "openai-compatible\/gemini"
+        },
+        "reasoning" : {
+          "contents" : [
+
+          ],
+          "signature" : "RW5JS2NBRnBGSDBUNG1xNFJWT0JXa2JqRTFWcFNUT1R2a0Q5N0hLOVBkc3VSUUhRMFFuK1ZFMS80WGRCVURiUHhXZnlKS1JCUDc3QkVtOTF4RkhPNWg2OEZBVy93THB1UWlYZXAyVEVWKysrT3d1SlRzNWFlTE9GL1NnNEV5cXRvMjE1MC9keGs1cm9VWWl3NzhPUy9zd3ZseDQ9"
+        },
+        "role" : "reasoning"
+      }
+    ]
+  },
+  "type" : "FoundationModels.Transcript",
+  "version" : "1.1"
+}

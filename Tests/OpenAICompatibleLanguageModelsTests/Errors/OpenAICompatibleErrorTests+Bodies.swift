@@ -47,13 +47,6 @@ extension OpenAICompatibleErrorTests {
                     providerName: "Gateway", status: 400, message: "Missing or invalid Authorization header.", code: "INVALID_ARGUMENT",
                     errorType: "INVALID_ARGUMENT")),
             Row(
-                name: "Groq, nested, with a request id", status: 401,
-                headers: ["Content-Type": "application/json", "x-request-id": "req_01test00000000000000000002"],
-                body: #"{"error":{"message":"Invalid API Key","type":"invalid_request_error","code":"invalid_api_key"}}"#,
-                error: OpenAICompatibleError(
-                    providerName: "Gateway", status: 401, message: "Invalid API Key", code: .invalidAPIKey, errorType: .invalidRequest,
-                    requestID: "req_01test00000000000000000002")),
-            Row(
                 name: "Groq, a member it doesn't know", status: 400,
                 body: #"{"error":{"message":"property 'top_k' is unsupported","type":"invalid_request_error"}}"#,
                 error: OpenAICompatibleError(
@@ -154,12 +147,6 @@ extension OpenAICompatibleErrorTests {
                     providerName: "Gateway", status: 400,
                     message: "Tool call id was call_0fypS1hVX but must be a-z, A-Z, 0-9, with a length of 9.", code: "3280",
                     errorType: "invalid_request_message_error")),
-            Row(
-                name: "Ollama, nested with null members", status: 404,
-                body: #"{"error":{"message":"model 'no-such-model-xyz' not found","type":"not_found_error","param":null,"code":null}}"#,
-                error: OpenAICompatibleError(
-                    providerName: "Gateway", status: 404, message: "model 'no-such-model-xyz' not found", code: .notFound,
-                    errorType: "not_found_error")),
             Row(
                 name: "xAI, flat with the message as the error", status: 400,
                 body:

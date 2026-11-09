@@ -52,28 +52,10 @@ extension PresetTests {
             }
         }
 
-        @Test func `an answer's usage comes from its last chunk, unasked, with Groq as its host and its request id`() async throws {
-            let recorded = try Bundle.module.fixture("Captured/groq-text.sse")
-            let stub = HTTPStub(
-                StubResponse(status: 200, headers: ["Content-Type": "text/event-stream", "x-request-id": "req_1"], chunks: [recorded]))
-            let session = LanguageModelSession(model: model(stub, on: .groq.at(stub.baseURL)))
-
-            let response = try await session.respond(to: "Write one unusual English word, nothing else.")
-
-            #expect(response.content == "quixotry")
-            #expect(response.usage.input.totalTokenCount == 80)
-            guard case .response(let answer)? = session.transcript.last else {
-                Issue.record("The transcript ends with \(String(describing: session.transcript.last))")
-                return
-            }
-            #expect(answer.providerMetadata.host == "Groq")
-            #expect(answer.openAICompatible.requestID == "req_1")
-        }
-
-        @Test func `a model's reasoning goes back as reasoning, to that model only`() async throws {
-            let recorded = try Bundle.module.fixture("Captured/groq-text.sse")
-            let stub = HTTPStub(.eventStream(recorded), chunks(text("Petrichor."), finish()))
-            let other = HTTPStub(chunks(text("Petrichor."), finish()))
+        // The recorded tool round shows a model's reasoning going back to the model that wrote it.
+        @Test func `a model's reasoning doesn't go back to another model`() async throws {
+            let stub = HTTPStub(.eventStream(try Bundle.module.fixture("Recorded/groq-text.1.sse")))
+            let other = HTTPStub(chunks(text("Grey."), finish()))
             let gptOSS = OpenAICompatibleLanguageModel(
                 OpenAICompatibleModel("openai/gpt-oss-20b", on: .groq.at(stub.baseURL)), session: stub.session,
                 configuration: .stubbed, auth: .apiKey { "gsk-test" })
@@ -82,15 +64,10 @@ extension PresetTests {
                 configuration: .stubbed, auth: .apiKey { "gsk-test" })
             let session = LanguageModelSession(model: gptOSS)
 
-            _ = try await session.respond(to: "Write one unusual English word, nothing else.")
-            _ = try await session.respond(to: "Another one.")
-            _ = try await LanguageModelSession(model: qwen, transcript: session.transcript).respond(to: "And one more.")
+            _ = try await session.respond(to: "Name one color of the sea.")
+            _ = try await LanguageModelSession(model: qwen, transcript: session.transcript).respond(to: "And one of the sky?")
 
-            let replayed = try #require(try body(stub, 1)["messages"]?[1])
-            #expect(replayed["role"] == "assistant")
-            #expect(replayed["content"] == "quixotry")
-            #expect(replayed["reasoning"]?.stringValue?.isEmpty == false)
-            #expect(try body(other)["messages"]?[1] == ["role": "assistant", "content": "quixotry"])
+            #expect(try body(other)["messages"]?[1] == ["role": "assistant", "content": "Blue."])
         }
 
         @Test(arguments: [(OpenAICompatibleProvider.groq, true), (.gemini, false)])

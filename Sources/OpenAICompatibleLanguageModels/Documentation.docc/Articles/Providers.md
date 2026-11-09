@@ -24,13 +24,15 @@ of its regional servers, or a server on another Mac or port, and keeps everythin
 
 This page describes the presets as of 9 November 2026. Gemini's and Groq's were checked against their APIs on 8 and 9
 November 2026, on `gemini-3.1-flash-lite`, `openai/gpt-oss-20b` and `qwen/qwen3.8-27b`, and Ollama's against Ollama
-0.40.15 on the same days, on `qwen3:0.6b`, and on `qwen3.5:4b` for images, schemas and a required tool call, apart
-from what their sections
-say wasn't seen there. Of xAI's, only the error for an incorrect key was seen. DeepSeek's, Mistral's and xAI's follow
-their providers' documentation and SDKs, LM Studio's its documentation, and vLLM's its server's source at v0.33.0 and
-its documentation, with what their users report, and haven't been run against their APIs or servers yet. Providers
-change what they take, so a preset can fall behind: a member a provider starts to refuse throws its error, and a member
-it starts to take goes out through ``OpenAICompatibleOptions/additionalMembers``.
+0.40.15 on the same days, on `qwen3:0.6b`, and on `qwen3.5:4b` for images, schemas and a required tool call, apart from
+what their sections say wasn't seen there. On 9 November 2026, a text answer, a tool round, a guided answer, an answer
+that reasons and a failure went through each of the three presets and are kept as the module's recorded tests, and each
+preset's live tests ran once against Gemini's free tier, Groq's free plan and a local Ollama server. Of xAI's, only the
+error for an incorrect key was seen. DeepSeek's, Mistral's and xAI's follow their providers' documentation and SDKs, LM
+Studio's its documentation, and vLLM's its server's source at v0.33.0 and its documentation, with what their users
+report, and haven't been run against their APIs or servers yet. Providers change what they take, so a preset can fall
+behind: a member a provider starts to refuse throws its error, and a member it starts to take goes out through
+``OpenAICompatibleOptions/additionalMembers``.
 
 ### At a glance
 
@@ -80,6 +82,12 @@ efforts often differ from its preset's: name them with `efforts:` on
 ``OpenAICompatibleModel/init(_:on:displayName:capabilities:contextSize:reasoning:efforts:attachments:)``. The model's
 ``OpenAICompatibleLanguageModel/configuration`` replaces the preset's retries and wait.
 
+Each Chat Completions request of a session repeats the one before it byte for byte up to its new turn, so a provider
+that caches a repeated prefix can read it from its cache, and the answer's `usage.input.cachedTokenCount` counts the
+tokens it read there, as the provider reports them in `prompt_tokens_details.cached_tokens`, or in Responses
+`input_tokens_details.cached_tokens`; a provider that reports them in another member, such as a `cached_tokens` beside
+the others, reads as 0. No preset sends a cache key.
+
 ### Gemini
 
 - **Thought signatures.** Gemini signs its reasoning, checks the signatures of the tool calls of the current turn when
@@ -87,19 +95,26 @@ efforts often differ from its preset's: name them with `efforts:` on
   `extra_content.google.thought_signature`, to the model that wrote it, as Gemini names it in its answers: on its first
   tool call, or on its message when it has no call. A first tool call that another provider or another model made goes
   back with the placeholder `skip_thought_signature_validator`, which Gemini takes in place of a signature, and a text
-  answer of another model's goes back without one. So name a model by the id Gemini answers with, such as
-  `gemini-3.1-flash-lite`: under an alias it answers with another name, its signatures don't go back. With parallel
-  calls, Gemini signs only the first, so the others go back without one; parallel calls weren't seen.
+  answer of another model's goes back without one; `gemini-3.5-flash-lite` went on with a tool round from a transcript
+  `gemini-3.1-flash-lite` wrote, its calls carrying the placeholder. So name a model by the id Gemini answers with, such
+  as `gemini-3.1-flash-lite`: under an alias it answers with another name, its signatures don't go back. With parallel
+  calls, Gemini signs only the first, so the others go back without one, which Gemini takes.
 - **Reasoning text.** `gemini-3.1-flash-lite` sent none, also when asked for its thoughts, so its answers' reasoning
   entries hold only their signatures. It took the effort `none`; what `none` does on a Gemini 3 model isn't known.
 - **A schema with tools.** Gemini takes both, and once answered with a call to the session's tool whose arguments held
   the schema's answer. In a session with tools and a schema, a tool may be called with arguments it can't use.
+- **Usage.** Gemini reports no reasoning tokens, and leaves them out of the output tokens: at the effort `high`,
+  `gemini-3.1-flash-lite` reported 15 input and 290 output tokens with a total of 1,184, which the usage doesn't read.
 - **Failures.** A missing key is a 400 with the code ``OpenAICompatibleError/Code/authentication``, as a 401 is, and
-  so is an invalid key, in the Gemini API's words for one, which weren't seen. A rate limit's reset date comes from the
-  wait Gemini names in its body, since it sends no `Retry-After`. A member Gemini doesn't know, an effort the model
+  so is an invalid key, which Gemini answers with "Please pass a valid API key". A rate limit's reset date comes from
+  the wait Gemini names in its body, since it sends no `Retry-After`. A member Gemini doesn't know, an effort the model
   doesn't take and a temperature out of range name the member in ``OpenAICompatibleError/parameter``. An overloaded
   model's 503 isn't sent again. A prompt over the model's context throws `LanguageModelError.contextSizeExceeded`
-  with the sizes Gemini names, in words that weren't seen.
+  with the sizes Gemini names, in words that weren't seen: on the free tier, whose limit is 250,000 input tokens a
+  minute, such a prompt throws `LanguageModelError.rateLimited` first.
+- **Caching.** Gemini caches a repeated prefix by itself: after the same instructions of about 6,000 tokens, a second
+  request to `gemini-3.1-flash-lite` read 2,033 of its 6,030 input tokens from the cache, and the first reported none.
+  Gemini reports them on the answer's last chunk. It takes no cache key: a request with `prompt_cache_key` is a 400.
 - **Images** at a web address are taken. Gemini has no Responses format.
 
 ### Groq
@@ -107,17 +122,25 @@ efforts often differ from its preset's: name them with `efforts:` on
 - **Efforts** differ by model: `openai/gpt-oss-20b` takes `high`, `medium` and `low`, and `qwen/qwen3.8-27b` takes
   `none` as well, as Groq's 400 for any other says.
 - **Reasoning** arrives as each delta's `reasoning`, and goes back as the assistant message's `reasoning`, to the model
-  that wrote it only, since a model that doesn't reason may refuse it. Groq took it on both models checked; whether it
-  changes their answers isn't known.
+  that wrote it only, since a model that doesn't reason may refuse it. Groq took it on both models checked, with tool
+  calls and without; whether it changes their answers isn't known. Asked for two calls at once, `openai/gpt-oss-20b`
+  made one in each of two rounds.
 - **Usage** comes on an answer's last chunk without the ask, which the preset doesn't send.
 - **A schema with tools** is refused before it's sent with `LanguageModelError.unsupportedCapability`, since Groq
   answers a request with both with a 400. A schema alone works, streamed.
 - **Failures in the stream.** A guided answer that Groq finds breaks its schema ends the stream with an error, which
   throws `GeneratedContent.ParsingError` with what the model generated, if anything, as its raw content. A request that
-  requires a tool call, answered without one, throws ``OpenAICompatibleError`` with the code `tool_use_failed`.
+  requires a tool call, answered without one, throws ``OpenAICompatibleError`` with the code `tool_use_failed`, and so
+  does a call Groq can't read: `qwen/qwen3.8-27b`'s calls failed that way in 2 of 9 runs of two tool rounds.
 - **Other failures.** A member Groq doesn't take, an effort the model doesn't take and a temperature out of range name
-  the member in ``OpenAICompatibleError/parameter``. A request over the account's tokens a minute, reported as a 413
-  and not seen, throws ``OpenAICompatibleError`` rather than a rate limit, since no wait lets that request through.
+  the member in ``OpenAICompatibleError/parameter``. A request over the account's tokens a minute, which on the free
+  plan is 8,000 for `openai/gpt-oss-20b`, is a 413 with the code `rate_limit_exceeded` and a `Retry-After`. It throws
+  ``OpenAICompatibleError`` rather than a rate limit, since no wait lets that request through: a smaller one goes once
+  the wait in ``OpenAICompatibleError/retryAfter`` has passed. A refused key is a 401 with the code
+  ``OpenAICompatibleError/Code/invalidAPIKey``.
+- **Caching.** Groq's documentation says `openai/gpt-oss-20b` and `openai/gpt-oss-120b` cache a repeated prefix, but
+  on the free plan neither reported any cached tokens for a prompt of about 3,000 tokens sent again seconds later,
+  streamed or not. Groq takes no cache key: a request with `prompt_cache_key` is a 400.
 - **Images** under 32 pixels a side are refused by Groq with a 400.
 
 ### DeepSeek
@@ -154,6 +177,8 @@ efforts often differ from its preset's: name them with `efforts:` on
   doesn't send it.
 - **Tool call ids** of nine letters and digits are reported to be the only ones Mistral takes, so a transcript whose
   calls another provider made may fail there, with Mistral's code in ``OpenAICompatibleError/code``.
+- **Caching.** Mistral documents cached tokens in `prompt_tokens_details.cached_tokens`, which the usage reads; ones it
+  sends only as `num_cached_tokens` or in `prompt_token_details`, as it's reported to, read as 0. This wasn't seen.
 - **Regional servers** are `.mistral.at(_:)` with `https://api.eu.mistral.ai/v1` or `https://api.us.mistral.ai/v1`.
 
 ### xAI
@@ -184,7 +209,8 @@ efforts often differ from its preset's: name them with `efforts:` on
   levels of its own, `minimal` counts as `low` and `xhigh` as `max`. On `qwen3:0.6b`, only `none` changed what the
   model did.
 - **Reasoning** arrives as each delta's `reasoning`, and goes back as the assistant message's `reasoning`, with its tool
-  calls, to the model that wrote it only, since another model on the server would read it as its own.
+  calls, to the model that wrote it only, since another model on the server would read it as its own. Ollama took it on
+  later turns, with tool calls and without.
 - **Left out.** Request metadata, `tool_choice` and `top_k`, which Ollama ignores. It ignores `max_completion_tokens`
   too, so the token limit goes as `max_tokens`.
 - **An image at a web address** is refused before it's sent with `LanguageModelError.unsupportedTranscriptContent`,
@@ -193,12 +219,16 @@ efforts often differ from its preset's: name them with `efforts:` on
 - **A required tool call** is refused before it's sent with `LanguageModelError.unsupportedCapability`, since Ollama
   ignores `tool_choice`: the models checked answered such a request without a call.
 - **Usage** comes only when asked, so the preset asks.
+- **Caching.** The loaded model reuses what it read of a repeated prefix until it's unloaded: after the same
+  instructions of about 2,000 tokens, a second request read 2,020 of its 2,060 input tokens from the cache.
 - **Waits and retries.** A failed request isn't sent again, and requests wait up to 10 minutes for the next data,
   since loading a model can take a while. An ``OpenAICompatibleConfiguration/idleTimeout`` of `nil` waits as long as
   the URL session's own timeout, which is 60 seconds for `URLSession.shared`.
 - **A long conversation** loses its oldest messages on Ollama's side, with no error, once it's longer than the model's
-  context: Ollama keeps the system messages and the latest one. This format can't raise a model's context; a
-  Modelfile's `num_ctx` does. This was read from Ollama's source, not seen.
+  context: Ollama keeps the system messages and the latest one, which was read from Ollama's source. A single prompt
+  over the context is cut too: Ollama 0.40.15 loaded `qwen3:0.6b` with a context of 32,768 tokens, and read 16,386
+  tokens of a prompt of 60,000 words, with no error. This format can't raise a model's context; a Modelfile's `num_ctx`
+  does.
 - **Failures.** Ollama sends no request id. A model it doesn't have is a 404, with the code
   ``OpenAICompatibleError/Code/notFound``.
 - **Server options**, such as `keep_alive`, which Ollama's source reads in this format, go out through
@@ -223,6 +253,7 @@ efforts often differ from its preset's: name them with `efforts:` on
   the app as text.
 - **A token.** A server that asks for one, which LM Studio allows since 0.4.0, takes it with
   ``OpenAICompatibleAuthentication/apiKey(_:)``.
+- **Caching.** LM Studio is reported to send no cached tokens in this format, so its cache hits read as 0.
 - **Server options**, such as `ttl`, go out through ``OpenAICompatibleOptions/additionalMembers``.
 
 ### vLLM
@@ -251,6 +282,8 @@ efforts often differ from its preset's: name them with `efforts:` on
 - **Failures in the stream** arrive as an error event whose `code` is the status, which the error's
   ``OpenAICompatibleError/status`` takes.
 - **Request ids** come only from a server started with `--enable-request-id-headers`.
+- **Caching.** Cached tokens come only from a server started with `--enable-prompt-tokens-details`, and read as 0
+  otherwise; the tokens vLLM writes to its cache, as `created_cache_tokens`, aren't read.
 - **Images** at a web address are fetched by the server, which waits up to 5 seconds for one by default.
 
 ### What a preset can't see

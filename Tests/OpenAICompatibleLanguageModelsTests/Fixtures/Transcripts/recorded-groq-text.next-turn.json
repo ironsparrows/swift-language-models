@@ -1,0 +1,1 @@
+{"model":"openai/gpt-oss-20b","messages":[{"role":"user","content":"Name one color of the sea."},{"role":"assistant","content":"Blue.","reasoning":"We need answer: \"Blue\" is one color."},{"role":"user","content":"And next?"}],"stream":true}

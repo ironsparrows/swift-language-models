@@ -1,0 +1,165 @@
+{
+  "transcript" : {
+    "entries" : [
+      {
+        "contents" : [
+          {
+            "id" : "C52A3D19-196B-4043-8670-12E4144D2092",
+            "text" : "Plan a short trip to Lisbon.",
+            "type" : "text"
+          }
+        ],
+        "contextOptions" : {
+          "reasoningLevel" : "light"
+        },
+        "id" : "17C98A9B-CD9B-4245-BB5C-E20AA9CD0949",
+        "options" : {
+          "maximumResponseTokens" : 1500
+        },
+        "responseFormat" : {
+          "jsonSchema" : {
+            "name" : "Trip",
+            "schema" : {
+              "$defs" : {
+                "Activity" : {
+                  "additionalProperties" : false,
+                  "properties" : {
+                    "hours" : {
+                      "description" : "How many hours it takes.",
+                      "maximum" : 12,
+                      "minimum" : 1,
+                      "type" : "integer"
+                    },
+                    "name" : {
+                      "type" : "string"
+                    }
+                  },
+                  "required" : [
+                    "name",
+                    "hours"
+                  ],
+                  "title" : "Activity",
+                  "type" : "object",
+                  "x-order" : [
+                    "name",
+                    "hours"
+                  ]
+                }
+              },
+              "additionalProperties" : false,
+              "properties" : {
+                "activities" : {
+                  "description" : "Three things to do.",
+                  "items" : {
+                    "$ref" : "#\/$defs\/Activity"
+                  },
+                  "maxItems" : 3,
+                  "minItems" : 3,
+                  "type" : "array"
+                },
+                "city" : {
+                  "description" : "The city to visit.",
+                  "type" : "string"
+                },
+                "days" : {
+                  "description" : "How many days to stay.",
+                  "maximum" : 14,
+                  "minimum" : 1,
+                  "type" : "integer"
+                },
+                "note" : {
+                  "type" : "string"
+                },
+                "season" : {
+                  "enum" : [
+                    "spring",
+                    "summer",
+                    "autumn",
+                    "winter"
+                  ],
+                  "type" : "string"
+                }
+              },
+              "required" : [
+                "city",
+                "season",
+                "activities",
+                "days"
+              ],
+              "title" : "Trip",
+              "type" : "object",
+              "x-order" : [
+                "city",
+                "season",
+                "activities",
+                "days",
+                "note"
+              ]
+            }
+          },
+          "type" : "jsonSchema"
+        },
+        "role" : "user"
+      },
+      {
+        "id" : "BE32C422-8EAD-4D25-827A-BE03F980C4DE",
+        "metadata" : {
+          "model" : "openai\/gpt-oss-20b",
+          "reasoningOrigin" : "openai-compatible\/groq"
+        },
+        "reasoning" : {
+          "contents" : [
+            {
+              "id" : "774946EF-8C5D-4CB4-B714-B34F1930DD50",
+              "text" : "Need JSON matching schema. Provide activities 3 with name and hours. Let's choose spring, 2 days.",
+              "type" : "text"
+            }
+          ]
+        },
+        "role" : "reasoning"
+      },
+      {
+        "contents" : [
+          {
+            "id" : "D9B22D0E-1165-4E9B-A8EC-429063B9C548",
+            "structure" : {
+              "content" : {
+                "activities" : [
+                  {
+                    "hours" : 3,
+                    "name" : "Explore Belém Tower and Jerónimos Monastery"
+                  },
+                  {
+                    "hours" : 4,
+                    "name" : "Stroll through Alfama district and visit São Jorge Castle"
+                  },
+                  {
+                    "hours" : 1,
+                    "name" : "Taste pastéis de nata at Pastéis de Belém"
+                  }
+                ],
+                "city" : "Lisbon",
+                "days" : 2,
+                "note" : "Enjoy the mild weather and historic sights",
+                "season" : "spring"
+              },
+              "source" : "Trip"
+            },
+            "type" : "structure"
+          }
+        ],
+        "id" : "5A4F3FE2-39B8-4F7E-91F2-C892D4C94259",
+        "metadata" : {
+          "finishReason" : "stop",
+          "model" : "openai\/gpt-oss-20b",
+          "provider" : "Groq",
+          "requestID" : "req_01nmsodw4x2ai9ocuyybln1t4v",
+          "responseID" : "chatcmpl-76a4f450-377b-11b1-4da0-dab8b41b206a"
+        },
+        "role" : "response"
+      }
+    ]
+  },
+  "type" : "FoundationModels.Transcript",
+  "version" : "1.1"
+}

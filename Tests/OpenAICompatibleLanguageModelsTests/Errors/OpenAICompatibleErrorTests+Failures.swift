@@ -44,11 +44,6 @@ extension OpenAICompatibleErrorTests {
             arguments: [
                 (429, #"{"error":{"message":"Rate limit reached.","type":"requests","code":"rate_limit_exceeded"}}"#, Outcome.rateLimited),
                 (
-                    413,
-                    #"{"message":"Request too large for model `qwen/qwen3.8-27b` on tokens per minute (TPM): Limit 6000, Requested 9000, please reduce your message size and try again.","type":"tokens","code":"rate_limit_exceeded"}"#,
-                    .moduleError("rate_limit_exceeded", quotaExhausted: false)
-                ),
-                (
                     429,
                     #"{"error":{"message":"You exceeded your current quota.","type":"insufficient_quota","code":"insufficient_quota"}}"#,
                     .moduleError(.insufficientQuota, quotaExhausted: true)

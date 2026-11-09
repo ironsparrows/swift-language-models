@@ -53,112 +53,17 @@ extension PresetTests {
             }
         }
 
-        @Test func `a tool call's thought signature goes back on that call, and the answer names Google AI Studio as its host`()
-            async throws
-        {
-            let stub = HTTPStub(.eventStream(Data(Self.toolRound.utf8)), chunks(text("It's 17 degrees in Paris."), finish()))
-            let session = LanguageModelSession(model: gemini(stub), tools: [WeatherTool()])
-
-            let response = try await session.respond(to: "What is the weather in Paris?")
-
-            #expect(response.content == "It's 17 degrees in Paris.")
-            #expect(Self.signatures(in: session.transcript) == [Data("dGVzdC1zaWduYXR1cmUtY2FsbA==".utf8)])
-            #expect(Self.toolCalls(in: session.transcript)?.openAICompatible.finishReason == .stop)
-            #expect(Self.toolCalls(in: session.transcript)?.providerMetadata.host == "Google AI Studio")
-            assertInlineSnapshot(of: stub.requests[1].body, as: .memberLines) {
-                #"""
-                {
-                  "model": "gemini-3.1-flash-lite",
-                  "messages": [
-                    {
-                      "role": "user",
-                      "content": "What is the weather in Paris?"
-                    },
-                    {
-                      "role": "assistant",
-                      "tool_calls": [
-                        {
-                          "id": "call_00000000000000000001",
-                          "type": "function",
-                          "function": {
-                            "name": "getWeather",
-                            "arguments": "{\"city\":\"Paris\"}"
-                          },
-                          "extra_content": {
-                            "google": {
-                              "thought_signature": "dGVzdC1zaWduYXR1cmUtY2FsbA=="
-                            }
-                          }
-                        }
-                      ]
-                    },
-                    {
-                      "role": "tool",
-                      "tool_call_id": "call_00000000000000000001",
-                      "content": "It is 17 degrees in Paris."
-                    }
-                  ],
-                  "stream": true,
-                  "stream_options": {
-                    "include_usage": true
-                  },
-                  "tools": [
-                    {
-                      "type": "function",
-                      "function": {
-                        "name": "getWeather",
-                        "description": "Gets the current temperature in a city, in degrees Celsius.",
-                        "parameters": {
-                          "additionalProperties": false,
-                          "properties": {
-                            "city": {
-                              "description": "The city's name.",
-                              "type": "string"
-                            }
-                          },
-                          "required": [
-                            "city"
-                          ],
-                          "title": "Arguments",
-                          "type": "object"
-                        }
-                      }
-                    }
-                  ]
-                }
-                """#
-            }
-        }
-
-        @Test func `a text answer's thought signature goes back on its message, and usage comes from the answer's own chunks`()
-            async throws
-        {
-            let stub = HTTPStub(.eventStream(Data(Self.textAnswer.utf8)), chunks(text("Hello."), finish()))
-            let session = LanguageModelSession(model: gemini(stub))
-
-            let first = try await session.respond(to: "Say hi in one word.")
-            _ = try await session.respond(to: "Again.")
-
-            #expect(first.content == "Hi.")
-            #expect(first.usage.input.totalTokenCount == 7)
-            #expect(
-                try body(stub, 1)["messages"]?[1]
-                    == [
-                        "role": "assistant", "content": "Hi.",
-                        "extra_content": ["google": ["thought_signature": "dGVzdC1zaWduYXR1cmUtdGV4dA=="]],
-                    ])
-        }
-
         @Test func `a signature goes back only to the model that wrote it, so another model gets the placeholder on a call`()
             async throws
         {
-            let calls = HTTPStub(.eventStream(Data(Self.toolRound.utf8)), chunks(text("It's 17 degrees in Paris."), finish()))
-            let texts = HTTPStub(.eventStream(Data(Self.textAnswer.utf8)))
+            let calls = HTTPStub(
+                .eventStream(try Bundle.module.fixture("Recorded/gemini-tools.1.sse")), chunks(text("17 degrees in both."), finish()))
+            let texts = HTTPStub(.eventStream(try Bundle.module.fixture("Recorded/gemini-text.1.sse")))
             let switched = HTTPStub(chunks(text("Cloudy."), finish()), chunks(text("Hello."), finish()))
             let callSession = LanguageModelSession(model: gemini(calls), tools: [WeatherTool()])
             let textSession = LanguageModelSession(model: gemini(texts))
 
-            _ = try await callSession.respond(to: "What is the weather in Paris?")
+            _ = try await callSession.respond(to: "What is the weather in Lisbon and Porto?")
             _ = try await textSession.respond(to: "Say hi in one word.")
             _ = try await LanguageModelSession(
                 model: gemini(switched, id: "gemini-3-pro"), tools: [WeatherTool()], transcript: callSession.transcript
@@ -169,29 +74,12 @@ extension PresetTests {
             #expect(
                 try body(switched)["messages"]?[1]?["tool_calls"]?[0]?["extra_content"]
                     == ["google": ["thought_signature": "skip_thought_signature_validator"]])
-            #expect(try body(switched, 1)["messages"]?[1] == ["role": "assistant", "content": "Hi."])
+            #expect(try body(switched)["messages"]?[1]?["tool_calls"]?[1]?["extra_content"] == nil)
+            #expect(try body(switched, 1)["messages"]?[1] == ["role": "assistant", "content": "Blue"])
         }
 
-        @Test func `of parallel calls, only the first goes back with a signature: Gemini's own, or a placeholder for another provider's`()
-            async throws
-        {
-            // Two calls in one chunk, the first with a signature, as Gemini's docs describe parallel calls; not captured.
-            let parallel = chunks(
-                delta([
-                    "tool_calls": [
-                        [
-                            "id": "call_00000000000000000001", "type": "function",
-                            "function": ["name": "getWeather", "arguments": #"{"city":"Paris"}"#],
-                            "extra_content": ["google": ["thought_signature": "dGVzdC1zaWduYXR1cmUtY2FsbA=="]],
-                        ],
-                        [
-                            "id": "call_00000000000000000002", "type": "function",
-                            "function": ["name": "getWeather", "arguments": #"{"city":"Rome"}"#],
-                        ],
-                    ]
-                ]),
-                finish())
-            let own = HTTPStub(parallel, chunks(text("Mild in both."), finish()))
+        // The recorded tool round shows Gemini's own parallel calls going back, only the first signed.
+        @Test func `of another provider's parallel calls, only the first goes back, with a placeholder`() async throws {
             let elsewhere = HTTPStub(
                 chunks(
                     delta([
@@ -211,17 +99,12 @@ extension PresetTests {
             let continued = HTTPStub(chunks(text("Still mild."), finish()))
             let other = LanguageModelSession(model: model(elsewhere), tools: [WeatherTool()])
 
-            _ = try await LanguageModelSession(model: model(own, on: .gemini.at(own.baseURL)), tools: [WeatherTool()]).respond(
-                to: "Weather in Paris and Rome?")
             _ = try await other.respond(to: "Weather in Paris and Rome?")
             _ = try await LanguageModelSession(
                 model: model(continued, on: .gemini.at(continued.baseURL)), tools: [WeatherTool()], transcript: other.transcript
             ).respond(to: "And now?")
 
-            let signed = try #require(try body(own, 1)["messages"]?[1]?["tool_calls"])
             let placed = try #require(try body(continued)["messages"]?[1]?["tool_calls"])
-            #expect(signed[0]?["extra_content"] == ["google": ["thought_signature": "dGVzdC1zaWduYXR1cmUtY2FsbA=="]])
-            #expect(signed[1]?["extra_content"] == nil)
             #expect(placed[0]?["extra_content"] == ["google": ["thought_signature": "skip_thought_signature_validator"]])
             #expect(placed[1]?["extra_content"] == nil)
         }
@@ -242,21 +125,7 @@ extension PresetTests {
                 error: OpenAICompatibleError(
                     providerName: "Gemini", status: 400, message: "Missing or invalid Authorization header.", code: .authentication,
                     errorType: "INVALID_ARGUMENT")),
-            PresetTests.Rejection(
-                name: "an invalid key", status: 400,
-                body: #"""
-                    [{
-                      "error": {
-                        "code": 400,
-                        "message": "Please pass a valid API key",
-                        "status": "INVALID_ARGUMENT"
-                      }
-                    }
-                    ]
-                    """#,
-                error: OpenAICompatibleError(
-                    providerName: "Gemini", status: 400, message: "Please pass a valid API key", code: .authentication,
-                    errorType: "INVALID_ARGUMENT")),
+            // An invalid key's 400 is the recorded exchange's.
             PresetTests.Rejection(
                 name: "an overloaded model, sent once", status: 503,
                 body: #"""
@@ -329,30 +198,6 @@ extension PresetTests {
             #expect(context.tokenCount == 1_050_000)
         }
 
-        /// Gemini's tool call with its thought signature, then a finish of `stop`, as captured: ids and the signature
-        /// swapped.
-        private static let toolRound = #"""
-            data: {"choices":[{"delta":{"role":"assistant","tool_calls":[{"extra_content":{"google":{"thought_signature":"dGVzdC1zaWduYXR1cmUtY2FsbA=="}},"function":{"arguments":"{\"city\":\"Paris\"}","name":"getWeather"},"id":"call_00000000000000000001","type":"function"}]},"index":0}],"created":1794203010,"id":"test00000000000000000001","model":"gemini-3.1-flash-lite","object":"chat.completion.chunk"}
-
-            data: {"choices":[{"delta":{"role":"assistant"},"finish_reason":"stop","index":0}],"created":1794203010,"id":"test00000000000000000001","model":"gemini-3.1-flash-lite","object":"chat.completion.chunk"}
-
-            data: [DONE]
-
-
-            """#
-
-        /// Gemini's text answer with its usage on each chunk and its thought signature on the last, as captured: the id
-        /// and the signature swapped.
-        private static let textAnswer = #"""
-            data: {"choices":[{"delta":{"content":"Hi.","role":"assistant"},"index":0}],"created":1794202705,"id":"test00000000000000000002","model":"gemini-3.1-flash-lite","object":"chat.completion.chunk","usage":{"completion_tokens":2,"prompt_tokens":7,"total_tokens":9}}
-
-            data: {"choices":[{"delta":{"extra_content":{"google":{"thought_signature":"dGVzdC1zaWduYXR1cmUtdGV4dA=="}},"role":"assistant"},"finish_reason":"stop","index":0}],"created":1794202705,"id":"test00000000000000000002","model":"gemini-3.1-flash-lite","object":"chat.completion.chunk","usage":{"completion_tokens":2,"prompt_tokens":7,"total_tokens":9}}
-
-            data: [DONE]
-
-
-            """#
-
         /// Gemini's 429 on its free tier, as captured.
         private static let rateLimit = #"""
             [{
@@ -400,20 +245,6 @@ extension PresetTests {
             OpenAICompatibleLanguageModel(
                 OpenAICompatibleModel(id, on: .gemini.at(stub.baseURL)), session: stub.session, configuration: .stubbed,
                 auth: .apiKey { "test-key" })
-        }
-
-        /// The signatures of a transcript's reasoning entries.
-        private static func signatures(in transcript: Transcript) -> [Data] {
-            transcript.compactMap { entry in
-                if case .reasoning(let reasoning) = entry { reasoning.signature } else { nil }
-            }
-        }
-
-        /// A transcript's first tool calls.
-        private static func toolCalls(in transcript: Transcript) -> Transcript.ToolCalls? {
-            transcript.lazy.compactMap { entry in
-                if case .toolCalls(let calls) = entry { calls } else { nil }
-            }.first
         }
     }
 }
