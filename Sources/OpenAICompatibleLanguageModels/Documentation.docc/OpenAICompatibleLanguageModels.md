@@ -54,20 +54,31 @@ module re-exports.
 
 - ``OpenAICompatibleModelID``
 
+### Tools, guided generation and reasoning
+
+- <doc:ToolsAndGuidedGeneration>
+- <doc:Reasoning>
+
+### Caching
+
+- <doc:Caching>
+- ``OpenAICompatibleOptions/CacheKey``
+
 ### Attachments
 
+- <doc:Attachments>
 - ``FileAttachment``
 
 ### Request settings
 
 - ``OpenAICompatibleOptions``
-- ``OpenAICompatibleOptions/CacheKey``
 - ``OpenAICompatibleConfiguration``
 - ``RequestRetries``
 - ``ImageEncoding``
 
 ### Results and errors
 
+- <doc:ErrorsAndMetadata>
 - ``FoundationModels/Transcript/Response/openAICompatible``
 - ``FoundationModels/Transcript/ToolCalls/openAICompatible``
 - ``FoundationModels/LanguageModelSession/Usage/openAICompatible``
@@ -77,3 +88,7 @@ module re-exports.
 - ``OpenAICompatibleErrorMetadata``
 - ``OpenAICompatibleError``
 - ``OpenAICompatibleError/Code``
+
+### Reference
+
+- <doc:Mapping>

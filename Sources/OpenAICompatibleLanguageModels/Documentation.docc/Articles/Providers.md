@@ -52,12 +52,12 @@ behind: a member a provider starts to refuse throws its error, and a member it s
 | Refused before sending | | a schema with tools | a required tool call while the model reasons | | |
 | Finish words of its own | | | `insufficient_system_resource` and `aborted` fail the answer | `model_length` counts as the token limit | |
 | Responses kept | | | | | only when the options ask |
-| Retries | none | up to twice | up to twice | none | up to twice, after a rate limit only |
+| Retries | none | up to twice | up to twice | none | up to twice, but after a failed response only for a rate limit |
 | Wait for the next data | 10 minutes | 60 seconds | 10 minutes | 300 seconds | 10 minutes |
 | Host | `Google AI Studio` | `Groq` | `DeepSeek` | `Mistral` | `xAI` |
 
 The servers' presets reach a server at its default local address, and take no key unless the server asks for one;
-`at(_:)` reaches one elsewhere:
+`at(_:)` reaches one elsewhere, as <doc:Attachments#Reach-a-server-on-your-own-network> describes for a device:
 
 | | Ollama | LM Studio | vLLM |
 |---|---|---|---|
@@ -90,7 +90,8 @@ tokens it read there, as the provider reports them in `prompt_tokens_details.cac
 `input_tokens_details.cached_tokens`; a provider that reports them in another member, such as a `cached_tokens` beside
 the others, reads as 0. ``OpenAICompatibleOptions/cacheKey`` goes out as `prompt_cache_key` where the tables say it's
 sent, and to a provider the app describes itself, which may refuse it as a member it doesn't know; the other presets
-leave it out and log it, since their providers refuse it, ignore it or don't document it.
+leave it out and log it, since their providers refuse it, ignore it or don't document it. <doc:Caching> says what each
+provider caches.
 
 ### Gemini
 
@@ -117,7 +118,8 @@ leave it out and log it, since their providers refuse it, ignore it or don't doc
   doesn't take and a temperature out of range name the member in ``OpenAICompatibleError/parameter``. An overloaded
   model's 503 isn't sent again. A prompt over the model's context throws `LanguageModelError.contextSizeExceeded`
   with the sizes Gemini names, in words that weren't seen: on the free tier, whose limit is 250,000 input tokens a
-  minute, such a prompt throws `LanguageModelError.rateLimited` first.
+  minute, Gemini answers such a prompt with a 429 first, so it throws `LanguageModelError.rateLimited`, although no wait
+  lets a single prompt over that limit through.
 - **Caching.** Gemini caches a repeated prefix by itself: after the same instructions of about 6,000 tokens, a second
   request to `gemini-3.1-flash-lite` read 2,033 of its 6,030 input tokens from the cache, and the first reported none.
   Gemini reports them on the answer's last chunk. It takes no cache key: `prompt_cache_key` is a 400, so requests leave
@@ -204,9 +206,9 @@ leave it out and log it, since their providers refuse it, ignore it or don't doc
   xAI's Responses has no `seed`.
 - **The token limit**, `max_output_tokens`, caps the visible answer, not the reasoning or the tool calls.
 - **Left out.** Request metadata, which xAI takes only for compatibility.
-- **Retries and waits.** A failed request is sent again only after a rate limit: xAI may bill a request that failed
-  once its work began, such as one with a 5xx status. Requests wait up to 10 minutes for the next data, since a model
-  that reasons can send nothing for minutes.
+- **Retries and waits.** A failed connection is sent again, but a failed response only after a rate limit, or when its
+  `x-should-retry` is `true`: xAI may bill a request that failed once its work began, such as one with a 5xx status.
+  Requests wait up to 10 minutes for the next data, since a model that reasons can send nothing for minutes.
 - **Prompt cache.** xAI routes requests that share a `prompt_cache_key` to the same cache, which
   ``OpenAICompatibleOptions/cacheKey`` sends: ``OpenAICompatibleOptions/CacheKey/session`` keeps each conversation on
   one key. This wasn't seen.
@@ -228,7 +230,8 @@ leave it out and log it, since their providers refuse it, ignore it or don't doc
   takes.
 - **A required tool call** is refused before it's sent with `LanguageModelError.unsupportedCapability`, since Ollama
   ignores `tool_choice`: the models checked answered such a request without a call.
-- **Usage** comes only when asked, so the preset asks.
+- **Usage** comes only when asked, so the preset asks. Ollama reported no reasoning tokens, so a model's reasoning
+  counts among the output tokens alone.
 - **Caching.** The loaded model reuses what it read of a repeated prefix until it's unloaded: after the same
   instructions of about 2,000 tokens, a second request read 2,020 of its 2,060 input tokens from the cache.
 - **Waits and retries.** A failed request isn't sent again, and requests wait up to 10 minutes for the next data,
@@ -254,8 +257,8 @@ leave it out and log it, since their providers refuse it, ignore it or don't doc
   preset's efforts leave out.
 - **Left out.** Request metadata and a cache key, which LM Studio's documentation doesn't list, and `top_k`, which it
   lists for this format without saying what it does there.
-- **Tool calls.** LM Studio makes a required call only with its llama.cpp engine, and is reported to answer one empty
-  there too.
+- **Tool calls.** LM Studio is reported to make a required call only with its llama.cpp engine, and to answer one
+  empty there too.
 - **A prompt over the model's context** is cut in the middle to fit, with no error, by LM Studio's default setting.
   With the model's context overflow set to stop at the limit, LM Studio is reported to end the stream with an error,
   after its HTTP 200, which throws `LanguageModelError.contextSizeExceeded` with the sizes LM Studio names.

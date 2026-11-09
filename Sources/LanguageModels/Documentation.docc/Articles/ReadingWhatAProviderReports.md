@@ -38,7 +38,7 @@ answer's text.
 
 ### Read what an answer cost and counted
 
-A response's `usage` holds Foundation Models' token counts. OpenRouter's and OpenAI's models keep the prompt's counts in
+A response's `usage` holds Foundation Models' token counts. The package's provider modules keep the prompt's counts in
 range whatever their provider reports: the prompt's token count is never below zero, and its cached count lies between
 zero and that count.
 ``FoundationModels/LanguageModelSession/Usage/providerMetadata`` reads what the provider reported beyond them as
@@ -78,6 +78,8 @@ code that works with any model, and a provider's reader in code that works with 
   the phase of each of an answer's messages, and what the server tools did: their calls, the pages a web search
   consulted, the files an answer cites, and a generated image's revised prompt, which the image's data entry carries
   too.
+- [`openAICompatible`](https://ironsparrows.github.io/swift-language-models/documentation/openaicompatiblelanguagemodels/errorsandmetadata):
+  the name of the provider that failed, and the prompt tokens a provider wrote to its cache.
 
 ### Apple's guides
 

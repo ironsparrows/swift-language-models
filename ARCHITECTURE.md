@@ -170,6 +170,16 @@ sequenceDiagram
 | 1 and 3: the request and its body | `ResponsesRequest.swift`, over `ResponsesInput.swift` and `ResponsesReplay.swift` |
 | 5 and 6: the stream | `ResponsesStream.swift` |
 
+## An OpenAI-compatible request
+
+`OpenAICompatibleLanguageModel.Executor` takes either path, as its provider's format says: into
+`model.chatCompletions(configuration)` or `model.responses(configuration)`, both in
+`Sources/OpenAICompatibleLanguageModels/Internal/OpenAICompatibleExchange.swift`. One exchange,
+`OpenAICompatibleExchange`, serves both formats, and reads what differs from the `OpenAICompatibleProvider` the model
+runs on: a preset sets internal values there, such as the members its provider refuses, and a provider an app describes
+keeps their defaults. The mapping of a failure is in `OpenAICompatibleError.swift`, and the reasoning that goes back on
+later turns, by provider, in `Internal/OpenAICompatibleReasoning.swift`.
+
 ## What a provider states
 
 A provider says how it differs from the plain format in three places. A provider that takes the format as it is states
@@ -200,7 +210,7 @@ next. Every method but `error(for:)` has a default that adds nothing:
 | `checkAttachment(_:in:)` | both | which inputs the models take | which inputs the model takes | images with vision, but not at a web address for a preset whose provider refuses one, such as Ollama, and the data kinds the details list |
 | `replays(_:)` | both | only to the model that wrote it, not a fallback | only to the model that wrote it, or to the model it's a dated snapshot of | on Responses, to the model that wrote it or the model it's a dated version of; on Chat Completions as the preset says, such as any of DeepSeek's models, or only the Groq, Ollama or vLLM model that wrote it |
 | `replayMembers(for:)` | Chat Completions | `reasoning` and `reasoning_details` on the message, none on its tool calls | | the preset's: the reasoning in DeepSeek's `reasoning_content`, or in the `reasoning` of Groq, Ollama and vLLM, on the message, or Gemini's thought signature on the first tool call or the message |
-| `prepare(_:)` | both | the app's name, address and categories, the response cache, router metadata; fallbacks, routing, plugins, reasoning, penalties, server tools, cache marks | the effort, summary and storage, `text.verbosity`, `parallel_tool_calls` with the session's tools, the service tier, cache key and end user, server tools and the calls the answer keeps, `include`, the sampling a reasoning model doesn't take | on Chat Completions, `stream_options` unless the provider reports usage unasked, the preset's token-limit member, `reasoning_effort` with DeepSeek's `thinking`, and the requests a preset's provider refuses, refused; on Responses, the effort, the storage, which for xAI is off unless the app asks, and `include`; vLLM's and xAI's `top_k`, and the app's members, on both |
+| `prepare(_:)` | both | the app's name, address and categories, the response cache, router metadata; fallbacks, routing, plugins, reasoning, penalties, server tools, cache marks | the effort, summary and storage, `text.verbosity`, `parallel_tool_calls` with the session's tools, the service tier, cache key and end user, server tools and the calls the answer keeps, `include`, the sampling a reasoning model doesn't take | on Chat Completions, `stream_options` unless the provider reports usage unasked, the preset's token-limit member, `reasoning_effort` with DeepSeek's `thinking`, and the requests a preset's provider refuses, refused; on Responses, the effort, the storage, which for xAI is off unless the app asks, and `include`; vLLM's and xAI's `top_k`, the cache key as `prompt_cache_key` where the provider takes it, and the app's members, on both |
 | `read(_:)` | Chat Completions | images and reasoning details | | the delta's `reasoning_content`, or else its `reasoning`, and Gemini's thought signatures |
 | `additions(header:)` | both | the host, cost, router report, cache status | the request's id | a remote preset's host, the request's id from the preset's headers, Gemini's thought signature |
 | `error(for:)` | both, required | `LanguageModelError` or `OpenRouterError` | `LanguageModelError` or `OpenAIError` | `LanguageModelError` or `OpenAICompatibleError`, and `GeneratedContent.ParsingError` for a guided answer Groq says broke its schema |

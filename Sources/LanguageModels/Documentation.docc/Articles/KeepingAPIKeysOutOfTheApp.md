@@ -516,6 +516,7 @@ it expires. Each provider module's article shows its authentication and its prox
 
 - [OpenRouter](https://ironsparrows.github.io/swift-language-models/documentation/openrouterlanguagemodels/authentication)
 - [OpenAI](https://ironsparrows.github.io/swift-language-models/documentation/openailanguagemodels/authentication)
+- [OpenAI-compatible providers](https://ironsparrows.github.io/swift-language-models/documentation/openaicompatiblelanguagemodels/gettingstarted#Keep-the-key-out-of-the-app)
 
 ### Apple's guides
 

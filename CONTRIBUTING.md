@@ -50,6 +50,31 @@ Any pull request but a major one merges once CI passes, and its label releases i
 [Model catalogs](https://ironsparrows.github.io/swift-language-models/documentation/languagemodels/modelcatalogs)
 describes the same rules for the package's users.
 
+## Add a preset
+
+A provider that speaks OpenAI's Chat Completions or Responses format, such as Gemini's or Groq's OpenAI endpoint,
+gets a preset in `OpenAICompatibleLanguageModels` rather than a module of its own:
+
+- A `public static let` on `OpenAICompatibleProvider`, in `OpenAICompatibleProvider.swift`, with its provider's name,
+  URL and format, and a doc comment that shows a model on it and says everything it does differently.
+- The internal values on `OpenAICompatibleProvider` that say how it differs, each with the default of a provider an app
+  describes: the members it leaves out, its token limit's member, how its reasoning goes back, the requests it refuses
+  before sending, its retries and wait, its request id headers, its host, and its words for a failure. Follow the
+  provider's own SDKs. A difference no value covers gets a new internal value, read in `OpenAICompatibleExchange.swift`;
+  one the shared formats can't express is a change to `LanguageModels`, decided on its own.
+- `Presets/PresetTests+<Provider>.swift`, with its defaults, a request body as an inline snapshot, and a test for each
+  value that differs. Recordings of a text answer, a tool round, a guided answer, an answer that reasons, a failure and
+  a cached second turn go in `Fixtures/Recorded/`, ids swapped and the key left out, with a
+  `RecordedExchangeTests+<Provider>.swift` and a row in `RecordedExchangeTests+Caching.swift`. A live suite in `Live/`
+  runs with the provider's key, or for a local server with `LIVE_LOCAL_SERVERS=1`.
+- A section in the Providers article, dated, saying what was checked against the provider and what wasn't, and its
+  rows in that article's tables and in the per-provider tables of the Reasoning, Caching and Errors and metadata
+  articles; its line on the `OpenAICompatibleProvider` page; its name where the README, the landing page and Getting
+  started list the presets; and its cells in [ARCHITECTURE](ARCHITECTURE.md#what-a-provider-states).
+
+A provider that needs what one module for many providers can't give, such as a catalog of typed models, typed settings
+of its own or server tools, gets a module of its own.
+
 ## Add a provider module
 
 A provider module is named `<Vendor>LanguageModels`, and its `<Vendor>LanguageModel` conforms to

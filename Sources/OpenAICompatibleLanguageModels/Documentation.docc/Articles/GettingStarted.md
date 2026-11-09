@@ -18,6 +18,8 @@ This module is all a file needs besides `FoundationModels`, and `Foundation` for
 Sessions, streaming, tools, guided generation and profiles work as Apple's
 [Generating content and performing tasks with Foundation Models](https://developer.apple.com/documentation/foundationmodels/generating-content-and-performing-tasks-with-foundation-models)
 and [LanguageModelSession](https://developer.apple.com/documentation/foundationmodels/languagemodelsession) describe.
+<doc:ToolsAndGuidedGeneration>, <doc:Reasoning>, <doc:Attachments> and <doc:Caching> say what the module does with
+each across providers, and <doc:Mapping> how each request and answer translates.
 
 ### Use a preset
 
@@ -31,7 +33,8 @@ asks for one: `OpenAICompatibleModel("qwen3:8b", on: .ollama, reasoning: .onByDe
 ``OpenAICompatibleAuthentication/unauthenticated``.
 <doc:Providers> says what each preset does, and which were checked against their provider.
 ``OpenAICompatibleProvider/at(_:)`` points a preset at another address, such as a gateway in front of the provider,
-and keeps everything else.
+and keeps everything else. An app on a device reaches a server on a Mac at the Mac's address on the network, and App
+Transport Security needs to allow an IP address, as <doc:Attachments#Reach-a-server-on-your-own-network> describes.
 
 ### Describe another provider
 
@@ -131,4 +134,5 @@ Rate limits, an oversized context, content filters, timeouts and images the prov
 provider's name, code and request id from it. The rest throw ``OpenAICompatibleError``, which names the provider that
 failed and keeps its message, code, error type and request id, and says whether the account's quota ran out. A
 connection that fails throws its `URLError`; for a server on the same Mac, that usually means it isn't running, or
-listens on another port than the provider's URL names.
+listens on another port than the provider's URL names. <doc:ErrorsAndMetadata> lists what each failure becomes, and
+how to read what a provider reports about each answer.
