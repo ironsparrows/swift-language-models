@@ -332,14 +332,15 @@ struct OpenAICompatibleErrorBody: Decodable, Sendable {
         return nil
     }
 
-    /// The wait a `google.rpc.RetryInfo` in an error's `details` names, such as `7s`, or `nil` when there's none.
+    /// The wait a `google.rpc.RetryInfo` in an error's `details` names, such as `7s`, at most a day, or `nil` when
+    /// there's none.
     private static func retryDelay(in details: JSONValue) -> Duration? {
         guard case .array(let entries) = details else { return nil }
         for entry in entries where entry["@type"]?.stringValue?.hasSuffix("google.rpc.RetryInfo") == true {
             guard let delay = entry["retryDelay"]?.stringValue, delay.hasSuffix("s"), let seconds = Double(delay.dropLast()),
-                seconds >= 0
+                seconds >= 0, let wait = Duration(clampedSeconds: seconds)
             else { continue }
-            return .seconds(seconds)
+            return wait
         }
         return nil
     }

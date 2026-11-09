@@ -117,6 +117,20 @@ extension OpenAICompatibleErrorTests {
                         providerName: "Gateway", status: 503, message: "Busy.", code: .server, retryAfter: .seconds(600)))
         }
 
+        @Test(arguments: ["1e30s", "infs"])
+        func `a wait a body's RetryInfo names past a day, or too long to hold, is cut to a day`(delay: String) async {
+            let body = #"""
+                {"error":{"code":400,"message":"Bad.","status":"INVALID_ARGUMENT","details":[{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"\#(delay)"}]}}
+                """#
+            let stub = HTTPStub(.json(body, status: 400))
+
+            let error = await #expect(throws: OpenAICompatibleError.self) {
+                try await LanguageModelSession(model: model(stub)).respond(to: "Hi")
+            }
+
+            #expect(error?.retryAfter == .seconds(86_400))
+        }
+
         @Test func `the module's error prints the provider's name before the message, and logs its kind and code`() {
             let error = OpenAICompatibleError(providerName: "Gateway", status: 401, message: "Invalid API Key", code: .invalidAPIKey)
 

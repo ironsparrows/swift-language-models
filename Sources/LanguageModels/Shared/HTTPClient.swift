@@ -374,8 +374,8 @@ extension RequestRetries {
 // MARK: - Waits a server asks for
 
 extension Duration {
-    /// The longest wait a header can ask for, in seconds: one day. A longer one, or one too large to represent, is cut
-    /// to this.
+    /// The longest wait a provider can ask for, in a header or in its error's body, in seconds: one day. A longer one,
+    /// or one too large to represent, is cut to this.
     private static let longestRetryDelay = 86_400.0
 
     /// The delay in a `Retry-After` header: a number of seconds, or an HTTP date.
@@ -411,8 +411,9 @@ extension Duration {
         self.init(clampedSeconds: reset.timeIntervalSince(now))
     }
 
-    /// A delay of the given seconds, at least zero and at most the longest a header can ask for.
-    private init?(clampedSeconds seconds: Double) {
+    /// A delay of the given seconds, at least zero and at most the longest a provider can ask for, or `nil` for a
+    /// number that isn't one.
+    package init?(clampedSeconds seconds: Double) {
         guard !seconds.isNaN else { return nil }
         self = .seconds(Swift.min(Swift.max(seconds, 0), Self.longestRetryDelay))
     }
