@@ -21,7 +21,8 @@ For another provider whose API speaks OpenAI's formats, such as Gemini, Groq or 
 [`OpenAICompatibleLanguageModels`](https://ironsparrows.github.io/swift-language-models/documentation/openaicompatiblelanguagemodels),
 whose presets carry what each one does differently;
 ``OpenAIAuthentication/apiKey(baseURL:organization:project:_:)`` is for a server that serves OpenAI's own models, such
-as a gateway in front of OpenAI.
+as a gateway in front of OpenAI, or Azure OpenAI's v1 API at `https://{resource}.openai.azure.com/openai/v1/`, with an
+``OpenAIModel`` you describe whose id is the deployment's name. This wasn't run against Azure.
 
 ### Keep the key out of the app
 

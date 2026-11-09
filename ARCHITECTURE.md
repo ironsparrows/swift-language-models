@@ -190,7 +190,7 @@ none of them, apart from the required values on the model and what a failure bec
 | Value | Format | OpenRouter | OpenAI | OpenAI-compatible |
 |---|---|---|---|---|
 | `name`, `url`, `connection`, `providerName`, `capabilities`, `reaching:` | both, required | the variant's model id, a proxy's URL, session, auth and timeouts, `OpenRouter` | the model's id, a proxy's URL, session, auth and timeouts, `OpenAI` | the model's id, the provider's URL or a proxy's, session, auth, the provider's headers and timeouts, the provider's name |
-| `memberOrder` | Chat Completions | the member order hosts cache on | | the format's, with `stream_options`, `reasoning_effort`, `thinking` and `top_k` in it |
+| `memberOrder` | Chat Completions | the member order hosts cache on | | the format's, with `stream_options`, `reasoning_effort`, `thinking`, `top_k` and `prompt_cache_key` in it |
 | `unsupportedMembers` | both | the listed members the model's details don't list | the same | the members a preset's provider refuses, ignores or doesn't document |
 | `media` | Chat Completions | AIFF, M4A, AAC, FLAC and OGG audio, and video | | |
 | `finishReasons` | Chat Completions | | | the preset's: DeepSeek's `insufficient_system_resource` and `aborted` and vLLM's `abort` as `error`, Mistral's `model_length` and vLLM's `repetition` as `length` |

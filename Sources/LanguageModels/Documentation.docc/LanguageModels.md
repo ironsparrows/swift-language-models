@@ -34,7 +34,7 @@ model answers from its details, and for the data it generates, also from the ser
 image generation.
 From OS 27.2, ``FileAttachment`` attaches a file, such as a PDF, to a prompt.
 
-Each model's details name an effort type that lists the model's levels.
+Each catalog model's details name an effort type that lists the model's levels.
 ``DetailedLanguageModel/reasoningLevel(_:)`` takes only those levels:
 
 @Snippet(path: "swift-language-models/Snippets/Effort", slice: "modelLevel")

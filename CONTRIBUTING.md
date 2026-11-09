@@ -250,7 +250,7 @@ else needs:
 
 | Kind | Files | Sections, in order |
 |---|---|---|
-| A provider's model | `OpenRouterLanguageModel.swift`, `OpenAILanguageModel.swift`, `OpenAICompatibleLanguageModel.swift` | Model · Creating a model · Details and capabilities · Settings · Executor |
+| A provider's model | `OpenRouterLanguageModel.swift`, `OpenAILanguageModel.swift`, `OpenAICompatibleLanguageModel.swift` | Model · Creating a model · Details and capabilities, for a model with a catalog · Settings · Executor |
 | A shared model | `ChatCompletionsModel.swift`, `ResponsesModel.swift` | Model · Answering · Executor · Exchange · Plain exchange · Defaults |
 | A provider's exchange | `OpenRouterExchange.swift`, `OpenAIExchange.swift`, `OpenAICompatibleExchange.swift` | As a Chat Completions model (or: As a Responses model, or both) · Exchange · Wire; inside the exchange: While the request is read · Before it is sent · While the answer streams · When it ends, or fails |
 | A request | `ChatCompletionsRequest.swift`, `ResponsesRequest.swift` | Request · Reading · Body · Wire |

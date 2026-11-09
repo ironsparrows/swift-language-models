@@ -18,9 +18,9 @@ still be described by hand, with the initializer of the module's details type.
 The package's generator reads each provider's model list and writes three things:
 
 - A snapshot of the list, in `Catalogs/` in the package's repository.
-- Each provider module's static members, an effort type for each model, the words of its provider's API, such as
-  parameter names, and for each model the provider stopped listing the day it left, which ``ModelDetails/removalDate``
-  reads, in the module's `Generated/` folder.
+- The static members of each module with a catalog, an effort type for each model, the words of its provider's API, such
+  as parameter names, and for each model the provider stopped listing the day it left, which
+  ``ModelDetails/removalDate`` reads, in the module's `Generated/` folder.
 - The named reasoning levels, such as `.xhigh`, which every provider module shares.
 
 A bot in the repository runs the generator for every provider at once, and opens one pull request with the changes and
