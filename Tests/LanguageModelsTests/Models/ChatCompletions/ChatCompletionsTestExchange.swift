@@ -12,11 +12,18 @@ struct ChatCompletionsTestExchange: ChatCompletions.Exchange {
     /// What the exchange adds to a request's members and choices.
     var prepares: @Sendable (inout ChatCompletions.Request) throws -> Void = { _ in }
 
+    /// Checks an attachment of an entry, which the default takes.
+    var checks: @Sendable (AttachmentKind, Transcript.Entry) throws(LanguageModelError) -> Void = { _, _ in }
+
     /// The key under which an assistant message carries the text of the reasoning it sends back, or `nil` to send none.
     var reasoningMember: String?
 
     /// The host the chunks named.
     private var host: String?
+
+    func checkAttachment(_ kind: AttachmentKind, in entry: Transcript.Entry) throws(LanguageModelError) {
+        try checks(kind, entry)
+    }
 
     func prepare(_ request: inout ChatCompletions.Request) throws {
         request.headers = ["X-Test": "yes"]

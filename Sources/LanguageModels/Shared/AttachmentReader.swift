@@ -66,7 +66,7 @@ struct AttachmentReader {
     ) throws -> Content {
         switch segment.content {
         case .image(let image):
-            try check(.image)
+            try check(.image(webAddress: image.url.flatMap { $0.isWebAddress ? $0 : nil }))
             return try content(of: image, in: entry)
         default:
             #if canImport(FoundationModels, _version: 2.1.14)
@@ -94,7 +94,7 @@ struct AttachmentReader {
                 EncodedImage(contentsOf: url, orientation: orientation, maximumSide: maximumImageSide, quality: quality)
             }
         case let url?:
-            guard ["http", "https"].contains(url.scheme?.lowercased()) else {
+            guard url.isWebAddress else {
                 throw LanguageModelError.unsupported(entry, "\(provider) takes images only at http and https addresses.")
             }
             guard image.orientation == .up else {
@@ -170,14 +170,23 @@ extension Transcript.AttachmentSegment {
     }
 }
 
+extension URL {
+    /// Whether the URL is an http or https address, which a provider fetches itself.
+    fileprivate var isWebAddress: Bool {
+        ["http", "https"].contains(scheme?.lowercased())
+    }
+}
+
 // MARK: - Kinds
 
 /// The kind of an attachment, which a provider reads to check that its models take it.
 package enum AttachmentKind: Sendable, Equatable {
-    /// An image attachment.
-    case image
+    /// An image attachment, with its address when it's at an http or https one, which goes to the provider as that
+    /// address, or `nil` otherwise. An image read from a file or from memory goes as JPEG.
+    case image(webAddress: URL?)
 
-    /// A data attachment of a content type, such as a PDF or audio.
+    /// A data attachment of a content type, such as a PDF or audio. An image the system can read goes as JPEG,
+    /// whatever its type.
     case data(UTType)
 }
 
