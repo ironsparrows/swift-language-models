@@ -90,25 +90,38 @@ struct GoldenFileTests {
         #expect(!models.contains(#"case "vendor/gone":"#))
     }
 
-    @Test func `the removals list each removed model with the day it left, by id`() throws {
+    @Test(arguments: [
+        (
+            1,
+            """
+                static let openRouter = ModelRemovals([
+                    "vendor/gone": Date(timeIntervalSince1970: 1_793_232_000)
+                ])
+            """
+        ),
+        (
+            2,
+            """
+                static let openRouter = ModelRemovals([
+                    "vendor/also-gone": Date(timeIntervalSince1970: 1_793_404_800),
+                    "vendor/gone": Date(timeIntervalSince1970: 1_793_232_000),
+                ])
+            """
+        ),
+    ])
+    func `the removals list each removed model with the day it left, by id, with a comma after each unless it's alone`(
+        count: Int, expected: String
+    ) throws {
         let removed = [
             RemovedModel(model: catalogModel("vendor/gone"), removedOn: "2026-10-29"),
             RemovedModel(model: catalogModel("vendor/also-gone"), removedOn: "2026-10-31"),
         ]
 
         let removals = try rendered(
-            ModelRemovalsTemplate.path(for: .openrouter), from: catalogSnapshot(catalogModel("vendor/kept"), removed: removed))
+            ModelRemovalsTemplate.path(for: .openrouter),
+            from: catalogSnapshot(catalogModel("vendor/kept"), removed: Array(removed.prefix(count))))
 
-        #expect(
-            removals.contains(
-                """
-                    static let openRouter = ModelRemovals([
-                        "vendor/also-gone": Date(timeIntervalSince1970: 1_793_404_800),
-                        "vendor/gone": Date(timeIntervalSince1970: 1_793_232_000),
-                    ])
-                """
-            )
-        )
+        #expect(removals.contains(expected))
     }
 
     @Test func `a retiring model is deprecated and stays in the lookup`() throws {

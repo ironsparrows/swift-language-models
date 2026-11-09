@@ -100,7 +100,8 @@ enum ModelRemovalsTemplate {
         "\(source.generatedDirectory)/ModelRemovals+\(source.swiftName).swift"
     }
 
-    /// The source's file of removal days, whose table is empty when the catalog keeps no removed model.
+    /// The source's file of removal days, whose table is empty when the catalog keeps no removed model, and has a comma
+    /// after each entry when it has two or more, as swift-format writes a list.
     static func render(_ snapshot: CatalogSnapshot) -> GeneratedFile {
         let source = snapshot.source
         let removed = snapshot.removed.sorted { $0.model.id < $1.model.id }
@@ -115,7 +116,8 @@ enum ModelRemovalsTemplate {
             lines += ["    static let \(member) = ModelRemovals([:])"]
         } else {
             lines += ["    static let \(member) = ModelRemovals(["]
-            lines += removed.map { "        \(SwiftLiteral.string($0.model.id)): \(SwiftLiteral.date($0.removedOn))," }
+            let comma = removed.count > 1 ? "," : ""
+            lines += removed.map { "        \(SwiftLiteral.string($0.model.id)): \(SwiftLiteral.date($0.removedOn))\(comma)" }
             lines += ["    ])"]
         }
         lines += ["}"]
