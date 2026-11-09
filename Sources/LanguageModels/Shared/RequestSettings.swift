@@ -137,6 +137,25 @@ extension JSONObject {
             if self[member.key] == nil { self[member.key] = member.value }
         }
     }
+
+    /// Puts an app's members over a body: each replaces the body's member of the same key in place, or goes after the
+    /// body's members, except the essential ones, which stay as the body has them, or out of it.
+    ///
+    /// - Parameters:
+    ///   - members: The app's members.
+    ///   - essential: The keys of the members only the request writes, since the answer depends on them.
+    /// - Returns: The keys of the app's members left out, in their order.
+    mutating func override(with members: JSONObject, keeping essential: Set<String>) -> [String] {
+        var kept: [String] = []
+        for member in members.members {
+            if essential.contains(member.key) {
+                kept.append(member.key)
+            } else {
+                self[member.key] = member.value
+            }
+        }
+        return kept
+    }
 }
 
 // MARK: - Adjustments
@@ -165,8 +184,12 @@ enum RequestAdjustment: Equatable, Sendable {
     /// A token limit below the fewest output tokens the provider takes, sent as that fewest instead.
     case raisedTokenLimit(requested: Int, sent: Int)
 
-    /// The adjustments in the order the log reports them: settings left out, then the token limit, then metadata, then
-    /// the reasoning effort, each kind in the order the request made them.
+    /// An app's members left out, by key, because only the request writes them, since the answer depends on them, such
+    /// as `stream`.
+    case keptMembers([String])
+
+    /// The adjustments in the order the log reports them: settings and members left out, then the token limit, then
+    /// metadata, then the reasoning effort, each kind in the order the request made them.
     ///
     /// - Parameter adjustments: The request's adjustments, in the order it made them.
     /// - Returns: The same adjustments, in the log's order.
@@ -177,7 +200,7 @@ enum RequestAdjustment: Equatable, Sendable {
     /// The adjustment's place in the log.
     private var logRank: Int {
         switch self {
-        case .unlistedParameters, .unsentSettings: 0
+        case .unlistedParameters, .unsentSettings, .keptMembers: 0
         case .raisedTokenLimit: 1
         case .droppedMetadata: 2
         case .movedEffort: 3
@@ -216,6 +239,11 @@ extension RequestAdjustment {
                 "The request to \(model) leaves out \(settings.joined(separator: ", ")), which \(provider) doesn't take for this request."
         case .raisedTokenLimit(let requested, let sent):
             return "The request to \(model) sends a token limit of \(sent), the fewest \(provider) takes, instead of \(requested)."
+        case .keptMembers(let keys):
+            return """
+                The request to \(model) leaves out \(keys.joined(separator: ", ")) from the app's members, since only the request \
+                writes those.
+                """
         }
     }
 

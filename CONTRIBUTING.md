@@ -150,7 +150,7 @@ Code lives in the narrowest place that every user of it can reach:
 | `TranscriptTurn.swift` | The transcript as provider APIs take it: turns, a turn's segments as a format's parts, the first prompt's id, and which reasoning goes back. |
 | `AttachmentReader.swift` | An attachment as content to send: kinds, text, PDFs, data URLs. |
 | `EncodedImage.swift` | An image as JPEG no larger than a size, and the bounded cache of encoded images. |
-| `RequestSettings.swift` | What a request sends of the app's settings: sampling, tool choice, metadata within its limits, the body with the provider's members, and what it leaves out or changes. |
+| `RequestSettings.swift` | What a request sends of the app's settings: sampling, tool choice, metadata within its limits, the body with the provider's members and the app's over them, and what it leaves out or changes. |
 | `AnswerChannel.swift` | Writing one answer to Foundation Models' channel: text, reasoning, reasoning tagged inside the text, tool calls assembled from fragments, data, citations, how an answer ends, facts and usage. |
 | `RequestFailure.swift` | A failure before a provider maps it, and the helpers that map it. |
 

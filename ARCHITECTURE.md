@@ -202,10 +202,14 @@ next. Every method but `error(for:)` has a default that adds nothing:
 | `error(for:)` | both, required | `LanguageModelError` or `OpenRouterError` | `LanguageModelError` or `OpenAIError` |
 
 **On the request,** in `prepare(_:)`, what depends on the one request. Chat Completions has `headers`, `members`,
-`sendsSessionTools`, `serverTools`, `tokenLimitMember`, `usesPortableSchema`, `instructionsMark` and `movedEffort`.
-Responses has `members`, `sendsSessionTools`, `serverTools`, `serverToolCalls`, `reasoning`, `movedEffort`, `storage`,
-`include`, `textMembers` and `leftOutMembers`. An exchange can't change what the messages say or the settings the app
-asked for.
+`overridingMembers`, `sendsSessionTools`, `serverTools`, `tokenLimitMember`, `usesPortableSchema`, `instructionsMark`
+and `movedEffort`. Responses has `members`, `overridingMembers`, `sendsSessionTools`, `serverTools`, `serverToolCalls`,
+`reasoning`, `movedEffort`, `storage`, `include`, `textMembers` and `leftOutMembers`. An exchange can't change what the
+messages say or the settings the app asked for. A provider's `members` never share a key with the format's; the app's,
+in `overridingMembers`, replace the format's and the provider's and go out even when the model doesn't list them or,
+on Responses, the provider doesn't take them with the request's other settings, all but the model, the transcript,
+`stream` and `tools`, which the answer depends on: the request leaves those out and logs them. On Responses, an app's
+`store` also decides which items go back by their ids.
 
 Implement a method that has a default in the type that declares the conformance: only there does a misspelled one draw a
 warning, which CI's `-warnings-as-errors` turns into an error, instead of silently keeping the default.

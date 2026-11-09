@@ -205,5 +205,74 @@ extension ResponsesModelTests {
             #expect(sent.body["temperature"] == nil)
             #expect(sent.adjustments == [.unsentSettings(["temperature"]), .movedEffort(requested: "medium", sent: "low")])
         }
+
+        @Test(
+            arguments: [
+                ([:], [:], [], [.unsentSettings(["top_k", "seed"])]),
+                (["top_k": 40], [:], [], [.unsentSettings(["seed"])]),
+                ([:], ["top_k": 20, "seed": 3], [], []),
+                (["top_k": 40], [:], ["top_k"], [.unsentSettings(["top_k", "seed"])]),
+            ] as [(JSONObject, JSONObject, Set<Responses.Member>, [RequestAdjustment])])
+        func `top_k and a seed go out only as members, and are noted once when none carries them`(
+            members: JSONObject, overridingMembers: JSONObject, leftOut: Set<Responses.Member>, adjustments: [RequestAdjustment]
+        ) throws {
+            var model = Responses.Model<ResponsesTestExchange>.test()
+            model.exchange.prepares = { request in
+                request.members = members
+                request.overridingMembers = overridingMembers
+                request.leftOutMembers = leftOut
+            }
+            let options = GenerationOptions(samplingMode: .random(top: 40, seed: 3))
+
+            let sent = try ResponsesSentRequest(generationRequest([prompt(text("Hi"))], options: options), model: model)
+
+            #expect(sent.adjustments == adjustments)
+        }
+
+        @Test func `the app's members replace any but the four the answer depends on, though the provider doesn't take them`() throws {
+            var model = Responses.Model<ResponsesTestExchange>.test()
+            model.unsupportedMembers = [.maxOutputTokens]
+            model.exchange.prepares = { request in
+                request.members = ["service_tier": "flex"]
+                request.leftOutMembers = [.temperature]
+                request.reasoning = .init(effort: "low")
+                request.movedEffort = .init(requested: "medium", sent: "low")
+                request.overridingMembers = [
+                    "max_output_tokens": 8, "service_tier": "priority", "temperature": 1, "input": [], "verbosity": "low", "tools": [],
+                    "metadata": ["team": "coach"], "reasoning": ["effort": "high"],
+                ]
+            }
+            let options = GenerationOptions(temperature: 0.2, maximumResponseTokens: 10)
+            let request = generationRequest([prompt(text("Hi"))], options: options, metadata: ["count": 3])
+
+            let sent = try ResponsesSentRequest(request, model: model)
+
+            #expect(
+                keys(sent.body) == [
+                    "model", "input", "stream", "reasoning", "temperature", "max_output_tokens", "service_tier", "verbosity", "metadata",
+                ])
+            #expect(sent.body["temperature"] == 1)
+            #expect(sent.body["max_output_tokens"] == 8)
+            #expect(sent.body["service_tier"] == "priority")
+            #expect(sent.body["metadata"] == ["team": "coach"])
+            #expect(sent.body["reasoning"] == ["effort": "high"])
+            #expect(input(sent.body).count == 1)
+            #expect(sent.adjustments == [.keptMembers(["input", "tools"])])
+        }
+
+        @Test func `the app's members go out on the portable schema's retry too, and the app's text leaves no schema to retry with`() throws
+        {
+            var model = Responses.Model<ResponsesTestExchange>.test()
+            model.exchange.prepares = { $0.overridingMembers = ["temperature": 1.5] }
+            let request = generationRequest([prompt(text("Rate it."))], schema: Rating.generationSchema)
+
+            let portable = try ResponsesSentRequest(request, model: model).portableSchemaBody
+            model.exchange.prepares = { $0.overridingMembers = ["text": ["format": ["type": "json_object"]]] }
+            let replaced = try ResponsesSentRequest(request, model: model)
+
+            #expect(portable?["temperature"] == 1.5)
+            #expect(replaced.body["text"] == ["format": ["type": "json_object"]])
+            #expect(replaced.portableSchemaBody == nil)
+        }
     }
 }

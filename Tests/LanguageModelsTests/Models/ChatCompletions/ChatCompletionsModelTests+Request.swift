@@ -188,6 +188,74 @@ extension ChatCompletionsModelTests {
             #expect(sent.first?["content"] == [["type": "text", "text": "Be brief.", "cache_control": ["type": "ephemeral"]]])
         }
 
+        @Test(
+            arguments: [
+                ([:], [:], [], [.unsentSettings(["top_k"])]),
+                (["top_k": 40], [:], [], []),
+                ([:], ["top_k": 20], [], []),
+                (["top_k": 40], [:], ["top_k"], [.unlistedParameters(["top_k"])]),
+            ] as [(JSONObject, JSONObject, Set<ChatCompletions.Member>, [RequestAdjustment])])
+        func `top_k goes out only as a member, and is noted once when none carries it`(
+            members: JSONObject, overridingMembers: JSONObject, unsupported: Set<ChatCompletions.Member>, adjustments: [RequestAdjustment]
+        ) throws {
+            var model = ChatCompletions.Model<ChatCompletionsTestExchange>.test()
+            model.unsupportedMembers = unsupported
+            model.exchange.prepares = { request in
+                request.members = members
+                request.overridingMembers = overridingMembers
+            }
+            let options = GenerationOptions(samplingMode: .random(top: 40, seed: 3))
+
+            let sent = try ChatCompletionsSentRequest(generationRequest([prompt(text("Hi"))], options: options), model: model)
+
+            #expect(sent.adjustments == adjustments)
+        }
+
+        @Test func `the app's members replace any but the four the answer depends on, though the models don't list them`() throws {
+            var model = ChatCompletions.Model<ChatCompletionsTestExchange>.test()
+            model.unsupportedMembers = [.temperature, .metadata]
+            model.exchange.prepares = { request in
+                request.members = ["models": ["vendor/fallback"], "plugins": []]
+                request.movedEffort = .init(requested: "medium", sent: "low")
+                request.overridingMembers = [
+                    "keep_alive": "5m", "stream": false, "temperature": 1.5, "plugins": [["id": "web"]], "model": "other", "messages": [],
+                    "tools": [], "metadata": ["team": "coach"],
+                ]
+            }
+            let options = GenerationOptions(temperature: 0.2)
+            let request = generationRequest([prompt(text("Hi"))], options: options, metadata: ["count": 3])
+
+            let sent = try ChatCompletionsSentRequest(request, model: model)
+
+            #expect(keys(sent.body) == ["model", "models", "messages", "stream", "temperature", "plugins", "keep_alive", "metadata"])
+            #expect(sent.body["model"] == "vendor/model")
+            #expect(sent.body["stream"] == true)
+            #expect(sent.body["temperature"] == 1.5)
+            #expect(sent.body["plugins"] == [["id": "web"]])
+            #expect(sent.body["metadata"] == ["team": "coach"])
+            #expect(messages(sent.body).count == 1)
+            #expect(
+                sent.adjustments == [
+                    .keptMembers(["stream", "model", "messages", "tools"]), .movedEffort(requested: "medium", sent: "low"),
+                ])
+        }
+
+        @Test func `the app's members go out on the portable schema's retry too, and the app's response_format leaves none to retry with`()
+            throws
+        {
+            var model = ChatCompletions.Model<ChatCompletionsTestExchange>.test()
+            model.exchange.prepares = { $0.overridingMembers = ["temperature": 1.5] }
+            let request = generationRequest([prompt(text("Rate it."))], schema: Rating.generationSchema)
+
+            let portable = try ChatCompletionsSentRequest(request, model: model).portableSchemaBody
+            model.exchange.prepares = { $0.overridingMembers = ["response_format": ["type": "json_object"]] }
+            let replaced = try ChatCompletionsSentRequest(request, model: model)
+
+            #expect(portable?["temperature"] == 1.5)
+            #expect(replaced.body["response_format"] == ["type": "json_object"])
+            #expect(replaced.portableSchemaBody == nil)
+        }
+
         /// Options that set each of the format's members for them.
         private var everySetting: GenerationOptions {
             GenerationOptions(

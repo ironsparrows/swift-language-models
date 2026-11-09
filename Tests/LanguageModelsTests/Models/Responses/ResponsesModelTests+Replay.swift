@@ -115,7 +115,14 @@ extension ResponsesModelTests {
             #expect(items == [["role": "user", "content": "Hi"], ["role": "user", "content": "Again."]])
         }
 
-        @Test func `a request the provider doesn't store sends back only reasoning items with their reasoning encrypted`() throws {
+        @Test(
+            arguments: [
+                (.notStored, nil, ["rs_1"]), (.automatic, nil, ["rs_1", "rs_2"]), (.automatic, false, ["rs_1"]),
+                (.notStored, true, ["rs_1", "rs_2"]), (.notStored, .null, ["rs_1", "rs_2"]),
+            ] as [(Responses.Request.Storage, JSONValue?, [JSONValue])])
+        func `a request the provider doesn't store, by the exchange's storage or the app's store, sends back only encrypted reasoning`(
+            storage: Responses.Request.Storage, store: JSONValue?, ids: [JSONValue]
+        ) throws {
             let encrypted: JSONValue = ["type": "reasoning", "id": "rs_1", "summary": [], "encrypted_content": "blob"]
             let stored: JSONValue = ["type": "reasoning", "id": "rs_2", "summary": []]
             let reasoning = Transcript.Reasoning(
@@ -126,13 +133,14 @@ extension ResponsesModelTests {
                 prompt(text("Again.")),
             ]
             var model = Responses.Model<ResponsesTestExchange>.test()
-            model.exchange.prepares = { $0.storage = .notStored }
+            model.exchange.prepares = { request in
+                request.storage = storage
+                request.overridingMembers = ["store": store]
+            }
 
-            let notStored = input(try ResponsesSentRequest(generationRequest(entries), model: model).body)
-            let automatic = input(try ResponsesSentRequest(generationRequest(entries)).body)
+            let sent = input(try ResponsesSentRequest(generationRequest(entries), model: model).body)
 
-            #expect(notStored.filter { $0["type"] == "reasoning" } == [encrypted])
-            #expect(automatic.filter { $0["type"] == "reasoning" } == [encrypted, stored])
+            #expect(sent.filter { $0["type"] == "reasoning" }.compactMap { $0["id"] } == ids)
         }
 
         @Test func `an answer that ends in tool calls keeps its messages' phases on its first call`() throws {
