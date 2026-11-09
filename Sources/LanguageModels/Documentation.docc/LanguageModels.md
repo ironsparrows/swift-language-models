@@ -19,12 +19,13 @@ Describe provider modules' models and choose their reasoning level in Foundation
 
 ![The Swift Language Models icon: a network of model providers on an indigo background.](swift-language-models-icon)
 
-Each provider module plugs one provider's models into Foundation Models:
+Each provider module plugs a provider's models into Foundation Models:
 
 | Provider | Module |
 |---|---|
 | [OpenRouter](https://openrouter.ai) | [`OpenRouterLanguageModels`](https://ironsparrows.github.io/swift-language-models/documentation/openrouterlanguagemodels) |
 | [OpenAI](https://openai.com/api/) | [`OpenAILanguageModels`](https://ironsparrows.github.io/swift-language-models/documentation/openailanguagemodels) |
+| Any provider whose API speaks OpenAI's Chat Completions or Responses format | [`OpenAICompatibleLanguageModels`](https://ironsparrows.github.io/swift-language-models/documentation/openaicompatiblelanguagemodels) |
 
 This module holds what the provider modules share. A provider module's model conforms to ``DetailedLanguageModel``,
 so it carries ``ModelDetails``: its name, capabilities, context size, the reasoning levels it accepts and the kinds of

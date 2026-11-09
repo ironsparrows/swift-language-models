@@ -94,7 +94,8 @@ In this repository:
   the table has its `removalDate`, as `RemovalDateTests` does for OpenRouter.
 - Nest a public `Executor` in the model, conforming to Foundation Models' `LanguageModelExecutor`. Keep its `Configuration`
   to where requests go and how they're sent, with no secrets. Its `respond` is one line: it derives the shared model and
-  calls that model's `respond`, as `OpenRouterLanguageModel.Executor` does. The function that derives it, such as
+  calls that model's `respond`, as `OpenRouterLanguageModel.Executor` does, or one per format for a module whose
+  providers speak either, as `OpenAICompatibleLanguageModel.Executor` does. The function that derives it, such as
   `chatCompletions(_:)`, opens the provider's exchange file and sets the values
   [ARCHITECTURE](ARCHITECTURE.md#what-a-provider-states) lists. Pass `reaching:` every model a request may reach, in the
   order the provider tries them, so the shared model reports the removed ones.
@@ -116,7 +117,7 @@ In this repository:
   `ProviderResponseMetadata`, `ProviderUsageMetadata` and `ProviderErrorMetadata`, and give apps a reader named for the
   provider, such as `openRouter`. Its keys live in the module's metadata file, private to it, apart from the
   `phasesKey` and `serverToolsKey` the shared Responses model takes.
-- Log through a `PackageLogger` with a category named after the module, which writes only at the levels the app's
+- Log through a `PackageLogger` with a category named for the provider, which writes only at the levels the app's
   `LanguageModelsLogging.minimumLevel` lets through. Where the module works around a likely mistake, such as a setting
   the model doesn't take, log it at the info level and call `runtimeWarning(_:)`, which shows a runtime warning in a
   debug build.
@@ -137,7 +138,8 @@ Code lives in the narrowest place that every user of it can reach:
   what both use. Only `Exports.swift` is `public`, which CI checks. A provider writes `package` names, and the rest stays
   internal. Its tests run on the plain models, so they check a format alone.
 - **A provider module** holds what only its provider has: its public types, its exchange, its catalog and info calls and
-  its errors. Its public types never name a format's types.
+  its errors, or for `OpenAICompatibleLanguageModels`, what any provider that speaks the formats needs. Its public types
+  never name a format's types.
 
 `Shared/` is flat, and each file owns one thing:
 
@@ -223,14 +225,14 @@ else needs:
 
 | Kind | Files | Sections, in order |
 |---|---|---|
-| A provider's model | `OpenRouterLanguageModel.swift`, `OpenAILanguageModel.swift` | Model · Creating a model · Details and capabilities · Settings · Executor |
+| A provider's model | `OpenRouterLanguageModel.swift`, `OpenAILanguageModel.swift`, `OpenAICompatibleLanguageModel.swift` | Model · Creating a model · Details and capabilities · Settings · Executor |
 | A shared model | `ChatCompletionsModel.swift`, `ResponsesModel.swift` | Model · Answering · Executor · Exchange · Plain exchange · Defaults |
-| A provider's exchange | `OpenRouterExchange.swift`, `OpenAIExchange.swift` | As a Chat Completions model (or: As a Responses model) · Exchange · Wire; inside the exchange: While the request is read · Before it is sent · While the answer streams · When it ends, or fails |
+| A provider's exchange | `OpenRouterExchange.swift`, `OpenAIExchange.swift`, `OpenAICompatibleExchange.swift` | As a Chat Completions model (or: As a Responses model, or both) · Exchange · Wire; inside the exchange: While the request is read · Before it is sent · While the answer streams · When it ends, or fails |
 | A request | `ChatCompletionsRequest.swift`, `ResponsesRequest.swift` | Request · Reading · Body · Wire |
 | A transcript reader | `ChatCompletionsTranscript.swift`, `ResponsesInput.swift` | Turns · Attachments · Wire |
 | A stream | `ChatCompletionsStream.swift`, `ResponsesStream.swift` | Stream · Receiving · Finishing · Wire |
-| A provider's error | `OpenRouterError.swift`, `OpenAIError.swift` | Error · Codes · Response body · What a failure becomes · Logging |
-| A module's metadata | `ProviderMetadata.swift`, `OpenRouterMetadata.swift`, `OpenAIMetadata.swift` | Response · Usage · Generated data · Error · Reading · Keys |
+| A provider's error | `OpenRouterError.swift`, `OpenAIError.swift`, `OpenAICompatibleError.swift` | Error · Codes · Response body · What a failure becomes · Logging |
+| A module's metadata | `ProviderMetadata.swift`, `OpenRouterMetadata.swift`, `OpenAIMetadata.swift`, `OpenAICompatibleMetadata.swift` | Response · Usage · Generated data · Error · Reading · Keys |
 
 The groups inside an exchange are the marks of the protocol, so the protocol and each provider's conformance read alike
 in the jump bar.
@@ -243,7 +245,7 @@ Each behavior is tested at one level, and a test earns its place by catching a b
 |---|---|---|
 | 1 Contract | `LanguageModelsCoreTests` | it needs no HTTP: it's a function of the core's own types. |
 | 2 Shared models | `LanguageModelsTests` | the plain model shows it, so every provider of the format gets it. Transport, every split point of a stream, the parts with an algorithm of their own, and one suite over real loopback HTTP are here too. |
-| 3 Providers | `OpenRouterLanguageModelsTests`, `OpenAILanguageModelsTests` | it differs from the plain model: a member, a header, a chunk member, an error mapping, an option. Exact exchanges pin whole requests and answers, and one test goes through public API alone over loopback HTTP. |
+| 3 Providers | `OpenRouterLanguageModelsTests`, `OpenAILanguageModelsTests`, `OpenAICompatibleLanguageModelsTests` | it differs from the plain model: a member, a header, a chunk member, an error mapping, an option. Exact exchanges pin whole requests and answers, and one test goes through public API alone over loopback HTTP. |
 | 4 Live | each provider's `Live/` folder | only the real provider can show it. Tagged, and skipped without a key. |
 
 A test may not assert what a lower level owns. An OpenRouter server-tool test asserts the member OpenRouter adds, and

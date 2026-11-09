@@ -101,12 +101,14 @@ nonisolated var swiftSettings: [SwiftSetting] {
     ]
 }
 
-// Each provider is a module named `<Name>LanguageModels`, with its own library product and test target. Adding a
-// provider here creates them; the module depends on `LanguageModels` and re-exports it.
+// Each provider module is named `<Name>LanguageModels`, with its own library product and test target: one each for
+// OpenRouter and OpenAI, and `OpenAICompatible` for any provider that speaks OpenAI's formats. Adding one here creates
+// them; the module depends on `LanguageModels` and re-exports it.
 var providers: [Provider] {
     [
         provider("OpenRouter"),
         provider("OpenAI"),
+        provider("OpenAICompatible"),
     ]
 }
 

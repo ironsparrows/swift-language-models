@@ -8,12 +8,12 @@ Each word below means one thing, here, in code comments and in the docs:
 
 | Word | Means | In code |
 |---|---|---|
-| **provider** | Whose API an app's requests go to. One module of this package is for one provider. | `OpenRouterLanguageModels`; `model.providerName`, the log's category |
+| **provider** | Whose API an app's requests go to. One module of this package is for one provider, apart from `OpenAICompatibleLanguageModels`, which is for any provider that speaks the formats. | `OpenRouterLanguageModels`, `OpenAICompatibleProvider`; `model.providerName`, the log's category |
 | **host** | The company whose servers ran the model for one answer. With OpenAI that's OpenAI. With OpenRouter it's whoever OpenRouter routed to. A URL's host is always written "URL host". | `AnswerAdditions.host`; the log's `host …` |
 | **format** | A wire format more than one provider accepts: Chat Completions, Responses. | the namespaces `ChatCompletions`, `Responses` |
 | **shared model** | A `LanguageModel` that speaks one format with any provider. | `ChatCompletions.Model`, `Responses.Model` |
-| **provider's model** | The public `LanguageModel` an app creates. | `OpenRouterLanguageModel`, `OpenAILanguageModel` |
-| **model details** | A catalog entry: an id and what that model can do. | `OpenRouterModel`, `OpenAIModel` |
+| **provider's model** | The public `LanguageModel` an app creates. | `OpenRouterLanguageModel`, `OpenAILanguageModel`, `OpenAICompatibleLanguageModel` |
+| **model details** | A catalog entry, or a model an app describes: an id and what that model can do. | `OpenRouterModel`, `OpenAIModel`, `OpenAICompatibleModel` |
 | **exchange** | One request and its answer. A provider's part in it is a value that lives as long as the exchange. | `ChatCompletions.Exchange`, `OpenRouterExchange` |
 | **member** | One key and its value in a JSON body. | `ChatCompletions.Member`, `request.members` |
 | **facts** | What an answer reports beyond its content: model, host, cost, usage. | `AnswerAdditions`, `providerMetadata` |
@@ -25,17 +25,18 @@ OpenRouter's public types say "provider" for the host, as OpenRouter's API does:
 
 ```mermaid
 block-beta
-    columns 2
-    app["Your app"]:2
-    openrouter["OpenRouterLanguageModels · product"] openai["OpenAILanguageModels · product"]
-    models["LanguageModels · product, all package but one line"]:2
-    core["LanguageModelsCore · product, re-exported"]:2
-    apple["FoundationModels · Apple"]:2
-    space:2
+    columns 3
+    app["Your app"]:3
+    openrouter["OpenRouterLanguageModels · product"] openai["OpenAILanguageModels · product"] compatible["OpenAICompatibleLanguageModels · product"]
+    models["LanguageModels · product, all package but one line"]:3
+    core["LanguageModelsCore · product, re-exported"]:3
+    apple["FoundationModels · Apple"]:3
+    space:3
 
     style app fill:#ffffff,stroke:#8a8f98,color:#1d1d1f
     style openrouter fill:#e8f0fe,stroke:#3b6fd8,color:#1d1d1f
     style openai fill:#e8f0fe,stroke:#3b6fd8,color:#1d1d1f
+    style compatible fill:#e8f0fe,stroke:#3b6fd8,color:#1d1d1f
     style core fill:#e8f0fe,stroke:#3b6fd8,color:#1d1d1f
     style models fill:#f1ecfb,stroke:#7c5cc4,color:#1d1d1f
     style apple fill:#f2f2f2,stroke:#6e6e73,color:#1d1d1f
@@ -48,12 +49,13 @@ see. Gray: Apple.
 |---|---|---|
 | `LanguageModelsCore` | The public contract every provider shares: `DetailedLanguageModel`, model details, efforts, configuration values, vocabulary, attachments, typed facts, guide violations, the logging switch. And the few internals those need: ordered JSON, the package logger, removed-model reports. | `public`, plus `package` for what the other targets call. |
 | `LanguageModels` | The two shared models, and what they share: sending requests, reading Foundation Models' request, writing its channel, failures before a provider maps them. One line re-exports the core. The contract's DocC catalog lives here. | `package` for what a provider writes, the rest internal. The re-export is its one `public` line, and CI checks that. |
-| `OpenRouterLanguageModels`, `OpenAILanguageModels` | What only that provider has: its public types, its exchange, its catalog and info calls. | `public`, the rest internal. |
+| `OpenRouterLanguageModels`, `OpenAILanguageModels`, `OpenAICompatibleLanguageModels` | What only that provider has: its public types, its exchange, its catalog and info calls. For `OpenAICompatibleLanguageModels`, what any provider that speaks the formats needs: a provider an app describes, its public types and one exchange for both formats. | `public`, the rest internal. |
 
 - An app imports only the provider modules it uses. Each one re-exports `LanguageModels`, so efforts,
   `DetailedLanguageModel` and logging come with it.
 - A library that needs only the contract depends on `LanguageModelsCore` alone, and compiles no HTTP code.
-- OpenRouter speaks OpenAI's Chat Completions format, and OpenAI its Responses format. A provider depends on
+- OpenRouter speaks OpenAI's Chat Completions format, OpenAI its Responses format, and a provider of
+  `OpenAICompatibleLanguageModels` either one, as its `OpenAICompatibleProvider` says. A provider depends on
   `LanguageModels` and nothing else of this package.
 - `LanguageModelsCore` never imports `LanguageModels`. Inside `LanguageModels`, files import the core with `import` or
   `package import`, and only `Exports.swift` says `public`.
@@ -175,31 +177,31 @@ none of them, apart from the required values on the model and what a failure bec
 
 **On the model,** once, in `chatCompletions(_:)` or `responses(_:)`, what's true for every request:
 
-| Value | Format | OpenRouter | OpenAI |
-|---|---|---|---|
-| `name`, `url`, `connection`, `providerName`, `capabilities`, `reaching:` | both, required | the variant's model id, a proxy's URL, session, auth and timeouts, `OpenRouter` | the model's id, a proxy's URL, session, auth and timeouts, `OpenAI` |
-| `memberOrder` | Chat Completions | the member order hosts cache on | |
-| `unsupportedMembers` | both | the listed members the model's details don't list | the same |
-| `media` | Chat Completions | AIFF, M4A, AAC, FLAC and OGG audio, and video | |
-| `images` | both, required | the configuration's `ImageEncoding` | the same |
-| `reasoningOrigin` | both, required | `openrouter` | `openai-responses` |
-| `instructionsRole` | Responses | | `developer` for a model that reasons, `system` otherwise |
-| `phasesKey` | Responses, required | | `openAI.phases` |
-| `serverToolsKey` | Responses, required | | `openAI.serverTools` |
+| Value | Format | OpenRouter | OpenAI | OpenAI-compatible |
+|---|---|---|---|---|
+| `name`, `url`, `connection`, `providerName`, `capabilities`, `reaching:` | both, required | the variant's model id, a proxy's URL, session, auth and timeouts, `OpenRouter` | the model's id, a proxy's URL, session, auth and timeouts, `OpenAI` | the model's id, the provider's URL or a proxy's, session, auth, the provider's headers and timeouts, the provider's name |
+| `memberOrder` | Chat Completions | the member order hosts cache on | | the format's, with `stream_options` and `reasoning_effort` in it |
+| `unsupportedMembers` | both | the listed members the model's details don't list | the same | |
+| `media` | Chat Completions | AIFF, M4A, AAC, FLAC and OGG audio, and video | | |
+| `images` | both, required | the configuration's `ImageEncoding` | the same | the same |
+| `reasoningOrigin` | both, required | `openrouter` | `openai-responses` | `openai-compatible/`, or `openai-compatible-responses/` on Responses, and the provider's name |
+| `instructionsRole` | Responses | | `developer` for a model that reasons, `system` otherwise | |
+| `phasesKey` | Responses, required | | `openAI.phases` | `openAICompatible.phases` |
+| `serverToolsKey` | Responses, required | | `openAI.serverTools` | `openAICompatible.serverTools` |
 
 **On the exchange,** the methods of `ChatCompletions.Exchange` or `Responses.Exchange`, in the order a request calls them.
 The model holds one exchange value, and each request works on a copy, so what one answer reported never reaches the
 next. Every method but `error(for:)` has a default that adds nothing:
 
-| Method | Format | OpenRouter | OpenAI |
-|---|---|---|---|
-| `checkAttachment(_:in:)` | both | which inputs the models take | which inputs the model takes |
-| `replays(_:)` | both | only to the model that wrote it, not a fallback | only to the model that wrote it, or to the model it's a dated snapshot of |
-| `replayMembers(for:)` | Chat Completions | `reasoning` and `reasoning_details` on the message, none on its tool calls | |
-| `prepare(_:)` | both | the app's name, address and categories, the response cache, router metadata; fallbacks, routing, plugins, reasoning, penalties, server tools, cache marks | the effort, summary and storage, `text.verbosity`, `parallel_tool_calls` with the session's tools, the service tier, cache key and end user, server tools and the calls the answer keeps, `include`, the sampling a reasoning model doesn't take |
-| `read(_:)` | Chat Completions | images and reasoning details | |
-| `additions(header:)` | both | the host, cost, router report, cache status | the request's id |
-| `error(for:)` | both, required | `LanguageModelError` or `OpenRouterError` | `LanguageModelError` or `OpenAIError` |
+| Method | Format | OpenRouter | OpenAI | OpenAI-compatible |
+|---|---|---|---|---|
+| `checkAttachment(_:in:)` | both | which inputs the models take | which inputs the model takes | images with vision, and the data kinds the details list |
+| `replays(_:)` | both | only to the model that wrote it, not a fallback | only to the model that wrote it, or to the model it's a dated snapshot of | on Responses only, to the model that wrote it or the model it's a dated version of |
+| `replayMembers(for:)` | Chat Completions | `reasoning` and `reasoning_details` on the message, none on its tool calls | | none |
+| `prepare(_:)` | both | the app's name, address and categories, the response cache, router metadata; fallbacks, routing, plugins, reasoning, penalties, server tools, cache marks | the effort, summary and storage, `text.verbosity`, `parallel_tool_calls` with the session's tools, the service tier, cache key and end user, server tools and the calls the answer keeps, `include`, the sampling a reasoning model doesn't take | `stream_options`, `max_tokens` and `reasoning_effort` on Chat Completions, the effort and storage on Responses, and the app's members on both |
+| `read(_:)` | Chat Completions | images and reasoning details | | the delta's `reasoning_content`, or else its `reasoning` |
+| `additions(header:)` | both | the host, cost, router report, cache status | the request's id | the request's id |
+| `error(for:)` | both, required | `LanguageModelError` or `OpenRouterError` | `LanguageModelError` or `OpenAIError` | `LanguageModelError` or `OpenAICompatibleError` |
 
 **On the request,** in `prepare(_:)`, what depends on the one request. Chat Completions has `headers`, `members`,
 `overridingMembers`, `sendsSessionTools`, `serverTools`, `tokenLimitMember`, `usesPortableSchema`, `instructionsMark`
@@ -225,6 +227,7 @@ there, apart from `phasesKey` and `serverToolsKey`, which a provider hands its s
 | `LanguageModelsCore` | `ProviderMetadata.swift` | `providerMetadata`, on `Transcript.Response`, `Transcript.ToolCalls`, `LanguageModelSession.Usage` and `LanguageModelError` |
 | `OpenRouterLanguageModels` | `OpenRouterMetadata.swift` | `openRouter`, in the same four places |
 | `OpenAILanguageModels` | `OpenAIMetadata.swift` | `openAI`, in the same four places, and on `Transcript.DataEntry` |
+| `OpenAICompatibleLanguageModels` | `OpenAICompatibleMetadata.swift` | `openAICompatible`, in the same four places |
 
 A shared model writes what the format knows, such as the model and the finish reason, and an exchange's
 `additions(header:)` adds the rest, as an `AnswerAdditions`. `channelMetadata` on `ProviderResponseMetadata` and
@@ -241,7 +244,7 @@ flowchart LR
     unusable["Answer cut off, or a tool call that can't run"] --> failure
     failure["RequestFailure"]:::package --> map["exchange.error(for:)"]:::provider
     map --> foundation["LanguageModelError"]:::apple
-    map --> own["OpenRouterError · OpenAIError"]:::provider
+    map --> own["OpenRouterError · OpenAIError · OpenAICompatibleError"]:::provider
 
     classDef package fill:#f1ecfb,stroke:#7c5cc4,color:#1d1d1f
     classDef provider fill:#e8f0fe,stroke:#3b6fd8,color:#1d1d1f

@@ -5,8 +5,9 @@ See what each request sends, leaves out and returns, and choose how much the pac
 ## Overview
 
 The package logs each request to the unified logging system, under the subsystem
-`com.ironsparrows.swift-language-models`, with a category for each provider module, such as `OpenRouter`, and
-`LanguageModels` for what the core logs. Each message names its request by the first eight characters of the
+`com.ironsparrows.swift-language-models`, with a category named for each provider, such as `OpenRouter`, or the
+name an app gives a provider it describes to `OpenAICompatibleLanguageModels`, and `LanguageModels` for what the core
+logs. Each message names its request by the first eight characters of the
 request's id, so the messages of requests sent at once can be told apart.
 
 | Level | Messages |
@@ -25,8 +26,8 @@ someone reads them, so logging costs little.
 ### What stays out of the log
 
 The package never logs API keys, prompts, answers, tool arguments or outputs, or attachments, nor a host's error
-message, which may quote the request. Model ids, host names, parameter names, HTTP statuses, error codes and timings
-are public. The keys of metadata left out are private, so the system redacts them.
+message, which may quote the request. Model ids, provider and host names, the name an app gives a provider it
+describes included, parameter names, HTTP statuses, error codes and timings are public. The keys of metadata left out are private, so the system redacts them.
 
 This covers the package's own logging. A recording with Instruments' Foundation Models template can include prompts
 and responses, which Foundation Models records.
