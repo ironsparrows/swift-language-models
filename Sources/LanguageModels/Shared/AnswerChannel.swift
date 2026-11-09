@@ -293,19 +293,20 @@ struct ToolCallAssembler {
     /// - Parameters:
     ///   - index: The call's index in the answer, when the fragment names one.
     ///   - id: The call's id, when the fragment brings one.
-    ///   - name: The tool's name, when the fragment brings it.
+    ///   - name: The tool's name, when the fragment brings it. A name of only whitespace is no name.
     ///   - arguments: The next part of the call's argument text.
     /// - Returns: The text to append to the call's arguments: all of it so far when the fragment starts the call, even
     ///   none, which announces the call; otherwise the fragment's own. `nil` when the call hasn't started or the
     ///   fragment has no text.
     mutating func add(index: Int?, id: String?, name: String?, arguments: String?) -> Arguments? {
+        let name = name.flatMap { $0.allSatisfy(\.isWhitespace) ? nil : $0 }
         let place = self.place(of: index, id: id, name: name, arguments: arguments)
         lastPlace = place
         var call = calls[place] ?? Call()
         let wasStarted = call.id != nil && call.name != nil
         if let id, !id.isEmpty { call.ids.insert(id) }
         if call.id == nil, let id, !id.isEmpty, !calls.values.contains(where: { $0.id == id }) { call.id = id }
-        if call.name == nil, let name, !name.isEmpty { call.name = name }
+        if call.name == nil, let name { call.name = name }
         if call.name != nil, call.id == nil { call.id = "call_\(UUID().uuidString)" }
         call.pendingArguments += arguments ?? ""
         var arguments: Arguments?
@@ -351,7 +352,7 @@ struct ToolCallAssembler {
         return arguments
     }
 
-    /// The place of the call a fragment belongs to.
+    /// The place of the call a fragment belongs to, for a fragment whose name, if any, isn't only whitespace.
     private func place(of index: Int?, id: String?, name: String?, arguments: String?) -> Place {
         guard let index else {
             guard let last = lastPlace else { return Place(index: 0) }
@@ -364,7 +365,7 @@ struct ToolCallAssembler {
         let id = id.flatMap { $0.isEmpty ? nil : $0 }
         if let id, let known = atIndex.last(where: { calls[$0]?.ids.contains(id) == true }) { return known }
         // A name that arrives for the latest call, which has none yet, continues it.
-        guard let name, !name.isEmpty, calls[latest]?.name != nil else { return latest }
+        guard let name, calls[latest]?.name != nil else { return latest }
         guard let named = atIndex.last(where: { calls[$0]?.name == name }), let call = calls[named] else { return next }
         let startsValue = arguments?.first { !$0.isWhitespace }.map { $0 == "{" || $0 == "[" } ?? false
         return call.hasWholeArguments && (startsValue || (id != nil && !call.ids.isEmpty)) ? next : named

@@ -201,6 +201,21 @@ struct ToolCallAssemblerTests {
             [fragment(index: 0, name: "read", arguments: #"{"value":1}"#), fragment(index: 0, id: "call_2", name: "read", arguments: "")],
             #"{"value":1}"#
         ),
+        // A name of only whitespace, which is no name: on the fragments after the first, and on the first.
+        (
+            [
+                fragment(index: 0, id: "call_1", name: "read", arguments: ""), fragment(index: 0, name: " ", arguments: #"{"city":"#),
+                fragment(index: 0, name: "", arguments: #""Athens"}"#),
+            ],
+            #"{"city":"Athens"}"#
+        ),
+        (
+            [
+                fragment(index: 0, id: "call_1", name: " ", arguments: ""),
+                fragment(index: 0, name: "read", arguments: #"{"city":"Athens"}"#),
+            ],
+            #"{"city":"Athens"}"#
+        ),
     ])
     func `a fragment continues the call at its index unless it starts another one`(fragments: [Fragment], text: String) throws {
         var calls = ToolCallAssembler()
