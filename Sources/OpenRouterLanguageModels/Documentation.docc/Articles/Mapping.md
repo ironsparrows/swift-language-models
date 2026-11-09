@@ -101,9 +101,9 @@ for images.
 
 | OpenRouter | Foundation Models |
 |---|---|
-| `delta.content` | Response text |
+| `delta.content` | Response text; in a list of parts, the text of each `text` part, with the text parts inside a `thinking` part as reasoning, and any other part passed over |
 | `delta.reasoning_details`, `delta.reasoning`, and a `<think>` or `<thinking>` block that opens `delta.content` | Reasoning text, in the order it arrives; the details go in the reasoning entry's signature and are sent back on later turns, unless a fallback wrote them. A block leaves the answer with its tags and the whitespace around it, and goes back as the model wrote it, at the start of the `assistant` message's `content`, unless a fallback wrote it; its text isn't sent again as `reasoning`. Only a block at the start counts, after any whitespace, so a tag later in the answer stays text; a block the answer never closes is reasoning to the end |
-| `delta.tool_calls` | One tool-calls entry per answer, so parallel calls make one round |
+| `delta.tool_calls` | One tool-calls entry per answer, so parallel calls make one round, also when they share an `index`: there, a fragment with a name starts another call when no call at the index has that name, or when the call of that name has whole arguments and the fragment's arguments start a JSON value or it brings an id none of the calls there had, after that call brought one. Arguments sent as a JSON object rather than as its text are read as its text, and arguments of only whitespace as an empty object |
 | `delta.images` | One data entry per image, of the kind its data URL names, from OS 27.2; an image at a web address is left out |
 | `delta.annotations` of type `url_citation` | ``Citation`` values on the response entry, which ``OpenRouterResponseMetadata/citations`` reads, once each; they aren't sent back |
 | `reasoning.server_tool_call` in `delta.reasoning_details` | OpenRouter's record of a server tool's call and result, kept with the other details and sent back on later turns; it never becomes a tool call |
@@ -148,7 +148,7 @@ the same way for every provider module, as <doc:/LanguageModels/ReadingWhatAProv
 | 429, `rate_limit_exceeded`, a 402 for too many requests in flight, a 403 for a spending budget that resets | `LanguageModelError.rateLimited`, with the reset date, and the budget's ``OpenRouterErrorMetadata/limitSource`` |
 | A 403 for a spending budget that never resets | ``OpenRouterError`` with ``OpenRouterError/Code/budgetExceeded`` |
 | `content_policy_violation`, `finish_reason: content_filter`, a moderation 403, a 403 whose `openrouter_metadata.pipeline` has a `guardrail` stage with `data.action` `blocked` | `LanguageModelError.guardrailViolation` |
-| `refusal`, `delta.refusal` | `LanguageModelError.refusal` |
+| `refusal`, `delta.refusal` | `LanguageModelError.refusal`; a `delta.refusal` that isn't text is passed over |
 | An answer with a value that breaks a guide of its schema, whichever schema was sent | `GeneratedContent.ParsingError`, which names the value and the guide, with a ``GuideViolations`` as its `underlyingError` |
 | 408, 504, 524, `timeout`, a timed-out connection | `LanguageModelError.timeout` |
 | `unsupported_image_format`, `invalid_image`, `image_too_large`, `image_too_small` | `LanguageModelError.unsupportedTranscriptContent`, naming the entries with images |
@@ -158,8 +158,12 @@ the same way for every provider module, as <doc:/LanguageModels/ReadingWhatAProv
 | Anything else | ``OpenRouterError``, with its status, code, host and retry delay |
 
 An error without `error_type` takes its code from the HTTP status, such as `authentication` for a 401 or
-`payment_required` for a 402. An error in the stream arrives after HTTP 200, so it takes its status and code from its
-own `code`: a number is the status, text such as `server_error` is the code, and without either the code is `server`.
+`payment_required` for a 402. An error in the stream is a chunk's `error` object, a chunk whose `type` is `error` with
+the error in its own members, or an event named `error`. When its error object has no message, or its data isn't
+JSON, its text is the message, up to 1,000 characters, beside the object's other members. An event named `ping` is
+passed over. An error in the stream arrives after HTTP 200, so it takes
+its status and code from its own `code`: a number is the status, text such as `server_error` is the code, and without
+either the code is `server`.
 Its host is the one its metadata names, or else the chunk's `provider`.
 
 A failed connection, such as a timeout or a lost connection, and any status from 500 to 599 are retried before any data

@@ -25,6 +25,49 @@ extension ChatCompletionsModelTests {
             #expect(calls?[1]?["id"] == "call_2")
         }
 
+        @Test func `whole calls without an index that end with the finish reason stop run, as Gemini sends them`() async throws {
+            // The first round's chunks as Gemini sent them, with the ids and the signature replaced, and the call made one
+            // to the test's tool.
+            let call =
+                #"{"choices":[{"delta":{"role":"assistant","tool_calls":[{"extra_content":{"google":{"thought_signature":"c2lnbmF0dXJl"}},"function":{"arguments":"{\"word\":\"egg\"}","name":"lookUp"},"id":"call_100000000000000001","type":"function"}]},"index":0}],"created":1794203010,"id":"response-1","model":"gemini-3.1-flash-lite","object":"chat.completion.chunk"}"#
+            let finish =
+                #"{"choices":[{"delta":{"role":"assistant"},"finish_reason":"stop","index":0}],"created":1794203010,"id":"response-1","model":"gemini-3.1-flash-lite","object":"chat.completion.chunk"}"#
+            let stub = HTTPStub(
+                .eventStream(Data("data: \(call)\n\ndata: \(finish)\n\ndata: [DONE]\n\n".utf8)),
+                chatCompletionsEvents(textChunk("Done.", finishReason: "stop")))
+
+            try await confirmation { toolRan in
+                let session = LanguageModelSession(model: plainModel(stub), tools: [ConfirmingTool(ran: toolRan)])
+
+                let response = try await session.respond(to: "Define egg.")
+
+                #expect(response.content == "Done.")
+            }
+
+            let sent = messages(try sentBody(stub, 1))
+            #expect(
+                sent.first { $0["tool_calls"] != nil }?["tool_calls"] == [
+                    ["id": "call_100000000000000001", "type": "function", "function": ["name": "lookUp", "arguments": #"{"word":"egg"}"#]]
+                ])
+            #expect(sent.last == ["role": "tool", "tool_call_id": "call_100000000000000001", "content": "egg"])
+        }
+
+        @Test func `arguments sent as a JSON object run the call, and go back as their JSON text`() async throws {
+            let fragment: JSONValue = ["index": 0, "id": "call_1", "function": ["name": "lookUp", "arguments": ["word": "egg"]]]
+            let stub = HTTPStub(
+                chatCompletionsEvents(["choices": [["delta": ["tool_calls": [fragment]]]]], finishChunk("tool_calls")),
+                chatCompletionsEvents(textChunk("Done.", finishReason: "stop")))
+
+            try await confirmation { toolRan in
+                let session = LanguageModelSession(model: plainModel(stub), tools: [ConfirmingTool(ran: toolRan)])
+
+                _ = try await session.respond(to: "Define egg.")
+            }
+
+            let call = try #require(messages(try sentBody(stub, 1)).first { $0["tool_calls"] != nil })
+            #expect(call["tool_calls"]?[0]?["function"]?["arguments"] == #"{"word":"egg"}"#)
+        }
+
         @Test func `tools go as functions, with the tool choice the options ask for`() throws {
             let request = generationRequest(
                 [prompt(text("Hi"))], tools: [Transcript.ToolDefinition(tool: LookUpTool())],

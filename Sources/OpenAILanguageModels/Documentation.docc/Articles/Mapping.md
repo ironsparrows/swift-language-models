@@ -95,7 +95,8 @@ SDKs lack them. Built with an earlier Xcode, the package takes no data attachmen
 | `response.incomplete` with `incomplete_details.reason` `max_output_tokens` | Finish reason `length`: an answer cut short at its token limit, which ends without an error; a guided answer cut short throws `GeneratedContent.ParsingError`, and one cut short inside its tool calls throws ``OpenAIError`` with ``OpenAIError/Code/invalidResponse`` instead, so no tool runs with partial arguments |
 | `response.incomplete` with `incomplete_details.reason` `content_filter` | `LanguageModelError.guardrailViolation` |
 | Another `incomplete_details.reason` | The reason as the finish reason, or `incomplete` when there's none |
-| An `error` event, `response.failed` | The error its `error` object stands for, as the next table says |
+| An event named `ping` | Passed over, whatever its data holds |
+| An `error` event, an event named `error`, an event with no `type` that carries an `error`, an event of a type this table doesn't list that carries a non-empty `error`, `response.failed` | The error its `error` object stands for, as the next table says; when the object has no message, or the data isn't JSON, its text is the message, up to 1,000 characters, beside the object's other members |
 
 ### Metadata
 

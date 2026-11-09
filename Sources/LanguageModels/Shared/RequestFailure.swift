@@ -91,6 +91,31 @@ extension RequestFailure {
         self.init(.errorEvent, body: body, message: "\(provider) sent an error.", headers: headers, imageEntries: imageEntries)
     }
 
+    /// An error event in the stream, read from its data.
+    ///
+    /// The error object is the data's `error` member when it has one, as OpenAI's formats nest it, and otherwise the
+    /// data itself, as some providers send it flat. When the provider's type can't read it, such as an object without a
+    /// message or text that isn't JSON, the data's text becomes its message, the member the format's error object
+    /// carries it in, beside the object's other members, so the provider's words still reach the error.
+    ///
+    /// - Parameters:
+    ///   - data: The event's data.
+    ///   - provider: The provider's name, which the message names.
+    ///   - headers: The headers of the response whose stream failed.
+    ///   - imageEntries: The request's entries that carry an image.
+    /// - Throws: The decoder's error when the provider's type can't read the error object, even with the data's text as
+    ///   its message.
+    init(errorEventData data: Data, provider: String, headers: ResponseHeaders, imageEntries: [Transcript.Entry]) throws {
+        let body: ErrorBody
+        do {
+            body = try Self.errorBody(in: data)
+        } catch {
+            guard let withMessage = try? Self.errorBody(messageIn: data) else { throw error }
+            body = withMessage
+        }
+        self.init(errorEvent: body, provider: provider, headers: headers, imageEntries: imageEntries)
+    }
+
     /// An answer that ended in an error the host reported.
     ///
     /// - Parameters:
@@ -302,5 +327,37 @@ extension RequestFailure {
     /// The body of a failed response, `{"error": {…}}`.
     private struct Envelope: Decodable {
         let error: ErrorBody
+    }
+
+    /// The `error` member of an event's data, `nil` when there's none or it's `null`.
+    private struct ErrorMember: Decodable {
+        let error: JSONValue?
+    }
+
+    /// The error object in an error event's data: its `error` member when it has one, otherwise the data itself.
+    private static func errorBody(in data: Data) throws -> ErrorBody {
+        guard (try? HTTPClient.decoder.decode(ErrorMember.self, from: data))?.error != nil else {
+            return try HTTPClient.decoder.decode(ErrorBody.self, from: data)
+        }
+        return try HTTPClient.decoder.decode(Envelope.self, from: data).error
+    }
+
+    /// The error object of an error event whose own the provider's type can't read, with its text as the message, up to
+    /// 1,000 characters: the data's `error` object, with that object's text, or else the data itself when it's an error
+    /// in its own members, with no `type` or the type `error`, with the text of its `error` member, of a JSON string,
+    /// or of the data as it came. The object keeps its other members, such as a code.
+    private static func errorBody(messageIn data: Data) throws -> ErrorBody {
+        let json = try? JSONValue(json: data)
+        var error = JSONObject()
+        var message: String
+        if case .object(let nested)? = json?["error"] {
+            error = nested
+            message = JSONValue.object(nested).text
+        } else {
+            if case .object(let members)? = json, members["type"] == nil || members["type"] == "error" { error = members }
+            message = json?["error"]?.stringValue ?? json?.stringValue ?? String(decoding: data, as: UTF8.self)
+        }
+        error["message"] = .string(String(message.prefix(1_000)))
+        return try HTTPClient.decoder.decode(ErrorBody.self, from: JSONValue.object(error).data)
     }
 }

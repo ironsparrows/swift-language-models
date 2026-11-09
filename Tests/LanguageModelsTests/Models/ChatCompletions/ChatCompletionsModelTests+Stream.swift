@@ -231,5 +231,65 @@ extension ChatCompletionsModelTests {
             #expect(answers[0].map(\.title) == ["FoodData Central"])
             #expect(answers[1].isEmpty)
         }
+
+        @Test func `content in parts is the answer's text and, inside thinking parts, its reasoning, and other parts are passed over`()
+            async throws
+        {
+            let thinking: JSONValue = [
+                "choices": [
+                    [
+                        "delta": [
+                            "content": [
+                                [
+                                    "type": "thinking",
+                                    "thinking": [["type": "text", "text": "Think"], ["type": "reference", "reference_ids": [1]]],
+                                ],
+                                ["type": "thinking", "thinking": [["type": "text", "text": "ing."]], "signature": "c2ln", "closed": true],
+                            ]
+                        ]
+                    ]
+                ]
+            ]
+            let answer: JSONValue = [
+                "choices": [
+                    [
+                        "delta": [
+                            "content": [
+                                ["type": "text", "text": "Hi"], ["type": "tool_reference", "tool": "web_search", "title": "Swift"],
+                                ["type": "image_url", "image_url": "https://example.com/cat.png"], ["type": "new_kind"],
+                                ["text": "Untyped."],
+                                "Loose text.",
+                            ]
+                        ]
+                    ]
+                ]
+            ]
+            let stub = HTTPStub(chatCompletionsEvents(thinking, answer, textChunk(" there.", finishReason: "stop")))
+
+            let response = try await LanguageModelSession(model: plainModel(stub)).respond(to: "Hello")
+
+            #expect(response.content == "Hi there.")
+            #expect(reasoningTexts(response.transcriptEntries) == ["Thinking."])
+        }
+
+        @Test func `a refusal that isn't text is no refusal`() async throws {
+            let stub = HTTPStub(
+                chatCompletionsEvents(["choices": [["delta": ["content": "Hi", "refusal": false], "finish_reason": "stop"]]]))
+
+            let response = try await LanguageModelSession(model: plainModel(stub)).respond(to: "Hello")
+
+            #expect(response.content == "Hi")
+        }
+
+        @Test func `an event named ping is passed over, whatever its data holds`() async throws {
+            let lines = [
+                "event: ping\ndata: keep-alive", "data: \(textChunk("Hi").text)", "event: ping\ndata: {}", "data: \(finishChunk().text)",
+            ]
+            let stub = HTTPStub(.eventStream(Data(lines.map { $0 + "\n\n" }.joined().utf8)))
+
+            let response = try await LanguageModelSession(model: plainModel(stub)).respond(to: "Hello")
+
+            #expect(response.content == "Hi")
+        }
     }
 }

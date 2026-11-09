@@ -9,10 +9,10 @@ extension ChatCompletions {
     /// One answer's stream: turns the format's chunks, with the exchange's members, into the answer's output, which an
     /// ``AnswerChannel`` sends as Foundation Models channel events.
     ///
-    /// Reasoning arrives in the provider's members, or in a block in reasoning tags that opens the answer's text, and
-    /// tool-call fragments by index, so parallel calls form one round. Each piece of data the model generates becomes a
-    /// data entry of its own. The answer ends with its metadata and usage on the entry that finishes it, and with the
-    /// pages it cites on its response entry.
+    /// Reasoning arrives in the provider's members, in the `thinking` parts of a delta's content, or in a block in
+    /// reasoning tags that opens the answer's text, and tool-call fragments by index, so parallel calls form one round.
+    /// Each piece of data the model generates becomes a data entry of its own. The answer ends with its metadata and
+    /// usage on the entry that finishes it, and with the pages it cites on its response entry.
     struct Stream<Exchange: ChatCompletions.Exchange> {
         private var exchange: Exchange
         private let headers: ResponseHeaders
@@ -76,18 +76,23 @@ extension ChatCompletions {
 extension ChatCompletions.Stream {
     /// Sends the events for one server-sent event.
     ///
+    /// An event the provider named `ping` is passed over, and one it named `error` is an error event, whatever JSON or
+    /// other text its data holds; an event with empty data is passed over, and a `[DONE]` ends the stream, whatever
+    /// their names.
+    ///
     /// - Returns: Whether the event is the `[DONE]` that ends the stream.
     /// - Throws: The exchange's error for an event that isn't a chunk, and for an error event.
     mutating func receive(_ event: ServerSentEvent) async throws -> Bool {
+        guard !event.isPing else { return false }
         let streamEvent: StreamEvent<Exchange.ChunkExtras>?
         do {
             streamEvent = try StreamEvent(event)
         } catch {
-            throw unreadable(error)
+            throw event.isError ? errorEvent(Data(event.data.utf8)) : unreadable(error)
         }
         switch streamEvent {
         case .chunk(let chunk, let extras, let data)?:
-            try await receive(chunk, extras: extras, data: data)
+            try await receive(chunk, extras: extras, data: data, isNamedError: event.isError)
             return false
         case .done?:
             return true
@@ -98,26 +103,28 @@ extension ChatCompletions.Stream {
 
     /// Takes one chunk's facts, then sends its reasoning, text, tool calls and generated data, in that order.
     ///
+    /// - Parameters:
+    ///   - chunk: The chunk's members of the format.
+    ///   - extras: The exchange's members of the chunk.
+    ///   - data: The chunk's JSON, which an error event's error object is read from.
+    ///   - isNamedError: Whether the provider named the chunk's event `error`, which makes it an error event.
     /// - Throws: The exchange's error when the chunk is an error event, which sends nothing.
-    private mutating func receive(_ chunk: Chunk, extras: Exchange.ChunkExtras, data: Data) async throws {
+    private mutating func receive(_ chunk: Chunk, extras: Exchange.ChunkExtras, data: Data, isNamedError: Bool) async throws {
         report.update(with: chunk)
         let chunkAdditions = exchange.read(extras)
-        if let error = chunk.error, error != .null {
-            let body: Exchange.ErrorBody
-            do {
-                body = try HTTPClient.decoder.decode(ErrorEvent.self, from: data).error
-            } catch {
-                throw unreadable(error)
-            }
-            throw exchange.error(for: RequestFailure(errorEvent: body, provider: provider, headers: headers, imageEntries: imageEntries))
+        if chunk.isError || isNamedError {
+            throw errorEvent(data)
         }
         guard let delta = chunk.choices?.first?.delta else { return }
 
         if let reasoning = chunkAdditions.reasoning { await output.appendReasoning(reasoning, model: report.model) }
-        if let content = delta.content, !content.isEmpty {
-            await output.appendText(content, model: report.model)
+        for piece in delta.content?.pieces ?? [] {
+            switch piece {
+            case .reasoning(let text): await output.appendReasoning(text, model: report.model)
+            case .text(let text): await output.appendText(text, model: report.model)
+            }
         }
-        if let text = delta.refusal { refusal += text }
+        if let text = delta.refusal?.stringValue { refusal += text }
         for annotation in delta.annotations ?? [] {
             guard let found = annotation.urlCitation, let citation = Citation(found) else { continue }
             output.cite(citation)
@@ -211,6 +218,20 @@ extension ChatCompletions.Stream {
     private func unreadable(_ error: any Error) -> any Error {
         failure(.unreadableEvent("\(error)"))
     }
+
+    /// The error for an error event.
+    ///
+    /// - Parameter data: The event's data.
+    /// - Returns: The exchange's error for the provider's error, or for an event that can't be read when the exchange's
+    ///   type can't read the error even with the data's text as its message.
+    private func errorEvent(_ data: Data) -> any Error {
+        do {
+            return exchange.error(
+                for: try RequestFailure(errorEventData: data, provider: provider, headers: headers, imageEntries: imageEntries))
+        } catch {
+            return unreadable(error)
+        }
+    }
 }
 
 extension FinishReason {
@@ -236,8 +257,10 @@ private struct Chunk: Decodable {
     }
 
     struct Delta: Decodable {
-        let content: String?
-        let refusal: String?
+        let content: Content?
+        /// The next part of a refusal's text. Some providers send a value that isn't text, such as `false`, for no
+        /// refusal.
+        let refusal: JSONValue?
         let toolCalls: [ToolCall]?
         let annotations: [Annotation]?
 
@@ -246,6 +269,59 @@ private struct Chunk: Decodable {
             case refusal
             case toolCalls = "tool_calls"
             case annotations
+        }
+    }
+
+    /// A delta's content, text or a list of parts, as the pieces of the answer's text and reasoning in their order.
+    ///
+    /// A `text` part is the answer's text, and the `text` parts inside a `thinking` part are its reasoning. Any other
+    /// part, of a known type such as a reference or of one the format doesn't know, is passed over.
+    struct Content: Decodable {
+        /// A piece of the answer's text or reasoning, never empty.
+        enum Piece {
+            case text(String)
+            case reasoning(String)
+        }
+
+        let pieces: [Piece]
+
+        init(from decoder: any Decoder) throws {
+            let container = try decoder.singleValueContainer()
+            if let text = try? container.decode(String.self) {
+                pieces = text.isEmpty ? [] : [.text(text)]
+            } else {
+                pieces = try container.decode([Part].self).compactMap(\.piece)
+            }
+        }
+
+        /// One part of a list, read as a piece when it's a `text` part with text or a `thinking` part with text.
+        private struct Part: Decodable {
+            let piece: Piece?
+
+            init(from decoder: any Decoder) throws {
+                // Read leniently, so a part of another shape is passed over rather than making the chunk unreadable.
+                guard let container = try? decoder.container(keyedBy: CodingKeys.self) else {
+                    piece = nil
+                    return
+                }
+                switch try? container.decode(String.self, forKey: .type) {
+                case "text"?:
+                    let text = (try? container.decode(String.self, forKey: .text)) ?? ""
+                    piece = text.isEmpty ? nil : .text(text)
+                case "thinking"?:
+                    let parts = (try? container.decode([Part].self, forKey: .thinking)) ?? []
+                    let text = parts.compactMap { part in if case .text(let text)? = part.piece { text } else { nil } }.joined()
+                    piece = text.isEmpty ? nil : .reasoning(text)
+                default:
+                    piece = nil
+                }
+            }
+
+            private enum CodingKeys: String, CodingKey {
+                case type
+                case text
+                case thinking
+            }
         }
     }
 
@@ -282,7 +358,25 @@ private struct Chunk: Decodable {
     struct ToolCall: Decodable {
         struct Function: Decodable {
             let name: String?
+
+            /// The next part of the call's argument text, or the JSON text of arguments a provider sent whole as a JSON
+            /// value, such as an object.
             let arguments: String?
+
+            init(from decoder: any Decoder) throws {
+                let container = try decoder.container(keyedBy: CodingKeys.self)
+                name = try container.decodeIfPresent(String.self, forKey: .name)
+                if let text = try? container.decodeIfPresent(String.self, forKey: .arguments) {
+                    arguments = text
+                } else {
+                    arguments = try container.decodeIfPresent(JSONValue.self, forKey: .arguments)?.text
+                }
+            }
+
+            private enum CodingKeys: String, CodingKey {
+                case name
+                case arguments
+            }
         }
 
         let index: Int?
@@ -330,6 +424,14 @@ private struct Chunk: Decodable {
     let usage: Usage?
     /// The `error` object of an error event, which a provider sends after the response's HTTP 200.
     let error: JSONValue?
+    /// The `type` that a provider gives an error event that carries the error in its own members, `error`. The
+    /// format's chunks have none.
+    let type: JSONValue?
+
+    /// Whether the chunk is an error event: one with an `error` object, or one whose `type` is `error`.
+    var isError: Bool {
+        (error != nil && error != .null) || type == "error"
+    }
 
     private enum CodingKeys: String, CodingKey {
         case id
@@ -338,6 +440,7 @@ private struct Chunk: Decodable {
         case choices
         case usage
         case error
+        case type
     }
 }
 
@@ -370,12 +473,5 @@ private enum StreamEvent<Extras: Decodable> {
             chunk = try Chunk(from: decoder)
             extras = try Extras(from: decoder)
         }
-    }
-}
-
-extension ChatCompletions.Stream {
-    /// The event of a chunk whose `error` member is set, with the error in the exchange's type.
-    private struct ErrorEvent: Decodable {
-        let error: Exchange.ErrorBody
     }
 }

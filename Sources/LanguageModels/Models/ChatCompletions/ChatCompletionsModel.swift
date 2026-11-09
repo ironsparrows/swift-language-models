@@ -225,8 +225,9 @@ extension ChatCompletions {
         /// none.
         associatedtype ChunkExtras: Decodable = NoMembers
 
-        /// The `error` object of the provider's failed responses, `{"error": {…}}`. The default is the one OpenAI's
-        /// formats send.
+        /// The `error` object of the provider's failed responses, `{"error": {…}}`, and of its error events, nested
+        /// under `error` or in the event's own members. When it can't read an error event's, it's read once more with
+        /// the event's text as `message` beside the error's other members. The default is the one OpenAI's formats send.
         associatedtype ErrorBody: Decodable & Sendable = APIErrorBody
 
         // MARK: While the request is read

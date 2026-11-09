@@ -145,14 +145,14 @@ Code lives in the narrowest place that every user of it can reach:
 |---|---|
 | `Connection.swift` | How requests reach a provider: session, authentication, timeout, retries; opening a stream, with one more attempt in the portable schema; cached read-only calls about a model. |
 | `HTTPClient.swift` | Sending: the retry loop and policy, waits a server asks for, redirects to the same scheme, URL host and port only, the user agent, statuses, header and media-type names. |
-| `ServerSentEvent.swift` | Events of a byte stream, and the byte-level line splitter under them. |
+| `ServerSentEvent.swift` | Events of a byte stream, the event names a format reads whatever the data, and the byte-level line splitter under them. |
 | `RequestLog.swift` | The log of one request: what it sends, retries, adjustments, how it ended, and what the log says of an error. |
 | `TranscriptTurn.swift` | The transcript as provider APIs take it: turns, a turn's segments as a format's parts, the first prompt's id, and which reasoning goes back. |
 | `AttachmentReader.swift` | An attachment as content to send: kinds, text, PDFs, data URLs. |
 | `EncodedImage.swift` | An image as JPEG no larger than a size, and the bounded cache of encoded images. |
 | `RequestSettings.swift` | What a request sends of the app's settings: sampling, tool choice, metadata within its limits, the body with the provider's members and the app's over them, and what it leaves out or changes. |
 | `AnswerChannel.swift` | Writing one answer to Foundation Models' channel: text, reasoning, reasoning tagged inside the text, tool calls assembled from fragments, data, citations, how an answer ends, facts and usage. |
-| `RequestFailure.swift` | A failure before a provider maps it, and the helpers that map it. |
+| `RequestFailure.swift` | A failure before a provider maps it, the error object of an error event, and the helpers that map it. |
 
 A provider hands a shared model values and an exchange, and never touches a transcript reader, a stream or the channel.
 [ARCHITECTURE](ARCHITECTURE.md#what-a-provider-states) lists all of it. Add a method to an exchange, or a value to a model

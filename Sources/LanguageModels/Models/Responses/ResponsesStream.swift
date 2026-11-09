@@ -152,18 +152,26 @@ extension Responses.Stream {
 extension Responses.Stream {
     /// Sends the events for one server-sent event.
     ///
+    /// An event the provider named `ping` is passed over, whatever its data holds. One it named `error`, whatever JSON
+    /// or other text its data holds, one with no `type` that carries an `error`, and one of a kind the format doesn't
+    /// read that carries a non-empty `error`, is an error event. An event with empty data is passed over, and a `[DONE]`
+    /// ends the stream, whatever their names.
+    ///
     /// - Returns: Whether the event ends the stream: `response.completed`, `response.incomplete`, or a `[DONE]`.
-    /// - Throws: The exchange's error for an event that can't be read, an `error` event and a failed response.
+    /// - Throws: The exchange's error for an event that can't be read, an error event and a failed response.
     mutating func receive(_ event: ServerSentEvent) async throws -> Bool {
+        guard !event.isPing else { return false }
         let streamed: ResponseEvent.Streamed?
         do {
             streamed = try ResponseEvent.Streamed(event)
         } catch {
-            throw unreadable(error)
+            let data = Data(event.data.utf8)
+            guard event.isError || ResponseEvent.isUntypedError(data) else { throw unreadable(error) }
+            throw errorEvent(data)
         }
         switch streamed {
-        case .event(let event, let data)?:
-            return try await receive(event, data: data)
+        case .event(let typed, let data)?:
+            return try await receive(typed, data: data, isNamedError: event.isError)
         case .done?:
             return true
         case nil:
@@ -173,19 +181,25 @@ extension Responses.Stream {
 
     /// Takes the facts of the event's response, then acts on the event by its kind.
     ///
+    /// - Parameters:
+    ///   - event: The event's members the format reads.
+    ///   - data: The event's JSON, which an error event's error object is read from.
+    ///   - isNamedError: Whether the provider named the event `error`, which makes any event but a failed response,
+    ///     which carries its error in the response, an error event.
     /// - Returns: Whether the event ends the answer.
-    /// - Throws: The exchange's error for an `error` event, a failed response, or an error object that can't be read.
-    private mutating func receive(_ event: ResponseEvent, data: Data) async throws -> Bool {
+    /// - Throws: The exchange's error for an error event, a failed response, or an error object that can't be read.
+    private mutating func receive(_ event: ResponseEvent, data: Data, isNamedError: Bool) async throws -> Bool {
         if let response = event.response {
             report.update(with: response)
             webSearchCount = response.toolUsage?.webSearch?.requestCount ?? webSearchCount
             isStored = response.store ?? isStored
         }
+        if isNamedError, event.type != .failed {
+            throw errorEvent(data)
+        }
         switch event.type {
         case .error:
-            // The error is nested in the event's `error` member, or is the event's own members.
-            let body = try errorBody(event.error.map(\.data) ?? data)
-            throw exchange.error(for: RequestFailure(errorEvent: body, provider: provider, headers: headers, imageEntries: imageEntries))
+            throw errorEvent(data)
         case .failed:
             let body = try event.response?.error.map { try errorBody($0.data) }
             throw exchange.error(for: RequestFailure(failedAnswer: body, headers: headers, imageEntries: imageEntries))
@@ -218,7 +232,9 @@ extension Responses.Stream {
             report.finishReason = Self.finishReason(event.response?.incompleteDetails?.reason)
             return true
         default:
-            break
+            if !ResponseEvent.EventType.read.contains(event.type), ResponseEvent.carriesError(data) {
+                throw errorEvent(data)
+            }
         }
         return false
     }
@@ -491,6 +507,20 @@ extension Responses.Stream {
     private func unreadable(_ error: any Error) -> any Error {
         failure(.unreadableEvent("\(error)"))
     }
+
+    /// The error for an error event.
+    ///
+    /// - Parameter data: The event's data.
+    /// - Returns: The exchange's error for the provider's error, or for an event that can't be read when the exchange's
+    ///   type can't read the error even with the data's text as its message.
+    private func errorEvent(_ data: Data) -> any Error {
+        do {
+            return exchange.error(
+                for: try RequestFailure(errorEventData: data, provider: provider, headers: headers, imageEntries: imageEntries))
+        } catch {
+            return unreadable(error)
+        }
+    }
 }
 
 // MARK: - Wire
@@ -523,9 +553,6 @@ private struct ResponseEvent: Decodable {
     /// The annotation of `response.output_text.annotation.added`, such as a cited page.
     let annotation: Annotation?
 
-    /// The error of an `error` event that nests it, or `nil` for one that carries it in its own members.
-    let error: JSONValue?
-
     init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         type = try container.decode(EventType.self, forKey: .type)
@@ -537,7 +564,6 @@ private struct ResponseEvent: Decodable {
         item = reads ? try container.decodeIfPresent(JSONValue.self, forKey: .item) : nil
         response = reads ? try container.decodeIfPresent(Response.self, forKey: .response) : nil
         annotation = reads ? try container.decodeIfPresent(Annotation.self, forKey: .annotation) : nil
-        error = reads ? try container.decodeIfPresent(JSONValue.self, forKey: .error) : nil
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -549,7 +575,6 @@ private struct ResponseEvent: Decodable {
         case item
         case response
         case annotation
-        case error
     }
 }
 
@@ -692,7 +717,7 @@ extension ResponseEvent {
     }
 
     /// The kind of an event, by its `type`. Kinds the format doesn't read, such as a server tool's progress, are
-    /// passed over.
+    /// passed over, unless the event carries a non-empty `error`.
     struct EventType: ProviderVocabulary {
         static let created: Self = "response.created"
         static let inProgress: Self = "response.in_progress"
@@ -716,6 +741,28 @@ extension ResponseEvent {
         ]
 
         let rawValue: String
+    }
+
+    /// The members of an event's data that tell whether it carries an error: its `type` and its `error`.
+    private struct ErrorMembers: Decodable {
+        let type: JSONValue?
+        let error: JSONValue?
+    }
+
+    /// Whether an event's data has no `type` but carries an `error`, as some providers send a failure.
+    static func isUntypedError(_ data: Data) -> Bool {
+        guard let members = try? HTTPClient.decoder.decode(ErrorMembers.self, from: data) else { return false }
+        return members.type == nil && members.error != nil
+    }
+
+    /// Whether an event's data carries a non-empty `error`: one that isn't `null`, `false`, zero, or empty text, an
+    /// empty list or an empty object.
+    static func carriesError(_ data: Data) -> Bool {
+        switch (try? HTTPClient.decoder.decode(ErrorMembers.self, from: data))?.error {
+        case nil, .null?, .bool(false)?, .integer(0)?, .number(0)?, .largeInteger(0)?, .string("")?, .array([])?: false
+        case .object(let members)?: !members.members.isEmpty
+        default: true
+        }
     }
 
     /// One server-sent event of a streamed response: an event and its JSON, or a `[DONE]` that a provider may send after

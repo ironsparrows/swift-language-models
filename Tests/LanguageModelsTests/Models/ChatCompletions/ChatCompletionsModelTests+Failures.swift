@@ -40,6 +40,90 @@ extension ChatCompletionsModelTests {
             #expect(error.message == "Overloaded.")
         }
 
+        @Test(arguments: [true, false])
+        func `a chunk whose type is error fails the answer with the error in its own members`(endsWithDone: Bool) async {
+            let error: JSONValue = ["type": "error", "message": "Overloaded.", "code": "server_error"]
+            let lines = [textChunk("Hi"), error].map { "data: \($0.text)\n\n" } + (endsWithDone ? ["data: [DONE]\n\n"] : [])
+            let stub = HTTPStub(.eventStream(Data(lines.joined().utf8)))
+
+            let failure = await respond(stub, to: [prompt(text("Hello"))])
+
+            guard case .errorEvent? = failure?.kind, let body = failure?.body else {
+                Issue.record("The answer ended with \(String(describing: failure))")
+                return
+            }
+            #expect(body.message == "Overloaded.")
+            #expect(body.code == "server_error")
+        }
+
+        @Test(
+            arguments: [
+                // A required call the model didn't make, after its text, with no finish reason, as Groq sends it.
+                (
+                    #"{"error":{"message":"Tool choice is required, but model did not call a tool","type":"invalid_request_error","code":"tool_use_failed","failed_generation":"","status_code":400}}"#,
+                    "Tool choice is required, but model did not call a tool", "tool_use_failed"
+                ),
+                // A prompt longer than the context, as LM Studio is reported to send it.
+                (
+                    #"{"error":{"message":"Input does not fit in context length. The input has 31430 tokens, but the context length only supports 30000 tokens."},"message":"Input does not fit in context length. The input has 31430 tokens, but the context length only supports 30000 tokens."}"#,
+                    "Input does not fit in context length. The input has 31430 tokens, but the context length only supports 30000 tokens.",
+                    nil
+                ),
+                (#"{"message":"Overloaded.","code":"server_error"}"#, "Overloaded.", "server_error"),
+                ("Overloaded.", "Overloaded.", nil),
+                (#""Overloaded.""#, "Overloaded.", nil),
+                (#"{"error":"Overloaded."}"#, "Overloaded.", nil),
+                (#"{"detail":"Overloaded."}"#, #"{"detail":"Overloaded."}"#, nil),
+                // An error without a message keeps its other members.
+                (
+                    #"{"type":"error","code":"rate_limit_exceeded"}"#, #"{"type":"error","code":"rate_limit_exceeded"}"#,
+                    "rate_limit_exceeded"
+                ),
+                (#"{"error":{"code":503}}"#, #"{"code":503}"#, 503),
+                // A message longer than 1,000 characters is cut there.
+                (String(repeating: "x", count: 1_500), String(repeating: "x", count: 1_000), nil),
+            ] as [(String, String, JSONValue?)])
+        func `an event named error fails the answer with the provider's error, whatever its data holds`(
+            data: String, message: String, code: JSONValue?
+        ) async {
+            let chunk =
+                #"{"id":"chatcmpl-00000000-0000-4000-8000-000000000001","object":"chat.completion.chunk","created":1794205505,"model":"openai/gpt-oss-20b","system_fingerprint":"fp_8d13edce1d","choices":[{"index":0,"delta":{"content":"?"},"logprobs":null,"finish_reason":null}]}"#
+            let stub = HTTPStub(.eventStream(Data("data: \(chunk)\n\nevent: error\ndata: \(data)\n\n".utf8)))
+
+            let failure = await respond(stub, to: [prompt(text("Hello"))])
+
+            guard case .errorEvent? = failure?.kind, let body = failure?.body else {
+                Issue.record("The answer ended with \(String(describing: failure))")
+                return
+            }
+            #expect(body.message == message)
+            #expect(body.code == code)
+        }
+
+        @Test(
+            arguments: [
+                (
+                    #"{"type":"error","code":"rate_limit_exceeded"}"#, #"{"type":"error","code":"rate_limit_exceeded"}"#,
+                    "rate_limit_exceeded"
+                ),
+                (#"{"error":{"code":503}}"#, #"{"code":503}"#, 503),
+                (#"{"error":"Overloaded."}"#, "Overloaded.", nil),
+            ] as [(String, String, JSONValue?)])
+        func `an error chunk whose error has no message fails the answer with its text as the message`(
+            data: String, message: String, code: JSONValue?
+        ) async {
+            let stub = HTTPStub(.eventStream(Data("data: \(textChunk("Hi").text)\n\ndata: \(data)\n\n".utf8)))
+
+            let failure = await respond(stub, to: [prompt(text("Hello"))])
+
+            guard case .errorEvent? = failure?.kind, let body = failure?.body else {
+                Issue.record("The answer ended with \(String(describing: failure))")
+                return
+            }
+            #expect(body.message == message)
+            #expect(body.code == code)
+        }
+
         @Test func `an answer whose finish reason is error fails`() async {
             let stub = HTTPStub(chatCompletionsEvents(["choices": [["delta": ["content": "Hi"], "finish_reason": "error"]]]))
 
