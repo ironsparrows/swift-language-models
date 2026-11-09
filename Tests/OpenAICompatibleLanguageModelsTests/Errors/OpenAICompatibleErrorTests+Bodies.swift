@@ -58,7 +58,102 @@ extension OpenAICompatibleErrorTests {
                 body: #"{"error":{"message":"property 'top_k' is unsupported","type":"invalid_request_error"}}"#,
                 error: OpenAICompatibleError(
                     providerName: "Gateway", status: 400, message: "property 'top_k' is unsupported", code: .invalidRequest,
-                    errorType: .invalidRequest)),
+                    errorType: .invalidRequest, parameter: "top_k")),
+            Row(
+                name: "Gemini, a member it doesn't know", status: 400,
+                body: #"""
+                    [{
+                      "error": {
+                        "code": 400,
+                        "message": "Invalid JSON payload received. Unknown name \"top_k\": Cannot find field.",
+                        "status": "INVALID_ARGUMENT",
+                        "details": [
+                          {
+                            "@type": "type.googleapis.com/google.rpc.BadRequest",
+                            "fieldViolations": [
+                              {
+                                "description": "Invalid JSON payload received. Unknown name \"top_k\": Cannot find field."
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    }
+                    ]
+                    """#,
+                error: OpenAICompatibleError(
+                    providerName: "Gateway", status: 400,
+                    message: #"Invalid JSON payload received. Unknown name "top_k": Cannot find field."#,
+                    code: "INVALID_ARGUMENT", errorType: "INVALID_ARGUMENT", parameter: "top_k")),
+            Row(
+                name: "Gemini, an effort the model doesn't take", status: 400,
+                body: #"""
+                    [{
+                      "error": {
+                        "code": 400,
+                        "message": "Invalid reasoning_effort: xhigh. Valid values are: high, low, medium, minimal, none",
+                        "status": "INVALID_ARGUMENT"
+                      }
+                    }
+                    ]
+                    """#,
+                error: OpenAICompatibleError(
+                    providerName: "Gateway", status: 400,
+                    message: "Invalid reasoning_effort: xhigh. Valid values are: high, low, medium, minimal, none",
+                    code: "INVALID_ARGUMENT",
+                    errorType: "INVALID_ARGUMENT", parameter: "reasoning_effort")),
+            Row(
+                name: "Gemini, a temperature out of range", status: 400,
+                body: #"""
+                    [{
+                      "error": {
+                        "code": 400,
+                        "message": "temperature must be in the range [0.0, 2.0] but was 9",
+                        "status": "INVALID_ARGUMENT"
+                      }
+                    }
+                    ]
+                    """#,
+                error: OpenAICompatibleError(
+                    providerName: "Gateway", status: 400, message: "temperature must be in the range [0.0, 2.0] but was 9",
+                    code: "INVALID_ARGUMENT", errorType: "INVALID_ARGUMENT", parameter: "temperature")),
+            Row(
+                name: "Groq, an effort gpt-oss doesn't take", status: 400,
+                body:
+                    #"{"error":{"message":"`reasoning_effort` must be one of `low`, `medium`, or `high`","type":"invalid_request_error"}}"#,
+                error: OpenAICompatibleError(
+                    providerName: "Gateway", status: 400, message: "`reasoning_effort` must be one of `low`, `medium`, or `high`",
+                    code: .invalidRequest, errorType: .invalidRequest, parameter: "reasoning_effort")),
+            Row(
+                name: "Groq, an effort Qwen doesn't take", status: 400,
+                body: #"{"error":{"message":"invalid Qwen3.8 reasoning_effort","type":"invalid_request_error"}}"#,
+                error: OpenAICompatibleError(
+                    providerName: "Gateway", status: 400, message: "invalid Qwen3.8 reasoning_effort", code: .invalidRequest,
+                    errorType: .invalidRequest, parameter: "reasoning_effort")),
+            Row(
+                name: "Groq, a temperature out of range", status: 400,
+                body: #"{"error":{"message":"'temperature' : number must be at most 2","type":"invalid_request_error"}}"#,
+                error: OpenAICompatibleError(
+                    providerName: "Gateway", status: 400, message: "'temperature' : number must be at most 2", code: .invalidRequest,
+                    errorType: .invalidRequest, parameter: "temperature")),
+            Row(
+                name: "Groq, a member of a message it doesn't know", status: 400,
+                body:
+                    #"{"error":{"message":"'messages.1' : for 'role:assistant' the following must be satisfied[('messages.1' : property 'reasoning_content' is unsupported)]","type":"invalid_request_error"}}"#,
+                error: OpenAICompatibleError(
+                    providerName: "Gateway", status: 400,
+                    message:
+                        "'messages.1' : for 'role:assistant' the following must be satisfied[('messages.1' : property 'reasoning_content' is unsupported)]",
+                    code: .invalidRequest, errorType: .invalidRequest, parameter: "messages.1.reasoning_content")),
+            // Mistral's 400 for a tool call id of another shape, written from a reported body.
+            Row(
+                name: "Mistral, a code that's a number but no status", status: 400,
+                body:
+                    #"{"object":"error","message":"Tool call id was call_0fypS1hVX but must be a-z, A-Z, 0-9, with a length of 9.","type":"invalid_request_message_error","param":null,"code":"3280"}"#,
+                error: OpenAICompatibleError(
+                    providerName: "Gateway", status: 400,
+                    message: "Tool call id was call_0fypS1hVX but must be a-z, A-Z, 0-9, with a length of 9.", code: "3280",
+                    errorType: "invalid_request_message_error")),
             Row(
                 name: "Ollama, nested with null members", status: 404,
                 body: #"{"error":{"message":"model 'no-such-model-xyz' not found","type":"not_found_error","param":null,"code":null}}"#,

@@ -1,6 +1,7 @@
 # Getting started
 
-Describe a provider and a model on it, say how its requests authenticate, and send them your own way.
+Pick a provider's preset or describe a provider, name a model on it, say how its requests authenticate, and send them
+your own way.
 
 ## Overview
 
@@ -18,7 +19,18 @@ Sessions, streaming, tools, guided generation and profiles work as Apple's
 [Generating content and performing tasks with Foundation Models](https://developer.apple.com/documentation/foundationmodels/generating-content-and-performing-tasks-with-foundation-models)
 and [LanguageModelSession](https://developer.apple.com/documentation/foundationmodels/languagemodelsession) describe.
 
-### Describe the provider
+### Use a preset
+
+Gemini, Groq, DeepSeek and Mistral have presets, which carry their URLs and what each does differently, such as the
+members it refuses and the efforts its models accept:
+
+@Snippet(path: "swift-language-models/Snippets/OpenAICompatibleQuickStart", slice: "preset")
+
+<doc:Providers> says what each preset does, and which were checked against their provider.
+``OpenAICompatibleProvider/at(_:)`` points a preset at another address, such as a gateway in front of the provider,
+and keeps everything else.
+
+### Describe another provider
 
 An ``OpenAICompatibleProvider`` says where requests go and how:
 
@@ -44,8 +56,9 @@ as `max_output_tokens` and a reasoning level in `reasoning`.
 ### Describe the model
 
 An ``OpenAICompatibleModel`` takes the model's id, as its provider's API spells it, and what you know about it. Each
-value left out takes the provider's default: a model takes tools, guided generation and images, reasons only when a
-request asks it to, and accepts the efforts `xhigh`, `high`, `medium`, `low`, `minimal` and `none`. Say what differs:
+value left out takes the provider's default, which a preset sets for its provider. On a provider you describe, a model
+takes tools, guided generation and images, reasons only when a request asks it to, and accepts the efforts `xhigh`,
+`high`, `medium`, `low`, `minimal` and `none`. Say what differs:
 
 @Snippet(path: "swift-language-models/Snippets/OpenAICompatibleQuickStart", slice: "localServer")
 
@@ -95,8 +108,8 @@ The model's ``OpenAICompatibleLanguageModel/configuration``, an ``OpenAICompatib
 sends requests, apart from what they ask the provider for: the idle timeout, the ``RequestRetries`` of a request that
 fails before any data arrives, and the ``ImageEncoding`` of image attachments. A model created without one takes the
 provider's defaults, which for a provider described by its name and URL wait up to 10 minutes for the next data, since a
-server loading a model or a model that reasons hard may send nothing for a while, and retry up to twice. Change one
-setting on the model, and it keeps the others; a change applies to the next request:
+server loading a model or a model that reasons hard may send nothing for a while, and retry up to twice; a preset's are
+in <doc:Providers>. Change one setting on the model, and it keeps the others; a change applies to the next request:
 
 ```swift
 var model = OpenAICompatibleLanguageModel(details, auth: .apiKey { try await keyStore.gatewayKey() })

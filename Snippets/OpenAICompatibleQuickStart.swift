@@ -57,6 +57,19 @@ func apiKey() {
     _ = model
 }
 
+func preset() {
+    // snippet.show
+    // snippet.preset
+    // A model on Gemini, with the key from the scheme's environment during development.
+    let model = OpenAICompatibleLanguageModel(
+        OpenAICompatibleModel("gemini-3.1-flash-lite", on: .gemini),
+        auth: .apiKey { ProcessInfo.processInfo.environment["GEMINI_API_KEY"] ?? "" }
+    )
+    // snippet.end
+    // snippet.hide
+    _ = model
+}
+
 func additionalMembers() throws {
     // swift-format-ignore: NeverForceUnwrap
     let provider = OpenAICompatibleProvider(name: "Local", url: URL(string: "http://localhost:8080/v1")!)

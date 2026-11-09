@@ -30,14 +30,16 @@ public struct OpenAICompatibleResponseMetadata: Sendable, Hashable {
     /// The provider's id for the response, such as `chatcmpl-…`.
     public let responseID: String?
 
-    /// The provider's id for the request, from its `x-request-id` header, which its support asks for.
+    /// The provider's id for the request, from the header it sends one in, such as `x-request-id`, which its support
+    /// asks for.
     public let requestID: String?
 
     /// Why the answer ended, such as ``FinishReason/length`` when it reached its token limit.
     ///
     /// A text answer cut off at its token limit doesn't throw, so its reason is the way to tell. A guided answer, or
-    /// tool calls, cut off there throw instead. A word the format doesn't know ends the answer as complete, and is kept
-    /// here as the provider sent it.
+    /// tool calls, cut off there throw instead. A word the format doesn't know ends the answer as complete, unless a
+    /// preset knows it: DeepSeek's words for an answer its servers cut short fail the answer, and Mistral's
+    /// `model_length` counts as the token limit. Either way, the word is kept here as the provider sent it.
     public let finishReason: FinishReason?
 
     /// The web pages the answer cites, in the order the provider listed them.
@@ -136,11 +138,12 @@ public struct OpenAICompatibleErrorMetadata: Sendable, Hashable {
         requestID = shared.requestID
     }
 
-    /// The metadata of a `LanguageModelError`: the status, the code, the request id and the provider's name.
+    /// The metadata of a `LanguageModelError`: the status, the code, the request id, the company that ran the model and
+    /// the provider's name.
     static func metadata(
-        status: Int?, code: OpenAICompatibleError.Code, requestID: String?, providerName: String
+        status: Int?, code: OpenAICompatibleError.Code, requestID: String?, providerName: String, host: String?
     ) -> [String: any Sendable] {
-        var metadata = ProviderErrorMetadata(status: status, code: code.rawValue, requestID: requestID).contextMetadata
+        var metadata = ProviderErrorMetadata(status: status, code: code.rawValue, host: host, requestID: requestID).contextMetadata
         metadata[Key.providerName] = providerName
         return metadata
     }

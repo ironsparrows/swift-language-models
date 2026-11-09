@@ -286,10 +286,11 @@ extension OpenAICompatibleLanguageModel {
         ///   - request: The transcript, tools, schema and options to send.
         ///   - model: The model to answer with.
         ///   - channel: Where the answer's events go.
-        /// - Throws: `LanguageModelError` for failures Foundation Models has a case for, `OpenAICompatibleError` for the
-        ///   rest, `GeneratedContent.ParsingError` when a value of the answer breaks a guide of the request's schema, an
-        ///   object or array answer isn't complete JSON or a guided answer reaches its token limit, the `URLError` of a
-        ///   failed connection, and `CancellationError` when the task is cancelled. An error that the model's
+        /// - Throws: `LanguageModelError` for failures Foundation Models has a case for, and for a request the provider
+        ///   is known to refuse, before it's sent; `OpenAICompatibleError` for the rest; `GeneratedContent.ParsingError`
+        ///   when a value of the answer breaks a guide of the request's schema, an object or array answer isn't complete
+        ///   JSON, a guided answer reaches its token limit or the provider says it broke its schema; the `URLError` of a
+        ///   failed connection; and `CancellationError` when the task is cancelled. An error that the model's
         ///   authentication throws passes through as it is, unless it's a `URLError`, which maps as a failed
         ///   connection's does.
         public func respond(

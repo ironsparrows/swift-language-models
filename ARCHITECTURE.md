@@ -180,10 +180,10 @@ none of them, apart from the required values on the model and what a failure bec
 | Value | Format | OpenRouter | OpenAI | OpenAI-compatible |
 |---|---|---|---|---|
 | `name`, `url`, `connection`, `providerName`, `capabilities`, `reaching:` | both, required | the variant's model id, a proxy's URL, session, auth and timeouts, `OpenRouter` | the model's id, a proxy's URL, session, auth and timeouts, `OpenAI` | the model's id, the provider's URL or a proxy's, session, auth, the provider's headers and timeouts, the provider's name |
-| `memberOrder` | Chat Completions | the member order hosts cache on | | the format's, with `stream_options` and `reasoning_effort` in it |
-| `unsupportedMembers` | both | the listed members the model's details don't list | the same | |
+| `memberOrder` | Chat Completions | the member order hosts cache on | | the format's, with `stream_options`, `reasoning_effort` and `thinking` in it |
+| `unsupportedMembers` | both | the listed members the model's details don't list | the same | the members a preset's provider refuses or doesn't document |
 | `media` | Chat Completions | AIFF, M4A, AAC, FLAC and OGG audio, and video | | |
-| `finishReasons` | Chat Completions | | | |
+| `finishReasons` | Chat Completions | | | the preset's: DeepSeek's `insufficient_system_resource` and `aborted` as `error`, Mistral's `model_length` as `length` |
 | `images` | both, required | the configuration's `ImageEncoding` | the same | the same |
 | `reasoningOrigin` | both, required | `openrouter` | `openai-responses` | `openai-compatible/`, or `openai-compatible-responses/` on Responses, and the provider's name |
 | `instructionsRole` | Responses | | `developer` for a model that reasons, `system` otherwise | |
@@ -197,12 +197,12 @@ next. Every method but `error(for:)` has a default that adds nothing:
 | Method | Format | OpenRouter | OpenAI | OpenAI-compatible |
 |---|---|---|---|---|
 | `checkAttachment(_:in:)` | both | which inputs the models take | which inputs the model takes | images with vision, and the data kinds the details list |
-| `replays(_:)` | both | only to the model that wrote it, not a fallback | only to the model that wrote it, or to the model it's a dated snapshot of | on Responses only, to the model that wrote it or the model it's a dated version of |
-| `replayMembers(for:)` | Chat Completions | `reasoning` and `reasoning_details` on the message, none on its tool calls | | none |
-| `prepare(_:)` | both | the app's name, address and categories, the response cache, router metadata; fallbacks, routing, plugins, reasoning, penalties, server tools, cache marks | the effort, summary and storage, `text.verbosity`, `parallel_tool_calls` with the session's tools, the service tier, cache key and end user, server tools and the calls the answer keeps, `include`, the sampling a reasoning model doesn't take | `stream_options`, `max_tokens` and `reasoning_effort` on Chat Completions, the effort and storage on Responses, and the app's members on both |
-| `read(_:)` | Chat Completions | images and reasoning details | | the delta's `reasoning_content`, or else its `reasoning` |
-| `additions(header:)` | both | the host, cost, router report, cache status | the request's id | the request's id |
-| `error(for:)` | both, required | `LanguageModelError` or `OpenRouterError` | `LanguageModelError` or `OpenAIError` | `LanguageModelError` or `OpenAICompatibleError` |
+| `replays(_:)` | both | only to the model that wrote it, not a fallback | only to the model that wrote it, or to the model it's a dated snapshot of | on Responses, to the model that wrote it or the model it's a dated version of; on Chat Completions as the preset says, such as any of DeepSeek's models, or only the Groq model that wrote it |
+| `replayMembers(for:)` | Chat Completions | `reasoning` and `reasoning_details` on the message, none on its tool calls | | the preset's: the reasoning in DeepSeek's `reasoning_content` or Groq's `reasoning` on the message, or Gemini's thought signature on the first tool call or the message |
+| `prepare(_:)` | both | the app's name, address and categories, the response cache, router metadata; fallbacks, routing, plugins, reasoning, penalties, server tools, cache marks | the effort, summary and storage, `text.verbosity`, `parallel_tool_calls` with the session's tools, the service tier, cache key and end user, server tools and the calls the answer keeps, `include`, the sampling a reasoning model doesn't take | on Chat Completions, `stream_options` unless the provider reports usage unasked, the preset's token-limit member, `reasoning_effort` with DeepSeek's `thinking`, and the requests a preset's provider refuses, refused; the effort and storage on Responses; the app's members on both |
+| `read(_:)` | Chat Completions | images and reasoning details | | the delta's `reasoning_content`, or else its `reasoning`, and Gemini's thought signatures |
+| `additions(header:)` | both | the host, cost, router report, cache status | the request's id | a remote preset's host, the request's id from the preset's headers, Gemini's thought signature |
+| `error(for:)` | both, required | `LanguageModelError` or `OpenRouterError` | `LanguageModelError` or `OpenAIError` | `LanguageModelError` or `OpenAICompatibleError`, and `GeneratedContent.ParsingError` for a guided answer Groq says broke its schema |
 
 **On the request,** in `prepare(_:)`, what depends on the one request. Chat Completions has `headers`, `members`,
 `overridingMembers`, `sendsSessionTools`, `serverTools`, `tokenLimitMember`, `usesPortableSchema`, `instructionsMark`
@@ -245,6 +245,7 @@ flowchart LR
     unusable["Answer cut off, or a tool call that can't run"] --> failure
     failure["RequestFailure"]:::package --> map["exchange.error(for:)"]:::provider
     map --> foundation["LanguageModelError"]:::apple
+    map --> parsing["GeneratedContent.ParsingError, for a schema an OpenAI-compatible provider says an answer broke"]:::apple
     map --> own["OpenRouterError · OpenAIError · OpenAICompatibleError"]:::provider
 
     classDef package fill:#f1ecfb,stroke:#7c5cc4,color:#1d1d1f
@@ -257,8 +258,10 @@ flowchart LR
   while it streamed. `status` is an `HTTPStatus`, named when a provider or the transport decides something for it, and
   each provider's table switches over it with no `default`.
 - Failures Foundation Models has a case for become `LanguageModelError`: a rate limit, an oversized context, a
-  guardrail, a refusal, a timeout or an image the host can't use. The rest become the provider's own error, such as a
-  rejected key, or credits or a quota that ran out. A `URLError` is rethrown as a failed connection's.
+  guardrail, a refusal, a timeout or an image the host can't use. A guided answer that an OpenAI-compatible provider
+  says broke its schema becomes `GeneratedContent.ParsingError`, as one that breaks its schema's guides does. The rest
+  become the provider's own error, such as a rejected key, or credits or a quota that ran out. A `URLError` is rethrown
+  as a failed connection's.
 - `run` logs what it throws, through `RequestLog`, whose category is the provider's name. What the log says of an error
   is its kind, HTTP status, code and host, never its message, and a provider's error tells it through `LoggableError`.
 

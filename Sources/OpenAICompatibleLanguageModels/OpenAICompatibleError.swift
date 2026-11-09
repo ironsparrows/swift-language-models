@@ -27,17 +27,20 @@ public struct OpenAICompatibleError: Error, Sendable, Equatable, LocalizedError 
 
     /// What kind of failure it was: the provider's code, such as `invalid_api_key`, or when it gives none, the kind its
     /// HTTP status stands for, such as `authentication`, or for a status with no kind of its own, such as a 400, the
-    /// provider's error type, such as `invalid_request_error`.
+    /// provider's error type, such as `invalid_request_error`. A 400 whose message says, in a preset's provider's words,
+    /// that the API key is missing or refused is `authentication`, as a 401 is.
     public let code: Code
 
     /// The provider's error type, such as `invalid_request_error`, or its status word, such as `INVALID_ARGUMENT`,
     /// when it names one, whatever the code.
     public let errorType: Code?
 
-    /// The request member the failure concerns, such as `stream_options`, when the provider names one.
+    /// The request member the failure concerns, such as `stream_options`, when the provider's error names one or its
+    /// message quotes one, as in `Unknown name "top_k"`.
     public let parameter: String?
 
-    /// The provider's id for the request, from its `x-request-id` header, which its support asks for.
+    /// The provider's id for the request, from the header it sends one in, such as `x-request-id`, which its support
+    /// asks for.
     public let requestID: String?
 
     /// How long to wait before retrying, when the provider says.
@@ -160,6 +163,10 @@ extension OpenAICompatibleError {
 /// validation found, each with its `msg` and the `loc` of the member it concerns. An error that names a code, a type
 /// or a member without a message has its own text, up to 1,000 characters, as its message.
 ///
+/// An error that names no member takes the one its message quotes, in the forms providers quote one in, such as
+/// `Unknown name "top_k"` or `property 'top_k' is unsupported`. The wait a `google.rpc.RetryInfo` in its `details`
+/// names, and the `failed_generation` of a guided answer that broke its schema, are read too.
+///
 /// Reading one fails when it holds neither a message nor a code, a type or a member, so an error event's own text
 /// becomes its message instead.
 struct OpenAICompatibleErrorBody: Decodable, Sendable {
@@ -179,6 +186,12 @@ struct OpenAICompatibleErrorBody: Decodable, Sendable {
     /// The request member the error concerns, such as `top_k`.
     let parameter: String?
 
+    /// How long to wait before retrying, as the error's `details` say in a `google.rpc.RetryInfo`.
+    let retryDelay: Duration?
+
+    /// What the model generated before its guided answer broke the schema, when the error says.
+    let failedGeneration: String?
+
     init(from decoder: any Decoder) throws {
         guard let body = Self(try JSONValue(from: decoder)) else {
             throw DecodingError.dataCorrupted(.init(codingPath: decoder.codingPath, debugDescription: "No member holds an error."))
@@ -191,7 +204,7 @@ struct OpenAICompatibleErrorBody: Decodable, Sendable {
         switch json {
         case .string(let text):
             guard !text.isEmpty else { return nil }
-            self.init(message: text, type: nil, code: nil, status: nil, parameter: nil)
+            self.init(message: text, type: nil, code: nil, status: nil, parameter: Self.quotedMember(in: text))
         case .array(let elements):
             guard let body = elements.lazy.compactMap(Self.init).first else { return nil }
             self = body
@@ -202,12 +215,17 @@ struct OpenAICompatibleErrorBody: Decodable, Sendable {
         }
     }
 
-    private init(message: String, type: String?, code: String?, status: Int?, parameter: String?) {
+    private init(
+        message: String, type: String?, code: String?, status: Int?, parameter: String?, retryDelay: Duration? = nil,
+        failedGeneration: String? = nil
+    ) {
         self.message = message
         self.type = type
         self.code = code
         self.status = status
         self.parameter = parameter
+        self.retryDelay = retryDelay
+        self.failedGeneration = failedGeneration
     }
 
     /// The error in an object: the object its `error` member holds, or its own members, with its message in an `error`
@@ -239,7 +257,9 @@ struct OpenAICompatibleErrorBody: Decodable, Sendable {
         }
         self.init(
             message: found.message, type: type ?? statusWord ?? found.type, code: codes.word, status: codes.status,
-            parameter: parameter ?? found.parameter)
+            parameter: parameter ?? found.parameter ?? Self.quotedMember(in: found.message),
+            retryDelay: members["details"].flatMap(Self.retryDelay(in:)),
+            failedGeneration: members["failed_generation"]?.stringValue)
     }
 
     /// The text of a message that isn't an error object: a string, or any other value's JSON.
@@ -251,8 +271,8 @@ struct OpenAICompatibleErrorBody: Decodable, Sendable {
         }
     }
 
-    /// The code as a word, and the status it names: a `code` that's a number from 400 to 599, or else a
-    /// `status_code` or a `status` that is.
+    /// The code as a word, and the status it names: a `code` that's a number from 400 to 599, as text or a number, or
+    /// else a `status_code` or a `status` that is. Any other `code` is the word, such as `invalid_api_key` or `3280`.
     private static func codes(_ members: JSONObject) -> (word: String?, status: Int?) {
         func status(_ value: JSONValue?) -> Int? {
             let number: Int? =
@@ -266,7 +286,7 @@ struct OpenAICompatibleErrorBody: Decodable, Sendable {
         let code = members["code"]
         let word: String? =
             switch code {
-            case .string(let text)? where Int(text) == nil && !text.isEmpty: text
+            case .string(let text)? where !text.isEmpty && status(code) == nil: text
             case .integer(let number)? where status(code) == nil: String(number)
             default: nil
             }
@@ -294,6 +314,35 @@ struct OpenAICompatibleErrorBody: Decodable, Sendable {
         }
         return (messages.joined(separator: "; "), first["type"]?.stringValue, location.isEmpty ? nil : location.joined(separator: "."))
     }
+
+    /// The request member a message quotes, in the forms providers quote one in, or `nil` when it quotes none: `Unknown
+    /// name "top_k"`, `property 'top_k' is unsupported`, with the message it's in, as in `('messages.1' : property
+    /// 'reasoning_content' is unsupported)`, or one that opens the message, as in `` `reasoning_effort` must be one of
+    /// ``, `'temperature' : number must be at most 2`, `Invalid reasoning_effort: xhigh` or `temperature must be in the
+    /// range`, or one that ends a message that starts with `invalid`, as in `invalid Qwen3.8 reasoning_effort`.
+    static func quotedMember(in message: String) -> String? {
+        if let match = message.firstMatch(of: /Unknown name "([^"]+)"/) { return String(match.1) }
+        if let match = message.firstMatch(of: /\('([^']+)' : property '([^']+)' is unsupported\)/) { return "\(match.1).\(match.2)" }
+        if let match = message.firstMatch(of: /property '([^']+)' is unsupported/) { return String(match.1) }
+        if let match = message.prefixMatch(of: #/`([a-z_.]+)` /#) { return String(match.1) }
+        if let match = message.prefixMatch(of: #/'([a-z_.]+)' : /#) { return String(match.1) }
+        if let match = message.prefixMatch(of: #/Invalid ([a-z]+(?:_[a-z]+)+): /#) { return String(match.1) }
+        if let match = message.prefixMatch(of: #/([a-z]+(?:_[a-z]+)*) must be /#) { return String(match.1) }
+        if let match = message.wholeMatch(of: #/(?i:invalid) .* ([a-z]+(?:_[a-z]+)+)/#) { return String(match.1) }
+        return nil
+    }
+
+    /// The wait a `google.rpc.RetryInfo` in an error's `details` names, such as `7s`, or `nil` when there's none.
+    private static func retryDelay(in details: JSONValue) -> Duration? {
+        guard case .array(let entries) = details else { return nil }
+        for entry in entries where entry["@type"]?.stringValue?.hasSuffix("google.rpc.RetryInfo") == true {
+            guard let delay = entry["retryDelay"]?.stringValue, delay.hasSuffix("s"), let seconds = Double(delay.dropLast()),
+                seconds >= 0
+            else { continue }
+            return .seconds(seconds)
+        }
+        return nil
+    }
 }
 
 // MARK: - What a failure becomes
@@ -301,10 +350,17 @@ struct OpenAICompatibleErrorBody: Decodable, Sendable {
 /// A failure a provider reported, before it becomes the error a session throws.
 ///
 /// Failures Foundation Models has a case for throw `LanguageModelError`, so apps handle them the same way for every
-/// model. The rest throw `OpenAICompatibleError`.
+/// model, and a guided answer the provider says broke its schema throws `GeneratedContent.ParsingError`. The rest throw
+/// `OpenAICompatibleError`.
 struct OpenAICompatibleFailure: Sendable {
     /// The name of the provider that failed.
     private let providerName: String
+
+    /// The company that ran the model, when the provider names one.
+    private let host: String?
+
+    /// What the provider's own words say a failure is.
+    private let words: OpenAICompatibleProvider.FailureWords
 
     /// The HTTP status, or for an error in the stream, the status its error names.
     private let status: HTTPStatus?
@@ -318,25 +374,28 @@ struct OpenAICompatibleFailure: Sendable {
     /// The provider's id for the request.
     private let requestID: String?
 
-    /// How long the provider asks to wait, from the `retry-after-ms` or `Retry-After` header.
+    /// How long the provider asks to wait, from the `retry-after-ms` or `Retry-After` header, or else from its error.
     private let retryAfter: Duration?
 
     /// A failed response, whose body the error is read from in whichever shape it has.
     ///
     /// - Parameters:
     ///   - rejected: The response.
-    ///   - providerName: The name of the provider that failed.
-    init(_ rejected: RequestFailure<OpenAICompatibleErrorBody>, providerName: String) {
+    ///   - provider: The provider that failed.
+    ///   - requestID: The provider's id for the request.
+    init(_ rejected: RequestFailure<OpenAICompatibleErrorBody>, provider: OpenAICompatibleProvider, requestID: String?) {
         let status = rejected.status ?? .other(0)
         let body = (try? JSONValue(json: rejected.rawBody)).flatMap(OpenAICompatibleErrorBody.init)
-        self.providerName = providerName
+        providerName = provider.name
+        host = provider.host
+        words = provider.failureWords
         self.status = status
         self.body = body
         message =
             body?.message
             ?? Self.message(describing: rejected.rawBody, status: status, contentType: rejected.header(API.Header.contentType))
-        requestID = rejected.header(API.Header.requestID)
-        retryAfter = rejected.retryAfter
+        self.requestID = requestID
+        retryAfter = rejected.retryAfter ?? body?.retryDelay
     }
 
     /// A failure in the stream: an error event, or an answer the provider says failed, with its error if it has one.
@@ -344,15 +403,17 @@ struct OpenAICompatibleFailure: Sendable {
     /// - Parameters:
     ///   - body: The provider's error, or `nil` when the failure carries none.
     ///   - message: The format's words for the failure, for one that carries no error.
-    ///   - providerName: The name of the provider that failed.
+    ///   - provider: The provider that failed.
     ///   - requestID: The provider's id for the request.
-    init(streamError body: OpenAICompatibleErrorBody?, message: String, providerName: String, requestID: String?) {
-        self.providerName = providerName
+    init(streamError body: OpenAICompatibleErrorBody?, message: String, provider: OpenAICompatibleProvider, requestID: String?) {
+        providerName = provider.name
+        host = provider.host
+        words = provider.failureWords
         status = body?.status.map(HTTPStatus.init(code:))
         self.body = body
         self.message = body?.message ?? message
         self.requestID = requestID
-        retryAfter = nil
+        retryAfter = body?.retryDelay
     }
 
     /// The error to throw.
@@ -362,9 +423,13 @@ struct OpenAICompatibleFailure: Sendable {
     ///   - imageEntries: The request's entries that carry an image, which an error for an image the provider can't use
     ///     names.
     ///   - now: The time a rate limit's reset date counts from.
-    /// - Returns: `LanguageModelError` when Foundation Models has a case for the failure, otherwise
-    ///   `OpenAICompatibleError`.
+    /// - Returns: `LanguageModelError` when Foundation Models has a case for the failure, `GeneratedContent.ParsingError`
+    ///   for a guided answer the provider says broke its schema, with what the model generated as its raw content, and
+    ///   `OpenAICompatibleError` otherwise.
     func error(contextSize: Int?, imageEntries: [Transcript.Entry] = [], now: Date = .now) -> any Error {
+        if let code = body?.code, words.schemaMisses.contains(code) {
+            return GeneratedContent.ParsingError(rawContent: body?.failedGeneration ?? "", debugDescription: message)
+        }
         guard let failure = providerFailure(contextSize: contextSize, imageEntries: imageEntries, now: now) else {
             return OpenAICompatibleError(
                 providerName: providerName, status: status?.code, message: message, code: code,
@@ -372,15 +437,17 @@ struct OpenAICompatibleFailure: Sendable {
                 requestID: requestID, retryAfter: retryAfter, isQuotaExhausted: isQuotaExhausted)
         }
         let metadata = OpenAICompatibleErrorMetadata.metadata(
-            status: status?.code, code: code, requestID: requestID, providerName: providerName)
+            status: status?.code, code: code, requestID: requestID, providerName: providerName, host: host)
         return LanguageModelError(failure, message: message, metadata: metadata)
     }
 
-    /// The kind of failure: the provider's code, then the kind the HTTP status stands for, then the provider's error
+    /// The kind of failure: `authentication` for a 400 whose message says the key is missing or refused, in the
+    /// provider's words, then the provider's code, then the kind the HTTP status stands for, then the provider's error
     /// type for a status with no kind of its own, such as a 400, and `server` for a failure in the stream that names
     /// neither a status nor a type. Providers spell their types differently, so a status's kind keeps one word for
     /// one kind, such as `not_found` for every 404 without a code.
     private var code: OpenAICompatibleError.Code {
+        if status == .badRequest, Self.says(message, any: words.refusedKey) { return .authentication }
         if let code = body?.code { return OpenAICompatibleError.Code(rawValue: code) }
         let kind = status.map(Self.code(for:))
         if let kind, kind != .unmapped { return kind }
@@ -412,17 +479,21 @@ struct OpenAICompatibleFailure: Sendable {
     }
 
     /// The `LanguageModelError` case the failure becomes, or `nil` when it becomes an `OpenAICompatibleError`. A quota
-    /// that ran out stays the module's, since waiting doesn't clear it, although it can arrive as a 429.
+    /// that ran out stays the module's, since waiting doesn't clear it, although it can arrive as a 429, and so does a
+    /// 413 whose code says rate limit, a request too large for the account's limits, since no wait lets it through.
     private func providerFailure(contextSize: Int?, imageEntries: [Transcript.Entry], now: Date) -> LanguageModelError.ProviderFailure? {
         let code = body?.code
         if isQuotaExhausted { return nil }
-        if code == "context_length_exceeded" || (status == .badRequest && LanguageModelError.ProviderFailure.namesContext(message)) {
-            return .contextSizeExceeded(message: message, contextSize: contextSize)
+        if code == "context_length_exceeded"
+            || (status == .badRequest
+                && (LanguageModelError.ProviderFailure.namesContext(message) || Self.says(message, any: words.oversizedContext)))
+        {
+            return Self.contextSizes(in: message) ?? .contextSizeExceeded(message: message, contextSize: contextSize)
         }
-        if status == .tooManyRequests || code == "rate_limit_exceeded" {
+        if status != .contentTooLarge, status == .tooManyRequests || code == "rate_limit_exceeded" {
             return .rateLimited(resetDate: LanguageModelError.ProviderFailure.resetDate(after: retryAfter, from: now))
         }
-        if code.map(Self.guardrailCodes.contains) == true { return .guardrailViolation }
+        if code.map(Self.guardrailCodes.contains) == true || Self.says(message, any: words.refusedContent) { return .guardrailViolation }
         if code.map(Self.unsupportedImageCodes.contains) == true { return .unsupportedContent(imageEntries) }
         if status == .requestTimeout || status == .gatewayTimeout || status == .originTimeout { return .timeout }
         return nil
@@ -430,6 +501,20 @@ struct OpenAICompatibleFailure: Sendable {
 
     /// The codes of a request or answer a content filter stopped.
     private static let guardrailCodes: Set<String> = ["content_policy_violation", "content_filter"]
+
+    /// Whether a message holds any of a provider's words.
+    private static func says(_ message: String, any words: [String]) -> Bool {
+        words.contains { message.contains($0) }
+    }
+
+    /// An oversized prompt with the sizes a message names as `The input token count (9000) exceeds the maximum number of
+    /// tokens allowed (8192)`, or `nil` for a message that doesn't.
+    private static func contextSizes(in message: String) -> LanguageModelError.ProviderFailure? {
+        guard let match = message.firstMatch(of: /\((\d+)\) exceeds the maximum number of tokens allowed \((\d+)\)/),
+            let tokenCount = Int(match.1), let contextSize = Int(match.2)
+        else { return nil }
+        return .contextSizeExceeded(contextSize: contextSize, tokenCount: tokenCount)
+    }
 
     /// The codes of an image the provider can't use. One it couldn't download stays the module's error.
     private static let unsupportedImageCodes: Set<String> = [
