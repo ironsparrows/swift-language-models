@@ -25,6 +25,7 @@ struct HTTPStatusTests {
     @Test(arguments: [
         (RetriedStatuses.transient, [408, 409, 429, 500, 501, 504, 524, 529, 599, 600], [0, 307, 400, 401, 403, 404, 422, 499]),
         (.serverErrors, [500, 501, 502, 503, 504, 524, 529, 599], [0, 307, 400, 408, 409, 429, 499, 600]),
+        (.rateLimits, [429], [0, 307, 400, 408, 409, 413, 499, 500, 503, 529, 599, 600]),
     ])
     func `a rule retries its statuses and no others`(rule: RetriedStatuses, retried: [Int], others: [Int]) {
         #expect(retried.allSatisfy { rule.contains(HTTPStatus(code: $0)) })

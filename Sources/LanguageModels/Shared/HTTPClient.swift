@@ -341,6 +341,10 @@ package enum RetriedStatuses: Sendable {
     /// Any status from 500 to 599: a server that's failing or overloaded.
     case serverErrors
 
+    /// A 429 alone: a rate limit, which turns a request away before any work on it, for a provider that may bill a
+    /// request that failed once its work began.
+    case rateLimits
+
     /// Whether a failed response's status is retried.
     ///
     /// - Parameter status: The response's status.
@@ -349,6 +353,7 @@ package enum RetriedStatuses: Sendable {
         switch self {
         case .transient: [.requestTimeout, .conflict, .tooManyRequests].contains(status) || status.code >= 500
         case .serverErrors: status.isServerError
+        case .rateLimits: status == .tooManyRequests
         }
     }
 }
