@@ -29,6 +29,26 @@ extension OpenAICompatibleExchangeTests {
             #expect(Self.reasoningText(in: session.transcript) == reasoning)
         }
 
+        @Test(arguments: [
+            ("Gateway", 0), ("Groq", 0), ("DeepSeek", 0), ("Mistral", 0), ("Ollama", 0), ("LM Studio", 0), ("vLLM", 0),
+            ("Gemini", 879),
+        ])
+        func `only Gemini's usage counts the total's tokens beyond the prompt and the completion as reasoning`(
+            providerName: String, reasoning: Int
+        ) async throws {
+            let usage: JSONValue = [
+                "id": "chatcmpl-1", "choices": [], "usage": ["prompt_tokens": 15, "completion_tokens": 290, "total_tokens": 1184],
+            ]
+            let stub = HTTPStub(chunks(text("Hi"), finish(), usage))
+            let presets: [OpenAICompatibleProvider] = [.groq, .deepSeek, .mistral, .ollama, .lmStudio, .vLLM, .gemini]
+            let preset = presets.first { $0.name == providerName }?.at(stub.baseURL)
+
+            let response = try await LanguageModelSession(model: model(stub, on: preset)).respond(to: "Hi")
+
+            #expect(response.usage.output.reasoningTokenCount == reasoning)
+            #expect(response.usage.output.totalTokenCount == 290 + reasoning)
+        }
+
         @Test func `the request id comes from the response's x-request-id header`() async throws {
             let stub = HTTPStub(chunks(headers: ["x-request-id": "req_1"], text("Hi"), finish()))
             let session = LanguageModelSession(model: model(stub))

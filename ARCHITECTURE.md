@@ -184,6 +184,7 @@ none of them, apart from the required values on the model and what a failure bec
 | `unsupportedMembers` | both | the listed members the model's details don't list | the same | the members a preset's provider refuses, ignores or doesn't document |
 | `media` | Chat Completions | AIFF, M4A, AAC, FLAC and OGG audio, and video | | |
 | `finishReasons` | Chat Completions | | | the preset's: DeepSeek's `insufficient_system_resource` and `aborted` and vLLM's `abort` as `error`, Mistral's `model_length` and vLLM's `repetition` as `length` |
+| `countsUnlistedTokensAsReasoning` | Chat Completions | | | `true` for Gemini, whose usage counts a model's reasoning only in `total_tokens` |
 | `images` | both, required | the configuration's `ImageEncoding` | the same | the same |
 | `reasoningOrigin` | both, required | `openrouter` | `openai-responses` | `openai-compatible/`, or `openai-compatible-responses/` on Responses, and the provider's name |
 | `instructionsRole` | Responses | | `developer` for a model that reasons, `system` otherwise | |

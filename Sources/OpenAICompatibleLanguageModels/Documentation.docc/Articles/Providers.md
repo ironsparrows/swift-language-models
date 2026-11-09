@@ -107,8 +107,10 @@ leave it out and log it, since their providers refuse it, ignore it or don't doc
   entries hold only their signatures. It took the effort `none`; what `none` does on a Gemini 3 model isn't known.
 - **A schema with tools.** Gemini takes both, and once answered with a call to the session's tool whose arguments held
   the schema's answer. In a session with tools and a schema, a tool may be called with arguments it can't use.
-- **Usage.** Gemini reports no reasoning tokens, and leaves them out of the output tokens: at the effort `high`,
-  `gemini-3.1-flash-lite` reported 15 input and 290 output tokens with a total of 1,184, which the usage doesn't read.
+- **Usage.** Gemini reports no reasoning tokens, and leaves them out of the output tokens, counting them only in the
+  total: at the effort `high`, `gemini-3.1-flash-lite` reported 15 input and 290 output tokens with a total of 1,184.
+  So an answer's usage counts the total's tokens beyond the input and the output as its reasoning, among its output
+  tokens: 1,169 output tokens, 879 of them reasoning, for that answer.
 - **Failures.** A missing key is a 400 with the code ``OpenAICompatibleError/Code/authentication``, as a 401 is, and
   so is an invalid key, which Gemini answers with "Please pass a valid API key". A rate limit's reset date comes from
   the wait Gemini names in its body, since it sends no `Retry-After`. A member Gemini doesn't know, an effort the model

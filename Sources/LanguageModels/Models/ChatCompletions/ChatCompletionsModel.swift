@@ -56,6 +56,12 @@ extension ChatCompletions {
         /// metadata keeps the provider's word. The default has none.
         package var finishReasons: [FinishReason: FinishReason] = [:]
 
+        /// Whether the tokens a usage's `total_tokens` counts beyond its prompt and completion tokens are reasoning the
+        /// completion's count leaves out, for a provider that reports a model's reasoning only in the total. They then
+        /// count among both the answer's tokens and its reasoning tokens. The default is `false`, where the total isn't
+        /// read.
+        package var countsUnlistedTokensAsReasoning = false
+
         /// How the request's image attachments are encoded.
         let images: ImageEncoding
 

@@ -20,6 +20,7 @@ extension OpenAICompatibleLanguageModel {
         model.memberOrder = OpenAICompatibleExchange.memberOrder
         model.unsupportedMembers = provider.unsupportedMembers
         model.finishReasons = provider.finishReasons
+        model.countsUnlistedTokensAsReasoning = provider.countsUnlistedTokensAsReasoning
         return model
     }
 

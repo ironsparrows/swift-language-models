@@ -128,6 +128,41 @@ extension ChatCompletionsModelTests {
             #expect(exchange.usage == #"input 12 cached 0, output 5 reasoning 0, metadata: {"cacheWriteTokenCount":3}"#)
         }
 
+        @Test(arguments: [
+            (false, 1184, "output 290 reasoning 4"),
+            (true, 1184, "output 1169 reasoning 883"),
+            (true, 300, "output 290 reasoning 4"),
+            (true, nil, "output 290 reasoning 4"),
+        ])
+        func `a usage's tokens beyond the prompt and the completion count as reasoning only for a model that says so`(
+            counts: Bool, totalTokens: Int?, output: String
+        ) async {
+            let usage: JSONValue = [
+                "prompt_tokens": 15, "completion_tokens": 290, "total_tokens": totalTokens.map(JSONValue.integer),
+                "completion_tokens_details": ["reasoning_tokens": 4],
+            ]
+            let stub = HTTPStub(chatCompletionsEvents(textChunk("Hi"), finishChunk(usage: usage)))
+            var model = plainModel(stub)
+            model.countsUnlistedTokensAsReasoning = counts
+
+            let exchange = await ExactExchange(stub, LanguageModelSession(model: model), recordingHeaders: /^X-/) { session, _ in
+                try await session.respond(to: "Hello").usage
+            }
+
+            #expect(exchange.error == nil)
+            #expect(exchange.usage == "input 15 cached 0, \(output), metadata: {}")
+        }
+
+        @Test func `a usage's total that isn't a whole number is passed over`() async {
+            let usage: JSONValue = ["prompt_tokens": 15, "completion_tokens": 290, "total_tokens": "1184"]
+            let stub = HTTPStub(chatCompletionsEvents(textChunk("Hi"), finishChunk(usage: usage)))
+
+            let exchange = await answer(stub)
+
+            #expect(exchange.error == nil)
+            #expect(exchange.usage == "input 15 cached 0, output 290 reasoning 0, metadata: {}")
+        }
+
         @Test func `the metadata names the answer's facts`() async {
             let stub = HTTPStub(
                 chatCompletionsEvents([

@@ -63,14 +63,17 @@ struct LiveGeminiTests {
         #expect((1...14).contains(response.content.days))
     }
 
-    @Test func `an answer at a high effort carries a signature, which goes back on the next turn`() async throws {
+    @Test func `an answer at a high effort counts its reasoning and carries a signature, which goes back on the next turn`()
+        async throws
+    {
         let session = LanguageModelSession(model: Self.model())
 
-        _ = try await session.respond(
+        let first = try await session.respond(
             to: "What is 17 times 23?", options: GenerationOptions(maximumResponseTokens: 1_200),
             contextOptions: ContextOptions(reasoningLevel: .deep))
         let next = try await session.respond(to: "And 17 times 24?", options: shortAnswer)
 
+        #expect(first.usage.output.reasoningTokenCount > 0)
         #expect(reasoningEntries(in: session.transcript).contains { $0.signature?.isEmpty == false })
         #expect(next.content.contains("408"))
     }

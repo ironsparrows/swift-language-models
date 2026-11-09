@@ -95,6 +95,10 @@ public struct OpenAICompatibleProvider: Sendable, Hashable {
     /// needs.
     var asksForUsage = true
 
+    /// Whether the tokens a Chat Completions usage's total counts beyond its prompt and completion tokens are the
+    /// answer's reasoning, for a provider that leaves a model's reasoning out of the completion's count.
+    var countsUnlistedTokensAsReasoning = false
+
     /// Whether a Chat Completions request that sends a reasoning effort also sends `thinking`, disabled for the effort
     /// `none` and enabled for any other, for a provider whose `thinking` decides whether the model reasons.
     var sendsThinking = false
@@ -194,8 +198,10 @@ extension OpenAICompatibleProvider {
     /// refuses, and a failed request isn't sent again. Each answer's thought signature goes back with it on later
     /// turns, to the model that wrote it: on its first tool call, or on its message when it has no call. A first tool
     /// call that another provider or model made goes back with a placeholder that Gemini takes in place of a signature.
-    /// A 400 for a missing or invalid key has the code `authentication`, as a 401 has, a rate limit's reset date comes
-    /// from the wait Gemini names in its body, and a prompt over the model's context throws
+    /// Gemini leaves a model's reasoning out of the completion's tokens and counts it only in the total, so an answer's
+    /// usage counts the tokens of the total beyond the prompt and the completion as its reasoning, among its output
+    /// tokens. A 400 for a missing or invalid key has the code `authentication`, as a 401 has, a rate limit's reset date
+    /// comes from the wait Gemini names in its body, and a prompt over the model's context throws
     /// `LanguageModelError.contextSizeExceeded` with the sizes Gemini names.
     public static let gemini: Self = {
         var gemini = Self(name: "Gemini", url: url("https://generativelanguage.googleapis.com/v1beta/openai/"))
@@ -204,6 +210,7 @@ extension OpenAICompatibleProvider {
         gemini.defaultEffortWords = ["high", "medium", "low", "minimal", "none"]
         gemini.unsupportedMembers = [.seed, .metadata, .promptCacheKey]
         gemini.reasoningReplay = .thoughtSignatures
+        gemini.countsUnlistedTokensAsReasoning = true
         gemini.host = "Google AI Studio"
         gemini.failureWords.refusedKey = ["Missing or invalid Authorization header", "Please pass a valid API key"]
         gemini.failureWords.oversizedContext = ["exceeds the maximum number of tokens allowed"]

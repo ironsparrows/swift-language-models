@@ -23,6 +23,9 @@ extension ChatCompletions {
         /// The provider's finish reasons that stand for one of the format's.
         private let finishReasons: [FinishReason: FinishReason]
 
+        /// Whether the tokens a usage's total counts beyond its prompt and completion are the answer's reasoning.
+        private let countsUnlistedTokensAsReasoning: Bool
+
         /// What the answer's chunks reported about it so far.
         private(set) var report = AnswerReport()
 
@@ -47,6 +50,7 @@ extension ChatCompletions {
             self.headers = headers
             provider = model.providerName
             finishReasons = model.finishReasons
+            countsUnlistedTokensAsReasoning = model.countsUnlistedTokensAsReasoning
             self.imageEntries = imageEntries
             self.requiresCompleteAnswer = requiresCompleteAnswer
             output = AnswerChannel(channel: channel, origin: ReasoningOrigin(rawValue: model.reasoningOrigin), readsTaggedReasoning: true)
@@ -114,7 +118,7 @@ extension ChatCompletions.Stream {
     ///   - isNamedError: Whether the provider named the chunk's event `error`, which makes it an error event.
     /// - Throws: The exchange's error when the chunk is an error event, which sends nothing.
     private mutating func receive(_ chunk: Chunk, extras: Exchange.ChunkExtras, data: Data, isNamedError: Bool) async throws {
-        report.update(with: chunk)
+        report.update(with: chunk, countingUnlistedTokensAsReasoning: countsUnlistedTokensAsReasoning)
         let chunkAdditions = exchange.read(extras)
         if chunk.isError || isNamedError {
             throw errorEvent(data)
@@ -156,12 +160,17 @@ extension Citation {
 
 extension AnswerReport {
     /// Takes the facts that a chunk reports.
-    fileprivate mutating func update(with chunk: Chunk) {
+    ///
+    /// - Parameters:
+    ///   - chunk: The chunk.
+    ///   - countingUnlistedTokensAsReasoning: Whether the tokens its usage's total counts beyond the prompt and the
+    ///     completion are the answer's reasoning.
+    fileprivate mutating func update(with chunk: Chunk, countingUnlistedTokensAsReasoning: Bool) {
         responseID = chunk.id ?? responseID
         model = chunk.model ?? model
         serviceTier = chunk.serviceTier ?? serviceTier
         if let usage = chunk.usage {
-            self.usage = AnswerUsage(usage)
+            self.usage = AnswerUsage(usage, countingUnlistedTokensAsReasoning: countingUnlistedTokensAsReasoning)
         }
         finishReason = chunk.choices?.first?.finishReason ?? finishReason
     }
@@ -169,13 +178,24 @@ extension AnswerReport {
 
 extension AnswerUsage {
     /// The usage a chunk reported.
-    fileprivate init(_ usage: Chunk.Usage) {
+    ///
+    /// - Parameters:
+    ///   - usage: The chunk's usage.
+    ///   - countingUnlistedTokensAsReasoning: Whether the tokens its total counts beyond the prompt and the completion,
+    ///     when there are any, are reasoning the completion leaves out, which then count among both the answer's tokens
+    ///     and its reasoning tokens. They join the reasoning tokens the usage reports, which the format counts within
+    ///     the completion.
+    fileprivate init(_ usage: Chunk.Usage, countingUnlistedTokensAsReasoning: Bool) {
+        let promptTokens = usage.promptTokens ?? 0
+        let completionTokens = usage.completionTokens ?? 0
+        let unlistedTokens =
+            countingUnlistedTokensAsReasoning ? max((usage.totalTokens ?? 0) - promptTokens - completionTokens, 0) : 0
         self.init(
-            inputTokens: usage.promptTokens ?? 0,
+            inputTokens: promptTokens,
             cachedTokens: usage.promptTokensDetails?.cachedTokens ?? 0,
             cacheWriteTokens: usage.promptTokensDetails?.cacheWriteTokens,
-            outputTokens: usage.completionTokens ?? 0,
-            reasoningTokens: usage.completionTokensDetails?.reasoningTokens ?? 0
+            outputTokens: completionTokens + unlistedTokens,
+            reasoningTokens: (usage.completionTokensDetails?.reasoningTokens ?? 0) + unlistedTokens
         )
     }
 }
@@ -411,14 +431,27 @@ private struct Chunk: Decodable {
 
         let promptTokens: Int?
         let completionTokens: Int?
+        let totalTokens: Int?
         let promptTokensDetails: PromptDetails?
         let completionTokensDetails: CompletionDetails?
 
         private enum CodingKeys: String, CodingKey {
             case promptTokens = "prompt_tokens"
             case completionTokens = "completion_tokens"
+            case totalTokens = "total_tokens"
             case promptTokensDetails = "prompt_tokens_details"
             case completionTokensDetails = "completion_tokens_details"
+        }
+
+        init(from decoder: any Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            promptTokens = try container.decodeIfPresent(Int.self, forKey: .promptTokens)
+            completionTokens = try container.decodeIfPresent(Int.self, forKey: .completionTokens)
+            // Only a provider that counts reasoning in the total reads it, so a total that isn't a whole number never
+            // fails another provider's chunk.
+            totalTokens = try? container.decodeIfPresent(Int.self, forKey: .totalTokens)
+            promptTokensDetails = try container.decodeIfPresent(PromptDetails.self, forKey: .promptTokensDetails)
+            completionTokensDetails = try container.decodeIfPresent(CompletionDetails.self, forKey: .completionTokensDetails)
         }
     }
 
