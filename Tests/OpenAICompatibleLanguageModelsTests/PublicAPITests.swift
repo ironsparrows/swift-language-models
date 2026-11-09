@@ -8,6 +8,18 @@ import Testing
 
 @Suite("Public API", .tags(.loopback), .timeLimit(.minutes(1)))
 struct PublicAPITests {
+    @Test func `a configuration started from a preset's keeps the preset's other values`() {
+        var configuration = OpenAICompatibleProvider.gemini.configuration
+        configuration.idleTimeout = .seconds(120)
+
+        let model = OpenAICompatibleLanguageModel(
+            OpenAICompatibleModel("gemini-3.1-flash-lite", on: .gemini), configuration: configuration, auth: .apiKey { "AIza-not-a-key" })
+
+        #expect(model.configuration.idleTimeout == .seconds(120))
+        #expect(model.configuration.retries == .disabled)
+        #expect(model.configuration.images == OpenAICompatibleProvider.gemini.configuration.images)
+    }
+
     @Test func `a model on a provider the app describes answers in a session, with its reasoning and facts`() async throws {
         // Groq's recorded answer, ids swapped, as a provider described by its name and URL gets it.
         let recorded = String(decoding: try Bundle.module.fixture("Recorded/groq-text.1.sse"), as: UTF8.self)

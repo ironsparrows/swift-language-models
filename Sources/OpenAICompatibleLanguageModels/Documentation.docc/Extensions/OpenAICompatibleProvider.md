@@ -25,6 +25,10 @@
 - ``KeyHeader``
 - ``headers``
 
+### How requests are sent
+
+- ``configuration``
+
 ### Another address
 
 - ``at(_:)``

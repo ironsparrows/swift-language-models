@@ -141,6 +141,9 @@ model.configuration.idleTimeout = .seconds(60)
 model.configuration.images.maximumSide = 1_024
 ```
 
+A configuration you pass when you create the model replaces the provider's whole, so start it from the provider's
+``OpenAICompatibleProvider/configuration`` to keep the preset's other values.
+
 The package logs what each request sends and leaves out, its retries, which model answered, and how it ended, without
 keys, prompts or answers, in a category named for the provider. <doc:/LanguageModels/Logging> says how to watch the
 messages and how to log less.

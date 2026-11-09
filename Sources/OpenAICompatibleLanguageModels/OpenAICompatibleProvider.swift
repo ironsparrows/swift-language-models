@@ -57,10 +57,25 @@ public struct OpenAICompatibleProvider: Sendable, Hashable {
     /// which reads it for each request and never stores it.
     public var headers: [String: String]
 
-    // MARK: What the provider does differently
+    /// How a model on the provider sends its requests when it's created without a configuration of its own: how long a
+    /// request waits for the next data, how a failed one is sent again, and how images are encoded. A preset holds its
+    /// provider's, and a provider you describe the module's defaults.
+    ///
+    /// A configuration passed to a model replaces the provider's whole, so start one from the provider's to change one
+    /// value and keep the others:
+    ///
+    /// ```swift
+    /// var configuration = OpenAICompatibleProvider.groq.configuration
+    /// configuration.idleTimeout = .seconds(120)
+    /// let model = OpenAICompatibleLanguageModel(
+    ///     OpenAICompatibleModel("openai/gpt-oss-20b", on: .groq),
+    ///     configuration: configuration,
+    ///     auth: .apiKey { try await keyStore.groqKey() }
+    /// )
+    /// ```
+    public internal(set) var configuration = OpenAICompatibleConfiguration()
 
-    /// How requests are sent when a model is created without a configuration of its own.
-    var configuration = OpenAICompatibleConfiguration()
+    // MARK: What the provider does differently
 
     /// The statuses of a failed response that are sent again, as the configuration's retries allow: a 408, 409 or 429,
     /// and any status from 500 up.

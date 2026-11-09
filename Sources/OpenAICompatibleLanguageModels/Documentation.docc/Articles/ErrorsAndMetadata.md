@@ -60,7 +60,8 @@ which throws at once with the wait on the error. The presets retry and wait this
 | Groq, DeepSeek, LM Studio, vLLM | up to twice | 60 seconds on Groq; 10 minutes on the others |
 | xAI | up to twice, after a rate limit or an `x-should-retry` of `true`, but after no other failed response or failed connection, since xAI may bill a request that failed once its work began | 10 minutes |
 
-The model's ``OpenAICompatibleLanguageModel/configuration`` replaces a preset's retries and wait.
+The model's ``OpenAICompatibleLanguageModel/configuration`` replaces a preset's retries and wait; start one from the
+preset's ``OpenAICompatibleProvider/configuration`` to keep its other values.
 
 ### Read an answer's metadata
 
