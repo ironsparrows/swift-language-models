@@ -29,7 +29,7 @@ means it isn't running, or listens on another port than the provider's URL names
 | 408, 504, 524, or a timed-out connection | `LanguageModelError.timeout` |
 | `invalid_image`, `image_too_large` and the other codes of an image the provider can't use | `LanguageModelError.unsupportedTranscriptContent`, naming the entries with images |
 | A guided answer Groq finds breaks its schema | `GeneratedContent.ParsingError`, with what the model generated as its raw content |
-| A stream cut off before its end, an event that can't be read, a tool call without a name, or with arguments that aren't a whole JSON object or reached the token limit | ``OpenAICompatibleError`` with ``OpenAICompatibleError/Code/invalidResponse`` |
+| A stream cut off before its end, an event that can't be read, a tool call without a name, or with arguments that are neither a whole JSON object nor only whitespace, or that reached the token limit | ``OpenAICompatibleError`` with ``OpenAICompatibleError/Code/invalidResponse`` |
 | Anything else | ``OpenAICompatibleError`` |
 
 The code is the provider's, when its error names one, such as `invalid_api_key` or `tool_use_failed`; otherwise the
@@ -76,18 +76,20 @@ the input, cached, output and reasoning tokens. `openAICompatible` on a response
 - ``OpenAICompatibleResponseMetadata/requestID`` comes from the header the provider sends it in: `x-request-id`, and
   for DeepSeek also `request-id` or `x-deepseek-request-id`. Groq sent one; Gemini and Ollama sent none, and vLLM sends
   one only from a server started with `--enable-request-id-headers`.
-- ``OpenAICompatibleResponseMetadata/finishReason`` keeps a Chat Completions provider's word. In Responses, it's
-  `stop` or `tool_calls` for a completed response, `length` for one cut off at `max_output_tokens`, and an incomplete
-  response's other reason as it came, or `incomplete` when it gives none. A text answer cut off at its token limit
-  doesn't throw, so `length` is the way to tell; a guided answer, or tool calls, cut off there throw instead. A word
-  of a preset's own counts as the word it stands for, such as Mistral's `model_length` as `length`, and DeepSeek's
+- ``OpenAICompatibleResponseMetadata/finishReason`` keeps a Chat Completions provider's word. In Responses, it's `stop`
+  or `tool_calls` for a completed response, `length` for one cut off at `max_output_tokens`, and an incomplete
+  response's other reason as it came, or `incomplete` when it gives none. An answer a content filter stopped, with
+  `content_filter` in either format, throws `LanguageModelError.guardrailViolation`. A text answer cut off at its token
+  limit doesn't throw, so `length` is the way to tell; a guided answer, or tool calls, cut off there throw instead. A
+  word of a preset's own counts as the word it stands for, such as Mistral's `model_length` as `length`, and DeepSeek's
   `insufficient_system_resource` and `aborted` and vLLM's `abort` fail the answer.
 - `providerMetadata.host` is the company that ran the model, such as `Google AI Studio` or `Groq`, for a remote
   preset. A server's preset, and a provider you describe, name none.
 - The usage counts the tokens the provider reports. Gemini's reasoning tokens come from its `total_tokens`, as
   <doc:Reasoning> describes, and <doc:Caching> says where each provider's cached tokens come from.
   ``OpenAICompatibleUsageMetadata/cacheWriteTokenCount`` reads the tokens written to the cache where a provider reports
-  them in `prompt_tokens_details.cache_write_tokens`, which Gemini, Groq and Ollama didn't.
+  them in `prompt_tokens_details.cache_write_tokens`, or in Responses `input_tokens_details.cache_write_tokens`; Gemini,
+  Groq and Ollama reported none.
 
 A request that ends in tool calls has the same facts. Foundation Models keeps no readable metadata on a tool-calls
 entry, so they sit on its first call, and `openAICompatible` on the `Transcript.ToolCalls` entry reads them from there.
@@ -96,9 +98,11 @@ Saved transcripts keep these facts. The ones any provider can report, such as th
 also read through `providerMetadata`, as ``ProviderResponseMetadata`` and ``ProviderUsageMetadata``, so code that reads
 them works with any language model in this package, as <doc:/LanguageModels/ReadingWhatAProviderReports> shows.
 
-A `LanguageModelError` that a failure becomes carries the provider's name, the HTTP status, the code and the request
-id in its metadata, which its `openAICompatible` reads as ``OpenAICompatibleErrorMetadata``, and its
-`providerMetadata` as ``ProviderErrorMetadata``, with the host. A provider's support asks for the request id.
+A `LanguageModelError` that a failure the provider reported becomes carries the provider's name, the HTTP status, the
+code and the request id in its metadata, which its `openAICompatible` reads as ``OpenAICompatibleErrorMetadata``, and
+its `providerMetadata` as ``ProviderErrorMetadata``, with the host. A timed-out connection carries none of these, and an
+answer a content filter stopped or the model refused carries only the host. A provider's support asks for the request
+id.
 
 ### Add up a response's usage
 

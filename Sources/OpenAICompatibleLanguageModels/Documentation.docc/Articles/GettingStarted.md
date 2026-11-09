@@ -55,9 +55,10 @@ An ``OpenAICompatibleProvider`` says where requests go and how:
 ``OpenAICompatibleProvider/at(_:)`` gives the same provider at another address, such as a server on another port, with
 everything else kept.
 
-To a provider described this way, a Chat Completions request asks for a usage chunk with `stream_options`, and sends
-the token limit as `max_tokens` and a reasoning level as `reasoning_effort`. A Responses request sends the token limit
-as `max_output_tokens` and a reasoning level in `reasoning`.
+To a provider described this way, a Chat Completions request asks for a usage chunk with `stream_options`, and sends the
+token limit as `max_tokens` and a reasoning level as `reasoning_effort`. A Responses request sends the token limit as
+`max_output_tokens` and a reasoning level in `reasoning`. ``OpenAICompatibleOptions/additionalMembers`` can replace one
+of these members' values, but not leave the member out, so a server that refuses one needs a preset.
 
 ### Describe the model
 
@@ -70,8 +71,9 @@ takes tools, guided generation and images, reasons only when a request asks it t
 
 A request that sets a reasoning level sends the nearest effort the model accepts, and logs the move when it isn't the
 level's own. For a model whose reasoning is ``ModelReasoning/unsupported``, Foundation Models refuses a request that
-sets one before it's sent. The provider decides what the model does at run time: a setting it rejects throws ``OpenAICompatibleError`` with the provider's message, and
-with the member the provider names, when it names one, in ``OpenAICompatibleError/parameter``.
+sets one before it's sent. The provider decides what the model does at run time: a setting it rejects throws
+``OpenAICompatibleError`` with the provider's message, and with the member the provider names, when it names one, in
+``OpenAICompatibleError/parameter``.
 
 ### Keep the key out of the app
 
@@ -84,6 +86,22 @@ To ship without a key, let each person bring their own, or send requests through
 ``OpenAICompatibleAuthentication/proxied(baseURL:headers:)``, which adds the key and forwards them. A gateway you
 describe as the provider itself takes its headers with ``OpenAICompatibleAuthentication/proxied(headers:)``, and a
 server that takes no key, such as one on the same Mac, ``OpenAICompatibleAuthentication/unauthenticated``.
+
+The proxy in <doc:/LanguageModels/KeepingAPIKeysOutOfTheApp>, in Swift, Node.js or Python, takes these settings for a
+provider:
+
+| Setting | Value |
+|---|---|
+| `upstream` | The provider's ``OpenAICompatibleProvider/url``, such as `https://api.groq.com/openai/v1/` for Groq |
+| `keyVariable` | The variable that holds the provider's key, such as `GROQ_API_KEY` |
+| `authHeader`, `authValue` | `Authorization`, `Bearer {key}`, or the header ``OpenAICompatibleProvider/keyHeader`` names, with `{key}` |
+| `paths` | `chat/completions`, or `responses` for a provider on Responses, such as xAI |
+| `passHeaders` | The headers below |
+| `fixedHeaders` | The provider's ``OpenAICompatibleProvider/headers``, if it has any |
+
+The headers it passes back to the app, which the module reads: the provider's request id header, such as
+`x-request-id`, and `retry-after-ms`, `Retry-After` and `x-should-retry`. The module sends `chat/completions` or
+`responses` as a `POST`, whose answer streams as server-sent events. It makes no other calls.
 
 ### Send settings only the provider has
 
@@ -130,9 +148,9 @@ messages and how to log less.
 ### When a request fails
 
 Rate limits, an oversized context, content filters, timeouts and images the provider can't use throw
-`LanguageModelError`, as with any other model, and ``FoundationModels/LanguageModelError/openAICompatible`` reads the
-provider's name, code and request id from it. The rest throw ``OpenAICompatibleError``, which names the provider that
-failed and keeps its message, code, error type and request id, and says whether the account's quota ran out. A
-connection that fails throws its `URLError`; for a server on the same Mac, that usually means it isn't running, or
-listens on another port than the provider's URL names. <doc:ErrorsAndMetadata> lists what each failure becomes, and
-how to read what a provider reports about each answer.
+`LanguageModelError`, as with any other model, and for a failure the provider reported,
+``FoundationModels/LanguageModelError/openAICompatible`` reads the provider's name, code and request id from it. The
+rest throw ``OpenAICompatibleError``, which names the provider that failed and keeps its message, code, error type and
+request id, and says whether the account's quota ran out. A connection that fails throws its `URLError`; for a server on
+the same Mac, that usually means it isn't running, or listens on another port than the provider's URL names.
+<doc:ErrorsAndMetadata> lists what each failure becomes, and how to read what a provider reports about each answer.

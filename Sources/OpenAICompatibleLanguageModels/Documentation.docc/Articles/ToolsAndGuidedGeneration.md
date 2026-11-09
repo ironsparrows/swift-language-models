@@ -91,9 +91,9 @@ to answer one empty there too.
 ### Calls the session can't run
 
 A provider sends what its model wrote, and Foundation Models checks each call against the session's tools after the
-answer ends. This was checked with a Chat Completions answer; Responses answers reach Foundation Models the same way,
-but weren't checked. In each failing case below, the tool doesn't run, nothing goes back to the model, and `respond`
-throws:
+answer ends. This was seen with a Chat Completions answer on OS 27.2, outside the module's tests, so a later OS may
+differ; Responses answers reach Foundation Models the same way, but weren't checked. In each failing case below, the
+tool doesn't run, nothing goes back to the model, and `respond` throws:
 
 - A call to a tool the session doesn't have throws `GeneratedContent.ParsingError`, whose description names the
   generated tool and the session's tools. Its `rawContent` holds only the tool's name.

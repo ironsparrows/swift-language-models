@@ -80,6 +80,7 @@ any provider as `prompt_cache_key` in ``OpenAICompatibleOptions/additionalMember
   Ollama's source added cached tokens to this format in September 2026, so an older server's read as 0.
 - **vLLM** reports the tokens it writes to its cache as `created_cache_tokens`, which aren't read.
 
-Gemini's, Groq's and Ollama's caching was checked on 9 November 2026; the others follow their documentation, what
-their users report and, for vLLM, its server's source. ``OpenAICompatibleUsageMetadata/cacheWriteTokenCount`` reads the tokens written to the cache where a
-provider reports them in `prompt_tokens_details.cache_write_tokens`; Gemini, Groq and Ollama didn't.
+Gemini's, Groq's and Ollama's caching was checked on 9 November 2026; the others follow their documentation, what their
+users report and, for vLLM, its server's source. ``OpenAICompatibleUsageMetadata/cacheWriteTokenCount`` reads the tokens
+written to the cache where a provider reports them in `prompt_tokens_details.cache_write_tokens`, or in Responses
+`input_tokens_details.cache_write_tokens`; Gemini, Groq and Ollama reported none.

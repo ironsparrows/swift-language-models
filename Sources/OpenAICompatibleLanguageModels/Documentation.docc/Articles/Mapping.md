@@ -33,7 +33,7 @@ SDKs lack them.
 | `samplingMode` `.greedy` | `temperature` 0 | The same |
 | `samplingMode` `.random(top:seed:)` | `top_k` where the preset sends it, otherwise left out and logged; `seed` | `top_k` the same way; the seed left out and logged |
 | `samplingMode` `.random(probabilityThreshold:seed:)` | `top_p`, and `seed` | `top_p`; the seed left out and logged |
-| `maximumResponseTokens` | `max_tokens`, or `max_completion_tokens` for Groq and vLLM | `max_output_tokens` |
+| `maximumResponseTokens` | `max_tokens`, or `max_completion_tokens` for Groq and vLLM | `max_output_tokens`, at least 16: a smaller limit is raised to 16 and logged |
 | `reasoningLevel` | `reasoning_effort`, the nearest effort the model accepts, and DeepSeek's `thinking` | `reasoning.effort`, the same way |
 | Request metadata | `metadata`: up to 16 string values, with keys of up to 64 characters and values of up to 512; the rest is left out and logged | The same |
 | The usage | `stream_options.include_usage`, except to Groq and Mistral, which send usage unasked | Sent unasked |
@@ -59,13 +59,14 @@ SDKs lack them.
 | Chat Completions | Responses | Foundation Models |
 |---|---|---|
 | `delta.content` | `response.output_text.delta` | Response text; in Chat Completions, a list of parts gives the text of each `text` part, with the text parts inside a `thinking` part as reasoning |
-| `delta.reasoning_content`, `delta.reasoning`, and a `<think>` block that opens the text | The reasoning items' summary and text | Reasoning text, in the order it arrives |
+| `delta.reasoning_content`, `delta.reasoning`, and a `<think>` or `<thinking>` block that opens the text | The reasoning items' summary and text | Reasoning text, in the order it arrives |
 | `extra_content.google.thought_signature` on a delta or its first tool call | The reasoning items, with their encrypted reasoning when asked for | The reasoning entry's signature, sent back on later turns where <doc:Reasoning> says |
 | `delta.tool_calls` | `function_call` items | One tool-calls entry per answer, so parallel calls make one round |
 | `delta.annotations` of type `url_citation` | `url_citation` annotations | ``Citation`` values on the response entry |
 | `usage` | `usage` | Usage: input, cached, output and reasoning tokens, as <doc:ErrorsAndMetadata> describes |
 | `model`, `id`, `finish_reason` | `model`, `id`, and as the finish reason `stop` or `tool_calls` for a completed response, or an incomplete one's `incomplete_details.reason`, or `incomplete` without one | Metadata of the entry that ends the answer, which ``OpenAICompatibleResponseMetadata`` reads |
 | `finish_reason: length` | `response.incomplete` with the reason `max_output_tokens`, read as `length` | An answer cut short at its token limit, which ends without an error; a guided answer cut short throws `GeneratedContent.ParsingError`, and one cut short inside its tool calls throws ``OpenAICompatibleError`` with `invalid_response` |
+| `finish_reason: content_filter` | `response.incomplete` with the reason `content_filter` | `LanguageModelError.guardrailViolation` |
 | A finish reason of a preset's own, such as Mistral's `model_length` | | The word it stands for, as <doc:Providers> lists |
 | An event named `ping` | The same | Passed over |
 
@@ -82,16 +83,17 @@ facts.
 | The request id header, such as `x-request-id` | ``OpenAICompatibleResponseMetadata/requestID`` |
 | `finish_reason`, as the provider sent it | ``OpenAICompatibleResponseMetadata/finishReason`` |
 | `url_citation` annotations | ``OpenAICompatibleResponseMetadata/citations`` |
-| `prompt_tokens_details.cache_write_tokens` | ``OpenAICompatibleUsageMetadata/cacheWriteTokenCount`` |
+| `prompt_tokens_details.cache_write_tokens`, or in Responses `input_tokens_details.cache_write_tokens` | ``OpenAICompatibleUsageMetadata/cacheWriteTokenCount`` |
 | The company that ran the model, from the preset | `providerMetadata.host`; none for a server's preset or a provider you describe |
 | A failure's provider, HTTP status, code and request id | ``OpenAICompatibleErrorMetadata/providerName``, ``OpenAICompatibleErrorMetadata/status``, ``OpenAICompatibleErrorMetadata/code`` and ``OpenAICompatibleErrorMetadata/requestID``, on the `LanguageModelError` it becomes |
 
 ### Errors
 
 <doc:ErrorsAndMetadata> lists what each failure becomes and how a request is retried. An error in the stream is a
-chunk's `error` object, a chunk whose `type` is `error`, an event named `error`, or in Responses an `error` event or a
-failed response. When its error object has no message, or its data isn't JSON, its text is the message, up to 1,000
-characters, beside the object's other members.
+chunk's `error` object, a chunk whose `type` is `error`, an event named `error`, or in Responses an `error` event, an
+event with no `type` that carries an `error`, an event of a type the format doesn't read that carries a non-empty
+`error`, or a failed response. When an error object other than a failed response's has no message, or its data isn't
+JSON, its text is the message, up to 1,000 characters, beside the object's other members.
 
 ### Apple's guides
 

@@ -22,16 +22,17 @@ refuse. A failure throws the provider's words, with the member a rejection names
 ``OpenAICompatibleProvider/at(_:)`` points a preset at another address, such as a gateway in front of the provider, one
 of its regional servers, or a server on another Mac or port, and keeps everything else.
 
-This page describes the presets as of 9 November 2026. Gemini's and Groq's were checked against their APIs on 8 and 9
-November 2026, on `gemini-3.1-flash-lite`, `openai/gpt-oss-20b` and `qwen/qwen3.8-27b`, and Ollama's against Ollama
-0.40.15 on the same days, on `qwen3:0.6b`, and on `qwen3.5:4b` for images, schemas and a required tool call, apart from
-what their sections say wasn't seen there. On 9 November 2026, a text answer, a tool round, a guided answer, an answer
-that reasons and a failure went through each of the three presets and are kept as the module's recorded tests, and each
-preset's live tests ran once against Gemini's free tier, Groq's free plan and a local Ollama server. Of xAI's, only the
-error for an incorrect key was seen. DeepSeek's, Mistral's and xAI's follow their providers' documentation and SDKs, LM
-Studio's its documentation, and vLLM's its server's source at v0.33.0 and its documentation, with what their users
-report, and haven't been run against their APIs or servers yet. Providers change what they take, so a preset can fall
-behind: a member a provider starts to refuse throws its error, and a member it starts to take goes out through
+This page describes the presets as of 9 November 2026. Gemini's, Groq's and Ollama's ran against Gemini's free tier,
+Groq's free plan and Ollama 0.40.15 on 8 and 9 November 2026, on `gemini-3.1-flash-lite`, `openai/gpt-oss-20b`,
+`qwen/qwen3.8-27b` and `qwen3:0.6b`: a text answer, a tool round, a guided answer, an answer that reasons and a failure
+went through each of the three presets and are kept as the module's recorded tests, and each preset's live tests ran
+against its provider. The rest of what this page says of the three was seen in requests sent to them by hand on those
+days, outside the module's tests, such as Ollama's answers on `qwen3.5:4b` to images, schemas and a required tool call;
+each provider's part below says what wasn't seen. Of xAI's, only the error for an incorrect key was seen, in a request
+sent by hand. DeepSeek's, Mistral's and xAI's follow their providers' documentation and SDKs, LM Studio's its
+documentation, and vLLM's its server's source at v0.33.0 and its documentation, with what their users report, and
+haven't been run against their APIs or servers yet. Providers change what they take, so a preset can fall behind: a
+member a provider starts to refuse throws its error, and a member it starts to take goes out through
 ``OpenAICompatibleOptions/additionalMembers``.
 
 ### At a glance
@@ -40,7 +41,7 @@ behind: a member a provider starts to refuse throws its error, and a member it s
 |---|---|---|---|---|---|
 | Base URL | `https://generativelanguage.googleapis.com/v1beta/openai/` | `https://api.groq.com/openai/v1` | `https://api.deepseek.com` | `https://api.mistral.ai/v1` | `https://api.x.ai/v1` |
 | Format | Chat Completions | Chat Completions | Chat Completions | Chat Completions | Responses |
-| Reasons | unless a request turns it off | when a request asks | unless a request turns it off | when a request asks | unless a request turns it off |
+| Reasons | unless a request turns it off, on a model that can | when a request asks | unless a request turns it off | when a request asks | unless a request turns it off |
 | Efforts | `high`, `medium`, `low`, `minimal`, `none` | `high`, `medium`, `low`, `none` | `max`, `high`, `medium`, `low`, `none` | `max`, `xhigh`, `high`, `medium`, `low`, `minimal`, `none` | `xhigh`, `high`, `medium`, `low`, `none` |
 | Guided generation | yes | yes, but not with tools | no | yes | yes |
 | Token limit | `max_tokens` | `max_completion_tokens` | `max_tokens` | `max_tokens` | `max_output_tokens` |
@@ -75,7 +76,9 @@ The servers' presets reach a server at its default local address, and take no ke
 
 On every server, a model is taken to reason only when a request asks it to, and to take tools, guided generation and
 images, unless its details say otherwise, and requests ask for a usage chunk. A server runs models of every kind, so
-describe each one, such as whether it reasons.
+describe each one, such as whether it reasons. Ollama lets a model that thinks reason when a request sends no effort,
+unless the model's own settings turn its thinking off by default: `qwen3:0.6b` reasoned so in the module's recordings,
+so describe such a model with `reasoning: .onByDefault`.
 
 Every Chat Completions preset sends a reasoning level as `reasoning_effort`, and xAI's in `reasoning`, with the nearest
 effort the model accepts. A `top_k` that sampling asks for is left out and logged where the table says so: Gemini and
@@ -105,7 +108,9 @@ provider caches.
   as `gemini-3.1-flash-lite`: under an alias it answers with another name, its signatures don't go back. With parallel
   calls, Gemini signs only the first, so the others go back without one, which Gemini takes.
 - **Reasoning text.** `gemini-3.1-flash-lite` sent none, also when asked for its thoughts, so its answers' reasoning
-  entries hold only their signatures. It took the effort `none`; what `none` does on a Gemini 3 model isn't known.
+  entries hold only their signatures. It took the effort `none`, which by Gemini's documentation turns reasoning off on
+  Gemini 2.5 Flash and Flash-Lite, while Gemini 2.5 Pro and Gemini 3 models can't turn it off, so on them the level
+  ``FoundationModels/ContextOptions/ReasoningLevel/off`` doesn't stop the model reasoning.
 - **A schema with tools.** Gemini takes both, and once answered with a call to the session's tool whose arguments held
   the schema's answer. In a session with tools and a schema, a tool may be called with arguments it can't use.
 - **Usage.** Gemini reports no reasoning tokens, and leaves them out of the output tokens, counting them only in the
@@ -205,7 +210,7 @@ provider caches.
 - **Sampling.** A `top_k` that sampling asks for goes out, which xAI documents. A seed is left out and logged, since
   xAI's Responses has no `seed`.
 - **The token limit**, `max_output_tokens`, caps the visible answer, not the reasoning or the tool calls.
-- **Left out.** Request metadata, which xAI takes only for compatibility.
+- **Left out.** Request metadata, which xAI doesn't support.
 - **Retries and waits.** A failed connection is sent again, but a failed response only after a rate limit, or when its
   `x-should-retry` is `true`: xAI may bill a request that failed once its work began, such as one with a 5xx status.
   Requests wait up to 10 minutes for the next data, since a model that reasons can send nothing for minutes.
@@ -272,14 +277,15 @@ provider caches.
 ### vLLM
 
 - **Not run.** No vLLM server ran here, so the preset follows its server's source at v0.33.0 and its documentation.
-- **Tools** need a server started with `--enable-auto-tool-choice` and a `--tool-call-parser`: without them, every
-  request with tools is a 400 whose message names the flags it needs, which throws ``OpenAICompatibleError``.
+- **Tools** need a server started with `--enable-auto-tool-choice` and a `--tool-call-parser`: without both, a request
+  with tools is a 400 whose message names a flag, which throws ``OpenAICompatibleError``. gpt-oss models need neither
+  flag, and a model with Mistral's tokenizer takes the request without them but sends its calls as text.
 - **Reasoning** arrives as each delta's `reasoning` from a server started with `--reasoning-parser`, and goes back as
   the assistant message's `reasoning`, to the model that wrote it only. vLLM answers with the first name the server
   serves the model under, so name the model by that one: under another of its names, its reasoning doesn't go back.
-  Without a parser, reasoning stays in the text: a text that opens with a `<think>` block has the block read as
-  reasoning, which goes back in the text as it came, to the same model, while a template that opens the block in the
-  prompt leaves the reasoning in the answer's text.
+  Without a parser, reasoning stays in the text: a text that opens with a `<think>` or `<thinking>` block has the block
+  read as reasoning, which goes back in the text as it came, to the same model, while a template that opens the block in
+  the prompt leaves the reasoning in the answer's text.
 - **Efforts** reach the model's chat template, which may ignore them; vLLM refuses any other word. A template that
   reads `thinking` rather than `enable_thinking` takes it in `chat_template_kwargs`, through
   ``OpenAICompatibleOptions/additionalMembers``.

@@ -43,8 +43,9 @@ doesn't take fails with the provider's error. <doc:Providers> lists each preset'
 - An app's own `reasoning_effort` in ``OpenAICompatibleOptions/additionalMembers`` replaces the level's.
 
 DeepSeek also reads `thinking`, which decides whether its models reason, so its preset sends `thinking` beside the
-effort: disabled for `.off` and enabled for any other level. A model you describe on DeepSeek with
-`reasoning: .unsupported` sends `thinking` disabled with every request. <doc:Providers> says what each provider does
+effort: disabled for `.off` and enabled for any other level. A model you describe on DeepSeek with `reasoning:
+.unsupported` sends `thinking` disabled with every request. An app's own `reasoning_effort` goes without the preset's
+`thinking`, and an app's own `thinking` replaces it. <doc:Providers> says what each provider does
 with an effort, such as DeepSeek taking `medium` as `high`, and LM Studio being reported to ignore efforts in this
 format.
 
@@ -56,7 +57,8 @@ The model's reasoning arrives in the transcript as a reasoning entry, before the
 
 - In Chat Completions, it's read from each delta's `reasoning_content` or, when that holds no text, its `reasoning`, so
   a provider that sends the same text in both shows it once, and from the text parts inside `thinking` parts of the
-  delta's content, as Mistral sends them. A `<think>` block that opens the answer's text is read as reasoning too.
+  delta's content, as Mistral sends them. A `<think>` or `<thinking>` block that opens the answer's text is read as
+  reasoning too.
 - In Responses, it's the reasoning items' summary or text, when the provider sends either.
 - Some providers send none: `gemini-3.1-flash-lite` sent no reasoning text, also when asked for its thoughts, so its
   reasoning entries hold only their signatures.

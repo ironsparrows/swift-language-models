@@ -102,7 +102,9 @@ public struct OpenAICompatibleLanguageModel: DetailedLanguageModel {
 ///
 /// A key inside an app can be extracted from it, so an app that ships uses ``proxied(baseURL:headers:)``, or a key each
 /// person brings. Every request also carries the provider's ``OpenAICompatibleProvider/headers``, which a header of the
-/// authentication's of the same name replaces.
+/// authentication's of the same name replaces. Requests go to the provider's ``OpenAICompatibleProvider/url`` unless
+/// they're proxied; ``OpenAICompatibleProvider/at(_:)`` reaches the provider at another address, such as a gateway in
+/// front of it.
 public struct OpenAICompatibleAuthentication: Sendable {
     /// The server that stands in for the provider's API, from ``proxied(baseURL:headers:)``, or `nil` for the provider's
     /// own URL.

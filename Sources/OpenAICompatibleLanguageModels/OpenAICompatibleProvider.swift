@@ -195,15 +195,16 @@ extension OpenAICompatibleProvider {
     /// ```
     ///
     /// By default, a model on it reasons unless a request turns reasoning off, and accepts the efforts `high`,
-    /// `medium`, `low`, `minimal` and `none`. Requests leave out `seed`, request metadata and a cache key, which Gemini
-    /// refuses, and a failed request isn't sent again. Each answer's thought signature goes back with it on later
-    /// turns, to the model that wrote it: on its first tool call, or on its message when it has no call. A first tool
-    /// call that another provider or model made goes back with a placeholder that Gemini takes in place of a signature.
-    /// Gemini leaves a model's reasoning out of the completion's tokens and counts it only in the total, so an answer's
-    /// usage counts the tokens of the total beyond the prompt and the completion as its reasoning, among its output
-    /// tokens. A 400 for a missing or invalid key has the code `authentication`, as a 401 has, a rate limit's reset date
-    /// comes from the wait Gemini names in its body, and a prompt over the model's context throws
-    /// `LanguageModelError.contextSizeExceeded` with the sizes Gemini names.
+    /// `medium`, `low`, `minimal` and `none`, which by Gemini's documentation turns reasoning off only on Gemini 2.5
+    /// Flash and Flash-Lite: Gemini 2.5 Pro and Gemini 3 models can't turn it off. Requests leave out `seed`, request
+    /// metadata and a cache key, which Gemini refuses, and a failed request isn't sent again. Each answer's thought
+    /// signature goes back with it on later turns, to the model that wrote it: on its first tool call, or on its
+    /// message when it has no call. A first tool call that another provider or model made goes back with a placeholder
+    /// that Gemini takes in place of a signature. Gemini leaves a model's reasoning out of the completion's tokens and
+    /// counts it only in the total, so an answer's usage counts the tokens of the total beyond the prompt and the
+    /// completion as its reasoning, among its output tokens. A 400 for a missing or invalid key has the code
+    /// `authentication`, as a 401 has, a rate limit's reset date comes from the wait Gemini names in its body, and a
+    /// prompt over the model's context throws `LanguageModelError.contextSizeExceeded` with the sizes Gemini names.
     public static let gemini: Self = {
         var gemini = Self(name: "Gemini", url: url("https://generativelanguage.googleapis.com/v1beta/openai/"))
         gemini.configuration.retries = .disabled
@@ -360,12 +361,14 @@ extension OpenAICompatibleProvider {
     ///
     /// Ollama runs models of every kind, so say what each one does, such as whether it reasons: by default, a model on
     /// it is taken to reason only when a request asks it to, and to accept the efforts `max`, `xhigh`, `high`,
-    /// `medium`, `low`, `minimal` and `none`, which Ollama maps onto each model's own. Requests leave out request
-    /// metadata, `tool_choice` and a cache key, which Ollama ignores. A model's reasoning goes back on later turns as
-    /// `reasoning`, to that model only. A request with an image at a web address, or one that requires a tool call, is
-    /// refused before it's sent, since Ollama takes only images sent as data and doesn't hold its model to a required
-    /// call. A failed request isn't sent again. A conversation longer than the model's context loses its oldest
-    /// messages on Ollama's side, with no error. Ollama on another Mac or port is `.ollama.at(_:)` with its address.
+    /// `medium`, `low`, `minimal` and `none`, which Ollama maps onto each model's own. Ollama lets a model that thinks,
+    /// such as `qwen3`, reason when a request sends no effort, so describe such a model with `reasoning: .onByDefault`,
+    /// as above. Requests leave out request metadata, `tool_choice` and a cache key, which Ollama ignores. A model's
+    /// reasoning goes back on later turns as `reasoning`, to that model only. A request with an image at a web address,
+    /// or one that requires a tool call, is refused before it's sent, since Ollama takes only images sent as data and
+    /// doesn't hold its model to a required call. A failed request isn't sent again. A conversation longer than the
+    /// model's context loses its oldest messages on Ollama's side, with no error. Ollama on another Mac or port is
+    /// `.ollama.at(_:)` with its address.
     public static let ollama: Self = {
         var ollama = Self(name: "Ollama", url: url("http://localhost:11434/v1/"))
         ollama.configuration.retries = .disabled
@@ -418,8 +421,9 @@ extension OpenAICompatibleProvider {
     /// model only. An answer that ends with `abort` throws ``OpenAICompatibleError``, and one that ends with
     /// `repetition`, where a request's repetition detection stopped a model that repeats itself, counts as one that
     /// reached its token limit. A server started without `--enable-auto-tool-choice` and a `--tool-call-parser` refuses
-    /// every request with tools. A server elsewhere is `.vLLM.at(_:)` with its address. The preset follows vLLM's
-    /// server source and documentation and hasn't been run against a server; <doc:Providers> says what was checked.
+    /// a request with tools, unless the model is a gpt-oss model or uses Mistral's tokenizer. A server elsewhere is
+    /// `.vLLM.at(_:)` with its address. The preset follows vLLM's server source and documentation and hasn't been run
+    /// against a server; <doc:Providers> says what was checked.
     public static let vLLM: Self = {
         var vLLM = Self(name: "vLLM", url: url("http://localhost:8000/v1"))
         vLLM.defaultEffortWords = ["max", "xhigh", "high", "medium", "low", "minimal", "none"]
