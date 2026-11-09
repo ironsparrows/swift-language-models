@@ -4412,40 +4412,7 @@
     },
     {
       "cachesOnlyMarkedPrompts" : false,
-      "contextSize" : 1000000,
-      "displayName" : "MiniMax: MiniMax M1",
-      "id" : "minimax/minimax-m1",
-      "inputModalities" : [
-        "text"
-      ],
-      "knowledgeCutoff" : "2024-06-30",
-      "outputModalities" : [
-        "text"
-      ],
-      "reasoning" : "offByDefault",
-      "reasoningEfforts" : [
-
-      ],
-      "releasedAt" : 1750200414,
-      "supportedParameters" : [
-        "frequency_penalty",
-        "include_reasoning",
-        "max_tokens",
-        "presence_penalty",
-        "reasoning",
-        "repetition_penalty",
-        "seed",
-        "stop",
-        "temperature",
-        "tool_choice",
-        "tools",
-        "top_k",
-        "top_p"
-      ]
-    },
-    {
-      "cachesOnlyMarkedPrompts" : false,
-      "contextSize" : 204800,
+      "contextSize" : 200000,
       "displayName" : "MiniMax: MiniMax M2.5",
       "id" : "minimax/minimax-m2.5",
       "inputModalities" : [
@@ -4483,7 +4450,7 @@
     },
     {
       "cachesOnlyMarkedPrompts" : false,
-      "contextSize" : 204800,
+      "contextSize" : 196608,
       "displayName" : "MiniMax: MiniMax M2.7",
       "id" : "minimax/minimax-m2.7",
       "inputModalities" : [
@@ -4498,21 +4465,15 @@
       ],
       "releasedAt" : 1773836697,
       "supportedParameters" : [
-        "frequency_penalty",
         "include_reasoning",
-        "logit_bias",
         "max_tokens",
-        "min_p",
-        "presence_penalty",
         "reasoning",
-        "repetition_penalty",
         "response_format",
         "seed",
         "stop",
         "temperature",
         "tool_choice",
         "tools",
-        "top_k",
         "top_p"
       ]
     },
@@ -10559,19 +10520,24 @@
       "outputModalities" : [
         "text"
       ],
-      "reasoning" : "unsupported",
+      "reasoning" : "offByDefault",
       "reasoningEfforts" : [
 
       ],
       "releasedAt" : 1793818990,
       "supportedParameters" : [
+        "include_reasoning",
         "logprobs",
         "max_tokens",
+        "reasoning",
         "response_format",
         "seed",
+        "stop",
+        "structured_outputs",
         "temperature",
         "tool_choice",
         "tools",
+        "top_k",
         "top_logprobs",
         "top_p"
       ]
@@ -10921,7 +10887,7 @@
     },
     {
       "cachesOnlyMarkedPrompts" : false,
-      "contextSize" : 1048576,
+      "contextSize" : 1000000,
       "defaultReasoningEffort" : "medium",
       "displayName" : "StepFun: Step 5 Preview",
       "id" : "stepfun/step-5-preview",
@@ -11932,7 +11898,7 @@
     },
     {
       "cachesOnlyMarkedPrompts" : false,
-      "contextSize" : 1050000,
+      "contextSize" : 1024000,
       "displayName" : "Xiaomi: MiMo-V2.5-Pro",
       "id" : "xiaomi/mimo-v2.5-pro",
       "inputModalities" : [
@@ -11952,7 +11918,6 @@
         "max_tokens",
         "reasoning",
         "response_format",
-        "seed",
         "structured_outputs",
         "temperature",
         "tool_choice",
@@ -12288,7 +12253,6 @@
       "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 204800,
       "displayName" : "Z.ai: GLM 4.7",
-      "expirationDate" : "2026-12-31",
       "id" : "z-ai/glm-4.7",
       "inputModalities" : [
         "text"
@@ -13498,7 +13462,42 @@
     }
   ],
   "removed" : [
+    {
+      "model" : {
+        "cachesOnlyMarkedPrompts" : false,
+        "contextSize" : 1000000,
+        "displayName" : "MiniMax: MiniMax M1",
+        "id" : "minimax/minimax-m1",
+        "inputModalities" : [
+          "text"
+        ],
+        "knowledgeCutoff" : "2024-06-30",
+        "outputModalities" : [
+          "text"
+        ],
+        "reasoning" : "offByDefault",
+        "reasoningEfforts" : [
 
+        ],
+        "releasedAt" : 1750200414,
+        "supportedParameters" : [
+          "frequency_penalty",
+          "include_reasoning",
+          "max_tokens",
+          "presence_penalty",
+          "reasoning",
+          "repetition_penalty",
+          "seed",
+          "stop",
+          "temperature",
+          "tool_choice",
+          "tools",
+          "top_k",
+          "top_p"
+        ]
+      },
+      "removedOn" : "2026-11-09"
+    }
   ],
   "source" : "openrouter",
   "vocabularies" : {

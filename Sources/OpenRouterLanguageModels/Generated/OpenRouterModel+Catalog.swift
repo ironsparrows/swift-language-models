@@ -3567,6 +3567,7 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.Microsoft
 
 extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.MinimaxMinimaxM1> {
     /// MiniMax: MiniMax M1
+    @available(*, deprecated, message: "Removed from OpenRouter on 2026-11-09")
     public static var minimaxMinimaxM1: Self {
         Self(
             id: "minimax/minimax-m1",
@@ -3601,7 +3602,7 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.MinimaxMi
             id: "minimax/minimax-m2.5",
             displayName: "MiniMax: MiniMax M2.5",
             releaseDate: Date(timeIntervalSince1970: 1_770_908_502),
-            contextSize: 204_800,
+            contextSize: 200_000,
             supportedParameters: [
                 .frequencyPenalty,
                 .includeReasoning,
@@ -3635,23 +3636,17 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.MinimaxMi
             id: "minimax/minimax-m2.7",
             displayName: "MiniMax: MiniMax M2.7",
             releaseDate: Date(timeIntervalSince1970: 1_773_836_697),
-            contextSize: 204_800,
+            contextSize: 196_608,
             supportedParameters: [
-                .frequencyPenalty,
                 .includeReasoning,
-                .logitBias,
                 .maxTokens,
-                .minP,
-                .presencePenalty,
                 .reasoning,
-                .repetitionPenalty,
                 .responseFormat,
                 .seed,
                 .stop,
                 .temperature,
                 .toolChoice,
                 .tools,
-                .topK,
                 .topP,
             ],
             reasoning: .mandatory
@@ -8653,7 +8648,23 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.Ricursive
             displayName: "Ricursive: Ripple 65B Preview",
             releaseDate: Date(timeIntervalSince1970: 1_793_818_990),
             contextSize: 1_048_576,
-            supportedParameters: [.logprobs, .maxTokens, .responseFormat, .seed, .temperature, .toolChoice, .tools, .topLogprobs, .topP]
+            supportedParameters: [
+                .includeReasoning,
+                .logprobs,
+                .maxTokens,
+                .reasoning,
+                .responseFormat,
+                .seed,
+                .stop,
+                .structuredOutputs,
+                .temperature,
+                .toolChoice,
+                .tools,
+                .topK,
+                .topLogprobs,
+                .topP,
+            ],
+            reasoning: .offByDefault
         )
     }
 }
@@ -8939,7 +8950,7 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.StepfunSt
             id: "stepfun/step-5-preview",
             displayName: "StepFun: Step 5 Preview",
             releaseDate: Date(timeIntervalSince1970: 1_791_462_849),
-            contextSize: 1_048_576,
+            contextSize: 1_000_000,
             inputModalities: [.image, .text, .video],
             supportedParameters: [
                 .frequencyPenalty,
@@ -9739,14 +9750,13 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.XiaomiMim
             id: "xiaomi/mimo-v2.5-pro",
             displayName: "Xiaomi: MiMo-V2.5-Pro",
             releaseDate: Date(timeIntervalSince1970: 1_776_874_273),
-            contextSize: 1_050_000,
+            contextSize: 1_024_000,
             supportedParameters: [
                 .includeReasoning,
                 .logprobs,
                 .maxTokens,
                 .reasoning,
                 .responseFormat,
-                .seed,
                 .structuredOutputs,
                 .temperature,
                 .toolChoice,
@@ -10047,15 +10057,11 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.ZAiGlm4_6
 
 extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.ZAiGlm4_7> {
     /// Z.ai: GLM 4.7
-    @available(*, deprecated, message: "OpenRouter retires this model on 2026-12-31")
-    public static var zAiGlm4_7: Self { zAiGlm4_7Entry }
-
-    fileprivate static var zAiGlm4_7Entry: Self {
+    public static var zAiGlm4_7: Self {
         Self(
             id: "z-ai/glm-4.7",
             displayName: "Z.ai: GLM 4.7",
             releaseDate: Date(timeIntervalSince1970: 1_766_378_014),
-            expirationDate: Date(timeIntervalSince1970: 1_798_675_200),
             contextSize: 204_800,
             supportedParameters: [
                 .frequencyPenalty,
@@ -11354,8 +11360,6 @@ extension OpenRouterModel where Effort == ContextOptions.ReasoningLevel {
             self.init(OpenRouterModel<_>.metaMuseWonder)
         case "microsoft/phi-4":
             self.init(OpenRouterModel<_>.microsoftPhi4)
-        case "minimax/minimax-m1":
-            self.init(OpenRouterModel<_>.minimaxMinimaxM1)
         case "minimax/minimax-m2.5":
             self.init(OpenRouterModel<_>.minimaxMinimaxM2_5)
         case "minimax/minimax-m2.7":
@@ -11803,7 +11807,7 @@ extension OpenRouterModel where Effort == ContextOptions.ReasoningLevel {
         case "z-ai/glm-4.6v":
             self.init(OpenRouterModel<_>.zAiGlm4_6v)
         case "z-ai/glm-4.7":
-            self.init(OpenRouterModel<_>.zAiGlm4_7Entry)
+            self.init(OpenRouterModel<_>.zAiGlm4_7)
         case "z-ai/glm-4.7-flash":
             self.init(OpenRouterModel<_>.zAiGlm4_7Flash)
         case "z-ai/glm-5":
@@ -12007,7 +12011,6 @@ private let openRouterCatalogModels: [OpenModel] = [
     OpenModel(OpenRouterModel<_>.metaMuseSparkOpen),
     OpenModel(OpenRouterModel<_>.metaMuseWonder),
     OpenModel(OpenRouterModel<_>.microsoftPhi4),
-    OpenModel(OpenRouterModel<_>.minimaxMinimaxM1),
     OpenModel(OpenRouterModel<_>.minimaxMinimaxM2_5),
     OpenModel(OpenRouterModel<_>.minimaxMinimaxM2_7),
     OpenModel(OpenRouterModel<_>.minimaxMinimaxM3),
@@ -12231,7 +12234,7 @@ private let openRouterCatalogModels: [OpenModel] = [
     OpenModel(OpenRouterModel<_>.zAiGlm4_5vEntry),
     OpenModel(OpenRouterModel<_>.zAiGlm4_6),
     OpenModel(OpenRouterModel<_>.zAiGlm4_6v),
-    OpenModel(OpenRouterModel<_>.zAiGlm4_7Entry),
+    OpenModel(OpenRouterModel<_>.zAiGlm4_7),
     OpenModel(OpenRouterModel<_>.zAiGlm4_7Flash),
     OpenModel(OpenRouterModel<_>.zAiGlm5),
     OpenModel(OpenRouterModel<_>.zAiGlm5Turbo),
