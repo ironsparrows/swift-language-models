@@ -96,6 +96,19 @@ struct LiveGroqTests {
         }
     }
 
+    // Why `OpenAICompatibleOptions.cacheKey` stays out of Groq's requests.
+    @Test func `Groq refuses prompt_cache_key, naming it`() async throws {
+        let options = OpenAICompatibleOptions(additionalMembers: ["prompt_cache_key": GeneratedContent("run-1")])
+
+        let error = try await #require(throws: OpenAICompatibleError.self) {
+            _ = try await LanguageModelSession(model: Self.gptOSS(options: options)).respond(
+                to: "Say hello.", options: shortAnswer, contextOptions: ContextOptions(reasoningLevel: .light))
+        }
+
+        #expect(error.status == 400)
+        #expect(error.parameter == "prompt_cache_key")
+    }
+
     @Test func `a key Groq refuses throws its code`() async throws {
         let session = LanguageModelSession(model: Self.gptOSS(key: "gsk-not-a-key"))
 

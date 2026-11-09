@@ -94,6 +94,18 @@ struct LiveGeminiTests {
         }
     }
 
+    // Why `OpenAICompatibleOptions.cacheKey` stays out of Gemini's requests.
+    @Test func `Gemini refuses prompt_cache_key, naming it`() async throws {
+        let options = OpenAICompatibleOptions(additionalMembers: ["prompt_cache_key": GeneratedContent("run-1")])
+
+        let error = try await #require(throws: OpenAICompatibleError.self) {
+            _ = try await LanguageModelSession(model: Self.model(options: options)).respond(to: "Say hello.", options: shortAnswer)
+        }
+
+        #expect(error.status == 400)
+        #expect(error.parameter == "prompt_cache_key")
+    }
+
     @Test func `a key Gemini refuses throws with the code authentication`() async throws {
         let session = LanguageModelSession(model: Self.model(key: "AIza-not-a-key"))
 

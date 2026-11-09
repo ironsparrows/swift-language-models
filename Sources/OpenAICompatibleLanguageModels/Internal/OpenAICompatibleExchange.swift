@@ -43,9 +43,9 @@ extension OpenAICompatibleLanguageModel {
 // MARK: - Exchange
 
 /// A provider's part in one exchange, in either format: the attachments the model takes, the requests the provider
-/// refuses, the reasoning effort, the usage chunk, the token limit's member and the `top_k` it asks for, the app's own
-/// members, the storage and what each response carries, the reasoning that goes back, the reasoning and thought
-/// signature in each chunk, the host and request id, and what the provider's failures become.
+/// refuses, the reasoning effort, the usage chunk, the token limit's member, the `top_k` it asks for and the cache key,
+/// the app's own members, the storage and what each response carries, the reasoning that goes back, the reasoning and
+/// thought signature in each chunk, the host and request id, and what the provider's failures become.
 ///
 /// Every method with a default is here, in the type that declares the conformances, so a misspelled one draws a warning
 /// instead of silently keeping the default, and neither format's default is picked over the other's.
@@ -64,7 +64,7 @@ struct OpenAICompatibleExchange: ChatCompletions.Exchange, Responses.Exchange {
     /// sorted by key.
     fileprivate static let memberOrder: [ChatCompletions.Member] = [
         .model, .messages, .stream, .streamOptions, .tools, .toolChoice, .responseFormat, .reasoningEffort, .thinking, .temperature,
-        .topP, .topK, .seed, .maxCompletionTokens, .maxTokens, .metadata,
+        .topP, .topK, .seed, .maxCompletionTokens, .maxTokens, .metadata, .promptCacheKey,
     ]
 
     fileprivate init(model: OpenAICompatibleLanguageModel) {
@@ -129,8 +129,9 @@ struct OpenAICompatibleExchange: ChatCompletions.Exchange, Responses.Exchange {
     // MARK: Before it is sent
 
     /// Asks for a usage chunk unless the provider reports usage unasked, sends the token limit in the provider's member,
-    /// the reasoning effort as `reasoning_effort`, with `thinking` for a provider that takes it, and the `top_k` that
-    /// sampling asks for to a provider that honors it, and adds the app's own members over the format's.
+    /// the reasoning effort as `reasoning_effort`, with `thinking` for a provider that takes it, the `top_k` that
+    /// sampling asks for to a provider that honors it, and the cache key as `prompt_cache_key`, which the format leaves
+    /// out for a provider that doesn't take it, and adds the app's own members over the format's.
     ///
     /// A request that sets a reasoning level sends the nearest effort the model accepts, for a model that reasons, and
     /// to a provider that takes `thinking`, `thinking` too: disabled for the level `off` and for a model that doesn't
@@ -170,7 +171,8 @@ struct OpenAICompatibleExchange: ChatCompletions.Exchange, Responses.Exchange {
         request.members = try JSONValueEncoder.members(
             of: ChatCompletionsMembers(
                 streamOptions: provider.asksForUsage ? ChatCompletionsMembers.StreamOptions(includeUsage: true) : nil,
-                reasoningEffort: effort, thinking: thinking, topK: provider.sendsTopK ? Self.topK(of: generation) : nil))
+                reasoningEffort: effort, thinking: thinking, topK: provider.sendsTopK ? Self.topK(of: generation) : nil,
+                promptCacheKey: options.cacheKey?.text(firstPromptID: request.firstPromptID)))
         request.tokenLimitMember = provider.tokenLimitMember
         request.overridingMembers = options.overridingMembers
         request.movedEffort = appEffort == nil && reasons ? movedEffort : nil
@@ -178,7 +180,8 @@ struct OpenAICompatibleExchange: ChatCompletions.Exchange, Responses.Exchange {
 
     /// Sends the reasoning effort in `reasoning`, the storage the options ask for, or for automatic storage the
     /// provider's, what the provider asks each response to carry, the `top_k` that sampling asks for to a provider that
-    /// honors it, and the app's own members over the format's.
+    /// honors it, the cache key as `prompt_cache_key`, which the format leaves out for a provider that doesn't take it,
+    /// and the app's own members over the format's.
     ///
     /// A request that sets a reasoning level sends the nearest effort the model accepts, for a model that reasons.
     func prepare(_ request: inout Responses.Request) throws {
@@ -189,6 +192,9 @@ struct OpenAICompatibleExchange: ChatCompletions.Exchange, Responses.Exchange {
         request.include = provider.include
         if provider.sendsTopK, let topK = Self.topK(of: request.generation) {
             request.members[Responses.Member.topK.rawValue] = .integer(topK)
+        }
+        if let key = options.cacheKey?.text(firstPromptID: request.firstPromptID) {
+            request.members[Responses.Member.promptCacheKey.rawValue] = .string(key)
         }
         request.overridingMembers = options.overridingMembers
     }
@@ -341,6 +347,7 @@ private struct ChatCompletionsMembers: Encodable {
     let reasoningEffort: String?
     let thinking: Thinking?
     let topK: Int?
+    let promptCacheKey: String?
 
     func encode(to encoder: any Encoder) throws {
         var container = encoder.container(keyedBy: ChatCompletions.Member.self)
@@ -348,6 +355,7 @@ private struct ChatCompletionsMembers: Encodable {
         try container.encodeIfPresent(reasoningEffort, forKey: .reasoningEffort)
         try container.encodeIfPresent(thinking, forKey: .thinking)
         try container.encodeIfPresent(topK, forKey: .topK)
+        try container.encodeIfPresent(promptCacheKey, forKey: .promptCacheKey)
     }
 }
 
@@ -356,10 +364,16 @@ extension ChatCompletions.Member {
     fileprivate static let reasoningEffort: Self = "reasoning_effort"
     fileprivate static let thinking: Self = "thinking"
     fileprivate static let topK: Self = "top_k"
+
+    /// The cache key's member, which a preset whose provider doesn't take it lists among the members it leaves out.
+    static let promptCacheKey: Self = "prompt_cache_key"
 }
 
 extension Responses.Member {
     fileprivate static let topK: Self = "top_k"
+
+    /// The cache key's member, which a preset whose provider doesn't take it lists among the members it leaves out.
+    static let promptCacheKey: Self = "prompt_cache_key"
 }
 
 extension OpenAICompatibleOptions.Storage {

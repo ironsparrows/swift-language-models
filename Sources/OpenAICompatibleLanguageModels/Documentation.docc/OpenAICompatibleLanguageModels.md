@@ -61,6 +61,7 @@ module re-exports.
 ### Request settings
 
 - ``OpenAICompatibleOptions``
+- ``OpenAICompatibleOptions/CacheKey``
 - ``OpenAICompatibleConfiguration``
 - ``RequestRetries``
 - ``ImageEncoding``

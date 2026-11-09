@@ -2,7 +2,7 @@ public import FoundationModels
 import LanguageModels
 
 /// Request settings beyond Foundation Models' generation options: members of a provider's own that the module doesn't
-/// write, and whether a provider that speaks Responses keeps each response.
+/// write, the key of the provider's prompt cache, and whether a provider that speaks Responses keeps each response.
 ///
 /// Every setting left at its default stays out of the request, so the provider's own default applies, but for the
 /// storage of a preset that asks its provider not to keep responses, as ``OpenAICompatibleProvider/xAI`` does.
@@ -22,6 +22,22 @@ public struct OpenAICompatibleOptions: Sendable, Hashable {
     /// ```
     public var additionalMembers: [String: GeneratedContent]
 
+    /// The key that groups requests whose prompts start the same, so the provider's prompt cache serves their shared
+    /// start more often, or `nil` for none.
+    ///
+    /// It goes out as `prompt_cache_key` to ``OpenAICompatibleProvider/xAI`` and ``OpenAICompatibleProvider/mistral``,
+    /// which read it, and to a provider the app describes itself, which may refuse it as a member it doesn't know. The
+    /// other presets leave it out and log it, since their providers refuse it, ignore it or don't document it.
+    ///
+    /// ```swift
+    /// let model = OpenAICompatibleLanguageModel(
+    ///     OpenAICompatibleModel("grok-4.3", on: .xAI),
+    ///     options: OpenAICompatibleOptions(cacheKey: .session),
+    ///     auth: .apiKey { try await keyStore.xAIKey() }
+    /// )
+    /// ```
+    public var cacheKey: CacheKey?
+
     /// Whether a provider that speaks Responses keeps each response, as its `store` setting says. The module sends
     /// `store` only in the Responses format.
     public var storage: Storage
@@ -30,18 +46,54 @@ public struct OpenAICompatibleOptions: Sendable, Hashable {
     ///
     /// - Parameters:
     ///   - additionalMembers: Members that every request's body carries as written.
+    ///   - cacheKey: The key that groups requests whose prompts start the same.
     ///   - storage: Whether a provider that speaks Responses keeps each response.
-    public init(additionalMembers: [String: GeneratedContent] = [:], storage: Storage = .automatic) {
+    public init(additionalMembers: [String: GeneratedContent] = [:], cacheKey: CacheKey? = nil, storage: Storage = .automatic) {
         self.additionalMembers = additionalMembers
+        self.cacheKey = cacheKey
         self.storage = storage
     }
 
-    /// Hashes the keys of the additional members and the storage, which equal options always share.
+    /// Hashes the keys of the additional members, the cache key and the storage, which equal options always share.
     ///
     /// - Parameter hasher: The hasher to feed them to.
     public func hash(into hasher: inout Hasher) {
         hasher.combine(Set(additionalMembers.keys))
+        hasher.combine(cacheKey)
         hasher.combine(storage)
+    }
+}
+
+extension OpenAICompatibleOptions {
+    /// The key that groups requests whose prompts start the same, so the provider's prompt cache serves their shared
+    /// start more often. It goes out as `prompt_cache_key` to the providers ``OpenAICompatibleOptions/cacheKey`` names.
+    public struct CacheKey: Sendable, Hashable {
+        /// Each session's own key: the id of its first prompt, which stays the same for the whole session.
+        public static let session = Self(kind: .session)
+
+        /// A key of the app's own, such as one for every session that shares the same long instructions.
+        ///
+        /// - Parameter key: The key.
+        /// - Returns: The cache key.
+        public static func named(_ key: String) -> Self {
+            Self(kind: .named(key))
+        }
+
+        /// Where the key's text comes from.
+        private enum Kind: Sendable, Hashable {
+            case session
+            case named(String)
+        }
+
+        private let kind: Kind
+
+        /// The key's text: the session's first prompt's id, or the app's own key; `nil` before the first prompt.
+        func text(firstPromptID: String?) -> String? {
+            switch kind {
+            case .session: firstPromptID
+            case .named(let key): key
+            }
+        }
     }
 }
 

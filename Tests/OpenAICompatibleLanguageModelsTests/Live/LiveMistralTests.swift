@@ -40,6 +40,17 @@ struct LiveMistralTests {
         record(session.transcript, named: "transcript.txt")
     }
 
+    @Test func `a repeated long prefix with a cache key reads Mistral's cache`() async throws {
+        let inputs = try await cachedInputs(
+            Self.model(options: OpenAICompatibleOptions(cacheKey: .named(UUID().uuidString))), copies: 300)
+
+        #expect(inputs.first?.cached == 0)
+        #expect(inputs.allSatisfy { $0.cached <= $0.input })
+        withKnownIssue("Mistral's cache doesn't always serve a prefix this soon.", isIntermittent: true) {
+            #expect(inputs.dropFirst().contains { $0.cached > 0 })
+        }
+    }
+
     @Test func `a guided answer decodes`() async throws {
         let response = try await LanguageModelSession(model: Self.model()).respond(
             to: "Plan a short trip to Lisbon.", generating: Trip.self, options: GenerationOptions(maximumResponseTokens: 1_000))

@@ -42,6 +42,23 @@ extension OpenAICompatibleExchangeTests {
             }
         }
 
+        // Which presets send a cache key is the presets' suite's.
+        @Test(arguments: [OpenAICompatibleProvider.Format.chatCompletions, .responses])
+        func `a session cache key goes as prompt_cache_key, the session's first prompt id on every request`(
+            format: OpenAICompatibleProvider.Format
+        ) async throws {
+            func reply() -> StubResponse { format == .responses ? events(textDelta("Hi"), completed()) : chunks(text("Hi"), finish()) }
+            let stub = HTTPStub(reply(), reply())
+            let session = LanguageModelSession(model: model(stub, format: format, options: OpenAICompatibleOptions(cacheKey: .session)))
+
+            _ = try await session.respond(to: "Hello")
+            _ = try await session.respond(to: "Again")
+
+            let firstPrompt = try #require(session.transcript.first { if case .prompt = $0 { true } else { false } })
+            #expect(try body(stub, 0)["prompt_cache_key"] == .string(firstPrompt.id))
+            #expect(try body(stub, 1)["prompt_cache_key"] == .string(firstPrompt.id))
+        }
+
         @Test func `a Responses request sends the effort in reasoning and the storage the options ask for`() async throws {
             let stub = HTTPStub(events(textDelta("Hi"), completed()))
             let options = OpenAICompatibleOptions(storage: .notStored)

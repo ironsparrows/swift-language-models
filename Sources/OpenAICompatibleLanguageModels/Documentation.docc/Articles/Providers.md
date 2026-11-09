@@ -47,6 +47,7 @@ behind: a member a provider starts to refuse throws its error, and a member it s
 | Usage | asked for | sent unasked | asked for | sent unasked | sent unasked |
 | `top_k` | left out | left out | left out | left out | sent |
 | Left out and logged | `seed`, `metadata` | `metadata` | `seed`, `metadata` | `seed` | `metadata` |
+| Cache key | left out and logged | left out and logged | left out and logged | sent | sent |
 | Reasoning back | its thought signature, to the model that wrote it | `reasoning`, to the model that wrote it | `reasoning_content` | none | its encrypted reasoning, to the model that wrote it |
 | Refused before sending | | a schema with tools | a required tool call while the model reasons | | |
 | Finish words of its own | | | `insufficient_system_resource` and `aborted` fail the answer | `model_length` counts as the token limit | |
@@ -65,6 +66,7 @@ The servers' presets reach a server at its default local address, and take no ke
 | Token limit | `max_tokens` | `max_tokens` | `max_completion_tokens` |
 | `top_k` | left out | left out | sent |
 | Left out and logged | `metadata`, `tool_choice` | `metadata` | `metadata` |
+| Cache key | left out and logged | left out and logged | left out and logged |
 | Reasoning back | `reasoning`, to the model that wrote it | none | `reasoning`, to the model that wrote it |
 | Refused before sending | an image at a web address, a required tool call | | |
 | Finish words of its own | | | `abort` fails the answer, `repetition` counts as the token limit |
@@ -86,7 +88,9 @@ Each Chat Completions request of a session repeats the one before it byte for by
 that caches a repeated prefix can read it from its cache, and the answer's `usage.input.cachedTokenCount` counts the
 tokens it read there, as the provider reports them in `prompt_tokens_details.cached_tokens`, or in Responses
 `input_tokens_details.cached_tokens`; a provider that reports them in another member, such as a `cached_tokens` beside
-the others, reads as 0. No preset sends a cache key.
+the others, reads as 0. ``OpenAICompatibleOptions/cacheKey`` goes out as `prompt_cache_key` where the tables say it's
+sent, and to a provider the app describes itself, which may refuse it as a member it doesn't know; the other presets
+leave it out and log it, since their providers refuse it, ignore it or don't document it.
 
 ### Gemini
 
@@ -114,7 +118,8 @@ the others, reads as 0. No preset sends a cache key.
   minute, such a prompt throws `LanguageModelError.rateLimited` first.
 - **Caching.** Gemini caches a repeated prefix by itself: after the same instructions of about 6,000 tokens, a second
   request to `gemini-3.1-flash-lite` read 2,033 of its 6,030 input tokens from the cache, and the first reported none.
-  Gemini reports them on the answer's last chunk. It takes no cache key: a request with `prompt_cache_key` is a 400.
+  Gemini reports them on the answer's last chunk. It takes no cache key: `prompt_cache_key` is a 400, so requests leave
+  ``OpenAICompatibleOptions/cacheKey`` out.
 - **Images** at a web address are taken. Gemini has no Responses format.
 
 ### Groq
@@ -140,7 +145,8 @@ the others, reads as 0. No preset sends a cache key.
   ``OpenAICompatibleError/Code/invalidAPIKey``.
 - **Caching.** Groq's documentation says `openai/gpt-oss-20b` and `openai/gpt-oss-120b` cache a repeated prefix, but
   on the free plan neither reported any cached tokens for a prompt of about 3,000 tokens sent again seconds later,
-  streamed or not. Groq takes no cache key: a request with `prompt_cache_key` is a 400.
+  streamed or not. Groq takes no cache key: `prompt_cache_key` is a 400, so requests leave
+  ``OpenAICompatibleOptions/cacheKey`` out.
 - **Images** under 32 pixels a side are refused by Groq with a 400.
 
 ### DeepSeek
@@ -149,7 +155,7 @@ the others, reads as 0. No preset sends a cache key.
   DeepSeek reads over the effort: disabled for the level ``FoundationModels/ContextOptions/ReasoningLevel/off`` and
   enabled for any other. A model you describe with `reasoning: .unsupported` sends `thinking` disabled with every
   request. DeepSeek takes `medium` as `high`, so the reasoning level `.moderate` reasons as hard as `.deep`.
-- **Left out.** `seed` and request metadata, which DeepSeek's documentation doesn't list.
+- **Left out.** `seed`, request metadata and a cache key, which DeepSeek's documentation doesn't list.
 - **Reasoning back.** DeepSeek's reasoning goes back as the assistant message's `reasoning_content`, which DeepSeek
   needs on every earlier answer of a request with tools. An answer with no reasoning of DeepSeek's own, such as one
   another provider wrote or one with reasoning off, goes back without it, and DeepSeek may refuse a request with tools
@@ -177,8 +183,9 @@ the others, reads as 0. No preset sends a cache key.
   doesn't send it.
 - **Tool call ids** of nine letters and digits are reported to be the only ones Mistral takes, so a transcript whose
   calls another provider made may fail there, with Mistral's code in ``OpenAICompatibleError/code``.
-- **Caching.** Mistral documents cached tokens in `prompt_tokens_details.cached_tokens`, which the usage reads; ones it
-  sends only as `num_cached_tokens` or in `prompt_token_details`, as it's reported to, read as 0. This wasn't seen.
+- **Caching.** ``OpenAICompatibleOptions/cacheKey`` goes out as `prompt_cache_key`, which Mistral's documentation ties
+  its cache to. Mistral documents cached tokens in `prompt_tokens_details.cached_tokens`, which the usage reads; ones
+  it sends only as `num_cached_tokens` or in `prompt_token_details`, as it's reported to, read as 0. Neither was seen.
 - **Regional servers** are `.mistral.at(_:)` with `https://api.eu.mistral.ai/v1` or `https://api.us.mistral.ai/v1`.
 
 ### xAI
@@ -198,8 +205,9 @@ the others, reads as 0. No preset sends a cache key.
 - **Retries and waits.** A failed request is sent again only after a rate limit: xAI may bill a request that failed
   once its work began, such as one with a 5xx status. Requests wait up to 10 minutes for the next data, since a model
   that reasons can send nothing for minutes.
-- **Prompt cache.** xAI routes requests that share a `prompt_cache_key` to the same cache. The preset sends none, and
-  one set through ``OpenAICompatibleOptions/additionalMembers`` goes with every request of the model.
+- **Prompt cache.** xAI routes requests that share a `prompt_cache_key` to the same cache, which
+  ``OpenAICompatibleOptions/cacheKey`` sends: ``OpenAICompatibleOptions/CacheKey/session`` keeps each conversation on
+  one key. This wasn't seen.
 - **Failures.** An incorrect key is a 400 with xAI's code `invalid-argument`, which has the code
   ``OpenAICompatibleError/Code/authentication``, as a 401 has; it was seen on xAI's Chat Completions endpoint.
 
@@ -211,8 +219,8 @@ the others, reads as 0. No preset sends a cache key.
 - **Reasoning** arrives as each delta's `reasoning`, and goes back as the assistant message's `reasoning`, with its tool
   calls, to the model that wrote it only, since another model on the server would read it as its own. Ollama took it on
   later turns, with tool calls and without.
-- **Left out.** Request metadata, `tool_choice` and `top_k`, which Ollama ignores. It ignores `max_completion_tokens`
-  too, so the token limit goes as `max_tokens`.
+- **Left out.** Request metadata, `tool_choice`, `top_k` and a cache key, which Ollama ignores. It ignores
+  `max_completion_tokens` too, so the token limit goes as `max_tokens`.
 - **An image at a web address** is refused before it's sent with `LanguageModelError.unsupportedTranscriptContent`,
   since Ollama answers one with a 400: attach the image itself. Every image sent as data goes as JPEG, which Ollama
   takes.
@@ -242,8 +250,8 @@ the others, reads as 0. No preset sends a cache key.
   turns, since nothing shows LM Studio reads it there.
 - **Efforts** are reported to have no effect in this format, and LM Studio is reported to refuse `max`, which the
   preset's efforts leave out.
-- **Left out.** Request metadata, which LM Studio's documentation doesn't list, and `top_k`, which it lists for this
-  format without saying what it does there.
+- **Left out.** Request metadata and a cache key, which LM Studio's documentation doesn't list, and `top_k`, which it
+  lists for this format without saying what it does there.
 - **Tool calls.** LM Studio makes a required call only with its llama.cpp engine, and is reported to answer one empty
   there too.
 - **A prompt over the model's context** is cut in the middle to fit, with no error, by LM Studio's default setting.
@@ -273,7 +281,7 @@ the others, reads as 0. No preset sends a cache key.
 - **Sampling.** A `top_k` that sampling asks for goes out. Greedy sampling goes as temperature 0, which vLLM samples
   greedily.
 - **The token limit** goes as `max_completion_tokens`, which vLLM reads over `max_tokens`.
-- **Left out.** Request metadata, which vLLM ignores.
+- **Left out.** Request metadata and a cache key, which vLLM ignores.
 - **Finish words.** An answer that ends with `abort`, which vLLM sends for a request it stopped serving, throws
   ``OpenAICompatibleError`` with the code `server` rather than ending as complete. One that ends with `repetition`,
   which vLLM sends when the repetition detection a request turns on stops a model that repeats itself, counts as one

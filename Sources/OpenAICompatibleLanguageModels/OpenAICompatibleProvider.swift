@@ -190,19 +190,19 @@ extension OpenAICompatibleProvider {
     /// ```
     ///
     /// By default, a model on it reasons unless a request turns reasoning off, and accepts the efforts `high`,
-    /// `medium`, `low`, `minimal` and `none`. Requests leave out `seed` and request metadata, which Gemini refuses, and
-    /// a failed request isn't sent again. Each answer's thought signature goes back with it on later turns, to the
-    /// model that wrote it: on its first tool call, or on its message when it has no call. A first tool call that
-    /// another provider or model made goes back with a placeholder that Gemini takes in place of a signature. A 400 for
-    /// a missing or invalid key has the code `authentication`, as a 401 has, a rate limit's reset date comes from the
-    /// wait Gemini names in its body, and a prompt over the model's context throws
+    /// `medium`, `low`, `minimal` and `none`. Requests leave out `seed`, request metadata and a cache key, which Gemini
+    /// refuses, and a failed request isn't sent again. Each answer's thought signature goes back with it on later
+    /// turns, to the model that wrote it: on its first tool call, or on its message when it has no call. A first tool
+    /// call that another provider or model made goes back with a placeholder that Gemini takes in place of a signature.
+    /// A 400 for a missing or invalid key has the code `authentication`, as a 401 has, a rate limit's reset date comes
+    /// from the wait Gemini names in its body, and a prompt over the model's context throws
     /// `LanguageModelError.contextSizeExceeded` with the sizes Gemini names.
     public static let gemini: Self = {
         var gemini = Self(name: "Gemini", url: url("https://generativelanguage.googleapis.com/v1beta/openai/"))
         gemini.configuration.retries = .disabled
         gemini.defaultReasoning = .onByDefault
         gemini.defaultEffortWords = ["high", "medium", "low", "minimal", "none"]
-        gemini.unsupportedMembers = [.seed, .metadata]
+        gemini.unsupportedMembers = [.seed, .metadata, .promptCacheKey]
         gemini.reasoningReplay = .thoughtSignatures
         gemini.host = "Google AI Studio"
         gemini.failureWords.refusedKey = ["Missing or invalid Authorization header", "Please pass a valid API key"]
@@ -221,17 +221,17 @@ extension OpenAICompatibleProvider {
     ///
     /// By default, a model on it reasons only when a request asks it to, and accepts the efforts `high`, `medium`,
     /// `low` and `none`. Groq's models take different efforts, so name a model's own, as above. Requests send the token
-    /// limit as `max_completion_tokens`, leave out request metadata, which Groq refuses, and don't ask for a usage
-    /// chunk, since Groq reports usage on an answer's last chunk. A model's reasoning goes back on later turns as
-    /// `reasoning`, to that model only. A request that sends both tools and a schema is refused before it's sent, since
-    /// Groq refuses the two together, and a guided answer that Groq finds breaks its schema throws
+    /// limit as `max_completion_tokens`, leave out request metadata and a cache key, which Groq refuses, and don't ask
+    /// for a usage chunk, since Groq reports usage on an answer's last chunk. A model's reasoning goes back on later
+    /// turns as `reasoning`, to that model only. A request that sends both tools and a schema is refused before it's
+    /// sent, since Groq refuses the two together, and a guided answer that Groq finds breaks its schema throws
     /// `GeneratedContent.ParsingError`. Requests wait up to 60 seconds for the next data, and a failed one is sent
     /// again up to twice.
     public static let groq: Self = {
         var groq = Self(name: "Groq", url: url("https://api.groq.com/openai/v1"))
         groq.configuration.idleTimeout = .seconds(60)
         groq.defaultEffortWords = ["high", "medium", "low", "none"]
-        groq.unsupportedMembers = [.metadata]
+        groq.unsupportedMembers = [.metadata, .promptCacheKey]
         groq.tokenLimitMember = .maxCompletionTokens
         groq.asksForUsage = false
         groq.reasoningReplay = .reasoning
@@ -254,12 +254,12 @@ extension OpenAICompatibleProvider {
     /// since DeepSeek takes no JSON Schema for an answer, and accepts the efforts `max`, `high`, `medium`, `low` and
     /// `none`, where DeepSeek takes `medium` as `high`. A request that sets a reasoning level also sends `thinking`:
     /// disabled for ``FoundationModels/ContextOptions/ReasoningLevel/off`` and enabled for any other level, and a model
-    /// that doesn't reason sends it disabled with every request. Requests leave out `seed` and request metadata, which
-    /// DeepSeek's documentation doesn't list. The model's reasoning goes back on later turns as `reasoning_content`,
-    /// which DeepSeek needs on the earlier answers of a request with tools. A request that requires a tool call is
-    /// refused before it's sent while the model reasons, since DeepSeek takes a required call only with reasoning off.
-    /// An answer DeepSeek's servers cut short, which ends with `insufficient_system_resource` or `aborted`, throws
-    /// ``OpenAICompatibleError``, and a request DeepSeek's content filter refuses throws
+    /// that doesn't reason sends it disabled with every request. Requests leave out `seed`, request metadata and a
+    /// cache key, which DeepSeek's documentation doesn't list. The model's reasoning goes back on later turns as
+    /// `reasoning_content`, which DeepSeek needs on the earlier answers of a request with tools. A request that
+    /// requires a tool call is refused before it's sent while the model reasons, since DeepSeek takes a required call
+    /// only with reasoning off. An answer DeepSeek's servers cut short, which ends with `insufficient_system_resource`
+    /// or `aborted`, throws ``OpenAICompatibleError``, and a request DeepSeek's content filter refuses throws
     /// `LanguageModelError.guardrailViolation`. The preset follows DeepSeek's documentation and hasn't been run against
     /// its API; <doc:Providers> says what was checked.
     public static let deepSeek: Self = {
@@ -267,7 +267,7 @@ extension OpenAICompatibleProvider {
         deepSeek.defaultCapabilities = [.toolCalling, .vision]
         deepSeek.defaultReasoning = .onByDefault
         deepSeek.defaultEffortWords = ["max", "high", "medium", "low", "none"]
-        deepSeek.unsupportedMembers = [.seed, .metadata]
+        deepSeek.unsupportedMembers = [.seed, .metadata, .promptCacheKey]
         deepSeek.sendsThinking = true
         deepSeek.reasoningReplay = .reasoningContent
         deepSeek.refusesRequiredCallWhileReasoning = true
@@ -289,11 +289,12 @@ extension OpenAICompatibleProvider {
     ///
     /// By default, a model on it reasons only when a request asks it to, and accepts the efforts `max`, `xhigh`,
     /// `high`, `medium`, `low`, `minimal` and `none`. Requests leave out `seed`, for which Mistral has `random_seed`,
-    /// and don't ask for a usage chunk, since Mistral reports usage on an answer's last chunk. Reasoning arrives in the
-    /// answer's thinking parts and doesn't go back on later turns. An answer that ends with `model_length` counts as
-    /// one that reached its token limit. Mistral is reported to take tool call ids of nine letters and digits only, so
-    /// a transcript whose calls another provider made may fail there. Requests wait up to 300 seconds for the next
-    /// data, and a failed one isn't sent again. Mistral's servers in the EU and the US are `.mistral.at(_:)` with
+    /// and don't ask for a usage chunk, since Mistral reports usage on an answer's last chunk. A cache key from
+    /// ``OpenAICompatibleOptions/cacheKey`` goes out as `prompt_cache_key`. Reasoning arrives in the answer's thinking
+    /// parts and doesn't go back on later turns. An answer that ends with `model_length` counts as one that reached its
+    /// token limit. Mistral is reported to take tool call ids of nine letters and digits only, so a transcript whose
+    /// calls another provider made may fail there. Requests wait up to 300 seconds for the next data, and a failed one
+    /// isn't sent again. Mistral's servers in the EU and the US are `.mistral.at(_:)` with
     /// `https://api.eu.mistral.ai/v1` or `https://api.us.mistral.ai/v1`. The preset follows Mistral's documentation and
     /// SDKs and hasn't been run against its API; <doc:Providers> says what was checked.
     public static let mistral: Self = {
@@ -318,13 +319,14 @@ extension OpenAICompatibleProvider {
     /// ```
     ///
     /// By default, a model on it reasons unless a request turns reasoning off, and accepts the efforts `xhigh`, `high`,
-    /// `medium`, `low` and `none`. xAI's models take different efforts, and its newest can't turn reasoning off, so name
-    /// a model's own. Requests ask xAI not to keep each response, unless the app's options ask for stored ones, and ask
-    /// for each answer's reasoning encrypted, so it goes back on later turns either way. They send the `top_k` that
-    /// sampling asks for, and leave out request metadata, which xAI doesn't support. A failed request is sent again
-    /// only after a rate limit, since xAI may bill a request that failed once its work began. A 400 for an incorrect
-    /// key has the code `authentication`, as a 401 has. The preset follows xAI's documentation and SDKs and hasn't been
-    /// run against its API; <doc:Providers> says what was checked.
+    /// `medium`, `low` and `none`. xAI's models take different efforts, and its newest can't turn reasoning off, so
+    /// name a model's own. Requests ask xAI not to keep each response, unless the app's options ask for stored ones,
+    /// and ask for each answer's reasoning encrypted, so it goes back on later turns either way. They send the `top_k`
+    /// that sampling asks for and a cache key from ``OpenAICompatibleOptions/cacheKey`` as `prompt_cache_key`, and
+    /// leave out request metadata, which xAI doesn't support. A failed request is sent again only after a rate limit,
+    /// since xAI may bill a request that failed once its work began. A 400 for an incorrect key has the code
+    /// `authentication`, as a 401 has. The preset follows xAI's documentation and SDKs and hasn't been run against its
+    /// API; <doc:Providers> says what was checked.
     public static let xAI: Self = {
         var xAI = Self(name: "xAI", url: url("https://api.x.ai/v1"), format: .responses)
         xAI.retriedStatuses = .rateLimits
@@ -351,16 +353,16 @@ extension OpenAICompatibleProvider {
     /// Ollama runs models of every kind, so say what each one does, such as whether it reasons: by default, a model on
     /// it is taken to reason only when a request asks it to, and to accept the efforts `max`, `xhigh`, `high`,
     /// `medium`, `low`, `minimal` and `none`, which Ollama maps onto each model's own. Requests leave out request
-    /// metadata and `tool_choice`, which Ollama ignores. A model's reasoning goes back on later turns as `reasoning`, to
-    /// that model only. A request with an image at a web address, or one that requires a tool call, is refused before
-    /// it's sent, since Ollama takes only images sent as data and doesn't hold its model to a required call. A failed
-    /// request isn't sent again. A conversation longer than the model's context loses its oldest messages on Ollama's
-    /// side, with no error. Ollama on another Mac or port is `.ollama.at(_:)` with its address.
+    /// metadata, `tool_choice` and a cache key, which Ollama ignores. A model's reasoning goes back on later turns as
+    /// `reasoning`, to that model only. A request with an image at a web address, or one that requires a tool call, is
+    /// refused before it's sent, since Ollama takes only images sent as data and doesn't hold its model to a required
+    /// call. A failed request isn't sent again. A conversation longer than the model's context loses its oldest
+    /// messages on Ollama's side, with no error. Ollama on another Mac or port is `.ollama.at(_:)` with its address.
     public static let ollama: Self = {
         var ollama = Self(name: "Ollama", url: url("http://localhost:11434/v1/"))
         ollama.configuration.retries = .disabled
         ollama.defaultEffortWords = ["max", "xhigh", "high", "medium", "low", "minimal", "none"]
-        ollama.unsupportedMembers = [.toolChoice, .metadata]
+        ollama.unsupportedMembers = [.toolChoice, .metadata, .promptCacheKey]
         ollama.reasoningReplay = .reasoning
         ollama.refusesRequiredCall = true
         ollama.refusesWebImages = true
@@ -379,14 +381,14 @@ extension OpenAICompatibleProvider {
     /// LM Studio runs models of every kind, so say what each one does, such as whether it reasons: by default, a model
     /// on it is taken to reason only when a request asks it to, and to accept the efforts `xhigh`, `high`, `medium`,
     /// `low`, `minimal` and `none`, which LM Studio is reported to ignore in this format. Requests leave out request
-    /// metadata, which LM Studio's documentation doesn't list. A prompt over the model's context is cut to fit, unless
-    /// the model's settings stop at the limit, which throws `LanguageModelError.contextSizeExceeded` with the sizes LM
-    /// Studio names. A server that asks for a token takes it with
+    /// metadata and a cache key, which LM Studio's documentation doesn't list. A prompt over the model's context is cut
+    /// to fit, unless the model's settings stop at the limit, which throws `LanguageModelError.contextSizeExceeded`
+    /// with the sizes LM Studio names. A server that asks for a token takes it with
     /// ``OpenAICompatibleAuthentication/apiKey(_:)``. The preset follows LM Studio's documentation and what its users
     /// report, and hasn't been run against its server; <doc:Providers> says what was checked.
     public static let lmStudio: Self = {
         var lmStudio = Self(name: "LM Studio", url: url("http://localhost:1234/v1"))
-        lmStudio.unsupportedMembers = [.metadata]
+        lmStudio.unsupportedMembers = [.metadata, .promptCacheKey]
         return lmStudio
     }()
 
@@ -403,17 +405,17 @@ extension OpenAICompatibleProvider {
     /// vLLM serves models of every kind, so say what each one does, such as whether it reasons: by default, a model on
     /// it is taken to reason only when a request asks it to, and to accept the efforts `max`, `xhigh`, `high`,
     /// `medium`, `low`, `minimal` and `none`. Requests send the token limit as `max_completion_tokens` and the `top_k`
-    /// that sampling asks for, and leave out request metadata, which vLLM ignores. A model's reasoning, which vLLM sends
-    /// from a server started with a reasoning parser, goes back on later turns as `reasoning`, to that model only. An
-    /// answer that ends with `abort` throws ``OpenAICompatibleError``, and one that ends with `repetition`, where a
-    /// request's repetition detection stopped a model that repeats itself, counts as one that reached its token limit. A server started without
-    /// `--enable-auto-tool-choice` and a `--tool-call-parser` refuses every request with tools. A server elsewhere is
-    /// `.vLLM.at(_:)` with its address. The preset follows vLLM's server source and documentation and hasn't been run
-    /// against a server; <doc:Providers> says what was checked.
+    /// that sampling asks for, and leave out request metadata and a cache key, which vLLM ignores. A model's reasoning,
+    /// which vLLM sends from a server started with a reasoning parser, goes back on later turns as `reasoning`, to that
+    /// model only. An answer that ends with `abort` throws ``OpenAICompatibleError``, and one that ends with
+    /// `repetition`, where a request's repetition detection stopped a model that repeats itself, counts as one that
+    /// reached its token limit. A server started without `--enable-auto-tool-choice` and a `--tool-call-parser` refuses
+    /// every request with tools. A server elsewhere is `.vLLM.at(_:)` with its address. The preset follows vLLM's
+    /// server source and documentation and hasn't been run against a server; <doc:Providers> says what was checked.
     public static let vLLM: Self = {
         var vLLM = Self(name: "vLLM", url: url("http://localhost:8000/v1"))
         vLLM.defaultEffortWords = ["max", "xhigh", "high", "medium", "low", "minimal", "none"]
-        vLLM.unsupportedMembers = [.metadata]
+        vLLM.unsupportedMembers = [.metadata, .promptCacheKey]
         vLLM.sendsTopK = true
         vLLM.tokenLimitMember = .maxCompletionTokens
         vLLM.reasoningReplay = .reasoning
