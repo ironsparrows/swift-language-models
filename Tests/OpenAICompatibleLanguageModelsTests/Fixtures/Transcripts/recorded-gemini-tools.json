@@ -1,0 +1,151 @@
+{
+  "transcript" : {
+    "entries" : [
+      {
+        "contents" : [
+
+        ],
+        "id" : "81E5DDDC-F4C7-4CD8-970F-82D204696479",
+        "role" : "instructions",
+        "tools" : [
+          {
+            "function" : {
+              "description" : "Gets the current temperature in a city, in degrees Celsius.",
+              "name" : "getWeather",
+              "parameters" : {
+                "additionalProperties" : false,
+                "properties" : {
+                  "city" : {
+                    "description" : "The city's name.",
+                    "type" : "string"
+                  }
+                },
+                "required" : [
+                  "city"
+                ],
+                "title" : "Arguments",
+                "type" : "object",
+                "x-order" : [
+                  "city"
+                ]
+              }
+            },
+            "type" : "function"
+          }
+        ]
+      },
+      {
+        "contents" : [
+          {
+            "id" : "5C191700-C322-47AF-B936-360D52FB37A4",
+            "text" : "What's the temperature in Lisbon and in Porto? Call the tool for both cities at once, then answer in one sentence.",
+            "type" : "text"
+          }
+        ],
+        "contextOptions" : {
+
+        },
+        "id" : "FF907F00-8CB5-48FF-85B0-737825E08E46",
+        "options" : {
+          "maximumResponseTokens" : 800
+        },
+        "role" : "user"
+      },
+      {
+        "id" : "DA455419-53A0-4488-8EAD-32C9B6EA64DD",
+        "role" : "response",
+        "toolCalls" : [
+          {
+            "arguments" : "{\"city\": \"Lisbon\"}",
+            "id" : "call_06216130476596394483",
+            "metadata" : {
+              "finishReason" : "stop",
+              "model" : "gemini-3.1-flash-lite",
+              "provider" : "Google AI Studio",
+              "responseID" : "435AnFdzEs9obB2me8Jw8yY"
+            },
+            "name" : "getWeather"
+          },
+          {
+            "arguments" : "{\"city\": \"Porto\"}",
+            "id" : "call_94725008544535761356",
+            "name" : "getWeather"
+          }
+        ]
+      },
+      {
+        "id" : "DCA5A765-30AB-4D97-AF98-B2291080CDBC",
+        "metadata" : {
+          "model" : "gemini-3.1-flash-lite",
+          "reasoningOrigin" : "openai-compatible\/gemini"
+        },
+        "reasoning" : {
+          "contents" : [
+
+          ],
+          "signature" : "RW5JS2NBRnBGSDBUY0NlcWZLSm1wanVRcENkYVdiSEdDYnNreUxib1ZVeDdzU01SMVNzQjYzajgrVkk0bWR3L0VUUlMrUzlDZzBldnQ5NXFEd1pHMCtLK1FRVWJTOFpaUGRwTkhQNjJGVjk2cnlqdmZGT0pQYjh2WGdmSGwvRHZIVVlQWkpkZ1l6MWJmMFMvRlRtVmR5SVNLV289"
+        },
+        "role" : "reasoning"
+      },
+      {
+        "contents" : [
+          {
+            "id" : "7FBFCF3B-7C12-4854-AA50-9EF84183CB14",
+            "text" : "It is 17 degrees in Lisbon.",
+            "type" : "text"
+          }
+        ],
+        "id" : "call_06216130476596394483",
+        "role" : "tool",
+        "toolCallID" : "call_06216130476596394483",
+        "toolName" : "getWeather"
+      },
+      {
+        "contents" : [
+          {
+            "id" : "FFCF0A3A-1E9F-42B1-8DC6-5CD4EC38C5B2",
+            "text" : "It is 17 degrees in Porto.",
+            "type" : "text"
+          }
+        ],
+        "id" : "call_94725008544535761356",
+        "role" : "tool",
+        "toolCallID" : "call_94725008544535761356",
+        "toolName" : "getWeather"
+      },
+      {
+        "contents" : [
+          {
+            "id" : "65C3A72F-6EDD-4890-8EE6-99DBAD244A25",
+            "text" : "The temperature is 17 degrees in both Lisbon and Porto.",
+            "type" : "text"
+          }
+        ],
+        "id" : "289ED683-C5B0-42FE-A030-6F7A2ECF1434",
+        "metadata" : {
+          "finishReason" : "stop",
+          "model" : "gemini-3.1-flash-lite",
+          "provider" : "Google AI Studio",
+          "responseID" : "H8ZKYk689yB9JwuxXR4FpL"
+        },
+        "role" : "response"
+      },
+      {
+        "id" : "5DF7C36D-8F44-4D73-8C51-D288F5627DB3",
+        "metadata" : {
+          "model" : "gemini-3.1-flash-lite",
+          "reasoningOrigin" : "openai-compatible\/gemini"
+        },
+        "reasoning" : {
+          "contents" : [
+
+          ],
+          "signature" : "RW5JS2NBRnBGSDBUdVBEWFQySUVUdW8zSndvaWpZamFBcTlEbVFhTEkrbzdHZkFxd0RnaCtmVW9ONE84emZpOFVLcThhUEtCOFBQR0ZPWkNUbjNIZmdCcFpiS2xCdFRhRisrajIzbjlDVmRCZHM1S2hsS1NldnBGc1EwNFNWU2Y5TG9UTUpTQTh5S2w5aTl2Qk1OM3h1VEx2Z2M9"
+        },
+        "role" : "reasoning"
+      }
+    ]
+  },
+  "type" : "FoundationModels.Transcript",
+  "version" : "1.1"
+}

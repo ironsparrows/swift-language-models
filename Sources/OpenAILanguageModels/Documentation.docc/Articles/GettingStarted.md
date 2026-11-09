@@ -17,6 +17,12 @@ This module is all a file needs besides `FoundationModels`, and `Foundation` for
 Sessions, streaming, tools, guided generation and profiles work as Apple's
 [Generating content and performing tasks with Foundation Models](https://developer.apple.com/documentation/foundationmodels/generating-content-and-performing-tasks-with-foundation-models)
 and [LanguageModelSession](https://developer.apple.com/documentation/foundationmodels/languagemodelsession) describe.
+For another provider whose API speaks OpenAI's formats, such as Gemini, Groq or an Ollama server, use
+[`OpenAICompatibleLanguageModels`](https://ironsparrows.github.io/swift-language-models/documentation/openaicompatiblelanguagemodels),
+whose presets carry what each one does differently;
+``OpenAIAuthentication/apiKey(baseURL:organization:project:_:)`` is for a server that serves OpenAI's own models, such
+as a gateway in front of OpenAI, or Azure OpenAI's v1 API at `https://{resource}.openai.azure.com/openai/v1/`, with an
+``OpenAIModel`` you describe whose id is the deployment's name. This wasn't run against Azure.
 
 ### Keep the key out of the app
 

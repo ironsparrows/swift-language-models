@@ -8,6 +8,19 @@ struct ServerSentEvent: Equatable, Sendable {
 }
 
 extension ServerSentEvent {
+    /// Whether the provider named the event `error`, which it sends for a failure, whatever the event's data holds.
+    var isError: Bool {
+        name == "error"
+    }
+
+    /// Whether the provider named the event `ping`, which it sends to keep the connection open, whatever the event's
+    /// data holds.
+    var isPing: Bool {
+        name == "ping"
+    }
+}
+
+extension ServerSentEvent {
     /// One line of a server-sent event stream.
     ///
     /// A blank line ends an event. A comment line, which servers send to keep a connection open, carries nothing.

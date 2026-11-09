@@ -1,0 +1,146 @@
+{
+  "transcript" : {
+    "entries" : [
+      {
+        "contents" : [
+          {
+            "id" : "593F0597-29BF-4406-ABDA-D2F952BEA269",
+            "text" : "Plan a short trip to Lisbon.",
+            "type" : "text"
+          }
+        ],
+        "contextOptions" : {
+          "reasoningLevel" : "none"
+        },
+        "id" : "15C61CC6-79DC-4E5B-AF92-845B2491A037",
+        "options" : {
+          "maximumResponseTokens" : 1500
+        },
+        "responseFormat" : {
+          "jsonSchema" : {
+            "name" : "Trip",
+            "schema" : {
+              "$defs" : {
+                "Activity" : {
+                  "additionalProperties" : false,
+                  "properties" : {
+                    "hours" : {
+                      "description" : "How many hours it takes.",
+                      "maximum" : 12,
+                      "minimum" : 1,
+                      "type" : "integer"
+                    },
+                    "name" : {
+                      "type" : "string"
+                    }
+                  },
+                  "required" : [
+                    "name",
+                    "hours"
+                  ],
+                  "title" : "Activity",
+                  "type" : "object",
+                  "x-order" : [
+                    "name",
+                    "hours"
+                  ]
+                }
+              },
+              "additionalProperties" : false,
+              "properties" : {
+                "activities" : {
+                  "description" : "Three things to do.",
+                  "items" : {
+                    "$ref" : "#\/$defs\/Activity"
+                  },
+                  "maxItems" : 3,
+                  "minItems" : 3,
+                  "type" : "array"
+                },
+                "city" : {
+                  "description" : "The city to visit.",
+                  "type" : "string"
+                },
+                "days" : {
+                  "description" : "How many days to stay.",
+                  "maximum" : 14,
+                  "minimum" : 1,
+                  "type" : "integer"
+                },
+                "note" : {
+                  "type" : "string"
+                },
+                "season" : {
+                  "enum" : [
+                    "spring",
+                    "summer",
+                    "autumn",
+                    "winter"
+                  ],
+                  "type" : "string"
+                }
+              },
+              "required" : [
+                "city",
+                "season",
+                "activities",
+                "days"
+              ],
+              "title" : "Trip",
+              "type" : "object",
+              "x-order" : [
+                "city",
+                "season",
+                "activities",
+                "days",
+                "note"
+              ]
+            }
+          },
+          "type" : "jsonSchema"
+        },
+        "role" : "user"
+      },
+      {
+        "contents" : [
+          {
+            "id" : "AD262B24-2464-4A14-820F-3E159F6E0C40",
+            "structure" : {
+              "content" : {
+                "activities" : [
+                  {
+                    "hours" : 3,
+                    "name" : "Explore Alfama and Belém Tower"
+                  },
+                  {
+                    "hours" : 4,
+                    "name" : "Take a boat tour up the Tagus River"
+                  },
+                  {
+                    "hours" : 2,
+                    "name" : "Wander through LX Factory and São Carlos Square"
+                  }
+                ],
+                "city" : "Lisbon",
+                "days" : 3,
+                "note" : "Best for enjoying vibrant outdoor cafes and warm sunny weather.",
+                "season" : "summer"
+              },
+              "source" : "Trip"
+            },
+            "type" : "structure"
+          }
+        ],
+        "id" : "EE52C08D-4EB4-440E-8489-81755D06B905",
+        "metadata" : {
+          "finishReason" : "stop",
+          "model" : "qwen3.5:4b",
+          "responseID" : "chatcmpl-294"
+        },
+        "role" : "response"
+      }
+    ]
+  },
+  "type" : "FoundationModels.Transcript",
+  "version" : "1.1"
+}

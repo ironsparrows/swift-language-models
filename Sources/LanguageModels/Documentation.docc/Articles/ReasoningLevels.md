@@ -85,6 +85,7 @@ back on later turns:
 
 - [Reasoning with OpenRouter models](https://ironsparrows.github.io/swift-language-models/documentation/openrouterlanguagemodels/reasoning)
 - [Reasoning with OpenAI models](https://ironsparrows.github.io/swift-language-models/documentation/openailanguagemodels/reasoning)
+- [Reasoning with OpenAI-compatible providers](https://ironsparrows.github.io/swift-language-models/documentation/openaicompatiblelanguagemodels/reasoning)
 
 ### Apple's guides
 

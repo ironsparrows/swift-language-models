@@ -12,6 +12,13 @@ struct ResponsesTestExchange: Responses.Exchange {
     /// What the exchange adds to a request's members and choices.
     var prepares: @Sendable (inout Responses.Request) throws -> Void = { _ in }
 
+    /// Checks an attachment of an entry, which the default takes.
+    var checks: @Sendable (AttachmentKind, Transcript.Entry) throws(LanguageModelError) -> Void = { _, _ in }
+
+    func checkAttachment(_ kind: AttachmentKind, in entry: Transcript.Entry) throws(LanguageModelError) {
+        try checks(kind, entry)
+    }
+
     func prepare(_ request: inout Responses.Request) throws {
         try prepares(&request)
     }

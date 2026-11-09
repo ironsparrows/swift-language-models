@@ -40,9 +40,10 @@ A model that reasons has `.reasoning` in its ``OpenRouterModel/capabilities``.
 ### Read the model's reasoning
 
 The model's reasoning arrives in the transcript as a reasoning entry, before the answer's text: from OpenRouter's
-`reasoning_details` and `reasoning`, and from a `<think>` or `<thinking>` block that opens the answer's text. Only a
-block at the start counts, after any whitespace, so a tag later in the answer stays text. The answer's usage counts
-the reasoning tokens in `output.reasoningTokenCount`.
+`reasoning_details` and `reasoning`, from the text inside `thinking` parts when `delta.content` is a list of parts, and
+from a `<think>` or `<thinking>` block that opens the answer's text. Only a block at the start counts, after any
+whitespace, so a tag later in the answer stays text. The answer's usage counts the reasoning tokens in
+`output.reasoningTokenCount`.
 
 ### Reasoning on later turns
 

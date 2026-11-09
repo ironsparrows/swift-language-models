@@ -10,10 +10,10 @@ extension ChatCompletions {
     ///
     /// Instructions become `system` messages and prompts `user` messages. The reasoning, response text and tool calls
     /// of one answer become one `assistant` message, with a reasoning block that the model wrote in its answer's text
-    /// back at the start of that text, and each tool output a `tool` message. The exchange adds the reasoning it sends
-    /// back to the assistant message. Prompts and tool outputs carry their attachments as content parts; generated
-    /// data and an answer's attachments aren't sent back. Every entry turns into the same JSON each time, so a
-    /// host's prompt cache stays valid from one request to the next.
+    /// back at the start of that text, and each tool output a `tool` message. The exchange adds members to each
+    /// assistant message and its tool calls, such as the reasoning it sends back. Prompts and tool outputs carry their
+    /// attachments as content parts; generated data and an answer's attachments aren't sent back. Every entry turns
+    /// into the same JSON each time, so a host's prompt cache stays valid from one request to the next.
     struct Messages {
         private var messages: [Message] = []
 
@@ -22,8 +22,8 @@ extension ChatCompletions {
         /// Whether a reasoning entry goes back: one of the provider's own that its exchange sends back.
         private let replays: (Transcript.Reasoning) -> Bool
 
-        /// The assistant message's members for the reasoning it sends back.
-        private let replayMembers: ([(entry: Transcript.Reasoning, text: String)]) -> JSONObject
+        /// The members of an answer's assistant message and its tool calls.
+        private let replayMembers: (ChatCompletions.ReplayedAnswer) -> ChatCompletions.ReplayMembers
 
         /// The messages for a transcript.
         ///
@@ -117,6 +117,7 @@ extension ChatCompletions {
                 // An answer's attachments aren't sent back, since the format's assistant messages take only text.
                 turn.message.text += response.segments.compactMap(\.text).joined()
             case .toolCalls(let toolCalls):
+                turn.toolCalls += toolCalls
                 turn.message.toolCalls += toolCalls.map { call in
                     ToolCall(id: call.id, name: call.toolName, arguments: JSONValue(call.arguments).text)
                 }
@@ -125,11 +126,19 @@ extension ChatCompletions {
             }
         }
 
-        /// Adds an answer's assistant message, unless the answer left nothing to send back.
+        /// Adds an answer's assistant message, with the exchange's members on it and on its tool calls, unless the
+        /// answer left nothing to send back.
         private mutating func appendAssistantMessage(_ turn: AssistantTurn) {
             var message = turn.message
-            message.replay = turn.reasoning.isEmpty ? JSONObject() : replayMembers(turn.reasoning.map { ($0, Self.replayedText(of: $0)) })
-            let carriesReasoning = message.replay.members.contains { !$0.value.isEmpty }
+            let replayed = ChatCompletions.ReplayedAnswer(
+                reasoning: turn.reasoning.map { ($0, Self.replayedText(of: $0)) }, toolCalls: turn.toolCalls)
+            let members = replayMembers(replayed)
+            message.replay = members.message
+            for (index, callMembers) in zip(message.toolCalls.indices, members.toolCalls) {
+                message.toolCalls[index].members = callMembers
+            }
+            // Members of an answer whose reasoning doesn't go back, such as a placeholder, carry none.
+            let carriesReasoning = !turn.reasoning.isEmpty && message.replay.members.contains { !$0.value.isEmpty }
             guard !message.text.isEmpty || carriesReasoning || !message.toolCalls.isEmpty else { return }
             messages.append(.assistant(message))
         }
@@ -149,6 +158,9 @@ extension ChatCompletions.Messages {
 
         /// The reasoning entries that go back, in their order.
         var reasoning: [Transcript.Reasoning] = []
+
+        /// The answer's tool calls, in their order.
+        var toolCalls: [Transcript.ToolCall] = []
     }
 }
 
@@ -281,7 +293,7 @@ private enum Message: Encodable {
 }
 
 /// An `assistant` message's parts: the answer's text, with a reasoning block the model wrote in its text back at
-/// the start, the members of the reasoning it sends back, and its tool calls.
+/// the start, the exchange's members, such as the reasoning it sends back, and its tool calls.
 private struct Assistant {
     var text = ""
     var replay = JSONObject()
@@ -381,11 +393,12 @@ private enum Part: Encodable {
     }
 }
 
-/// One tool call of an `assistant` message, with its arguments as JSON text.
+/// One tool call of an `assistant` message, with its arguments as JSON text and the exchange's members.
 private struct ToolCall: Encodable {
     let id: String
     let name: String
     let arguments: String
+    var members = JSONObject()
 
     func encode(to encoder: any Encoder) throws {
         var container = encoder.container(keyedBy: JSONKey.self)
@@ -394,6 +407,9 @@ private struct ToolCall: Encodable {
         var function = container.nestedContainer(keyedBy: JSONKey.self, forKey: "function")
         try function.encode(name, forKey: "name")
         try function.encode(arguments, forKey: "arguments")
+        for member in members.members {
+            try container.encode(member.value, forKey: JSONKey(stringValue: member.key))
+        }
     }
 }
 

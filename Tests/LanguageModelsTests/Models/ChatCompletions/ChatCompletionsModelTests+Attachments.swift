@@ -86,6 +86,38 @@ extension ChatCompletionsModelTests {
             #expect(content?[1] == ["type": "image_url", "image_url": ["url": .string(address)]])
         }
 
+        @Test(arguments: ImageSource.allCases)
+        func `the exchange's check sees whether an image is at a web address, before the image is read`(source: ImageSource) async throws {
+            try await withImage(from: source) { image, address in
+                var model = ChatCompletions.Model<ChatCompletionsTestExchange>.test()
+                let entry = prompt(.attachment(.init(content: .image(image))))
+
+                try await confirmation { checked in
+                    model.exchange.checks = { kind, _ in
+                        #expect(kind == .image(webAddress: address))
+                        checked()
+                    }
+                    _ = try ChatCompletionsSentRequest(generationRequest([entry]), model: model)
+                }
+            }
+        }
+
+        @Test func `the exchange's check runs before the image is read, so its error is the one thrown`() throws {
+            let missing = FileManager.default.temporaryDirectory.appending(path: "\(UUID().uuidString).png")
+            let entry = prompt(.attachment(.init(content: .image(Transcript.ImageAttachment(imageURL: missing)))))
+            var model = ChatCompletions.Model<ChatCompletionsTestExchange>.test()
+            model.exchange.checks = { _, _ throws(LanguageModelError) in throw .unsupported(.vision, "Test takes no images.") }
+
+            let error = try #require(throws: LanguageModelError.self) {
+                try ChatCompletionsSentRequest(generationRequest([entry]), model: model)
+            }
+
+            guard case .unsupportedCapability = error else {
+                Issue.record("Expected the check's error, got \(error)")
+                return
+            }
+        }
+
         @Test func `an image sends the same bytes with every request, so the prompt cache stays valid`() async throws {
             let stub = HTTPStub(answer, answer)
             let image = try #require(TestImage.seven(size: 300))

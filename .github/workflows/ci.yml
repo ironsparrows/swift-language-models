@@ -88,6 +88,11 @@ jobs:
           xcodebuild build -quiet
           -scheme OpenAILanguageModels
           -destination 'generic/platform=${{ matrix.platform }} Simulator'
+      - name: Build OpenAI-compatible
+        run: >
+          xcodebuild build -quiet
+          -scheme OpenAICompatibleLanguageModels
+          -destination 'generic/platform=${{ matrix.platform }} Simulator'
 
   docs:
     name: Documentation

@@ -49,6 +49,92 @@ extension ResponsesModelTests {
             #expect(error.code == "server_error")
         }
 
+        @Test func `an event with no type that carries an error fails the answer with its error`() async {
+            let error = #"{"error":{"message":"Overloaded.","code":"server_error"}}"#
+            let stub = HTTPStub(.eventStream(Data("data: \(textDelta("Hi").text)\n\ndata: \(error)\n\n".utf8)))
+
+            let failure = await respond(stub, to: [prompt(text("Hello"))])
+
+            guard case .errorEvent? = failure?.kind, let body = failure?.body else {
+                Issue.record("The answer ended with \(String(describing: failure))")
+                return
+            }
+            #expect(body.message == "Overloaded.")
+            #expect(body.code == "server_error")
+        }
+
+        @Test func `an event named error that is a failed response fails the answer with the response's error`() async {
+            let failed = lifecycle("response.failed", ["error": ["code": "server_error", "message": "Overloaded."]])
+            let stub = HTTPStub(.eventStream(Data("data: \(textDelta("Hi").text)\n\nevent: error\ndata: \(failed.text)\n\n".utf8)))
+
+            let failure = await respond(stub, to: [prompt(text("Hello"))])
+
+            guard case .failedAnswer? = failure?.kind, let body = failure?.body else {
+                Issue.record("The answer ended with \(String(describing: failure))")
+                return
+            }
+            #expect(body.message == "Overloaded.")
+        }
+
+        @Test func `an error event whose error has no message fails the answer with its text as the message`() async {
+            let error = #"{"type":"error","code":"rate_limit_exceeded","sequence_number":2}"#
+            let stub = HTTPStub(.eventStream(Data("data: \(textDelta("Hi").text)\n\ndata: \(error)\n\n".utf8)))
+
+            let failure = await respond(stub, to: [prompt(text("Hello"))])
+
+            guard case .errorEvent? = failure?.kind, let body = failure?.body else {
+                Issue.record("The answer ended with \(String(describing: failure))")
+                return
+            }
+            #expect(body.message == error)
+            #expect(body.code == "rate_limit_exceeded")
+        }
+
+        @Test func `an event of a kind the format doesn't read fails the answer with the error it carries`() async {
+            let event = #"{"type":"response.new_kind","sequence_number":7,"error":{"message":"Overloaded.","code":"server_error"}}"#
+            let lines = ["data: \(textDelta("Hi").text)", "data: \(event)", "data: \(lifecycle("response.completed").text)"]
+            let stub = HTTPStub(.eventStream(Data(lines.map { $0 + "\n\n" }.joined().utf8)))
+
+            let failure = await respond(stub, to: [prompt(text("Hello"))])
+
+            guard case .errorEvent? = failure?.kind, let body = failure?.body else {
+                Issue.record("The answer ended with \(String(describing: failure))")
+                return
+            }
+            #expect(body.message == "Overloaded.")
+            #expect(body.code == "server_error")
+        }
+
+        @Test func `an event with no type and no error can't be read`() async {
+            let stub = HTTPStub(.eventStream(Data("data: \(textDelta("Hi").text)\n\ndata: {}\n\n".utf8)))
+
+            let failure = await respond(stub, to: [prompt(text("Hello"))])
+
+            guard case .unreadableEvent? = failure?.kind else {
+                Issue.record("The answer ended with \(String(describing: failure))")
+                return
+            }
+        }
+
+        @Test(arguments: [
+            ("Overloaded.", "Overloaded."),
+            (#""Overloaded.""#, "Overloaded."),
+            (#"{"detail":"Overloaded."}"#, #"{"detail":"Overloaded."}"#),
+            (#"{"type":"response.in_progress","sequence_number":1}"#, #"{"type":"response.in_progress","sequence_number":1}"#),
+        ])
+        func `an event named error fails the answer with the provider's error, whatever its data holds`(data: String, message: String) async
+        {
+            let stub = HTTPStub(.eventStream(Data("data: \(textDelta("Hi").text)\n\nevent: error\ndata: \(data)\n\n".utf8)))
+
+            let failure = await respond(stub, to: [prompt(text("Hello"))])
+
+            guard case .errorEvent? = failure?.kind, let body = failure?.body else {
+                Issue.record("The answer ended with \(String(describing: failure))")
+                return
+            }
+            #expect(body.message == message)
+        }
+
         @Test func `a failed response fails the answer with the response's error`() async {
             let stub = HTTPStub(
                 events(textDelta("Hi"), lifecycle("response.failed", ["error": ["code": "rate_limit_exceeded", "message": "Slow down."]])))

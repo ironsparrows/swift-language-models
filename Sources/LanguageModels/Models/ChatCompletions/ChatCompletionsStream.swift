@@ -9,16 +9,22 @@ extension ChatCompletions {
     /// One answer's stream: turns the format's chunks, with the exchange's members, into the answer's output, which an
     /// ``AnswerChannel`` sends as Foundation Models channel events.
     ///
-    /// Reasoning arrives in the provider's members, or in a block in reasoning tags that opens the answer's text, and
-    /// tool-call fragments by index, so parallel calls form one round. Each piece of data the model generates becomes a
-    /// data entry of its own. The answer ends with its metadata and usage on the entry that finishes it, and with the
-    /// pages it cites on its response entry.
+    /// Reasoning arrives in the provider's members, in the `thinking` parts of a delta's content, or in a block in
+    /// reasoning tags that opens the answer's text, and tool-call fragments by index, so parallel calls form one round.
+    /// Each piece of data the model generates becomes a data entry of its own. The answer ends with its metadata and
+    /// usage on the entry that finishes it, and with the pages it cites on its response entry.
     struct Stream<Exchange: ChatCompletions.Exchange> {
         private var exchange: Exchange
         private let headers: ResponseHeaders
         private let provider: String
         private let imageEntries: [Transcript.Entry]
         private let requiresCompleteAnswer: Bool
+
+        /// The provider's finish reasons that stand for one of the format's.
+        private let finishReasons: [FinishReason: FinishReason]
+
+        /// Whether the tokens a usage's total counts beyond its prompt and completion are the answer's reasoning.
+        private let countsUnlistedTokensAsReasoning: Bool
 
         /// What the answer's chunks reported about it so far.
         private(set) var report = AnswerReport()
@@ -43,6 +49,8 @@ extension ChatCompletions {
             self.exchange = exchange
             self.headers = headers
             provider = model.providerName
+            finishReasons = model.finishReasons
+            countsUnlistedTokensAsReasoning = model.countsUnlistedTokensAsReasoning
             self.imageEntries = imageEntries
             self.requiresCompleteAnswer = requiresCompleteAnswer
             output = AnswerChannel(channel: channel, origin: ReasoningOrigin(rawValue: model.reasoningOrigin), readsTaggedReasoning: true)
@@ -76,18 +84,23 @@ extension ChatCompletions {
 extension ChatCompletions.Stream {
     /// Sends the events for one server-sent event.
     ///
+    /// An event the provider named `ping` is passed over, and one it named `error` is an error event, whatever JSON or
+    /// other text its data holds; any other event with empty data is passed over, and any other `[DONE]` ends the
+    /// stream, whatever its name.
+    ///
     /// - Returns: Whether the event is the `[DONE]` that ends the stream.
     /// - Throws: The exchange's error for an event that isn't a chunk, and for an error event.
     mutating func receive(_ event: ServerSentEvent) async throws -> Bool {
+        guard !event.isPing else { return false }
         let streamEvent: StreamEvent<Exchange.ChunkExtras>?
         do {
             streamEvent = try StreamEvent(event)
         } catch {
-            throw unreadable(error)
+            throw event.isError ? errorEvent(Data(event.data.utf8)) : unreadable(error)
         }
         switch streamEvent {
         case .chunk(let chunk, let extras, let data)?:
-            try await receive(chunk, extras: extras, data: data)
+            try await receive(chunk, extras: extras, data: data, isNamedError: event.isError)
             return false
         case .done?:
             return true
@@ -98,26 +111,28 @@ extension ChatCompletions.Stream {
 
     /// Takes one chunk's facts, then sends its reasoning, text, tool calls and generated data, in that order.
     ///
+    /// - Parameters:
+    ///   - chunk: The chunk's members of the format.
+    ///   - extras: The exchange's members of the chunk.
+    ///   - data: The chunk's JSON, which an error event's error object is read from.
+    ///   - isNamedError: Whether the provider named the chunk's event `error`, which makes it an error event.
     /// - Throws: The exchange's error when the chunk is an error event, which sends nothing.
-    private mutating func receive(_ chunk: Chunk, extras: Exchange.ChunkExtras, data: Data) async throws {
-        report.update(with: chunk)
+    private mutating func receive(_ chunk: Chunk, extras: Exchange.ChunkExtras, data: Data, isNamedError: Bool) async throws {
+        report.update(with: chunk, countingUnlistedTokensAsReasoning: countsUnlistedTokensAsReasoning)
         let chunkAdditions = exchange.read(extras)
-        if let error = chunk.error, error != .null {
-            let body: Exchange.ErrorBody
-            do {
-                body = try HTTPClient.decoder.decode(ErrorEvent.self, from: data).error
-            } catch {
-                throw unreadable(error)
-            }
-            throw exchange.error(for: RequestFailure(errorEvent: body, provider: provider, headers: headers, imageEntries: imageEntries))
+        if chunk.isError || isNamedError {
+            throw errorEvent(data)
         }
         guard let delta = chunk.choices?.first?.delta else { return }
 
         if let reasoning = chunkAdditions.reasoning { await output.appendReasoning(reasoning, model: report.model) }
-        if let content = delta.content, !content.isEmpty {
-            await output.appendText(content, model: report.model)
+        for piece in delta.content?.pieces ?? [] {
+            switch piece {
+            case .reasoning(let text): await output.appendReasoning(text, model: report.model)
+            case .text(let text): await output.appendText(text, model: report.model)
+            }
         }
-        if let text = delta.refusal { refusal += text }
+        if let text = delta.refusal?.stringValue { refusal += text }
         for annotation in delta.annotations ?? [] {
             guard let found = annotation.urlCitation, let citation = Citation(found) else { continue }
             output.cite(citation)
@@ -145,12 +160,17 @@ extension Citation {
 
 extension AnswerReport {
     /// Takes the facts that a chunk reports.
-    fileprivate mutating func update(with chunk: Chunk) {
+    ///
+    /// - Parameters:
+    ///   - chunk: The chunk.
+    ///   - countingUnlistedTokensAsReasoning: Whether the tokens its usage's total counts beyond the prompt and the
+    ///     completion are the answer's reasoning.
+    fileprivate mutating func update(with chunk: Chunk, countingUnlistedTokensAsReasoning: Bool) {
         responseID = chunk.id ?? responseID
         model = chunk.model ?? model
         serviceTier = chunk.serviceTier ?? serviceTier
         if let usage = chunk.usage {
-            self.usage = AnswerUsage(usage)
+            self.usage = AnswerUsage(usage, countingUnlistedTokensAsReasoning: countingUnlistedTokensAsReasoning)
         }
         finishReason = chunk.choices?.first?.finishReason ?? finishReason
     }
@@ -158,14 +178,41 @@ extension AnswerReport {
 
 extension AnswerUsage {
     /// The usage a chunk reported.
-    fileprivate init(_ usage: Chunk.Usage) {
+    ///
+    /// - Parameters:
+    ///   - usage: The chunk's usage.
+    ///   - countingUnlistedTokensAsReasoning: Whether the tokens its total counts beyond the prompt and the completion,
+    ///     when there are any, are reasoning the completion leaves out, which then count among both the answer's tokens
+    ///     and its reasoning tokens. They join the reasoning tokens the usage reports, which the format counts within
+    ///     the completion.
+    fileprivate init(_ usage: Chunk.Usage, countingUnlistedTokensAsReasoning: Bool) {
+        let promptTokens = usage.promptTokens ?? 0
+        let completionTokens = usage.completionTokens ?? 0
+        let reasoningTokens = usage.completionTokensDetails?.reasoningTokens ?? 0
+        let unlistedTokens =
+            countingUnlistedTokensAsReasoning
+            ? Self.unlistedTokens(of: usage.totalTokens, beyond: promptTokens, completionTokens, reasoningTokens) : 0
         self.init(
-            inputTokens: usage.promptTokens ?? 0,
+            inputTokens: promptTokens,
             cachedTokens: usage.promptTokensDetails?.cachedTokens ?? 0,
             cacheWriteTokens: usage.promptTokensDetails?.cacheWriteTokens,
-            outputTokens: usage.completionTokens ?? 0,
-            reasoningTokens: usage.completionTokensDetails?.reasoningTokens ?? 0
+            outputTokens: completionTokens + unlistedTokens,
+            reasoningTokens: reasoningTokens + unlistedTokens
         )
+    }
+
+    /// The tokens a total counts beyond the prompt and the completion, or zero when there are none, or when the counts
+    /// are too large to subtract or to add to the completion's and the reasoning's.
+    private static func unlistedTokens(
+        of totalTokens: Int?, beyond promptTokens: Int, _ completionTokens: Int, _ reasoningTokens: Int
+    ) -> Int {
+        guard let totalTokens else { return 0 }
+        let (afterPrompt, promptOverflow) = totalTokens.subtractingReportingOverflow(promptTokens)
+        let (unlisted, completionOverflow) = afterPrompt.subtractingReportingOverflow(completionTokens)
+        guard !promptOverflow, !completionOverflow, unlisted > 0, !completionTokens.addingReportingOverflow(unlisted).overflow,
+            !reasoningTokens.addingReportingOverflow(unlisted).overflow
+        else { return 0 }
+        return unlisted
     }
 }
 
@@ -177,7 +224,8 @@ extension ChatCompletions.Stream {
     ///
     /// An answer cut off at its token limit ends like any other, with `length` as its finish reason, since Foundation
     /// Models has no error for it. One cut off inside its tool calls throws instead, so no tool gets partial arguments,
-    /// and so does a guided answer, which would decode as a wrong value.
+    /// and so does a guided answer, which would decode as a wrong value. A finish reason of the provider's own that
+    /// stands for one of the format's ends the answer as that word does.
     ///
     /// - Parameter isComplete: Whether the stream ended with `[DONE]`. A stream that ends without it or a finish reason
     ///   was cut off.
@@ -189,13 +237,14 @@ extension ChatCompletions.Stream {
         guard isComplete || report.finishReason != nil else {
             throw failure(.cutOff)
         }
+        let ending = report.finishReason.map { finishReasons[$0] ?? $0 }
         // A finish reason of `error` says the host failed while it generated.
         let failedAnswer =
-            report.finishReason == .error
+            ending == .error
             ? exchange.error(for: RequestFailure(failedAnswer: nil, headers: headers, imageEntries: imageEntries)) : nil
         do {
             try await output.finish(
-                report: report, facts: additions, refusal: refusal, requiresCompleteAnswer: requiresCompleteAnswer,
+                report: report, facts: additions, refusal: refusal, ending: ending, requiresCompleteAnswer: requiresCompleteAnswer,
                 failedAnswer: failedAnswer)
         } catch let problem as StreamProblem {
             throw failure(problem)
@@ -210,6 +259,20 @@ extension ChatCompletions.Stream {
     /// The error for an event whose data can't be read, with the reason.
     private func unreadable(_ error: any Error) -> any Error {
         failure(.unreadableEvent("\(error)"))
+    }
+
+    /// The error for an error event.
+    ///
+    /// - Parameter data: The event's data.
+    /// - Returns: The exchange's error for the provider's error, or for an event that can't be read when the exchange's
+    ///   type can't read the error even with the data's text as its message.
+    private func errorEvent(_ data: Data) -> any Error {
+        do {
+            return exchange.error(
+                for: try RequestFailure(errorEventData: data, provider: provider, headers: headers, imageEntries: imageEntries))
+        } catch {
+            return unreadable(error)
+        }
     }
 }
 
@@ -236,8 +299,10 @@ private struct Chunk: Decodable {
     }
 
     struct Delta: Decodable {
-        let content: String?
-        let refusal: String?
+        let content: Content?
+        /// The next part of a refusal's text. Some providers send a value that isn't text, such as `false`, for no
+        /// refusal.
+        let refusal: JSONValue?
         let toolCalls: [ToolCall]?
         let annotations: [Annotation]?
 
@@ -246,6 +311,59 @@ private struct Chunk: Decodable {
             case refusal
             case toolCalls = "tool_calls"
             case annotations
+        }
+    }
+
+    /// A delta's content, text or a list of parts, as the pieces of the answer's text and reasoning in their order.
+    ///
+    /// A `text` part is the answer's text, and the `text` parts inside a `thinking` part are its reasoning. Any other
+    /// part, of a known type such as a reference or of one the format doesn't know, is passed over.
+    struct Content: Decodable {
+        /// A piece of the answer's text or reasoning, never empty.
+        enum Piece {
+            case text(String)
+            case reasoning(String)
+        }
+
+        let pieces: [Piece]
+
+        init(from decoder: any Decoder) throws {
+            let container = try decoder.singleValueContainer()
+            if let text = try? container.decode(String.self) {
+                pieces = text.isEmpty ? [] : [.text(text)]
+            } else {
+                pieces = try container.decode([Part].self).compactMap(\.piece)
+            }
+        }
+
+        /// One part of a list, read as a piece when it's a `text` part with text or a `thinking` part with text.
+        private struct Part: Decodable {
+            let piece: Piece?
+
+            init(from decoder: any Decoder) throws {
+                // Read leniently, so a part of another shape is passed over rather than making the chunk unreadable.
+                guard let container = try? decoder.container(keyedBy: CodingKeys.self) else {
+                    piece = nil
+                    return
+                }
+                switch try? container.decode(String.self, forKey: .type) {
+                case "text"?:
+                    let text = (try? container.decode(String.self, forKey: .text)) ?? ""
+                    piece = text.isEmpty ? nil : .text(text)
+                case "thinking"?:
+                    let parts = (try? container.decode([Part].self, forKey: .thinking)) ?? []
+                    let text = parts.compactMap { part in if case .text(let text)? = part.piece { text } else { nil } }.joined()
+                    piece = text.isEmpty ? nil : .reasoning(text)
+                default:
+                    piece = nil
+                }
+            }
+
+            private enum CodingKeys: String, CodingKey {
+                case type
+                case text
+                case thinking
+            }
         }
     }
 
@@ -282,7 +400,25 @@ private struct Chunk: Decodable {
     struct ToolCall: Decodable {
         struct Function: Decodable {
             let name: String?
+
+            /// The next part of the call's argument text, or the JSON text of arguments a provider sent whole as a JSON
+            /// value, such as an object.
             let arguments: String?
+
+            init(from decoder: any Decoder) throws {
+                let container = try decoder.container(keyedBy: CodingKeys.self)
+                name = try container.decodeIfPresent(String.self, forKey: .name)
+                if let text = try? container.decodeIfPresent(String.self, forKey: .arguments) {
+                    arguments = text
+                } else {
+                    arguments = try container.decodeIfPresent(JSONValue.self, forKey: .arguments)?.text
+                }
+            }
+
+            private enum CodingKeys: String, CodingKey {
+                case name
+                case arguments
+            }
         }
 
         let index: Int?
@@ -311,14 +447,27 @@ private struct Chunk: Decodable {
 
         let promptTokens: Int?
         let completionTokens: Int?
+        let totalTokens: Int?
         let promptTokensDetails: PromptDetails?
         let completionTokensDetails: CompletionDetails?
 
         private enum CodingKeys: String, CodingKey {
             case promptTokens = "prompt_tokens"
             case completionTokens = "completion_tokens"
+            case totalTokens = "total_tokens"
             case promptTokensDetails = "prompt_tokens_details"
             case completionTokensDetails = "completion_tokens_details"
+        }
+
+        init(from decoder: any Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            promptTokens = try container.decodeIfPresent(Int.self, forKey: .promptTokens)
+            completionTokens = try container.decodeIfPresent(Int.self, forKey: .completionTokens)
+            // Only a provider that counts reasoning in the total reads it, so a total that isn't a whole number never
+            // fails another provider's chunk.
+            totalTokens = try? container.decodeIfPresent(Int.self, forKey: .totalTokens)
+            promptTokensDetails = try container.decodeIfPresent(PromptDetails.self, forKey: .promptTokensDetails)
+            completionTokensDetails = try container.decodeIfPresent(CompletionDetails.self, forKey: .completionTokensDetails)
         }
     }
 
@@ -330,6 +479,14 @@ private struct Chunk: Decodable {
     let usage: Usage?
     /// The `error` object of an error event, which a provider sends after the response's HTTP 200.
     let error: JSONValue?
+    /// The `type` that a provider gives an error event that carries the error in its own members, `error`. The
+    /// format's chunks have none.
+    let type: JSONValue?
+
+    /// Whether the chunk is an error event: one with an `error` object, or one whose `type` is `error`.
+    var isError: Bool {
+        (error != nil && error != .null) || type == "error"
+    }
 
     private enum CodingKeys: String, CodingKey {
         case id
@@ -338,6 +495,7 @@ private struct Chunk: Decodable {
         case choices
         case usage
         case error
+        case type
     }
 }
 
@@ -370,12 +528,5 @@ private enum StreamEvent<Extras: Decodable> {
             chunk = try Chunk(from: decoder)
             extras = try Extras(from: decoder)
         }
-    }
-}
-
-extension ChatCompletions.Stream {
-    /// The event of a chunk whose `error` member is set, with the error in the exchange's type.
-    private struct ErrorEvent: Decodable {
-        let error: Exchange.ErrorBody
     }
 }

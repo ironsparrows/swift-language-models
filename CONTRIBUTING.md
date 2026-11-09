@@ -50,6 +50,31 @@ Any pull request but a major one merges once CI passes, and its label releases i
 [Model catalogs](https://ironsparrows.github.io/swift-language-models/documentation/languagemodels/modelcatalogs)
 describes the same rules for the package's users.
 
+## Add a preset
+
+A provider that speaks OpenAI's Chat Completions or Responses format, such as Gemini's or Groq's OpenAI endpoint,
+gets a preset in `OpenAICompatibleLanguageModels` rather than a module of its own:
+
+- A `public static let` on `OpenAICompatibleProvider`, in `OpenAICompatibleProvider.swift`, with its provider's name,
+  URL and format, and a doc comment that shows a model on it and says everything it does differently.
+- The internal values on `OpenAICompatibleProvider` that say how it differs, each with the default of a provider an app
+  describes: the members it leaves out, its token limit's member, how its reasoning goes back, the requests it refuses
+  before sending, its retries and wait, its request id headers, its host, and its words for a failure. Follow the
+  provider's own SDKs. A difference no value covers gets a new internal value, read in `OpenAICompatibleExchange.swift`;
+  one the shared formats can't express is a change to `LanguageModels`, decided on its own.
+- `Presets/PresetTests+<Provider>.swift`, with its defaults, a request body as an inline snapshot, and a test for each
+  value that differs. Recordings of a text answer, a tool round, a guided answer, an answer that reasons, a failure and
+  a cached second turn go in `Fixtures/Recorded/`, ids swapped and the key left out, with a
+  `RecordedExchangeTests+<Provider>.swift` and a row in `RecordedExchangeTests+Caching.swift`. A live suite in `Live/`
+  runs with the provider's key, or for a local server with `LIVE_LOCAL_SERVERS=1`.
+- A section in the Providers article, dated, saying what was checked against the provider and what wasn't, and its
+  rows in that article's tables and in the per-provider tables of the Reasoning, Caching and Errors and metadata
+  articles; its line on the `OpenAICompatibleProvider` page; its name where the README, the landing page and Getting
+  started list the presets; and its cells in [ARCHITECTURE](ARCHITECTURE.md#what-a-provider-states).
+
+A provider that needs what one module for many providers can't give, such as a catalog of typed models, typed settings
+of its own or server tools, gets a module of its own.
+
 ## Add a provider module
 
 A provider module is named `<Vendor>LanguageModels`, and its `<Vendor>LanguageModel` conforms to
@@ -94,7 +119,8 @@ In this repository:
   the table has its `removalDate`, as `RemovalDateTests` does for OpenRouter.
 - Nest a public `Executor` in the model, conforming to Foundation Models' `LanguageModelExecutor`. Keep its `Configuration`
   to where requests go and how they're sent, with no secrets. Its `respond` is one line: it derives the shared model and
-  calls that model's `respond`, as `OpenRouterLanguageModel.Executor` does. The function that derives it, such as
+  calls that model's `respond`, as `OpenRouterLanguageModel.Executor` does, or one per format for a module whose
+  providers speak either, as `OpenAICompatibleLanguageModel.Executor` does. The function that derives it, such as
   `chatCompletions(_:)`, opens the provider's exchange file and sets the values
   [ARCHITECTURE](ARCHITECTURE.md#what-a-provider-states) lists. Pass `reaching:` every model a request may reach, in the
   order the provider tries them, so the shared model reports the removed ones.
@@ -116,7 +142,7 @@ In this repository:
   `ProviderResponseMetadata`, `ProviderUsageMetadata` and `ProviderErrorMetadata`, and give apps a reader named for the
   provider, such as `openRouter`. Its keys live in the module's metadata file, private to it, apart from the
   `phasesKey` and `serverToolsKey` the shared Responses model takes.
-- Log through a `PackageLogger` with a category named after the module, which writes only at the levels the app's
+- Log through a `PackageLogger` with a category named for the provider, which writes only at the levels the app's
   `LanguageModelsLogging.minimumLevel` lets through. Where the module works around a likely mistake, such as a setting
   the model doesn't take, log it at the info level and call `runtimeWarning(_:)`, which shows a runtime warning in a
   debug build.
@@ -137,7 +163,8 @@ Code lives in the narrowest place that every user of it can reach:
   what both use. Only `Exports.swift` is `public`, which CI checks. A provider writes `package` names, and the rest stays
   internal. Its tests run on the plain models, so they check a format alone.
 - **A provider module** holds what only its provider has: its public types, its exchange, its catalog and info calls and
-  its errors. Its public types never name a format's types.
+  its errors, or for `OpenAICompatibleLanguageModels`, what any provider that speaks the formats needs. Its public types
+  never name a format's types.
 
 `Shared/` is flat, and each file owns one thing:
 
@@ -145,14 +172,14 @@ Code lives in the narrowest place that every user of it can reach:
 |---|---|
 | `Connection.swift` | How requests reach a provider: session, authentication, timeout, retries; opening a stream, with one more attempt in the portable schema; cached read-only calls about a model. |
 | `HTTPClient.swift` | Sending: the retry loop and policy, waits a server asks for, redirects to the same scheme, URL host and port only, the user agent, statuses, header and media-type names. |
-| `ServerSentEvent.swift` | Events of a byte stream, and the byte-level line splitter under them. |
+| `ServerSentEvent.swift` | Events of a byte stream, the event names a format reads whatever the data, and the byte-level line splitter under them. |
 | `RequestLog.swift` | The log of one request: what it sends, retries, adjustments, how it ended, and what the log says of an error. |
 | `TranscriptTurn.swift` | The transcript as provider APIs take it: turns, a turn's segments as a format's parts, the first prompt's id, and which reasoning goes back. |
 | `AttachmentReader.swift` | An attachment as content to send: kinds, text, PDFs, data URLs. |
 | `EncodedImage.swift` | An image as JPEG no larger than a size, and the bounded cache of encoded images. |
-| `RequestSettings.swift` | What a request sends of the app's settings: sampling, tool choice, metadata within its limits, the body with the provider's members, and what it leaves out or changes. |
+| `RequestSettings.swift` | What a request sends of the app's settings: sampling, tool choice, metadata within its limits, the body with the provider's members and the app's over them, and what it leaves out or changes. |
 | `AnswerChannel.swift` | Writing one answer to Foundation Models' channel: text, reasoning, reasoning tagged inside the text, tool calls assembled from fragments, data, citations, how an answer ends, facts and usage. |
-| `RequestFailure.swift` | A failure before a provider maps it, and the helpers that map it. |
+| `RequestFailure.swift` | A failure before a provider maps it, the error object of an error event, and the helpers that map it. |
 
 A provider hands a shared model values and an exchange, and never touches a transcript reader, a stream or the channel.
 [ARCHITECTURE](ARCHITECTURE.md#what-a-provider-states) lists all of it. Add a method to an exchange, or a value to a model
@@ -223,14 +250,14 @@ else needs:
 
 | Kind | Files | Sections, in order |
 |---|---|---|
-| A provider's model | `OpenRouterLanguageModel.swift`, `OpenAILanguageModel.swift` | Model · Creating a model · Details and capabilities · Settings · Executor |
+| A provider's model | `OpenRouterLanguageModel.swift`, `OpenAILanguageModel.swift`, `OpenAICompatibleLanguageModel.swift` | Model · Creating a model · Details and capabilities, for a model with a catalog · Settings · Executor |
 | A shared model | `ChatCompletionsModel.swift`, `ResponsesModel.swift` | Model · Answering · Executor · Exchange · Plain exchange · Defaults |
-| A provider's exchange | `OpenRouterExchange.swift`, `OpenAIExchange.swift` | As a Chat Completions model (or: As a Responses model) · Exchange · Wire; inside the exchange: While the request is read · Before it is sent · While the answer streams · When it ends, or fails |
+| A provider's exchange | `OpenRouterExchange.swift`, `OpenAIExchange.swift`, `OpenAICompatibleExchange.swift` | As a Chat Completions model (or: As a Responses model, or both) · Exchange · Wire; inside the exchange: While the request is read · Before it is sent · While the answer streams · When it ends, or fails |
 | A request | `ChatCompletionsRequest.swift`, `ResponsesRequest.swift` | Request · Reading · Body · Wire |
 | A transcript reader | `ChatCompletionsTranscript.swift`, `ResponsesInput.swift` | Turns · Attachments · Wire |
 | A stream | `ChatCompletionsStream.swift`, `ResponsesStream.swift` | Stream · Receiving · Finishing · Wire |
-| A provider's error | `OpenRouterError.swift`, `OpenAIError.swift` | Error · Codes · Response body · What a failure becomes · Logging |
-| A module's metadata | `ProviderMetadata.swift`, `OpenRouterMetadata.swift`, `OpenAIMetadata.swift` | Response · Usage · Generated data · Error · Reading · Keys |
+| A provider's error | `OpenRouterError.swift`, `OpenAIError.swift`, `OpenAICompatibleError.swift` | Error · Codes · Response body · What a failure becomes · Logging |
+| A module's metadata | `ProviderMetadata.swift`, `OpenRouterMetadata.swift`, `OpenAIMetadata.swift`, `OpenAICompatibleMetadata.swift` | Response · Usage · Generated data · Error · Reading · Keys |
 
 The groups inside an exchange are the marks of the protocol, so the protocol and each provider's conformance read alike
 in the jump bar.
@@ -243,7 +270,7 @@ Each behavior is tested at one level, and a test earns its place by catching a b
 |---|---|---|
 | 1 Contract | `LanguageModelsCoreTests` | it needs no HTTP: it's a function of the core's own types. |
 | 2 Shared models | `LanguageModelsTests` | the plain model shows it, so every provider of the format gets it. Transport, every split point of a stream, the parts with an algorithm of their own, and one suite over real loopback HTTP are here too. |
-| 3 Providers | `OpenRouterLanguageModelsTests`, `OpenAILanguageModelsTests` | it differs from the plain model: a member, a header, a chunk member, an error mapping, an option. Exact exchanges pin whole requests and answers, and one test goes through public API alone over loopback HTTP. |
+| 3 Providers | `OpenRouterLanguageModelsTests`, `OpenAILanguageModelsTests`, `OpenAICompatibleLanguageModelsTests` | it differs from the plain model: a member, a header, a chunk member, an error mapping, an option. Exact exchanges pin whole requests and answers, and one test goes through public API alone over loopback HTTP. |
 | 4 Live | each provider's `Live/` folder | only the real provider can show it. Tagged, and skipped without a key. |
 
 A test may not assert what a lower level owns. An OpenRouter server-tool test asserts the member OpenRouter adds, and

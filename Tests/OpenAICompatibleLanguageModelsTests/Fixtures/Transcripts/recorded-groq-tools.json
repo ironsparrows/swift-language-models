@@ -1,0 +1,155 @@
+{
+  "transcript" : {
+    "entries" : [
+      {
+        "contents" : [
+
+        ],
+        "id" : "481DB2E0-2A03-491C-B2B5-D9420089440F",
+        "role" : "instructions",
+        "tools" : [
+          {
+            "function" : {
+              "description" : "Gets the current temperature in a city, in degrees Celsius.",
+              "name" : "getWeather",
+              "parameters" : {
+                "additionalProperties" : false,
+                "properties" : {
+                  "city" : {
+                    "description" : "The city's name.",
+                    "type" : "string"
+                  }
+                },
+                "required" : [
+                  "city"
+                ],
+                "title" : "Arguments",
+                "type" : "object",
+                "x-order" : [
+                  "city"
+                ]
+              }
+            },
+            "type" : "function"
+          }
+        ]
+      },
+      {
+        "contents" : [
+          {
+            "id" : "E67BA7DC-D697-439E-A68E-D23F4D83E6CF",
+            "text" : "What's the temperature in Lisbon and in Porto? Call the tool for both cities at once, then answer in one sentence.",
+            "type" : "text"
+          }
+        ],
+        "contextOptions" : {
+          "reasoningLevel" : "light"
+        },
+        "id" : "6D15C634-4245-4309-A2E3-52EF90DD2071",
+        "options" : {
+          "maximumResponseTokens" : 800
+        },
+        "role" : "user"
+      },
+      {
+        "id" : "9949CD0D-AA30-4FCB-95A7-B7B92AB1E191",
+        "metadata" : {
+          "model" : "openai\/gpt-oss-20b",
+          "reasoningOrigin" : "openai-compatible\/groq"
+        },
+        "reasoning" : {
+          "contents" : [
+            {
+              "id" : "C40425BF-CE1F-496E-97DC-69ADA41013FC",
+              "text" : "Need to call getWeather twice.",
+              "type" : "text"
+            }
+          ]
+        },
+        "role" : "reasoning"
+      },
+      {
+        "id" : "F749E19B-62BA-4A72-B045-D7880DCEAE9A",
+        "role" : "response",
+        "toolCalls" : [
+          {
+            "arguments" : "{\"city\": \"Lisbon\"}",
+            "id" : "fc_421300e5-43d6-07d8-8f56-42403ff37060",
+            "metadata" : {
+              "finishReason" : "tool_calls",
+              "model" : "openai\/gpt-oss-20b",
+              "provider" : "Groq",
+              "requestID" : "req_0190bp78kxg94b5obylemwhfjv",
+              "responseID" : "chatcmpl-98200e69-bdf9-db1f-fa92-a7d5ffd89e8c"
+            },
+            "name" : "getWeather"
+          }
+        ]
+      },
+      {
+        "contents" : [
+          {
+            "id" : "F16B3473-3A6F-4D36-964E-0BA0E9305650",
+            "text" : "It is 17 degrees in Lisbon.",
+            "type" : "text"
+          }
+        ],
+        "id" : "fc_421300e5-43d6-07d8-8f56-42403ff37060",
+        "role" : "tool",
+        "toolCallID" : "fc_421300e5-43d6-07d8-8f56-42403ff37060",
+        "toolName" : "getWeather"
+      },
+      {
+        "id" : "F6799777-BA1A-4715-B873-9A5FFE8F9CBB",
+        "role" : "response",
+        "toolCalls" : [
+          {
+            "arguments" : "{\"city\": \"Porto\"}",
+            "id" : "fc_4abc1963-0109-fc37-9934-16d43a8da737",
+            "metadata" : {
+              "finishReason" : "tool_calls",
+              "model" : "openai\/gpt-oss-20b",
+              "provider" : "Groq",
+              "requestID" : "req_01ibnie42qgnnk437sxohh6goi",
+              "responseID" : "chatcmpl-8a983ce6-bbb9-c610-dcdc-f3666bfdb862"
+            },
+            "name" : "getWeather"
+          }
+        ]
+      },
+      {
+        "contents" : [
+          {
+            "id" : "E9D82C54-71D1-4575-97F5-C03DAA09B7EE",
+            "text" : "It is 17 degrees in Porto.",
+            "type" : "text"
+          }
+        ],
+        "id" : "fc_4abc1963-0109-fc37-9934-16d43a8da737",
+        "role" : "tool",
+        "toolCallID" : "fc_4abc1963-0109-fc37-9934-16d43a8da737",
+        "toolName" : "getWeather"
+      },
+      {
+        "contents" : [
+          {
+            "id" : "4B7CB3B7-0335-42AF-8039-812A68FEB234",
+            "text" : "The temperature is 17 °C in both Lisbon and Porto.",
+            "type" : "text"
+          }
+        ],
+        "id" : "5CE8A1E9-FFF5-49E4-8F8A-23DE938D027B",
+        "metadata" : {
+          "finishReason" : "stop",
+          "model" : "openai\/gpt-oss-20b",
+          "provider" : "Groq",
+          "requestID" : "req_01jo59m8yl9g86phb3gd7gx6re",
+          "responseID" : "chatcmpl-bc66169d-57cd-0951-7f3e-4c47cb53713e"
+        },
+        "role" : "response"
+      }
+    ]
+  },
+  "type" : "FoundationModels.Transcript",
+  "version" : "1.1"
+}

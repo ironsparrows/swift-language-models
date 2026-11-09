@@ -5,14 +5,15 @@ See what each request sends, leaves out and returns, and choose how much the pac
 ## Overview
 
 The package logs each request to the unified logging system, under the subsystem
-`com.ironsparrows.swift-language-models`, with a category for each provider module, such as `OpenRouter`, and
-`LanguageModels` for what the core logs. Each message names its request by the first eight characters of the
+`com.ironsparrows.swift-language-models`, with a category named for each provider, such as `OpenRouter`, or the
+name an app gives a provider it describes to `OpenAICompatibleLanguageModels`, and `LanguageModels` for what the core
+logs. Each message names its request by the first eight characters of the
 request's id, so the messages of requests sent at once can be told apart.
 
 | Level | Messages |
 |---|---|
 | Debug | What a request sends: the model and the names of the options, never their values. Which model and host answered, the finish reason, the time to the first token and the whole time. A cancelled request. A model-info call's path, status and time, and whether the info cache answered it |
-| Info | What a request leaves out or changes from what the app asked for: options the models don't list, metadata that isn't a string or is past the provider's limits, settings the request doesn't send, either because the format has no member for them, such as a seed or top-k, or because the provider doesn't take them with the request's other settings, such as a temperature while a model reasons, a token limit raised to the fewest the provider takes, a reasoning level sent as another effort, and a response cache's time to live outside its range. A retry after a failed connection or a brief failure, such as a server error or an unavailable gateway, or with a portable schema after a host rejected a constraint |
+| Info | What a request leaves out or changes from what the app asked for: options the models don't list, metadata that isn't a string or is past the provider's limits, settings the request doesn't send, either because the format has no member for them, such as a seed or top-k, or because the provider doesn't take them with the request's other settings, such as a temperature while a model reasons, a token limit raised to the fewest the provider takes, a reasoning level sent as another effort, a member the app adds to a request that would replace one the answer depends on, such as `stream`, and a response cache's time to live outside its range. A retry after a failed connection or a brief failure, such as a server error or an unavailable gateway, or with a portable schema after a host rejected a constraint |
 | Error | A request that may reach a model its provider stopped listing, as its model or a fallback, and an answer that breaks its schema's guides, with where each value is and the guide it breaks, never the value, both in the `LanguageModels` category. A failed request or model-info call: the error it became, such as `LanguageModelError.rateLimited`, with the HTTP status, error code and host it came from |
 
 The levels are Apple's `OSLogType` levels. The package logs at these three only, so `.default` logs what `.error`
@@ -25,8 +26,8 @@ someone reads them, so logging costs little.
 ### What stays out of the log
 
 The package never logs API keys, prompts, answers, tool arguments or outputs, or attachments, nor a host's error
-message, which may quote the request. Model ids, host names, parameter names, HTTP statuses, error codes and timings
-are public. The keys of metadata left out are private, so the system redacts them.
+message, which may quote the request. Model ids, provider and host names, the name an app gives a provider it
+describes included, parameter names, HTTP statuses, error codes and timings are public. The keys of metadata left out are private, so the system redacts them.
 
 This covers the package's own logging. A recording with Instruments' Foundation Models template can include prompts
 and responses, which Foundation Models records.

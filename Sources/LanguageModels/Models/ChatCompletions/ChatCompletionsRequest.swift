@@ -10,10 +10,11 @@ extension ChatCompletions {
     ///
     /// The format writes its members in a fixed order: `model`, `messages`, `stream`, `tools`, `tool_choice`,
     /// `response_format`, `temperature`, `top_p`, `seed`, the token limit and `metadata`, each only when the request sets
-    /// it, then adds the provider's own, puts them all in the model's order and leaves out the ones its models don't
-    /// list. An exchange's `prepare(_:)` adds the provider's headers and members and makes the few choices a provider has
-    /// about the format's: it can't change what the messages say or the settings the app asked for. Every part is written
-    /// the same way each time, so a host's prompt cache stays valid across requests.
+    /// it, then adds the provider's own and the app's, puts them all in the model's order and leaves out the ones its
+    /// models don't list, but for the app's. An exchange's `prepare(_:)` adds the provider's headers and members and the
+    /// app's members, and makes the few choices a provider has about the format's: it can't change what the messages say
+    /// or the settings the app asked for. Every part is written the same way each time, so a host's prompt cache stays
+    /// valid across requests.
     package struct Request {
         // MARK: What the format read
 
@@ -44,6 +45,12 @@ extension ChatCompletions {
         /// own.
         package var members = JSONObject()
 
+        /// The app's own members, which go out as written, in the model's order with the others: each replaces the
+        /// format's or the provider's member of the same key, and goes out even when the models don't list it. One that
+        /// would replace `model`, `messages`, `stream` or `tools`, which the answer depends on, is left out, and the
+        /// request logs it.
+        package var overridingMembers = JSONObject()
+
         /// Whether the session's tools, and with them `tool_choice`, go out.
         package var sendsSessionTools = true
 
@@ -62,7 +69,9 @@ extension ChatCompletions {
         /// instructions before it are cached on the host; `nil` for none.
         package var instructionsMark: JSONObject?
 
-        /// A reasoning level the provider sends as another effort, or leaves out, which the request logs.
+        /// A reasoning level the provider sends as another effort, or leaves out, which the request logs. The effort goes
+        /// in a member of the provider's, which the format doesn't know, so an exchange leaves this `nil` when the app's
+        /// members replace that member.
         package var movedEffort: MovedEffort?
 
         // MARK: What the format keeps
@@ -107,6 +116,12 @@ extension ChatCompletions {
         /// The body's members that aren't options: the model, the transcript and `stream`.
         static var nonOptions: Set<String> {
             [model.rawValue, messages.rawValue, stream.rawValue]
+        }
+
+        /// The members an app's members never replace, since the answer depends on them: the model, the transcript,
+        /// `stream` and `tools`.
+        static var essential: Set<String> {
+            nonOptions.union([tools.rawValue])
         }
 
         package let rawValue: String
@@ -184,8 +199,10 @@ extension ChatCompletions.Request {
 // MARK: - Body
 
 extension ChatCompletions.Request {
-    /// The request's body, with the exchange's members and choices. Its adjustments are, in the log's order, settings
-    /// the models don't list, then metadata it leaves out, then a moved reasoning effort.
+    /// The request's body, with the exchange's members and choices and the app's members. Its adjustments are, in the
+    /// log's order, settings the models don't list, a `top_k` no member carries, since the format has none for it, and
+    /// the app's members left out, then metadata it leaves out, then a moved reasoning effort. A member the app's
+    /// members replace is never one the request notes as left out.
     ///
     /// - Throws: An error when a member can't be encoded.
     func body() throws -> RequestBody {
@@ -209,26 +226,46 @@ extension ChatCompletions.Request {
             ChatCompletions.Member.metadata.rawValue: metadata.json,
         ]
         body.add(members, from: providerName)
+        let kept = body.override(with: overridingMembers, keeping: ChatCompletions.Member.essential)
+        let overridden = Set(overridingMembers.members.map(\.key)).subtracting(kept)
         body = body.ordered(by: memberOrder.map(\.rawValue))
 
-        var adjustments: [RequestAdjustment] = metadata.droppedKeys.isEmpty ? [] : [.droppedMetadata(keys: metadata.droppedKeys)]
-        let unlisted = body.members.map(\.key).filter { unsupportedMembers.contains(ChatCompletions.Member(rawValue: $0)) }
+        var adjustments: [RequestAdjustment] = []
+        if !metadata.droppedKeys.isEmpty, !overridden.contains(ChatCompletions.Member.metadata.rawValue) {
+            adjustments.append(.droppedMetadata(keys: metadata.droppedKeys))
+        }
+        let present = body.members.map(\.key)
+        let unlisted = present.filter { !overridden.contains($0) && unsupportedMembers.contains(ChatCompletions.Member(rawValue: $0)) }
         if !unlisted.isEmpty {
             for key in unlisted { body[key] = nil }
             adjustments.append(.unlistedParameters(unlisted))
+        }
+        // The format has no member for `top_k`: it goes out only as a provider's or the app's member.
+        if sampling.topK != nil, !present.contains(Self.topK) {
+            adjustments.append(.unsentSettings([Self.topK]))
+        }
+        if !kept.isEmpty {
+            adjustments.append(.keptMembers(kept))
         }
         if let movedEffort {
             adjustments.append(.movedEffort(requested: movedEffort.requested, sent: movedEffort.sent))
         }
 
+        // The app's schema goes out as written, so there's no other to try.
         var portable: JSONValue?
-        if let format = responseFormats?.portable, !usesPortableSchema, body[ChatCompletions.Member.responseFormat.rawValue] != nil {
+        if let format = responseFormats?.portable, !usesPortableSchema,
+            !overridden.contains(ChatCompletions.Member.responseFormat.rawValue),
+            body[ChatCompletions.Member.responseFormat.rawValue] != nil
+        {
             var members = body
             members[ChatCompletions.Member.responseFormat.rawValue] = try JSONValueEncoder.encode(format)
             portable = .object(members)
         }
         return RequestBody(json: .object(body), portableJSON: portable, adjustments: RequestAdjustment.inLogOrder(adjustments))
     }
+
+    /// The name of the sampling setting the format has no member for.
+    private static let topK = "top_k"
 }
 
 // MARK: - Wire

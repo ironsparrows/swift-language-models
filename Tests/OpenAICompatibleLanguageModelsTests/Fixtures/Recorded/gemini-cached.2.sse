@@ -1,0 +1,8 @@
+data: {"choices":[{"delta":{"content":"The sky","role":"assistant"},"index":0}],"created":1794236617,"id":"P-817tZ6kxBznLNA3SXfml","model":"gemini-3.1-flash-lite","object":"chat.completion.chunk","usage":{"completion_tokens":2,"prompt_tokens":6030,"total_tokens":6032}}
+
+data: {"choices":[{"delta":{"content":" is also commonly described as blue.","role":"assistant"},"index":0}],"created":1794236617,"id":"P-817tZ6kxBznLNA3SXfml","model":"gemini-3.1-flash-lite","object":"chat.completion.chunk","usage":{"completion_tokens":9,"prompt_tokens":6030,"total_tokens":6039}}
+
+data: {"choices":[{"delta":{"extra_content":{"google":{"thought_signature":"EnIKcAFpFH0TQ6eFfDyhuqyMi1IBOqlMuHnsIw/kNtQLjmFs9HSx15L2h257NMueHcrXCDgAQxdFfk8+ZJxqVkEiHT45fw0krP3UqCN+T91+oJ8NKgsQK4LEXjnHvltSJsRw6oIfnuJFqobZNhPykvPlOZI="}},"role":"assistant"},"finish_reason":"stop","index":0}],"created":1794236617,"id":"P-817tZ6kxBznLNA3SXfml","model":"gemini-3.1-flash-lite","object":"chat.completion.chunk","usage":{"completion_tokens":9,"prompt_tokens":6030,"prompt_tokens_details":{"cached_tokens":2033},"total_tokens":6039}}
+
+data: [DONE]
+

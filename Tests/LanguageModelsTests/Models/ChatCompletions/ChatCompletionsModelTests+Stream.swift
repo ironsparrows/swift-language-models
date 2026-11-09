@@ -128,6 +128,61 @@ extension ChatCompletionsModelTests {
             #expect(exchange.usage == #"input 12 cached 0, output 5 reasoning 0, metadata: {"cacheWriteTokenCount":3}"#)
         }
 
+        @Test(arguments: [
+            (false, 1184, "output 290 reasoning 4"),
+            (true, 1184, "output 1169 reasoning 883"),
+            (true, 300, "output 290 reasoning 4"),
+            (true, nil, "output 290 reasoning 4"),
+        ])
+        func `a usage's tokens beyond the prompt and the completion count as reasoning only for a model that says so`(
+            counts: Bool, totalTokens: Int?, output: String
+        ) async {
+            let usage: JSONValue = [
+                "prompt_tokens": 15, "completion_tokens": 290, "total_tokens": totalTokens.map(JSONValue.integer),
+                "completion_tokens_details": ["reasoning_tokens": 4],
+            ]
+            let stub = HTTPStub(chatCompletionsEvents(textChunk("Hi"), finishChunk(usage: usage)))
+            var model = plainModel(stub)
+            model.countsUnlistedTokensAsReasoning = counts
+
+            let exchange = await ExactExchange(stub, LanguageModelSession(model: model), recordingHeaders: /^X-/) { session, _ in
+                try await session.respond(to: "Hello").usage
+            }
+
+            #expect(exchange.error == nil)
+            #expect(exchange.usage == "input 15 cached 0, \(output), metadata: {}")
+        }
+
+        @Test(arguments: [(0, Int.max), (Int.min, 10)])
+        func `counts out of range leave a usage's tokens as reported, with none counted as reasoning`(
+            promptTokens: Int, totalTokens: Int
+        ) async {
+            let usage: JSONValue = [
+                "prompt_tokens": .integer(promptTokens), "completion_tokens": 1, "total_tokens": .integer(totalTokens),
+                "completion_tokens_details": ["reasoning_tokens": 5],
+            ]
+            let stub = HTTPStub(chatCompletionsEvents(textChunk("Hi"), finishChunk(usage: usage)))
+            var model = plainModel(stub)
+            model.countsUnlistedTokensAsReasoning = true
+
+            let exchange = await ExactExchange(stub, LanguageModelSession(model: model), recordingHeaders: /^X-/) { session, _ in
+                try await session.respond(to: "Hello").usage
+            }
+
+            #expect(exchange.error == nil)
+            #expect(exchange.usage == "input 0 cached 0, output 1 reasoning 5, metadata: {}")
+        }
+
+        @Test func `a usage's total that isn't a whole number is passed over`() async {
+            let usage: JSONValue = ["prompt_tokens": 15, "completion_tokens": 290, "total_tokens": "1184"]
+            let stub = HTTPStub(chatCompletionsEvents(textChunk("Hi"), finishChunk(usage: usage)))
+
+            let exchange = await answer(stub)
+
+            #expect(exchange.error == nil)
+            #expect(exchange.usage == "input 15 cached 0, output 290 reasoning 0, metadata: {}")
+        }
+
         @Test func `the metadata names the answer's facts`() async {
             let stub = HTTPStub(
                 chatCompletionsEvents([
@@ -230,6 +285,66 @@ extension ChatCompletionsModelTests {
             try #require(answers.count == 2)
             #expect(answers[0].map(\.title) == ["FoodData Central"])
             #expect(answers[1].isEmpty)
+        }
+
+        @Test func `content in parts is the answer's text and, inside thinking parts, its reasoning, and other parts are passed over`()
+            async throws
+        {
+            let thinking: JSONValue = [
+                "choices": [
+                    [
+                        "delta": [
+                            "content": [
+                                [
+                                    "type": "thinking",
+                                    "thinking": [["type": "text", "text": "Think"], ["type": "reference", "reference_ids": [1]]],
+                                ],
+                                ["type": "thinking", "thinking": [["type": "text", "text": "ing."]], "signature": "c2ln", "closed": true],
+                            ]
+                        ]
+                    ]
+                ]
+            ]
+            let answer: JSONValue = [
+                "choices": [
+                    [
+                        "delta": [
+                            "content": [
+                                ["type": "text", "text": "Hi"], ["type": "tool_reference", "tool": "web_search", "title": "Swift"],
+                                ["type": "image_url", "image_url": "https://example.com/cat.png"], ["type": "new_kind"],
+                                ["text": "Untyped."],
+                                "Loose text.",
+                            ]
+                        ]
+                    ]
+                ]
+            ]
+            let stub = HTTPStub(chatCompletionsEvents(thinking, answer, textChunk(" there.", finishReason: "stop")))
+
+            let response = try await LanguageModelSession(model: plainModel(stub)).respond(to: "Hello")
+
+            #expect(response.content == "Hi there.")
+            #expect(reasoningTexts(response.transcriptEntries) == ["Thinking."])
+        }
+
+        @Test func `a refusal that isn't text is no refusal`() async throws {
+            let stub = HTTPStub(
+                chatCompletionsEvents(["choices": [["delta": ["content": "Hi", "refusal": false], "finish_reason": "stop"]]]))
+
+            let response = try await LanguageModelSession(model: plainModel(stub)).respond(to: "Hello")
+
+            #expect(response.content == "Hi")
+        }
+
+        @Test func `an event named ping is passed over, whatever its data holds`() async throws {
+            let lines = [
+                "event: ping\ndata: keep-alive", "data: \(textChunk("Hi").text)", "event: ping\ndata: {}", "data: \(finishChunk().text)",
+            ]
+            let stub = HTTPStub(.eventStream(Data(lines.map { $0 + "\n\n" }.joined().utf8)))
+
+            let response = try await LanguageModelSession(model: plainModel(stub)).respond(to: "Hello")
+
+            #expect(response.content == "Hi")
         }
     }
 }

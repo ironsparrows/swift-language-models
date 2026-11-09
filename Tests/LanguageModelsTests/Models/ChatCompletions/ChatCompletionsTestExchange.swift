@@ -12,20 +12,35 @@ struct ChatCompletionsTestExchange: ChatCompletions.Exchange {
     /// What the exchange adds to a request's members and choices.
     var prepares: @Sendable (inout ChatCompletions.Request) throws -> Void = { _ in }
 
+    /// Checks an attachment of an entry, which the default takes.
+    var checks: @Sendable (AttachmentKind, Transcript.Entry) throws(LanguageModelError) -> Void = { _, _ in }
+
     /// The key under which an assistant message carries the text of the reasoning it sends back, or `nil` to send none.
     var reasoningMember: String?
 
+    /// What the exchange adds to an answer that goes back, beside the reasoning ``reasoningMember`` names.
+    var answerMembers: @Sendable (ChatCompletions.ReplayedAnswer) -> ChatCompletions.ReplayMembers = { _ in
+        ChatCompletions.ReplayMembers()
+    }
+
     /// The host the chunks named.
     private var host: String?
+
+    func checkAttachment(_ kind: AttachmentKind, in entry: Transcript.Entry) throws(LanguageModelError) {
+        try checks(kind, entry)
+    }
 
     func prepare(_ request: inout ChatCompletions.Request) throws {
         request.headers = ["X-Test": "yes"]
         try prepares(&request)
     }
 
-    func replayMembers(for reasoning: [(entry: Transcript.Reasoning, text: String)]) -> JSONObject {
-        guard let reasoningMember else { return JSONObject() }
-        return [reasoningMember: .string(reasoning.map(\.text).joined())]
+    func replayMembers(for answer: ChatCompletions.ReplayedAnswer) -> ChatCompletions.ReplayMembers {
+        var members = answerMembers(answer)
+        if let reasoningMember, !answer.reasoning.isEmpty {
+            members.message[reasoningMember] = .string(answer.reasoning.map(\.text).joined())
+        }
+        return members
     }
 
     mutating func read(_ extras: TestExtras) -> ChatCompletions.ChunkAdditions {

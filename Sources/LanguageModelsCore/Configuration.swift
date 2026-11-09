@@ -3,8 +3,9 @@
 /// How a request that fails before any data arrives is sent again: how many times, and how long it waits first.
 ///
 /// A provider's configuration holds one, such as `OpenAIConfiguration`'s `retries`. A failed connection is retried for
-/// every provider, and each provider decides which failed responses are, such as a server error. A request is never
-/// retried once its answer starts arriving, or after it's cancelled:
+/// every provider but one that may bill a request whose connection failed after it was sent, such as xAI, and each
+/// provider decides which failed responses are, such as a server error. A request is never retried once its answer
+/// starts arriving, or after it's cancelled:
 ///
 /// ```swift
 /// // Fail fast on an interactive screen.

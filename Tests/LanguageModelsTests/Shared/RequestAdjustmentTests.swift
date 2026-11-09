@@ -64,6 +64,7 @@ struct RequestAdjustmentTests {
         .droppedMetadata(keys: ["user-qz9@example.com"]),
         .movedEffort(requested: "medium", sent: "low"),
         .movedEffort(requested: "turbo", sent: nil),
+        .keptMembers(["stream", "tools"]),
     ])
     func `each message names the model and never a metadata key`(adjustment: RequestAdjustment) {
         let message = adjustment.message(model: "vendor/model", provider: "Vendor")

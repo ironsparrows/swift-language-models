@@ -10,10 +10,11 @@ extension Responses {
     ///
     /// The format writes its members in a fixed order: `model`, `input`, `stream`, `store`, `include`, `tools`,
     /// `tool_choice`, `text`, `reasoning`, `temperature`, `top_p`, `max_output_tokens` and `metadata`, each only when the
-    /// request sets it, then the provider's own in the order they're written, and leaves out the ones its models don't
-    /// list or don't take with the request. An exchange's `prepare(_:)` adds the provider's members and makes the few
-    /// choices a provider has about the format's: it can't change the input or the settings the app asked for. Every
-    /// part is written the same way each time, so a host's prompt cache stays valid across requests.
+    /// request sets it, then the provider's own in the order they're written, then the app's, and leaves out the ones its
+    /// models don't list or don't take with the request, but for the app's. An exchange's `prepare(_:)` adds the
+    /// provider's members and the app's, and makes the few choices a provider has about the format's: it can't change
+    /// the input or the settings the app asked for. Every part is written the same way each time, so a host's prompt
+    /// cache stays valid across requests.
     package struct Request {
         // MARK: What the format read
 
@@ -33,6 +34,13 @@ extension Responses {
 
         /// The provider's own members, which go after the format's. Their keys are never the format's own.
         package var members = JSONObject()
+
+        /// The app's own members, which go out as written: each replaces the format's or the provider's member of the
+        /// same key in its place, or goes after them in the order written, and goes out even when the models don't list
+        /// it or the provider doesn't take it with the request's other settings. An app's `store` of `true`, `false` or
+        /// `null` also decides, over ``storage``, which items go back by id. One that would replace `model`, `input`,
+        /// `stream` or `tools`, which the answer depends on, is left out, and the request logs it.
+        package var overridingMembers = JSONObject()
 
         /// Whether the session's tools, and with them `tool_choice`, go out.
         package var sendsSessionTools = true
@@ -120,6 +128,12 @@ extension Responses {
             [model.rawValue, input.rawValue, stream.rawValue]
         }
 
+        /// The members an app's members never replace, since the answer depends on them: the model, the input, `stream`
+        /// and `tools`.
+        static var essential: Set<String> {
+            nonOptions.union([tools.rawValue])
+        }
+
         package let rawValue: String
 
         package init(rawValue: String) {
@@ -192,9 +206,11 @@ extension Responses.Request {
 // MARK: - Body
 
 extension Responses.Request {
-    /// The request's body, with the exchange's members and choices. Its adjustments are, in the log's order, settings
-    /// the models don't list, the provider doesn't take or the format has no member for, then a token limit below the
-    /// fewest the format takes, then metadata it leaves out, then a moved reasoning effort.
+    /// The request's body, with the exchange's members and choices and the app's members. Its adjustments are, in the
+    /// log's order, settings the models don't list, the provider doesn't take or the format has no member for and no
+    /// member carries, and the app's members left out, then a token limit below the fewest the format takes, then
+    /// metadata it leaves out, then a moved reasoning effort. A member the app's members replace is never one the request
+    /// notes as left out or changed, `reasoning` with the effort included.
     ///
     /// - Throws: An error when a member can't be encoded.
     func body() throws -> RequestBody {
@@ -202,9 +218,11 @@ extension Responses.Request {
         let sendsTools = sendsSessionTools && hasSessionTools
         let tools = try (sendsTools ? sessionTools.map(JSONValueEncoder.encode) : []) + serverTools
         let tokenLimit = options.maximumResponseTokens.map { max($0, Self.fewestOutputTokens) }
+        // The `store` that goes out decides which items the provider can look up by their ids.
+        let sentStorage = Self.storage(asked: overridingMembers[Responses.Member.store.rawValue]) ?? storage
         var body: JSONObject = [
             Responses.Member.model.rawValue: .string(name),
-            Responses.Member.input.rawValue: try input.json(for: storage, keeping: serverToolCalls),
+            Responses.Member.input.rawValue: try input.json(for: sentStorage, keeping: serverToolCalls),
             Responses.Member.stream.rawValue: true,
             Responses.Member.store.rawValue: Self.store(storage),
             Responses.Member.include.rawValue: include.isEmpty ? nil : .array(include.map { .string($0.rawValue) }),
@@ -218,33 +236,47 @@ extension Responses.Request {
             Responses.Member.metadata.rawValue: metadata.json,
         ]
         body.add(members, from: providerName)
+        let kept = body.override(with: overridingMembers, keeping: Responses.Member.essential)
+        let overridden = Set(overridingMembers.members.map(\.key)).subtracting(kept)
 
-        var adjustments: [RequestAdjustment] = metadata.droppedKeys.isEmpty ? [] : [.droppedMetadata(keys: metadata.droppedKeys)]
+        var adjustments: [RequestAdjustment] = []
+        if !metadata.droppedKeys.isEmpty, !overridden.contains(Responses.Member.metadata.rawValue) {
+            adjustments.append(.droppedMetadata(keys: metadata.droppedKeys))
+        }
         let present = body.members.map(\.key)
-        let unlisted = present.filter { unsupportedMembers.contains(Responses.Member(rawValue: $0)) }
+        let unlisted = present.filter { !overridden.contains($0) && unsupportedMembers.contains(Responses.Member(rawValue: $0)) }
         if !unlisted.isEmpty {
             for key in unlisted { body[key] = nil }
             adjustments.append(.unlistedParameters(unlisted))
         }
-        // The format has no member for `top_k` or a seed, and the exchange leaves out what the provider doesn't take with
-        // the request's other settings.
-        let leftOut = present.filter { !unlisted.contains($0) && leftOutMembers.contains(Responses.Member(rawValue: $0)) }
+        // The exchange leaves out what the provider doesn't take with the request's other settings, and the format has no
+        // member for `top_k` or a seed: they go out only as a provider's or the app's member.
+        let leftOut = present.filter {
+            !overridden.contains($0) && !unlisted.contains($0) && leftOutMembers.contains(Responses.Member(rawValue: $0))
+        }
         for key in leftOut { body[key] = nil }
-        let unsent = leftOut + (sampling.topK == nil ? [] : [Self.topK]) + (sampling.seed == nil ? [] : [Self.seed])
+        let unwritten = [sampling.topK.map { _ in Self.topK }, sampling.seed.map { _ in Self.seed }].compactMap(\.self)
+        let unsent = leftOut + unwritten.filter { !present.contains($0) }
         if !unsent.isEmpty {
             adjustments.append(.unsentSettings(unsent))
         }
+        if !kept.isEmpty {
+            adjustments.append(.keptMembers(kept))
+        }
         if let requested = options.maximumResponseTokens, let sent = tokenLimit, sent != requested,
-            body[Responses.Member.maxOutputTokens.rawValue] != nil
+            !overridden.contains(Responses.Member.maxOutputTokens.rawValue), body[Responses.Member.maxOutputTokens.rawValue] != nil
         {
             adjustments.append(.raisedTokenLimit(requested: requested, sent: sent))
         }
-        if let movedEffort {
+        if let movedEffort, !overridden.contains(Responses.Member.reasoning.rawValue) {
             adjustments.append(.movedEffort(requested: movedEffort.requested, sent: movedEffort.sent))
         }
 
+        // The app's `text` goes out as written, so there's no other schema to try.
         var portable: JSONValue?
-        if let format = textFormats?.portable, body[Responses.Member.text.rawValue] != nil {
+        if let format = textFormats?.portable, !overridden.contains(Responses.Member.text.rawValue),
+            body[Responses.Member.text.rawValue] != nil
+        {
             var members = body
             members[Responses.Member.text.rawValue] = try text(format: format)
             portable = .object(members)
@@ -269,7 +301,19 @@ extension Responses.Request {
         }
     }
 
-    /// The names of the sampling settings the format has no member for.
+    /// The storage an app's `store` asks for, or `nil` when the app's members have no `store`, or one that's neither
+    /// `true`, `false` nor `null`.
+    private static func storage(asked store: JSONValue?) -> Storage? {
+        switch store {
+        case .bool(true)?: .stored
+        case .bool(false)?: .notStored
+        case .null?: .automatic
+        default: nil
+        }
+    }
+
+    /// The names of the sampling settings the format has no member for, which a provider's or the app's member may
+    /// carry.
     private static let topK = "top_k"
     private static let seed = "seed"
 

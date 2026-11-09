@@ -1,0 +1,52 @@
+data: {"id":"chatcmpl-76a4f450-377b-11b1-4da0-dab8b41b206a","object":"chat.completion.chunk","created":1794235195,"model":"openai/gpt-oss-20b","system_fingerprint":"fp_e189667b30","choices":[{"index":0,"delta":{"role":"assistant","content":""},"logprobs":null,"finish_reason":null}],"x_groq":{"id":"req_01nmsodw4x2ai9ocuyybln1t4v","seed":406501152}}
+
+data: {"id":"chatcmpl-76a4f450-377b-11b1-4da0-dab8b41b206a","object":"chat.completion.chunk","created":1794235195,"model":"openai/gpt-oss-20b","system_fingerprint":"fp_e189667b30","choices":[{"index":0,"delta":{"reasoning":"Need","channel":"analysis"},"logprobs":null,"finish_reason":null}]}
+
+data: {"id":"chatcmpl-76a4f450-377b-11b1-4da0-dab8b41b206a","object":"chat.completion.chunk","created":1794235195,"model":"openai/gpt-oss-20b","system_fingerprint":"fp_e189667b30","choices":[{"index":0,"delta":{"reasoning":" JSON","channel":"analysis"},"logprobs":null,"finish_reason":null}]}
+
+data: {"id":"chatcmpl-76a4f450-377b-11b1-4da0-dab8b41b206a","object":"chat.completion.chunk","created":1794235195,"model":"openai/gpt-oss-20b","system_fingerprint":"fp_e189667b30","choices":[{"index":0,"delta":{"reasoning":" matching","channel":"analysis"},"logprobs":null,"finish_reason":null}]}
+
+data: {"id":"chatcmpl-76a4f450-377b-11b1-4da0-dab8b41b206a","object":"chat.completion.chunk","created":1794235195,"model":"openai/gpt-oss-20b","system_fingerprint":"fp_e189667b30","choices":[{"index":0,"delta":{"reasoning":" schema","channel":"analysis"},"logprobs":null,"finish_reason":null}]}
+
+data: {"id":"chatcmpl-76a4f450-377b-11b1-4da0-dab8b41b206a","object":"chat.completion.chunk","created":1794235195,"model":"openai/gpt-oss-20b","system_fingerprint":"fp_e189667b30","choices":[{"index":0,"delta":{"reasoning":".","channel":"analysis"},"logprobs":null,"finish_reason":null}]}
+
+data: {"id":"chatcmpl-76a4f450-377b-11b1-4da0-dab8b41b206a","object":"chat.completion.chunk","created":1794235195,"model":"openai/gpt-oss-20b","system_fingerprint":"fp_e189667b30","choices":[{"index":0,"delta":{"reasoning":" Provide","channel":"analysis"},"logprobs":null,"finish_reason":null}]}
+
+data: {"id":"chatcmpl-76a4f450-377b-11b1-4da0-dab8b41b206a","object":"chat.completion.chunk","created":1794235195,"model":"openai/gpt-oss-20b","system_fingerprint":"fp_e189667b30","choices":[{"index":0,"delta":{"reasoning":" activities","channel":"analysis"},"logprobs":null,"finish_reason":null}]}
+
+data: {"id":"chatcmpl-76a4f450-377b-11b1-4da0-dab8b41b206a","object":"chat.completion.chunk","created":1794235195,"model":"openai/gpt-oss-20b","system_fingerprint":"fp_e189667b30","choices":[{"index":0,"delta":{"reasoning":" ","channel":"analysis"},"logprobs":null,"finish_reason":null}]}
+
+data: {"id":"chatcmpl-76a4f450-377b-11b1-4da0-dab8b41b206a","object":"chat.completion.chunk","created":1794235195,"model":"openai/gpt-oss-20b","system_fingerprint":"fp_e189667b30","choices":[{"index":0,"delta":{"reasoning":"3","channel":"analysis"},"logprobs":null,"finish_reason":null}]}
+
+data: {"id":"chatcmpl-76a4f450-377b-11b1-4da0-dab8b41b206a","object":"chat.completion.chunk","created":1794235195,"model":"openai/gpt-oss-20b","system_fingerprint":"fp_e189667b30","choices":[{"index":0,"delta":{"reasoning":" with","channel":"analysis"},"logprobs":null,"finish_reason":null}]}
+
+data: {"id":"chatcmpl-76a4f450-377b-11b1-4da0-dab8b41b206a","object":"chat.completion.chunk","created":1794235195,"model":"openai/gpt-oss-20b","system_fingerprint":"fp_e189667b30","choices":[{"index":0,"delta":{"reasoning":" name","channel":"analysis"},"logprobs":null,"finish_reason":null}]}
+
+data: {"id":"chatcmpl-76a4f450-377b-11b1-4da0-dab8b41b206a","object":"chat.completion.chunk","created":1794235195,"model":"openai/gpt-oss-20b","system_fingerprint":"fp_e189667b30","choices":[{"index":0,"delta":{"reasoning":" and","channel":"analysis"},"logprobs":null,"finish_reason":null}]}
+
+data: {"id":"chatcmpl-76a4f450-377b-11b1-4da0-dab8b41b206a","object":"chat.completion.chunk","created":1794235195,"model":"openai/gpt-oss-20b","system_fingerprint":"fp_e189667b30","choices":[{"index":0,"delta":{"reasoning":" hours","channel":"analysis"},"logprobs":null,"finish_reason":null}]}
+
+data: {"id":"chatcmpl-76a4f450-377b-11b1-4da0-dab8b41b206a","object":"chat.completion.chunk","created":1794235195,"model":"openai/gpt-oss-20b","system_fingerprint":"fp_e189667b30","choices":[{"index":0,"delta":{"reasoning":".","channel":"analysis"},"logprobs":null,"finish_reason":null}]}
+
+data: {"id":"chatcmpl-76a4f450-377b-11b1-4da0-dab8b41b206a","object":"chat.completion.chunk","created":1794235195,"model":"openai/gpt-oss-20b","system_fingerprint":"fp_e189667b30","choices":[{"index":0,"delta":{"reasoning":" Let's","channel":"analysis"},"logprobs":null,"finish_reason":null}]}
+
+data: {"id":"chatcmpl-76a4f450-377b-11b1-4da0-dab8b41b206a","object":"chat.completion.chunk","created":1794235195,"model":"openai/gpt-oss-20b","system_fingerprint":"fp_e189667b30","choices":[{"index":0,"delta":{"reasoning":" choose","channel":"analysis"},"logprobs":null,"finish_reason":null}]}
+
+data: {"id":"chatcmpl-76a4f450-377b-11b1-4da0-dab8b41b206a","object":"chat.completion.chunk","created":1794235195,"model":"openai/gpt-oss-20b","system_fingerprint":"fp_e189667b30","choices":[{"index":0,"delta":{"reasoning":" spring","channel":"analysis"},"logprobs":null,"finish_reason":null}]}
+
+data: {"id":"chatcmpl-76a4f450-377b-11b1-4da0-dab8b41b206a","object":"chat.completion.chunk","created":1794235195,"model":"openai/gpt-oss-20b","system_fingerprint":"fp_e189667b30","choices":[{"index":0,"delta":{"reasoning":",","channel":"analysis"},"logprobs":null,"finish_reason":null}]}
+
+data: {"id":"chatcmpl-76a4f450-377b-11b1-4da0-dab8b41b206a","object":"chat.completion.chunk","created":1794235195,"model":"openai/gpt-oss-20b","system_fingerprint":"fp_e189667b30","choices":[{"index":0,"delta":{"reasoning":" ","channel":"analysis"},"logprobs":null,"finish_reason":null}]}
+
+data: {"id":"chatcmpl-76a4f450-377b-11b1-4da0-dab8b41b206a","object":"chat.completion.chunk","created":1794235195,"model":"openai/gpt-oss-20b","system_fingerprint":"fp_e189667b30","choices":[{"index":0,"delta":{"reasoning":"2","channel":"analysis"},"logprobs":null,"finish_reason":null}]}
+
+data: {"id":"chatcmpl-76a4f450-377b-11b1-4da0-dab8b41b206a","object":"chat.completion.chunk","created":1794235195,"model":"openai/gpt-oss-20b","system_fingerprint":"fp_e189667b30","choices":[{"index":0,"delta":{"reasoning":" days","channel":"analysis"},"logprobs":null,"finish_reason":null}]}
+
+data: {"id":"chatcmpl-76a4f450-377b-11b1-4da0-dab8b41b206a","object":"chat.completion.chunk","created":1794235195,"model":"openai/gpt-oss-20b","system_fingerprint":"fp_e189667b30","choices":[{"index":0,"delta":{"reasoning":".","channel":"analysis"},"logprobs":null,"finish_reason":null}]}
+
+data: {"id":"chatcmpl-76a4f450-377b-11b1-4da0-dab8b41b206a","object":"chat.completion.chunk","created":1794235195,"model":"openai/gpt-oss-20b","system_fingerprint":"fp_e189667b30","choices":[{"index":0,"delta":{"content":"{\"city\":\"Lisbon\",\"season\":\"spring\",\"days\":2,\"note\":\"Enjoy the mild weather and historic sights\",\"activities\":[{\"name\":\"Explore Belém Tower and Jerónimos Monastery\",\"hours\":3},{\"name\":\"Stroll through Alfama district and visit São Jorge Castle\",\"hours\":4},{\"name\":\"Taste pastéis de nata at Pastéis de Belém\",\"hours\":1}]}"},"logprobs":null,"finish_reason":null}]}
+
+data: {"id":"chatcmpl-76a4f450-377b-11b1-4da0-dab8b41b206a","object":"chat.completion.chunk","created":1794235195,"model":"openai/gpt-oss-20b","system_fingerprint":"fp_e189667b30","choices":[{"index":0,"delta":{},"logprobs":null,"finish_reason":"stop"}],"x_groq":{"id":"req_01nmsodw4x2ai9ocuyybln1t4v","usage":{"queue_time":0.046601105,"prompt_tokens":476,"prompt_time":0.032333259,"completion_tokens":116,"completion_time":0.12493157,"total_tokens":592,"total_time":0.157264829,"completion_tokens_details":{"reasoning_tokens":23}}},"usage":{"queue_time":0.046601105,"prompt_tokens":476,"prompt_time":0.032333259,"completion_tokens":116,"completion_time":0.12493157,"total_tokens":592,"total_time":0.157264829,"completion_tokens_details":{"reasoning_tokens":23}}}
+
+data: [DONE]
+

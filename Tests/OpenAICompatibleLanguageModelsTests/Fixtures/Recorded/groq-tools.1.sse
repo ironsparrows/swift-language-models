@@ -1,0 +1,22 @@
+data: {"id":"chatcmpl-98200e69-bdf9-db1f-fa92-a7d5ffd89e8c","object":"chat.completion.chunk","created":1794235183,"model":"openai/gpt-oss-20b","system_fingerprint":"fp_d23c14756c","choices":[{"index":0,"delta":{"role":"assistant","content":""},"logprobs":null,"finish_reason":null}],"x_groq":{"id":"req_0190bp78kxg94b5obylemwhfjv","seed":662839071}}
+
+data: {"id":"chatcmpl-98200e69-bdf9-db1f-fa92-a7d5ffd89e8c","object":"chat.completion.chunk","created":1794235184,"model":"openai/gpt-oss-20b","system_fingerprint":"fp_d23c14756c","choices":[{"index":0,"delta":{"reasoning":"Need","channel":"analysis"},"logprobs":null,"finish_reason":null}]}
+
+data: {"id":"chatcmpl-98200e69-bdf9-db1f-fa92-a7d5ffd89e8c","object":"chat.completion.chunk","created":1794235184,"model":"openai/gpt-oss-20b","system_fingerprint":"fp_d23c14756c","choices":[{"index":0,"delta":{"reasoning":" to","channel":"analysis"},"logprobs":null,"finish_reason":null}]}
+
+data: {"id":"chatcmpl-98200e69-bdf9-db1f-fa92-a7d5ffd89e8c","object":"chat.completion.chunk","created":1794235184,"model":"openai/gpt-oss-20b","system_fingerprint":"fp_d23c14756c","choices":[{"index":0,"delta":{"reasoning":" call","channel":"analysis"},"logprobs":null,"finish_reason":null}]}
+
+data: {"id":"chatcmpl-98200e69-bdf9-db1f-fa92-a7d5ffd89e8c","object":"chat.completion.chunk","created":1794235184,"model":"openai/gpt-oss-20b","system_fingerprint":"fp_d23c14756c","choices":[{"index":0,"delta":{"reasoning":" get","channel":"analysis"},"logprobs":null,"finish_reason":null}]}
+
+data: {"id":"chatcmpl-98200e69-bdf9-db1f-fa92-a7d5ffd89e8c","object":"chat.completion.chunk","created":1794235184,"model":"openai/gpt-oss-20b","system_fingerprint":"fp_d23c14756c","choices":[{"index":0,"delta":{"reasoning":"Weather","channel":"analysis"},"logprobs":null,"finish_reason":null}]}
+
+data: {"id":"chatcmpl-98200e69-bdf9-db1f-fa92-a7d5ffd89e8c","object":"chat.completion.chunk","created":1794235184,"model":"openai/gpt-oss-20b","system_fingerprint":"fp_d23c14756c","choices":[{"index":0,"delta":{"reasoning":" twice","channel":"analysis"},"logprobs":null,"finish_reason":null}]}
+
+data: {"id":"chatcmpl-98200e69-bdf9-db1f-fa92-a7d5ffd89e8c","object":"chat.completion.chunk","created":1794235184,"model":"openai/gpt-oss-20b","system_fingerprint":"fp_d23c14756c","choices":[{"index":0,"delta":{"reasoning":".","channel":"analysis"},"logprobs":null,"finish_reason":null}]}
+
+data: {"id":"chatcmpl-98200e69-bdf9-db1f-fa92-a7d5ffd89e8c","object":"chat.completion.chunk","created":1794235184,"model":"openai/gpt-oss-20b","system_fingerprint":"fp_d23c14756c","choices":[{"index":0,"delta":{"tool_calls":[{"id":"fc_421300e5-43d6-07d8-8f56-42403ff37060","type":"function","function":{"name":"getWeather","arguments":"{\"city\":\"Lisbon\"}"},"index":0}]},"logprobs":null,"finish_reason":null}]}
+
+data: {"id":"chatcmpl-98200e69-bdf9-db1f-fa92-a7d5ffd89e8c","object":"chat.completion.chunk","created":1794235184,"model":"openai/gpt-oss-20b","system_fingerprint":"fp_d23c14756c","choices":[{"index":0,"delta":{},"logprobs":null,"finish_reason":"tool_calls"}],"x_groq":{"id":"req_0190bp78kxg94b5obylemwhfjv","usage":{"queue_time":0.330072654,"prompt_tokens":159,"prompt_time":0.011710696,"completion_tokens":32,"completion_time":0.037654178,"total_tokens":191,"total_time":0.049364874,"completion_tokens_details":{"reasoning_tokens":8}}},"usage":{"queue_time":0.330072654,"prompt_tokens":159,"prompt_time":0.011710696,"completion_tokens":32,"completion_time":0.037654178,"total_tokens":191,"total_time":0.049364874,"completion_tokens_details":{"reasoning_tokens":8}}}
+
+data: [DONE]
+

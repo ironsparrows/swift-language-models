@@ -214,5 +214,29 @@ extension ResponsesModelTests {
                 )
                     == true)
         }
+
+        @Test(arguments: ["null", "false", "0", #""""#, "[]", "{}"])
+        func `an event of a kind the format doesn't read is passed over when its error is empty`(error: String) async throws {
+            let event = #"{"type":"response.new_kind","error":\#(error)}"#
+            let lines = ["data: \(textDelta("Hi").text)", "data: \(event)", "data: \(lifecycle("response.completed").text)"]
+            let stub = HTTPStub(.eventStream(Data(lines.map { $0 + "\n\n" }.joined().utf8)))
+
+            let response = try await LanguageModelSession(model: plainModel(stub)).respond(to: "Hello")
+
+            #expect(response.content == "Hi")
+        }
+
+        @Test func `an event named ping is passed over, whatever its data holds`() async throws {
+            let lines = [
+                "event: ping\ndata: keep-alive", "event: response.output_text.delta\ndata: \(textDelta("Hi").text)",
+                "event: ping\ndata: {}",
+                "event: response.completed\ndata: \(lifecycle("response.completed").text)",
+            ]
+            let stub = HTTPStub(.eventStream(Data(lines.map { $0 + "\n\n" }.joined().utf8)))
+
+            let response = try await LanguageModelSession(model: plainModel(stub)).respond(to: "Hello")
+
+            #expect(response.content == "Hi")
+        }
     }
 }

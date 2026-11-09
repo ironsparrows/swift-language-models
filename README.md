@@ -19,15 +19,17 @@ Apple's `LanguageModelSession`, with Claude, GPT, Gemini and more in the same se
 [Usage](#usage) ·
 [OpenRouter](#openrouter) ·
 [OpenAI](#openai) ·
+[OpenAI-compatible](#openai-compatible-providers) ·
 [Testing](#testing-and-evaluation) ·
 [Docs](#documentation)
 
 </div>
 
 > [!TIP]
-> **Two provider modules.** OpenRouter's one API key reaches hundreds of models from Anthropic, OpenAI, Google,
+> **Three provider modules.** OpenRouter's one API key reaches hundreds of models from Anthropic, OpenAI, Google,
 > DeepSeek, Qwen, Meta and Mistral. OpenAI's module reaches GPT models, and o3 until it retires, directly through
-> OpenAI's Responses API.
+> OpenAI's Responses API. The OpenAI-compatible module reaches any provider whose API speaks OpenAI's formats, with
+> presets for Gemini, Groq, DeepSeek, Mistral, xAI, Ollama, LM Studio and vLLM.
 
 Apps keep Apple's `LanguageModelSession`, with its transcripts, tools, `@Generable` guided generation, Dynamic Profiles
 and reasoning levels. Provider modules plug other providers' models into it. Claude, GPT, Gemini, DeepSeek, Qwen, Llama
@@ -36,7 +38,9 @@ and Mistral then run in the same session as Apple's on-device model, and switchi
 - **Apple's API, any model.** Sessions, streaming, tools, `@Generable` and Dynamic Profiles work unchanged.
 - **Typed model catalogs.** Each model of OpenRouter's and OpenAI's catalogs is a static member, with its context size,
   levels and capabilities.
-- **Typed reasoning levels.** Each model takes only the levels it accepts, checked when the code compiles.
+- **Typed reasoning levels.** Each catalog model takes only the levels it accepts, checked when the code compiles.
+- **Any provider that speaks OpenAI's formats.** Presets for Gemini, Groq, DeepSeek, Mistral and xAI, and for models
+  on your own machines through Ollama, LM Studio and vLLM; any other provider by its URL.
 - **Routing, fallbacks and caching.** Hosts picked by price or data policy, backup models, and cached prompts.
 - **Server tools.** Web search, web fetch, advisors and subagents run on OpenRouter, and web search, image generation
   and file search on OpenAI, while the model answers.
@@ -88,6 +92,7 @@ dependencies: [
 ```swift
 .product(name: "OpenRouterLanguageModels", package: "swift-language-models")
 .product(name: "OpenAILanguageModels", package: "swift-language-models")
+.product(name: "OpenAICompatibleLanguageModels", package: "swift-language-models")
 ```
 
 A provider module re-exports `LanguageModels`, which carries the contract every provider shares, so apps import the
@@ -128,9 +133,10 @@ for try await snapshot in session.streamResponse(to: "Do I need a jacket in Athe
 let itinerary = try await session.respond(to: "Plan three days in Kyoto.", generating: Itinerary.self).content
 ```
 
-A guided request goes only to a model whose provider enforces the schema, as Tools and guided generation describes
-[for OpenRouter][tools] and [for OpenAI][openai-tools]. Some hosts drop guides such as a range or a count, so each
-answer is checked against them, and one that breaks a guide throws `GeneratedContent.ParsingError`, whose
+A guided request goes only to a model whose provider enforces the schema, or, for an OpenAI-compatible provider, whose
+details list guided generation, as Tools and guided generation describes [for OpenRouter][tools], [for
+OpenAI][openai-tools] and [for OpenAI-compatible providers][compatible-tools]. Some hosts drop guides such as a range or
+a count, so each answer is checked against them, and one that breaks a guide throws `GeneratedContent.ParsingError`, whose
 `underlyingError` is a `GuideViolations` that lists each value, its path, keyword and limit.
 
 ### Reasoning effort
@@ -162,8 +168,8 @@ let tutor = LanguageModelSession(profile: TutorProfile(model: model, effort: .xh
 ```
 
 Apple's `.light`, `.moderate` and `.deep` still work, sent as the nearest level the model accepts. See
-[Reasoning levels][reasoning-levels], and Reasoning [with OpenRouter models][openrouter-reasoning] or [with OpenAI
-models][openai-reasoning] for what each level becomes.
+[Reasoning levels][reasoning-levels], and Reasoning [with OpenRouter models][openrouter-reasoning], [with OpenAI
+models][openai-reasoning] or [with OpenAI-compatible providers][compatible-reasoning] for what each level becomes.
 
 ### Attachments
 
@@ -195,8 +201,8 @@ if #available(iOS 27.2, macOS 27.2, visionOS 27.2, watchOS 27.2, *) {
 }
 ```
 
-See Attachments [for OpenRouter][attachments] and [for OpenAI][openai-attachments], and [Reading model
-details][model-details] to check what a model takes.
+See Attachments [for OpenRouter][attachments], [for OpenAI][openai-attachments] and [for OpenAI-compatible
+providers][compatible-attachments], and [Reading model details][model-details] to check what a model takes.
 
 ### Logging
 
@@ -424,6 +430,36 @@ do {
 
 See [Errors and metadata][openai-errors-and-metadata].
 
+## OpenAI-compatible providers
+
+`OpenAICompatibleLanguageModel` reaches any provider whose API speaks OpenAI's Chat Completions or Responses format,
+from a preset or from a provider you describe. Its [documentation][compatible-docs] starts with
+[Getting started][compatible-getting-started].
+
+```swift
+import OpenAICompatibleLanguageModels
+
+// A preset: Gemini, Groq, DeepSeek, Mistral, xAI, or the Ollama, LM Studio and vLLM servers.
+let gemini = OpenAICompatibleLanguageModel(
+    OpenAICompatibleModel("gemini-3.1-flash-lite", on: .gemini),
+    auth: .apiKey { try await keyStore.geminiKey() }
+)
+
+// Any other provider, by its name and URL, with what you know about the model.
+let gateway = OpenAICompatibleProvider(name: "Gateway", url: URL(string: "https://llm.example.com/v1")!)
+let model = OpenAICompatibleLanguageModel(
+    OpenAICompatibleModel("my-model", on: gateway, contextSize: 128_000, reasoning: .onByDefault),
+    auth: .apiKey { try await keyStore.gatewayKey() }
+)
+```
+
+There's no catalog behind it: a model's details are what you say, and the provider has the last word at run time. Each
+preset carries what its provider does differently, such as the members it refuses, how its reasoning goes back on later
+turns, and its retries; [Providers][compatible-providers] lists each one, and which were checked against their
+provider, and when. Failures throw `LanguageModelError` where Foundation Models has a case, and `OpenAICompatibleError`,
+which names the provider, otherwise. See [Reasoning][compatible-reasoning], [Caching][compatible-caching] and
+[Errors and metadata][compatible-errors-and-metadata].
+
 ## Testing and evaluation
 
 Any model can be the model under test, the judge or the sample generator in Apple's Evaluations framework. A scripted
@@ -442,8 +478,9 @@ model keeps unit tests offline.
 ## Documentation
 
 The [documentation][docs] is on GitHub Pages, updated with each release, for
-[`OpenRouterLanguageModels`][openrouter-docs], [`OpenAILanguageModels`][openai-docs] and [`LanguageModels`][core-docs],
-the core every provider module shares. For sessions, tools and profiles, see Apple's
+[`OpenRouterLanguageModels`][openrouter-docs], [`OpenAILanguageModels`][openai-docs],
+[`OpenAICompatibleLanguageModels`][compatible-docs] and [`LanguageModels`][core-docs], the core every provider module
+shares. For sessions, tools and profiles, see Apple's
 [Foundation Models documentation](https://developer.apple.com/documentation/foundationmodels).
 
 New to Foundation Models? [Foundation Models Academy](https://github.com/dioKaratzas/foundation-models-academy)
@@ -454,8 +491,8 @@ teaches it in 40 hands-on lessons, and runs its live lessons on OpenRouter with 
 Ask questions and share ideas in [Discussions](https://github.com/ironsparrows/swift-language-models/discussions),
 and report bugs in [Issues](https://github.com/ironsparrows/swift-language-models/issues). Pull requests are
 welcome. For a larger change, such as a new provider module, open an issue first.
-[CONTRIBUTING.md](CONTRIBUTING.md) says how to build, refresh the model catalog and add a provider module, which
-[Writing a provider module][writing-a-provider] describes.
+[CONTRIBUTING.md](CONTRIBUTING.md) says how to build, refresh the model catalog, add a preset for a provider that speaks
+OpenAI's formats and add a provider module, which [Writing a provider module][writing-a-provider] describes.
 [ARCHITECTURE.md](ARCHITECTURE.md) maps how the modules fit together and how a request travels through them.
 
 ### Testing
@@ -468,6 +505,13 @@ OPENROUTER_API_KEY=… swift test --filter 'OpenRouterLanguageModelsTests\.Live'
 
 # OpenAI's live suite, on its cheapest models.
 OPENAI_API_KEY=… swift test --filter 'OpenAILanguageModelsTests\.Live'
+
+# The OpenAI-compatible presets' live suites, each with its provider's key: GEMINI_API_KEY, GROQ_API_KEY,
+# DEEPSEEK_API_KEY, MISTRAL_API_KEY or XAI_API_KEY. Gemini's waits between requests for its free tier.
+GEMINI_API_KEY=… GROQ_API_KEY=… swift test --filter 'OpenAICompatibleLanguageModelsTests\.Live'
+
+# Ollama's, LM Studio's and vLLM's, against servers running on this Mac at their default addresses.
+LIVE_LOCAL_SERVERS=1 swift test --filter 'OpenAICompatibleLanguageModelsTests\.Live'
 
 # Model and provider info, which needs no key.
 LIVE_INFO=1 swift test --filter LiveInfoTests
@@ -528,3 +572,11 @@ Licensed under the Apache License 2.0. See [LICENSE](LICENSE).
 [openai-attachments]: https://ironsparrows.github.io/swift-language-models/documentation/openailanguagemodels/attachments
 [openai-repeatable-runs]: https://ironsparrows.github.io/swift-language-models/documentation/openailanguagemodels/repeatableruns
 [openai-server-tools]: https://ironsparrows.github.io/swift-language-models/documentation/openailanguagemodels/servertools
+[compatible-docs]: https://ironsparrows.github.io/swift-language-models/documentation/openaicompatiblelanguagemodels
+[compatible-getting-started]: https://ironsparrows.github.io/swift-language-models/documentation/openaicompatiblelanguagemodels/gettingstarted
+[compatible-providers]: https://ironsparrows.github.io/swift-language-models/documentation/openaicompatiblelanguagemodels/providers
+[compatible-tools]: https://ironsparrows.github.io/swift-language-models/documentation/openaicompatiblelanguagemodels/toolsandguidedgeneration
+[compatible-attachments]: https://ironsparrows.github.io/swift-language-models/documentation/openaicompatiblelanguagemodels/attachments
+[compatible-reasoning]: https://ironsparrows.github.io/swift-language-models/documentation/openaicompatiblelanguagemodels/reasoning
+[compatible-caching]: https://ironsparrows.github.io/swift-language-models/documentation/openaicompatiblelanguagemodels/caching
+[compatible-errors-and-metadata]: https://ironsparrows.github.io/swift-language-models/documentation/openaicompatiblelanguagemodels/errorsandmetadata

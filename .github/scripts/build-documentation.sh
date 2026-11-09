@@ -17,6 +17,7 @@ export DOCC_EXEC="$stand_in/bin/docc"
 
 swift package --disable-sandbox --allow-writing-to-directory site generate-documentation \
   --target LanguageModels --target OpenRouterLanguageModels --target OpenAILanguageModels \
+  --target OpenAICompatibleLanguageModels \
   --enable-experimental-combined-documentation \
   --transform-for-static-hosting --hosting-base-path swift-language-models \
   --output-path site "$@"

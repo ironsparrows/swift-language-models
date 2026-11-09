@@ -1,0 +1,41 @@
+{
+  "transcript" : {
+    "entries" : [
+      {
+        "contents" : [
+          {
+            "id" : "97C1804E-5AC7-40CA-A924-737BD259DD71",
+            "text" : "Name one color of the sea.",
+            "type" : "text"
+          }
+        ],
+        "contextOptions" : {
+          "reasoningLevel" : "none"
+        },
+        "id" : "5B27644F-2B1E-4F8C-B78F-D4E56B4B4D08",
+        "options" : {
+          "maximumResponseTokens" : 300
+        },
+        "role" : "user"
+      },
+      {
+        "contents" : [
+          {
+            "id" : "BC9C6DF3-4162-4012-8D57-435874F030EA",
+            "text" : "One color of the sea is the **blue**.",
+            "type" : "text"
+          }
+        ],
+        "id" : "9C010546-CC8F-485A-9AB3-AC8292543602",
+        "metadata" : {
+          "finishReason" : "stop",
+          "model" : "qwen3:0.6b",
+          "responseID" : "chatcmpl-443"
+        },
+        "role" : "response"
+      }
+    ]
+  },
+  "type" : "FoundationModels.Transcript",
+  "version" : "1.1"
+}

@@ -1,0 +1,60 @@
+{
+  "transcript" : {
+    "entries" : [
+      {
+        "contents" : [
+          {
+            "id" : "62228315-1DB7-43C3-897F-F68449B9F2DB",
+            "text" : "Name one color of the sea.",
+            "type" : "text"
+          }
+        ],
+        "contextOptions" : {
+          "reasoningLevel" : "light"
+        },
+        "id" : "E4D42D60-2400-4E41-AEEB-FF7AB1023AE1",
+        "options" : {
+          "maximumResponseTokens" : 300
+        },
+        "role" : "user"
+      },
+      {
+        "id" : "4E589DDF-8BC1-4182-AE0E-EF2B9857A93E",
+        "metadata" : {
+          "model" : "openai\/gpt-oss-20b",
+          "reasoningOrigin" : "openai-compatible\/groq"
+        },
+        "reasoning" : {
+          "contents" : [
+            {
+              "id" : "D481A3A3-8776-49BA-A460-C6B37956475F",
+              "text" : "We need answer: \"Blue\" is one color.",
+              "type" : "text"
+            }
+          ]
+        },
+        "role" : "reasoning"
+      },
+      {
+        "contents" : [
+          {
+            "id" : "951F6AF6-2157-47F8-BBBE-1C7486389BE7",
+            "text" : "Blue.",
+            "type" : "text"
+          }
+        ],
+        "id" : "80B11905-71D6-4A2E-8F64-93A0E6DCCD81",
+        "metadata" : {
+          "finishReason" : "stop",
+          "model" : "openai\/gpt-oss-20b",
+          "provider" : "Groq",
+          "requestID" : "req_015qz8ld8tvjhzmt437ut7mv81",
+          "responseID" : "chatcmpl-6c3790f0-66ec-353e-435e-79cbf58b8904"
+        },
+        "role" : "response"
+      }
+    ]
+  },
+  "type" : "FoundationModels.Transcript",
+  "version" : "1.1"
+}

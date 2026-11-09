@@ -1,0 +1,137 @@
+{
+  "transcript" : {
+    "entries" : [
+      {
+        "contents" : [
+
+        ],
+        "id" : "542B614F-BF2A-4D06-82C7-37A5EF9E2A66",
+        "role" : "instructions",
+        "tools" : [
+          {
+            "function" : {
+              "description" : "Gets the current temperature in a city, in degrees Celsius.",
+              "name" : "getWeather",
+              "parameters" : {
+                "additionalProperties" : false,
+                "properties" : {
+                  "city" : {
+                    "description" : "The city's name.",
+                    "type" : "string"
+                  }
+                },
+                "required" : [
+                  "city"
+                ],
+                "title" : "Arguments",
+                "type" : "object",
+                "x-order" : [
+                  "city"
+                ]
+              }
+            },
+            "type" : "function"
+          }
+        ]
+      },
+      {
+        "contents" : [
+          {
+            "id" : "D6D43FBF-B0C1-49F7-9321-C5C99A2FC3A2",
+            "text" : "What's the temperature in Lisbon? Use the tool.",
+            "type" : "text"
+          }
+        ],
+        "contextOptions" : {
+
+        },
+        "id" : "3317A0B3-9A88-415B-8508-B06A54A3F92F",
+        "options" : {
+          "maximumResponseTokens" : 1500
+        },
+        "role" : "user"
+      },
+      {
+        "id" : "86FB54A5-4809-4C89-BE2F-71EFBBF362EB",
+        "metadata" : {
+          "model" : "qwen3:0.6b",
+          "reasoningOrigin" : "openai-compatible\/ollama"
+        },
+        "reasoning" : {
+          "contents" : [
+            {
+              "id" : "754E1582-860F-4150-9A7A-28E47FD14107",
+              "text" : "Okay, the user is asking for the temperature in Lisbon. I need to use the getWeather function to get that information. Let me check the function's parameters. The function takes a city name as an argument, which is a string. So I should call getWeather with the city set to \"Lisbon\". I don't see any other parameters needed for this function. Just make sure to format the tool call correctly as specified.\n",
+              "type" : "text"
+            }
+          ]
+        },
+        "role" : "reasoning"
+      },
+      {
+        "id" : "5E80CCD7-9DAE-4AC2-B815-CFCC7FBF80F6",
+        "role" : "response",
+        "toolCalls" : [
+          {
+            "arguments" : "{\"city\": \"Lisbon\"}",
+            "id" : "call_eds04pjl",
+            "metadata" : {
+              "finishReason" : "tool_calls",
+              "model" : "qwen3:0.6b",
+              "responseID" : "chatcmpl-000"
+            },
+            "name" : "getWeather"
+          }
+        ]
+      },
+      {
+        "contents" : [
+          {
+            "id" : "5EF56A2F-6338-4F13-BC4F-AC64E4D10B34",
+            "text" : "It is 17 degrees in Lisbon.",
+            "type" : "text"
+          }
+        ],
+        "id" : "call_eds04pjl",
+        "role" : "tool",
+        "toolCallID" : "call_eds04pjl",
+        "toolName" : "getWeather"
+      },
+      {
+        "id" : "12989FEC-ACB3-4286-BD50-3BB8DF8600BF",
+        "metadata" : {
+          "model" : "qwen3:0.6b",
+          "reasoningOrigin" : "openai-compatible\/ollama"
+        },
+        "reasoning" : {
+          "contents" : [
+            {
+              "id" : "53D22DAF-7A0D-4459-B057-1BDD896996EA",
+              "text" : "Okay, the user asked for the temperature in Lisbon using the tool. I called getWeather with \"Lisbon\" as the city, and the response was 17 degrees. Now I need to present this information clearly. Let me make sure to state the temperature in a friendly manner and confirm that it's Lisbon. No other details are needed here.\n",
+              "type" : "text"
+            }
+          ]
+        },
+        "role" : "reasoning"
+      },
+      {
+        "contents" : [
+          {
+            "id" : "10D156C5-07A2-49AD-9865-7A4F7962F91C",
+            "text" : "The temperature in Lisbon is currently 17 degrees Celsius.",
+            "type" : "text"
+          }
+        ],
+        "id" : "32229397-3727-4E2E-BD35-1928BEDB8DB4",
+        "metadata" : {
+          "finishReason" : "stop",
+          "model" : "qwen3:0.6b",
+          "responseID" : "chatcmpl-618"
+        },
+        "role" : "response"
+      }
+    ]
+  },
+  "type" : "FoundationModels.Transcript",
+  "version" : "1.1"
+}

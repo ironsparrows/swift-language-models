@@ -18,6 +18,13 @@ This article builds them for a made-up provider, Vendor, whose API streams one J
 API. Depend on the `LanguageModelsCore` product, which holds the whole contract and compiles no HTTP code, and re-export
 it with `@_exported public import LanguageModelsCore`, so a file that imports your module can use the contract too.
 
+A provider whose API speaks OpenAI's Chat Completions or Responses format may need no module at all:
+[`OpenAICompatibleLanguageModels`](https://ironsparrows.github.io/swift-language-models/documentation/openaicompatiblelanguagemodels)
+reaches it as a provider an app describes by its name, base URL and format, with what the app knows about each model,
+and has presets for several such providers. Write a module when the provider has a wire format of its own, or when its
+models need what a described provider can't carry, such as a catalog of typed models, typed settings of the provider's
+own, or facts it reports beyond the shared ones.
+
 The code that sends requests for this package's own provider modules isn't public, so a module in another package writes
 its own sending, retries and streaming, as Vendor's does. A provider that joins this package is added as
 [CONTRIBUTING.md](https://github.com/ironsparrows/swift-language-models/blob/main/CONTRIBUTING.md) describes.

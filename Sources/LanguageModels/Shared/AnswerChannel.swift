@@ -150,6 +150,8 @@ struct AnswerChannel {
     ///   - report: What the format's own members reported about the answer.
     ///   - facts: What the provider adds to them.
     ///   - refusal: The refusal text the model sent, empty for none.
+    ///   - ending: Why the answer ended, in the format's word, which decides whether it fails; the report's finish
+    ///     reason stays the provider's word.
     ///   - requiresCompleteAnswer: Whether the answer must be whole, as a guided answer must.
     ///   - failedAnswer: The format's error for an answer the host says failed, or `nil` when it doesn't say so.
     /// - Throws: ``StreamProblem`` for a problem the format reports as a failure of its own, such as the token limit
@@ -158,13 +160,13 @@ struct AnswerChannel {
         report: AnswerReport,
         facts: AnswerAdditions,
         refusal: String,
+        ending: FinishReason?,
         requiresCompleteAnswer: Bool,
         failedAnswer: (any Error)? = nil
     ) async throws {
         await finishText(model: report.model)
         let ending = AnswerEnding(
-            refusal: refusal, finishReason: report.finishReason, hasToolCalls: hasToolCalls,
-            requiresCompleteAnswer: requiresCompleteAnswer)
+            refusal: refusal, finishReason: ending, hasToolCalls: hasToolCalls, requiresCompleteAnswer: requiresCompleteAnswer)
         if ending == .tokenLimitInToolCall { throw StreamProblem.tokenLimitInToolCall }
         if let error = ending?.error(responseText: responseText, host: facts.host) ?? failedAnswer { throw error }
         try await finishToolCalls()
@@ -265,12 +267,18 @@ struct AnswerChannel {
 /// An answer's tool calls, assembled from their fragments as they arrive.
 ///
 /// Fragments are routed by index, so parallel calls form one round. A fragment without an index continues the last
-/// call, unless it brings a new id, which starts the next call. A call starts once it has a name, with an id made up if
-/// the model sent none or one another call already uses, so the calls keep their order and none replaces another.
-/// Argument text that arrives before the name is held until the call starts.
+/// call, unless it brings a new id, which starts the next call. Parallel calls that share an index stay apart: at an
+/// index that has calls, a fragment continues the call that had its id; one with a name continues the latest call of
+/// that name, and starts another call when none there has it, since a call keeps its name, or when that call's
+/// arguments are whole, which more text can only break, and the fragment's arguments start a JSON value or it brings an
+/// id none of the calls there had while that call had one; any other fragment continues the latest call there. A call
+/// starts once it has a name, with an id made up if the model sent none or one another call already uses, so the calls
+/// keep their order and none replaces another. Argument text that arrives before the name is held until the call
+/// starts.
 struct ToolCallAssembler {
-    private var calls: [Int: Call] = [:]
-    private var lastIndex: Int?
+    /// The calls, by their place: their index, then their order among the calls at that index.
+    private var calls: [Place: Call] = [:]
+    private var lastPlace: Place?
 
     /// Starts an answer with no tool calls.
     init() {}
@@ -285,18 +293,20 @@ struct ToolCallAssembler {
     /// - Parameters:
     ///   - index: The call's index in the answer, when the fragment names one.
     ///   - id: The call's id, when the fragment brings one.
-    ///   - name: The tool's name, when the fragment brings it.
+    ///   - name: The tool's name, when the fragment brings it. A name of only whitespace is no name.
     ///   - arguments: The next part of the call's argument text.
     /// - Returns: The text to append to the call's arguments: all of it so far when the fragment starts the call, even
     ///   none, which announces the call; otherwise the fragment's own. `nil` when the call hasn't started or the
     ///   fragment has no text.
     mutating func add(index: Int?, id: String?, name: String?, arguments: String?) -> Arguments? {
-        let index = self.index(of: index, id: id)
-        lastIndex = index
-        var call = calls[index] ?? Call()
+        let name = name.flatMap { $0.allSatisfy(\.isWhitespace) ? nil : $0 }
+        let place = self.place(of: index, id: id, name: name, arguments: arguments)
+        lastPlace = place
+        var call = calls[place] ?? Call()
         let wasStarted = call.id != nil && call.name != nil
+        if let id, !id.isEmpty { call.ids.insert(id) }
         if call.id == nil, let id, !id.isEmpty, !calls.values.contains(where: { $0.id == id }) { call.id = id }
-        if call.name == nil, let name, !name.isEmpty { call.name = name }
+        if call.name == nil, let name { call.name = name }
         if call.name != nil, call.id == nil { call.id = "call_\(UUID().uuidString)" }
         call.pendingArguments += arguments ?? ""
         var arguments: Arguments?
@@ -305,7 +315,7 @@ struct ToolCallAssembler {
             call.argumentText += call.pendingArguments
             call.pendingArguments = ""
         }
-        calls[index] = call
+        calls[place] = call
         return arguments
     }
 
@@ -323,17 +333,17 @@ struct ToolCallAssembler {
     /// Foundation Models reads arguments that stop partway, so arguments that aren't a whole JSON object are refused
     /// here, before any tool runs with them.
     ///
-    /// - Returns: An empty JSON object, in index order, as the arguments of each call that got none, since a call to a
-    ///   tool without arguments may send none, and Foundation Models parses them as JSON.
+    /// - Returns: An empty JSON object, in index order, as the arguments of each call that got none or only whitespace,
+    ///   since a call to a tool without arguments may send none, and Foundation Models parses them as JSON.
     /// - Throws: ``Failure/missingName`` when a call never got its name, and ``Failure/incompleteArguments(toolName:)``
     ///   when a call's arguments aren't a whole JSON object.
     func finish() throws(Failure) -> [Arguments] {
         var arguments: [Arguments] = []
         for (_, call) in calls.sorted(by: { $0.key < $1.key }) {
             guard let id = call.id, let name = call.name else { throw .missingName }
-            if call.argumentText.isEmpty {
+            if call.argumentText.allSatisfy(\.isWhitespace) {
                 arguments.append(Arguments(callID: id, toolName: name, text: "{}"))
-            } else if case .object? = try? JSONValue(json: Data(call.argumentText.utf8)) {
+            } else if call.hasWholeArguments {
                 continue
             } else {
                 throw .incompleteArguments(toolName: name)
@@ -342,12 +352,24 @@ struct ToolCallAssembler {
         return arguments
     }
 
-    /// The index of the call a fragment belongs to.
-    private func index(of index: Int?, id: String?) -> Int {
-        if let index { return index }
-        guard let last = lastIndex else { return 0 }
-        guard let id, !id.isEmpty, let lastID = calls[last]?.id, id != lastID else { return last }
-        return (calls.keys.max() ?? last) + 1
+    /// The place of the call a fragment belongs to, for a fragment whose name, if any, isn't only whitespace.
+    private func place(of index: Int?, id: String?, name: String?, arguments: String?) -> Place {
+        guard let index else {
+            guard let last = lastPlace else { return Place(index: 0) }
+            guard let id, !id.isEmpty, let lastID = calls[last]?.id, id != lastID else { return last }
+            return Place(index: (calls.keys.map(\.index).max() ?? last.index) + 1)
+        }
+        let atIndex = calls.keys.filter { $0.index == index }.sorted()
+        guard let latest = atIndex.last else { return Place(index: index) }
+        let next = Place(index: index, order: latest.order + 1)
+        let id = id.flatMap { $0.isEmpty ? nil : $0 }
+        if let id, let known = atIndex.last(where: { calls[$0]?.ids.contains(id) == true }) { return known }
+        // A name that arrives for the latest call, which has none yet, continues it.
+        guard let name, calls[latest]?.name != nil else { return latest }
+        guard let named = atIndex.last(where: { calls[$0]?.name == name }), let call = calls[named] else { return next }
+        let startsValue = arguments?.first { !$0.isWhitespace }.map { $0 == "{" || $0 == "[" } ?? false
+        // The arguments are read whole last, since that reads all their text.
+        return (startsValue || (id != nil && !call.ids.isEmpty)) && call.hasWholeArguments ? next : named
     }
 }
 
@@ -376,14 +398,31 @@ extension ToolCallAssembler {
         case incompleteArguments(toolName: String)
     }
 
+    /// Where a call is among the answer's calls: its index, then its order among the calls at that index.
+    private struct Place: Hashable, Comparable {
+        let index: Int
+        var order = 0
+
+        static func < (lhs: Place, rhs: Place) -> Bool {
+            (lhs.index, lhs.order) < (rhs.index, rhs.order)
+        }
+    }
+
     /// One call as its fragments arrive.
     private struct Call {
         var id: String?
+        /// The ids the call's fragments brought, which tell it apart from other calls at its index.
+        var ids: Set<String> = []
         var name: String?
         /// Argument text that arrived before the call's name, held until the call can start.
         var pendingArguments = ""
         /// The argument text sent so far.
         var argumentText = ""
+
+        /// Whether the argument text sent so far is a whole JSON object, which more text can only break.
+        var hasWholeArguments: Bool {
+            if case .object? = try? JSONValue(json: Data(argumentText.utf8)) { true } else { false }
+        }
     }
 }
 

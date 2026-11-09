@@ -1,0 +1,8 @@
+data: {"choices":[{"delta":{"content":"The","role":"assistant"},"index":0}],"created":1794236606,"id":"ldFsNiBxla3-D4g8nFnx1ku","model":"gemini-3.1-flash-lite","object":"chat.completion.chunk","usage":{"completion_tokens":1,"prompt_tokens":6014,"total_tokens":6015}}
+
+data: {"choices":[{"delta":{"content":" sea is often described as blue.","role":"assistant"},"index":0}],"created":1794236606,"id":"ldFsNiBxla3-D4g8nFnx1ku","model":"gemini-3.1-flash-lite","object":"chat.completion.chunk","usage":{"completion_tokens":8,"prompt_tokens":6014,"total_tokens":6022}}
+
+data: {"choices":[{"delta":{"extra_content":{"google":{"thought_signature":"EnIKcAFpFH0Tpcv+rQpLv0ghob12VkJC5NQ0s/hzotI+mcTHRvIhkm30rSSPOXjtYs86a4wnqWRbptKoCRDlxrQFVcp9qdIynIJl+NQPfHCjzs96/CL+AqD7Pc562KzRlpLnwghoh8zv3PHxPWEXG2N/nww="}},"role":"assistant"},"finish_reason":"stop","index":0}],"created":1794236606,"id":"ldFsNiBxla3-D4g8nFnx1ku","model":"gemini-3.1-flash-lite","object":"chat.completion.chunk","usage":{"completion_tokens":8,"prompt_tokens":6014,"total_tokens":6022}}
+
+data: [DONE]
+

@@ -208,6 +208,9 @@ extension HTTPClient {
         /// The most times a request is sent again.
         let retries: Int
 
+        /// Whether a request whose connection failed is sent again.
+        private let retriesConnections: Bool
+
         /// Whether a response is retried, from its status and its `x-should-retry` header, if any.
         private let retriesResponse: @Sendable (_ status: HTTPStatus, _ shouldRetry: String?) -> Bool
 
@@ -219,16 +222,19 @@ extension HTTPClient {
         ///
         /// - Parameters:
         ///   - retries: The most times a request is sent again.
+        ///   - retriesConnections: Whether a request whose connection failed is sent again.
         ///   - retriesResponse: Whether a response is retried, from its status and its `x-should-retry` header, if
         ///     any.
         ///   - wait: The wait before a retry, from how many retries came before it and the wait the response asks for,
         ///     if any, or `nil` to fail at once.
         private init(
             retries: Int,
+            retriesConnections: Bool,
             retriesResponse: @escaping @Sendable (_ status: HTTPStatus, _ shouldRetry: String?) -> Bool,
             wait: @escaping @Sendable (_ retried: Int, _ asked: Duration?) -> Duration?
         ) {
             self.retries = retries
+            self.retriesConnections = retriesConnections
             self.retriesResponse = retriesResponse
             self.wait = wait
         }
@@ -254,9 +260,11 @@ extension HTTPClient {
         /// - Parameters:
         ///   - number: The retry's number, from 1.
         ///   - error: The connection's error.
-        /// - Returns: The retry, or `nil` when the request has made its retries or the error isn't retried.
+        /// - Returns: The retry, or `nil` when the request has made its retries, the policy sends nothing again after a
+        ///   failed connection, or the error isn't retried.
         fileprivate func retry(_ number: Int, after error: URLError) -> Retry? {
-            guard number <= retries, Self.connectionErrors.contains(error.code), let wait = wait(number - 1, nil)
+            guard number <= retries, retriesConnections, Self.connectionErrors.contains(error.code),
+                let wait = wait(number - 1, nil)
             else { return nil }
             return Retry(cause: .connection(error), wait: wait, number: number, limit: retries)
         }
@@ -291,8 +299,9 @@ extension HTTPClient.RetryPolicy {
         .secureConnectionFailed, .badServerResponse,
     ]
 
-    /// Up to `retries` retries of a failed connection or a response whose status `statuses` retries, with a wait that
-    /// doubles from `delay` up to `longestDelay` and is cut by up to a quarter at random.
+    /// Up to `retries` retries of a failed connection, unless `statuses` is ``RetriedStatuses/rateLimits``, or of a
+    /// response whose status `statuses` retries, with a wait that doubles from `delay` up to `longestDelay` and is cut by
+    /// up to a quarter at random.
     ///
     /// A response's `x-should-retry` decides when it's `true` or `false`, whatever the status. A response that asks in
     /// `retry-after-ms` or `Retry-After` for a wait more than zero and at most `longestRetryAfter` waits that long
@@ -314,6 +323,7 @@ extension HTTPClient.RetryPolicy {
     ) -> Self {
         Self(
             retries: retries,
+            retriesConnections: statuses.retriesFailedConnections,
             retriesResponse: { status, shouldRetry in
                 switch shouldRetry {
                 case "true": true
@@ -341,6 +351,16 @@ package enum RetriedStatuses: Sendable {
     /// Any status from 500 to 599: a server that's failing or overloaded.
     case serverErrors
 
+    /// A 429 alone: a rate limit, which turns a request away before any work on it, for a provider that may bill a
+    /// request that failed once its work began. A request to such a provider isn't sent again after a failed
+    /// connection either, since the request may have reached it.
+    case rateLimits
+
+    /// Whether a request whose connection failed is sent again: for every rule but ``rateLimits``.
+    var retriesFailedConnections: Bool {
+        self != .rateLimits
+    }
+
     /// Whether a failed response's status is retried.
     ///
     /// - Parameter status: The response's status.
@@ -349,6 +369,7 @@ package enum RetriedStatuses: Sendable {
         switch self {
         case .transient: [.requestTimeout, .conflict, .tooManyRequests].contains(status) || status.code >= 500
         case .serverErrors: status.isServerError
+        case .rateLimits: status == .tooManyRequests
         }
     }
 }
@@ -369,8 +390,8 @@ extension RequestRetries {
 // MARK: - Waits a server asks for
 
 extension Duration {
-    /// The longest wait a header can ask for, in seconds: one day. A longer one, or one too large to represent, is cut
-    /// to this.
+    /// The longest wait a provider can ask for, in a header or in its error's body, in seconds: one day. A longer one,
+    /// or one too large to represent, is cut to this.
     private static let longestRetryDelay = 86_400.0
 
     /// The delay in a `Retry-After` header: a number of seconds, or an HTTP date.
@@ -406,8 +427,9 @@ extension Duration {
         self.init(clampedSeconds: reset.timeIntervalSince(now))
     }
 
-    /// A delay of the given seconds, at least zero and at most the longest a header can ask for.
-    private init?(clampedSeconds seconds: Double) {
+    /// A delay of the given seconds, at least zero and at most the longest a provider can ask for, or `nil` for a
+    /// number that isn't one.
+    package init?(clampedSeconds seconds: Double) {
         guard !seconds.isNaN else { return nil }
         self = .seconds(Swift.min(Swift.max(seconds, 0), Self.longestRetryDelay))
     }

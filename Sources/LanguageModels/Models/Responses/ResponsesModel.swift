@@ -239,8 +239,9 @@ extension Responses {
     /// ``error(for:)``, which says what a failure becomes. Implement the methods that have a default in the type that
     /// declares the conformance: only there does a misspelled one draw a warning instead of silently keeping the default.
     package protocol Exchange: Sendable {
-        /// The `error` object of the provider's failed responses, `{"error": {…}}`. The default is the one OpenAI's
-        /// formats send.
+        /// The `error` object of the provider's failed responses, `{"error": {…}}`, and of its error events, nested
+        /// under `error` or in the event's own members. When it can't read an error event's, it's read once more with
+        /// the event's text as `message` beside the error's other members. The default is the one OpenAI's formats send.
         associatedtype ErrorBody: Decodable & Sendable = APIErrorBody
 
         // MARK: While the request is read

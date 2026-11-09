@@ -24,6 +24,21 @@ extension ResponsesModelTests {
             #expect(sent.imageEntries.map(\.id) == entries.map(\.id))
         }
 
+        @Test func `the exchange's check sees an image's web address`() async throws {
+            try await withImage(from: .webAddress) { image, address in
+                var model = Responses.Model<ResponsesTestExchange>.test()
+                let entry = prompt(.attachment(.init(content: .image(image))))
+
+                try await confirmation { checked in
+                    model.exchange.checks = { kind, _ in
+                        #expect(kind == .image(webAddress: address))
+                        checked()
+                    }
+                    _ = try ResponsesSentRequest(generationRequest([entry]), model: model)
+                }
+            }
+        }
+
         #if canImport(FoundationModels, _version: 2.1.14)
         @available(iOS 27.2, macOS 27.2, visionOS 27.2, watchOS 27.2, *)
         @Test func `a kind the format has no part for throws before anything is sent`() {
