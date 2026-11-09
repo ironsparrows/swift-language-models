@@ -438,7 +438,8 @@ extension Responses.Stream {
         }
         do {
             try await output.finish(
-                report: report, facts: answerAdditions, refusal: refusal, requiresCompleteAnswer: requiresCompleteAnswer)
+                report: report, facts: answerAdditions, refusal: refusal, ending: report.finishReason,
+                requiresCompleteAnswer: requiresCompleteAnswer)
         } catch let problem as StreamProblem {
             throw failure(problem)
         }

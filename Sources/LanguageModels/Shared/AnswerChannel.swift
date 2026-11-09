@@ -150,6 +150,8 @@ struct AnswerChannel {
     ///   - report: What the format's own members reported about the answer.
     ///   - facts: What the provider adds to them.
     ///   - refusal: The refusal text the model sent, empty for none.
+    ///   - ending: Why the answer ended, in the format's word, which decides whether it fails; the report's finish
+    ///     reason stays the provider's word.
     ///   - requiresCompleteAnswer: Whether the answer must be whole, as a guided answer must.
     ///   - failedAnswer: The format's error for an answer the host says failed, or `nil` when it doesn't say so.
     /// - Throws: ``StreamProblem`` for a problem the format reports as a failure of its own, such as the token limit
@@ -158,13 +160,13 @@ struct AnswerChannel {
         report: AnswerReport,
         facts: AnswerAdditions,
         refusal: String,
+        ending: FinishReason?,
         requiresCompleteAnswer: Bool,
         failedAnswer: (any Error)? = nil
     ) async throws {
         await finishText(model: report.model)
         let ending = AnswerEnding(
-            refusal: refusal, finishReason: report.finishReason, hasToolCalls: hasToolCalls,
-            requiresCompleteAnswer: requiresCompleteAnswer)
+            refusal: refusal, finishReason: ending, hasToolCalls: hasToolCalls, requiresCompleteAnswer: requiresCompleteAnswer)
         if ending == .tokenLimitInToolCall { throw StreamProblem.tokenLimitInToolCall }
         if let error = ending?.error(responseText: responseText, host: facts.host) ?? failedAnswer { throw error }
         try await finishToolCalls()

@@ -51,6 +51,11 @@ extension ChatCompletions {
         /// matched.
         package var media: [MediaPart] = []
 
+        /// The provider's finish reasons that stand for one of the format's, such as its own word for an answer its
+        /// servers cut short, which ends the answer as `error` does. An answer ends as the word it stands for, and its
+        /// metadata keeps the provider's word. The default has none.
+        package var finishReasons: [FinishReason: FinishReason] = [:]
+
         /// How the request's image attachments are encoded.
         let images: ImageEncoding
 

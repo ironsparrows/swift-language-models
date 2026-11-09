@@ -183,6 +183,7 @@ none of them, apart from the required values on the model and what a failure bec
 | `memberOrder` | Chat Completions | the member order hosts cache on | | the format's, with `stream_options` and `reasoning_effort` in it |
 | `unsupportedMembers` | both | the listed members the model's details don't list | the same | |
 | `media` | Chat Completions | AIFF, M4A, AAC, FLAC and OGG audio, and video | | |
+| `finishReasons` | Chat Completions | | | |
 | `images` | both, required | the configuration's `ImageEncoding` | the same | the same |
 | `reasoningOrigin` | both, required | `openrouter` | `openai-responses` | `openai-compatible/`, or `openai-compatible-responses/` on Responses, and the provider's name |
 | `instructionsRole` | Responses | | `developer` for a model that reasons, `system` otherwise | |

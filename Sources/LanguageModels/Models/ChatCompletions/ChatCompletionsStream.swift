@@ -20,6 +20,9 @@ extension ChatCompletions {
         private let imageEntries: [Transcript.Entry]
         private let requiresCompleteAnswer: Bool
 
+        /// The provider's finish reasons that stand for one of the format's.
+        private let finishReasons: [FinishReason: FinishReason]
+
         /// What the answer's chunks reported about it so far.
         private(set) var report = AnswerReport()
 
@@ -43,6 +46,7 @@ extension ChatCompletions {
             self.exchange = exchange
             self.headers = headers
             provider = model.providerName
+            finishReasons = model.finishReasons
             self.imageEntries = imageEntries
             self.requiresCompleteAnswer = requiresCompleteAnswer
             output = AnswerChannel(channel: channel, origin: ReasoningOrigin(rawValue: model.reasoningOrigin), readsTaggedReasoning: true)
@@ -184,7 +188,8 @@ extension ChatCompletions.Stream {
     ///
     /// An answer cut off at its token limit ends like any other, with `length` as its finish reason, since Foundation
     /// Models has no error for it. One cut off inside its tool calls throws instead, so no tool gets partial arguments,
-    /// and so does a guided answer, which would decode as a wrong value.
+    /// and so does a guided answer, which would decode as a wrong value. A finish reason of the provider's own that
+    /// stands for one of the format's ends the answer as that word does.
     ///
     /// - Parameter isComplete: Whether the stream ended with `[DONE]`. A stream that ends without it or a finish reason
     ///   was cut off.
@@ -196,13 +201,14 @@ extension ChatCompletions.Stream {
         guard isComplete || report.finishReason != nil else {
             throw failure(.cutOff)
         }
+        let ending = report.finishReason.map { finishReasons[$0] ?? $0 }
         // A finish reason of `error` says the host failed while it generated.
         let failedAnswer =
-            report.finishReason == .error
+            ending == .error
             ? exchange.error(for: RequestFailure(failedAnswer: nil, headers: headers, imageEntries: imageEntries)) : nil
         do {
             try await output.finish(
-                report: report, facts: additions, refusal: refusal, requiresCompleteAnswer: requiresCompleteAnswer,
+                report: report, facts: additions, refusal: refusal, ending: ending, requiresCompleteAnswer: requiresCompleteAnswer,
                 failedAnswer: failedAnswer)
         } catch let problem as StreamProblem {
             throw failure(problem)

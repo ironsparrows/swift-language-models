@@ -135,6 +135,40 @@ extension ChatCompletionsModelTests {
             }
         }
 
+        @Test func `a provider's finish word ends an answer as the word it stands for, and the metadata keeps the provider's`()
+            async throws
+        {
+            let finishReasons: [FinishReason: FinishReason] = ["insufficient_system_resource": "error", "model_length": "length"]
+            let failed = HTTPStub(chatCompletionsEvents(textChunk("Hal", finishReason: "insufficient_system_resource")))
+            let cut = HTTPStub(
+                chatCompletionsEvents(
+                    toolCallChunk(0, id: "call_1", name: "lookUp", arguments: #"{"word":"eg"#), finishChunk("model_length")))
+            let long = HTTPStub(chatCompletionsEvents(textChunk("Half an answer", finishReason: "model_length")))
+            let plain = HTTPStub(chatCompletionsEvents(textChunk("Hal", finishReason: "insufficient_system_resource")))
+            var models = [failed, cut, long].map(plainModel)
+            for index in models.indices { models[index].finishReasons = finishReasons }
+
+            let failure = await #expect(throws: RequestFailure<APIErrorBody>.self) {
+                try await LanguageModelSession(model: models[0]).respond(to: "Hello")
+            }
+            let cutOff = await #expect(throws: RequestFailure<APIErrorBody>.self) {
+                try await LanguageModelSession(model: models[1], tools: [LookUpTool()]).respond(to: "Define egg.")
+            }
+            let session = LanguageModelSession(model: models[2])
+            let response = try await session.respond(to: "Hello")
+            let unmapped = try await LanguageModelSession(model: plainModel(plain)).respond(to: "Hello")
+
+            #expect(failure?.kind == .failedAnswer)
+            #expect(cutOff?.message == "The answer reached its token limit inside a tool call.")
+            #expect(response.content == "Half an answer")
+            guard case .response(let answer)? = session.transcript.last else {
+                Issue.record("The transcript ends with \(String(describing: session.transcript.last))")
+                return
+            }
+            #expect(answer.providerMetadata.finishReason == "model_length")
+            #expect(unmapped.content == "Hal")
+        }
+
         @Test func `a failed response's error object names what went wrong`() async {
             let stub = HTTPStub(.json(#"{"error":{"message":"Bad key.","type":"invalid_request_error"}}"#, status: 401))
 
