@@ -277,6 +277,36 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.Anthropic
     }
 }
 
+extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.AnthropicClaudeFable5_2> {
+    /// Anthropic: Claude Fable 5.2
+    public static var anthropicClaudeFable5_2: Self {
+        Self(
+            id: "anthropic/claude-fable-5.2",
+            displayName: "Anthropic: Claude Fable 5.2",
+            releaseDate: Date(timeIntervalSince1970: 1_794_253_781),
+            contextSize: 1_000_000,
+            inputModalities: [.file, .image, .text],
+            supportedParameters: [
+                .includeReasoning,
+                .maxCompletionTokens,
+                .maxTokens,
+                .reasoning,
+                .reasoningEffort,
+                .responseFormat,
+                .stop,
+                .structuredOutputs,
+                .toolChoice,
+                .tools,
+                .verbosity,
+            ],
+            reasoning: .mandatory,
+            reasoningEfforts: [.max, .xhigh, .high, .medium, .low],
+            defaultReasoningEffort: .high,
+            cachesOnlyMarkedPrompts: true
+        )
+    }
+}
+
 extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.AnthropicClaudeHaiku4_5> {
     /// Anthropic: Claude Haiku 4.5
     public static var anthropicClaudeHaiku4_5: Self {
@@ -3283,6 +3313,36 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.MetaLlama
     }
 }
 
+extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.MetaMuseEmber> {
+    /// Meta: Muse Ember
+    public static var metaMuseEmber: Self {
+        Self(
+            id: "meta/muse-ember",
+            displayName: "Meta: Muse Ember",
+            releaseDate: Date(timeIntervalSince1970: 1_794_247_648),
+            contextSize: 1_048_576,
+            inputModalities: [.audio, .file, .image, .text, .video],
+            supportedParameters: [
+                .includeReasoning,
+                .maxTokens,
+                .reasoning,
+                .reasoningEffort,
+                .repetitionPenalty,
+                .responseFormat,
+                .structuredOutputs,
+                .temperature,
+                .toolChoice,
+                .tools,
+                .topK,
+                .topP,
+            ],
+            reasoning: .mandatory,
+            reasoningEfforts: [.max, .xhigh, .high, .medium, .low, .minimal],
+            defaultReasoningEffort: .max
+        )
+    }
+}
+
 extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.MetaMuseGlimmer30b> {
     /// Meta: Muse Glimmer 30B
     public static var metaMuseGlimmer30b: Self {
@@ -3567,6 +3627,7 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.Microsoft
 
 extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.MinimaxMinimaxM1> {
     /// MiniMax: MiniMax M1
+    @available(*, deprecated, message: "Removed from OpenRouter on 2026-11-10")
     public static var minimaxMinimaxM1: Self {
         Self(
             id: "minimax/minimax-m1",
@@ -3601,7 +3662,7 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.MinimaxMi
             id: "minimax/minimax-m2.5",
             displayName: "MiniMax: MiniMax M2.5",
             releaseDate: Date(timeIntervalSince1970: 1_770_908_502),
-            contextSize: 204_800,
+            contextSize: 200_000,
             supportedParameters: [
                 .frequencyPenalty,
                 .includeReasoning,
@@ -3635,23 +3696,17 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.MinimaxMi
             id: "minimax/minimax-m2.7",
             displayName: "MiniMax: MiniMax M2.7",
             releaseDate: Date(timeIntervalSince1970: 1_773_836_697),
-            contextSize: 204_800,
+            contextSize: 196_608,
             supportedParameters: [
-                .frequencyPenalty,
                 .includeReasoning,
-                .logitBias,
                 .maxTokens,
-                .minP,
-                .presencePenalty,
                 .reasoning,
-                .repetitionPenalty,
                 .responseFormat,
                 .seed,
                 .stop,
                 .temperature,
                 .toolChoice,
                 .tools,
-                .topK,
                 .topP,
             ],
             reasoning: .mandatory
@@ -4685,6 +4740,37 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.NexAgiNex
             ],
             reasoning: .offByDefault,
             reasoningEfforts: [.high, .medium, .off],
+            defaultReasoningEffort: .high
+        )
+    }
+}
+
+extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.NexAgiNexN2_6> {
+    /// Nex AGI: Nex-N2.6
+    public static var nexAgiNexN2_6: Self {
+        Self(
+            id: "nex-agi/nex-n2.6",
+            displayName: "Nex AGI: Nex-N2.6",
+            releaseDate: Date(timeIntervalSince1970: 1_794_282_379),
+            contextSize: 262_144,
+            inputModalities: [.image, .text],
+            supportedParameters: [
+                .includeReasoning,
+                .logprobs,
+                .maxTokens,
+                .reasoning,
+                .reasoningEffort,
+                .responseFormat,
+                .structuredOutputs,
+                .temperature,
+                .toolChoice,
+                .tools,
+                .topK,
+                .topLogprobs,
+                .topP,
+            ],
+            reasoning: .mandatory,
+            reasoningEfforts: [.high, .medium],
             defaultReasoningEffort: .high
         )
     }
@@ -8332,7 +8418,7 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.QwenQwen3
             id: "qwen/qwen3.8-27b",
             displayName: "Qwen: Qwen3.8 27B",
             releaseDate: Date(timeIntervalSince1970: 1_786_722_910),
-            contextSize: 1_024_000,
+            contextSize: 1_048_575,
             inputModalities: [.image, .text, .video],
             supportedParameters: [
                 .frequencyPenalty,
@@ -8653,7 +8739,28 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.Ricursive
             displayName: "Ricursive: Ripple 65B Preview",
             releaseDate: Date(timeIntervalSince1970: 1_793_818_990),
             contextSize: 1_048_576,
-            supportedParameters: [.logprobs, .maxTokens, .responseFormat, .seed, .temperature, .toolChoice, .tools, .topLogprobs, .topP]
+            supportedParameters: [
+                .frequencyPenalty,
+                .includeReasoning,
+                .logitBias,
+                .logprobs,
+                .maxTokens,
+                .minP,
+                .presencePenalty,
+                .reasoning,
+                .repetitionPenalty,
+                .responseFormat,
+                .seed,
+                .stop,
+                .structuredOutputs,
+                .temperature,
+                .toolChoice,
+                .tools,
+                .topK,
+                .topLogprobs,
+                .topP,
+            ],
+            reasoning: .offByDefault
         )
     }
 }
@@ -8846,6 +8953,7 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.Scaledown
 
 extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.StealthCroutonAlpha> {
     /// Crouton Alpha
+    @available(*, deprecated, message: "Removed from OpenRouter on 2026-11-10")
     public static var stealthCroutonAlpha: Self {
         Self(
             id: "stealth/crouton-alpha",
@@ -8939,7 +9047,7 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.StepfunSt
             id: "stepfun/step-5-preview",
             displayName: "StepFun: Step 5 Preview",
             releaseDate: Date(timeIntervalSince1970: 1_791_462_849),
-            contextSize: 1_048_576,
+            contextSize: 1_000_000,
             inputModalities: [.image, .text, .video],
             supportedParameters: [
                 .frequencyPenalty,
@@ -9140,7 +9248,6 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.TencentHy
                 .maxCompletionTokens,
                 .maxTokens,
                 .minP,
-                .parallelToolCalls,
                 .presencePenalty,
                 .reasoning,
                 .reasoningEffort,
@@ -9277,6 +9384,23 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.Thinkingm
             ],
             reasoning: .onByDefault,
             reasoningEfforts: [.max, .high, .medium, .low, .minimal, .off],
+            defaultReasoningEffort: .high
+        )
+    }
+}
+
+extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.ThinkingmachinesInkling2SmallFree> {
+    /// Thinking Machines: Inkling 2 Small (free)
+    public static var thinkingmachinesInkling2SmallFree: Self {
+        Self(
+            id: "thinkingmachines/inkling-2-small:free",
+            displayName: "Thinking Machines: Inkling 2 Small (free)",
+            releaseDate: Date(timeIntervalSince1970: 1_794_261_847),
+            contextSize: 1_048_576,
+            inputModalities: [.image, .text],
+            supportedParameters: [.includeReasoning, .maxTokens, .reasoning, .reasoningEffort, .seed, .stop, .temperature, .tools, .topP],
+            reasoning: .mandatory,
+            reasoningEfforts: [.max, .high, .medium, .low, .minimal],
             defaultReasoningEffort: .high
         )
     }
@@ -9739,14 +9863,13 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.XiaomiMim
             id: "xiaomi/mimo-v2.5-pro",
             displayName: "Xiaomi: MiMo-V2.5-Pro",
             releaseDate: Date(timeIntervalSince1970: 1_776_874_273),
-            contextSize: 1_050_000,
+            contextSize: 1_024_000,
             supportedParameters: [
                 .includeReasoning,
                 .logprobs,
                 .maxTokens,
                 .reasoning,
                 .responseFormat,
-                .seed,
                 .structuredOutputs,
                 .temperature,
                 .toolChoice,
@@ -10047,15 +10170,11 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.ZAiGlm4_6
 
 extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.ZAiGlm4_7> {
     /// Z.ai: GLM 4.7
-    @available(*, deprecated, message: "OpenRouter retires this model on 2026-12-31")
-    public static var zAiGlm4_7: Self { zAiGlm4_7Entry }
-
-    fileprivate static var zAiGlm4_7Entry: Self {
+    public static var zAiGlm4_7: Self {
         Self(
             id: "z-ai/glm-4.7",
             displayName: "Z.ai: GLM 4.7",
             releaseDate: Date(timeIntervalSince1970: 1_766_378_014),
-            expirationDate: Date(timeIntervalSince1970: 1_798_675_200),
             contextSize: 204_800,
             supportedParameters: [
                 .frequencyPenalty,
@@ -10439,13 +10558,13 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.ZAiGlm5vT
 extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.AnthropicClaudeFableLatest> {
     /// Anthropic: Claude Fable Latest
     ///
-    /// An alias that points to `anthropic/claude-fable-5.1` now.
+    /// An alias that points to `anthropic/claude-fable-5.2` now.
     public static var anthropicClaudeFableLatest: Self {
         Self(
             id: "~anthropic/claude-fable-latest",
             displayName: "Anthropic: Claude Fable Latest",
             releaseDate: Date(timeIntervalSince1970: 1_781_029_944),
-            aliasTarget: "anthropic/claude-fable-5.1",
+            aliasTarget: "anthropic/claude-fable-5.2",
             contextSize: 1_000_000,
             inputModalities: [.file, .image, .text],
             supportedParameters: [
@@ -11134,6 +11253,8 @@ extension OpenRouterModel where Effort == ContextOptions.ReasoningLevel {
             self.init(OpenRouterModel<_>.anthropicClaudeFable5)
         case "anthropic/claude-fable-5.1":
             self.init(OpenRouterModel<_>.anthropicClaudeFable5_1)
+        case "anthropic/claude-fable-5.2":
+            self.init(OpenRouterModel<_>.anthropicClaudeFable5_2)
         case "anthropic/claude-haiku-4.5":
             self.init(OpenRouterModel<_>.anthropicClaudeHaiku4_5)
         case "anthropic/claude-haiku-5.5":
@@ -11336,6 +11457,8 @@ extension OpenRouterModel where Effort == ContextOptions.ReasoningLevel {
             self.init(OpenRouterModel<_>.metaLlamaLlama4Scout)
         case "meta-llama/llama-guard-4-12b":
             self.init(OpenRouterModel<_>.metaLlamaLlamaGuard4_12b)
+        case "meta/muse-ember":
+            self.init(OpenRouterModel<_>.metaMuseEmber)
         case "meta/muse-glimmer-30b":
             self.init(OpenRouterModel<_>.metaMuseGlimmer30b)
         case "meta/muse-spark-1.1":
@@ -11354,8 +11477,6 @@ extension OpenRouterModel where Effort == ContextOptions.ReasoningLevel {
             self.init(OpenRouterModel<_>.metaMuseWonder)
         case "microsoft/phi-4":
             self.init(OpenRouterModel<_>.microsoftPhi4)
-        case "minimax/minimax-m1":
-            self.init(OpenRouterModel<_>.minimaxMinimaxM1)
         case "minimax/minimax-m2.5":
             self.init(OpenRouterModel<_>.minimaxMinimaxM2_5)
         case "minimax/minimax-m2.7":
@@ -11432,6 +11553,8 @@ extension OpenRouterModel where Effort == ContextOptions.ReasoningLevel {
             self.init(OpenRouterModel<_>.nexAgiNexN2_5Mini)
         case "nex-agi/nex-n2.5-pro":
             self.init(OpenRouterModel<_>.nexAgiNexN2_5Pro)
+        case "nex-agi/nex-n2.6":
+            self.init(OpenRouterModel<_>.nexAgiNexN2_6)
         case "nousresearch/hermes-4-405b":
             self.init(OpenRouterModel<_>.nousresearchHermes4_405b)
         case "nvidia/nemotron-3-nano-30b-a3b":
@@ -11718,8 +11841,6 @@ extension OpenRouterModel where Effort == ContextOptions.ReasoningLevel {
             self.init(OpenRouterModel<_>.scaledownExtract)
         case "scaledown/summarize":
             self.init(OpenRouterModel<_>.scaledownSummarize)
-        case "stealth/crouton-alpha":
-            self.init(OpenRouterModel<_>.stealthCroutonAlpha)
         case "stepfun/step-3.5-flash":
             self.init(OpenRouterModel<_>.stepfunStep3_5Flash)
         case "stepfun/step-3.7-flash":
@@ -11750,6 +11871,8 @@ extension OpenRouterModel where Effort == ContextOptions.ReasoningLevel {
             self.init(OpenRouterModel<_>.thedrummerUnslopnemo12b)
         case "thinkingmachines/inkling":
             self.init(OpenRouterModel<_>.thinkingmachinesInkling)
+        case "thinkingmachines/inkling-2-small:free":
+            self.init(OpenRouterModel<_>.thinkingmachinesInkling2SmallFree)
         case "thinkingmachines/inkling-small":
             self.init(OpenRouterModel<_>.thinkingmachinesInklingSmall)
         case "typesafe/jev-router":
@@ -11803,7 +11926,7 @@ extension OpenRouterModel where Effort == ContextOptions.ReasoningLevel {
         case "z-ai/glm-4.6v":
             self.init(OpenRouterModel<_>.zAiGlm4_6v)
         case "z-ai/glm-4.7":
-            self.init(OpenRouterModel<_>.zAiGlm4_7Entry)
+            self.init(OpenRouterModel<_>.zAiGlm4_7)
         case "z-ai/glm-4.7-flash":
             self.init(OpenRouterModel<_>.zAiGlm4_7Flash)
         case "z-ai/glm-5":
@@ -11897,6 +12020,7 @@ private let openRouterCatalogModels: [OpenModel] = [
     OpenModel(OpenRouterModel<_>.anthraciteOrgMagnumV4_72b),
     OpenModel(OpenRouterModel<_>.anthropicClaudeFable5),
     OpenModel(OpenRouterModel<_>.anthropicClaudeFable5_1),
+    OpenModel(OpenRouterModel<_>.anthropicClaudeFable5_2),
     OpenModel(OpenRouterModel<_>.anthropicClaudeHaiku4_5),
     OpenModel(OpenRouterModel<_>.anthropicClaudeHaiku5_5),
     OpenModel(OpenRouterModel<_>.anthropicClaudeOpus4_1),
@@ -11998,6 +12122,7 @@ private let openRouterCatalogModels: [OpenModel] = [
     OpenModel(OpenRouterModel<_>.metaLlamaLlama4Maverick),
     OpenModel(OpenRouterModel<_>.metaLlamaLlama4Scout),
     OpenModel(OpenRouterModel<_>.metaLlamaLlamaGuard4_12b),
+    OpenModel(OpenRouterModel<_>.metaMuseEmber),
     OpenModel(OpenRouterModel<_>.metaMuseGlimmer30b),
     OpenModel(OpenRouterModel<_>.metaMuseSpark1_1),
     OpenModel(OpenRouterModel<_>.metaMuseSpark1_2),
@@ -12007,7 +12132,6 @@ private let openRouterCatalogModels: [OpenModel] = [
     OpenModel(OpenRouterModel<_>.metaMuseSparkOpen),
     OpenModel(OpenRouterModel<_>.metaMuseWonder),
     OpenModel(OpenRouterModel<_>.microsoftPhi4),
-    OpenModel(OpenRouterModel<_>.minimaxMinimaxM1),
     OpenModel(OpenRouterModel<_>.minimaxMinimaxM2_5),
     OpenModel(OpenRouterModel<_>.minimaxMinimaxM2_7),
     OpenModel(OpenRouterModel<_>.minimaxMinimaxM3),
@@ -12046,6 +12170,7 @@ private let openRouterCatalogModels: [OpenModel] = [
     OpenModel(OpenRouterModel<_>.morphMorphV3Large),
     OpenModel(OpenRouterModel<_>.nexAgiNexN2_5Mini),
     OpenModel(OpenRouterModel<_>.nexAgiNexN2_5Pro),
+    OpenModel(OpenRouterModel<_>.nexAgiNexN2_6),
     OpenModel(OpenRouterModel<_>.nousresearchHermes4_405b),
     OpenModel(OpenRouterModel<_>.nvidiaNemotron3Nano30bA3b),
     OpenModel(OpenRouterModel<_>.nvidiaNemotron3NanoOmni30bA3bReasoningFree),
@@ -12189,7 +12314,6 @@ private let openRouterCatalogModels: [OpenModel] = [
     OpenModel(OpenRouterModel<_>.sao10kL3_1Euryale70b),
     OpenModel(OpenRouterModel<_>.scaledownExtract),
     OpenModel(OpenRouterModel<_>.scaledownSummarize),
-    OpenModel(OpenRouterModel<_>.stealthCroutonAlpha),
     OpenModel(OpenRouterModel<_>.stepfunStep3_5Flash),
     OpenModel(OpenRouterModel<_>.stepfunStep3_7Flash),
     OpenModel(OpenRouterModel<_>.stepfunStep5Preview),
@@ -12205,6 +12329,7 @@ private let openRouterCatalogModels: [OpenModel] = [
     OpenModel(OpenRouterModel<_>.thedrummerSkyfall36bV2),
     OpenModel(OpenRouterModel<_>.thedrummerUnslopnemo12b),
     OpenModel(OpenRouterModel<_>.thinkingmachinesInkling),
+    OpenModel(OpenRouterModel<_>.thinkingmachinesInkling2SmallFree),
     OpenModel(OpenRouterModel<_>.thinkingmachinesInklingSmall),
     OpenModel(OpenRouterModel<_>.typesafeJevRouter),
     OpenModel(OpenRouterModel<_>.unbiasedPareto26_10),
@@ -12231,7 +12356,7 @@ private let openRouterCatalogModels: [OpenModel] = [
     OpenModel(OpenRouterModel<_>.zAiGlm4_5vEntry),
     OpenModel(OpenRouterModel<_>.zAiGlm4_6),
     OpenModel(OpenRouterModel<_>.zAiGlm4_6v),
-    OpenModel(OpenRouterModel<_>.zAiGlm4_7Entry),
+    OpenModel(OpenRouterModel<_>.zAiGlm4_7),
     OpenModel(OpenRouterModel<_>.zAiGlm4_7Flash),
     OpenModel(OpenRouterModel<_>.zAiGlm5),
     OpenModel(OpenRouterModel<_>.zAiGlm5Turbo),

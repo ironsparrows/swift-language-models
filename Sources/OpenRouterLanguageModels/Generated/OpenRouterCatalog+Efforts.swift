@@ -89,6 +89,12 @@ public enum OpenRouterCatalog {
         public static var efforts: [String] { ["max", "xhigh", "high", "medium", "low"] }
     }
 
+    /// Anthropic: Claude Fable 5.2
+    public enum AnthropicClaudeFable5_2: Efforts.List {
+        /// The levels the model accepts, highest first.
+        public static var efforts: [String] { ["max", "xhigh", "high", "medium", "low"] }
+    }
+
     /// Anthropic: Claude Haiku 4.5
     public enum AnthropicClaudeHaiku4_5: Efforts.List {
         /// The levels the model accepts, highest first.
@@ -695,6 +701,12 @@ public enum OpenRouterCatalog {
         public static var efforts: [String] { [] }
     }
 
+    /// Meta: Muse Ember
+    public enum MetaMuseEmber: Efforts.List {
+        /// The levels the model accepts, highest first.
+        public static var efforts: [String] { ["max", "xhigh", "high", "medium", "low", "minimal"] }
+    }
+
     /// Meta: Muse Glimmer 30B
     public enum MetaMuseGlimmer30b: Efforts.List {
         /// The levels the model accepts, highest first.
@@ -981,6 +993,12 @@ public enum OpenRouterCatalog {
     public enum NexAgiNexN2_5Pro: Efforts.List {
         /// The levels the model accepts, highest first.
         public static var efforts: [String] { ["high", "medium", "none"] }
+    }
+
+    /// Nex AGI: Nex-N2.6
+    public enum NexAgiNexN2_6: Efforts.List {
+        /// The levels the model accepts, highest first.
+        public static var efforts: [String] { ["high", "medium"] }
     }
 
     /// Nous: Hermes 4 405B
@@ -1937,6 +1955,12 @@ public enum OpenRouterCatalog {
         public static var efforts: [String] { ["max", "high", "medium", "low", "minimal", "none"] }
     }
 
+    /// Thinking Machines: Inkling 2 Small (free)
+    public enum ThinkingmachinesInkling2SmallFree: Efforts.List {
+        /// The levels the model accepts, highest first.
+        public static var efforts: [String] { ["max", "high", "medium", "low", "minimal"] }
+    }
+
     /// Thinking Machines: Inkling Small
     public enum ThinkingmachinesInklingSmall: Efforts.List {
         /// The levels the model accepts, highest first.
@@ -2320,6 +2344,23 @@ extension Efforts.Of where Tag == OpenRouterCatalog.AnthropicClaudeFable5 {
 }
 
 extension Efforts.Of where Tag == OpenRouterCatalog.AnthropicClaudeFable5_1 {
+    /// The `max` effort.
+    public static var max: Self { Self(listed: "max") }
+
+    /// The `xhigh` effort.
+    public static var xhigh: Self { Self(listed: "xhigh") }
+
+    /// The `high` effort.
+    public static var high: Self { Self(listed: "high") }
+
+    /// The `medium` effort.
+    public static var medium: Self { Self(listed: "medium") }
+
+    /// The `low` effort.
+    public static var low: Self { Self(listed: "low") }
+}
+
+extension Efforts.Of where Tag == OpenRouterCatalog.AnthropicClaudeFable5_2 {
     /// The `max` effort.
     public static var max: Self { Self(listed: "max") }
 
@@ -2877,6 +2918,26 @@ extension Efforts.Of where Tag == OpenRouterCatalog.IbmGraniteGranite4_2_8b {
     public static var off: Self { Self(listed: "none") }
 }
 
+extension Efforts.Of where Tag == OpenRouterCatalog.MetaMuseEmber {
+    /// The `max` effort.
+    public static var max: Self { Self(listed: "max") }
+
+    /// The `xhigh` effort.
+    public static var xhigh: Self { Self(listed: "xhigh") }
+
+    /// The `high` effort.
+    public static var high: Self { Self(listed: "high") }
+
+    /// The `medium` effort.
+    public static var medium: Self { Self(listed: "medium") }
+
+    /// The `low` effort.
+    public static var low: Self { Self(listed: "low") }
+
+    /// The `minimal` effort.
+    public static var minimal: Self { Self(listed: "minimal") }
+}
+
 extension Efforts.Of where Tag == OpenRouterCatalog.MetaMuseGlimmer30b {
     /// The `xhigh` effort.
     public static var xhigh: Self { Self(listed: "xhigh") }
@@ -3105,6 +3166,14 @@ extension Efforts.Of where Tag == OpenRouterCatalog.NexAgiNexN2_5Pro {
 
     /// The `none` effort, which turns reasoning off.
     public static var off: Self { Self(listed: "none") }
+}
+
+extension Efforts.Of where Tag == OpenRouterCatalog.NexAgiNexN2_6 {
+    /// The `high` effort.
+    public static var high: Self { Self(listed: "high") }
+
+    /// The `medium` effort.
+    public static var medium: Self { Self(listed: "medium") }
 }
 
 extension Efforts.Of where Tag == OpenRouterCatalog.NvidiaNemotron3Super120bA12b {
@@ -4002,6 +4071,23 @@ extension Efforts.Of where Tag == OpenRouterCatalog.ThinkingmachinesInkling {
 
     /// The `none` effort, which turns reasoning off.
     public static var off: Self { Self(listed: "none") }
+}
+
+extension Efforts.Of where Tag == OpenRouterCatalog.ThinkingmachinesInkling2SmallFree {
+    /// The `max` effort.
+    public static var max: Self { Self(listed: "max") }
+
+    /// The `high` effort.
+    public static var high: Self { Self(listed: "high") }
+
+    /// The `medium` effort.
+    public static var medium: Self { Self(listed: "medium") }
+
+    /// The `low` effort.
+    public static var low: Self { Self(listed: "low") }
+
+    /// The `minimal` effort.
+    public static var minimal: Self { Self(listed: "minimal") }
 }
 
 extension Efforts.Of where Tag == OpenRouterCatalog.ThinkingmachinesInklingSmall {
