@@ -438,6 +438,43 @@
     },
     {
       "cachesOnlyMarkedPrompts" : true,
+      "contextSize" : 1000000,
+      "defaultReasoningEffort" : "high",
+      "displayName" : "Anthropic: Claude Fable 5.2",
+      "id" : "anthropic/claude-fable-5.2",
+      "inputModalities" : [
+        "file",
+        "image",
+        "text"
+      ],
+      "outputModalities" : [
+        "text"
+      ],
+      "reasoning" : "mandatory",
+      "reasoningEfforts" : [
+        "max",
+        "xhigh",
+        "high",
+        "medium",
+        "low"
+      ],
+      "releasedAt" : 1794253781,
+      "supportedParameters" : [
+        "include_reasoning",
+        "max_completion_tokens",
+        "max_tokens",
+        "reasoning",
+        "reasoning_effort",
+        "response_format",
+        "stop",
+        "structured_outputs",
+        "tool_choice",
+        "tools",
+        "verbosity"
+      ]
+    },
+    {
+      "cachesOnlyMarkedPrompts" : true,
       "contextSize" : 200000,
       "displayName" : "Anthropic: Claude Haiku 4.5",
       "id" : "anthropic/claude-haiku-4.5",
@@ -4052,6 +4089,47 @@
     },
     {
       "cachesOnlyMarkedPrompts" : false,
+      "contextSize" : 1048576,
+      "defaultReasoningEffort" : "max",
+      "displayName" : "Meta: Muse Ember",
+      "id" : "meta/muse-ember",
+      "inputModalities" : [
+        "audio",
+        "file",
+        "image",
+        "text",
+        "video"
+      ],
+      "outputModalities" : [
+        "text"
+      ],
+      "reasoning" : "mandatory",
+      "reasoningEfforts" : [
+        "max",
+        "xhigh",
+        "high",
+        "medium",
+        "low",
+        "minimal"
+      ],
+      "releasedAt" : 1794247648,
+      "supportedParameters" : [
+        "include_reasoning",
+        "max_tokens",
+        "reasoning",
+        "reasoning_effort",
+        "repetition_penalty",
+        "response_format",
+        "structured_outputs",
+        "temperature",
+        "tool_choice",
+        "tools",
+        "top_k",
+        "top_p"
+      ]
+    },
+    {
+      "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 131072,
       "defaultReasoningEffort" : "medium",
       "displayName" : "Meta: Muse Glimmer 30B",
@@ -4412,40 +4490,7 @@
     },
     {
       "cachesOnlyMarkedPrompts" : false,
-      "contextSize" : 1000000,
-      "displayName" : "MiniMax: MiniMax M1",
-      "id" : "minimax/minimax-m1",
-      "inputModalities" : [
-        "text"
-      ],
-      "knowledgeCutoff" : "2024-06-30",
-      "outputModalities" : [
-        "text"
-      ],
-      "reasoning" : "offByDefault",
-      "reasoningEfforts" : [
-
-      ],
-      "releasedAt" : 1750200414,
-      "supportedParameters" : [
-        "frequency_penalty",
-        "include_reasoning",
-        "max_tokens",
-        "presence_penalty",
-        "reasoning",
-        "repetition_penalty",
-        "seed",
-        "stop",
-        "temperature",
-        "tool_choice",
-        "tools",
-        "top_k",
-        "top_p"
-      ]
-    },
-    {
-      "cachesOnlyMarkedPrompts" : false,
-      "contextSize" : 204800,
+      "contextSize" : 200000,
       "displayName" : "MiniMax: MiniMax M2.5",
       "id" : "minimax/minimax-m2.5",
       "inputModalities" : [
@@ -4483,7 +4528,7 @@
     },
     {
       "cachesOnlyMarkedPrompts" : false,
-      "contextSize" : 204800,
+      "contextSize" : 196608,
       "displayName" : "MiniMax: MiniMax M2.7",
       "id" : "minimax/minimax-m2.7",
       "inputModalities" : [
@@ -4498,21 +4543,15 @@
       ],
       "releasedAt" : 1773836697,
       "supportedParameters" : [
-        "frequency_penalty",
         "include_reasoning",
-        "logit_bias",
         "max_tokens",
-        "min_p",
-        "presence_penalty",
         "reasoning",
-        "repetition_penalty",
         "response_format",
         "seed",
         "stop",
         "temperature",
         "tool_choice",
         "tools",
-        "top_k",
         "top_p"
       ]
     },
@@ -5748,6 +5787,41 @@
         "max_tokens",
         "reasoning",
         "reasoning_effort",
+        "structured_outputs",
+        "temperature",
+        "tool_choice",
+        "tools",
+        "top_k",
+        "top_logprobs",
+        "top_p"
+      ]
+    },
+    {
+      "cachesOnlyMarkedPrompts" : false,
+      "contextSize" : 262144,
+      "defaultReasoningEffort" : "high",
+      "displayName" : "Nex AGI: Nex-N2.6",
+      "id" : "nex-agi/nex-n2.6",
+      "inputModalities" : [
+        "image",
+        "text"
+      ],
+      "outputModalities" : [
+        "text"
+      ],
+      "reasoning" : "mandatory",
+      "reasoningEfforts" : [
+        "high",
+        "medium"
+      ],
+      "releasedAt" : 1794282379,
+      "supportedParameters" : [
+        "include_reasoning",
+        "logprobs",
+        "max_tokens",
+        "reasoning",
+        "reasoning_effort",
+        "response_format",
         "structured_outputs",
         "temperature",
         "tool_choice",
@@ -10152,7 +10226,7 @@
     },
     {
       "cachesOnlyMarkedPrompts" : false,
-      "contextSize" : 1024000,
+      "contextSize" : 1048575,
       "defaultReasoningEffort" : "xhigh",
       "displayName" : "Qwen: Qwen3.8 27B",
       "id" : "qwen/qwen3.8-27b",
@@ -10559,19 +10633,29 @@
       "outputModalities" : [
         "text"
       ],
-      "reasoning" : "unsupported",
+      "reasoning" : "offByDefault",
       "reasoningEfforts" : [
 
       ],
       "releasedAt" : 1793818990,
       "supportedParameters" : [
+        "frequency_penalty",
+        "include_reasoning",
+        "logit_bias",
         "logprobs",
         "max_tokens",
+        "min_p",
+        "presence_penalty",
+        "reasoning",
+        "repetition_penalty",
         "response_format",
         "seed",
+        "stop",
+        "structured_outputs",
         "temperature",
         "tool_choice",
         "tools",
+        "top_k",
         "top_logprobs",
         "top_p"
       ]
@@ -10812,45 +10896,6 @@
     },
     {
       "cachesOnlyMarkedPrompts" : false,
-      "contextSize" : 1048576,
-      "defaultReasoningEffort" : "max",
-      "displayName" : "Crouton Alpha",
-      "id" : "stealth/crouton-alpha",
-      "inputModalities" : [
-        "audio",
-        "file",
-        "image",
-        "text",
-        "video"
-      ],
-      "outputModalities" : [
-        "text"
-      ],
-      "reasoning" : "mandatory",
-      "reasoningEfforts" : [
-        "max",
-        "xhigh",
-        "high",
-        "medium",
-        "low",
-        "minimal"
-      ],
-      "releasedAt" : 1793669930,
-      "supportedParameters" : [
-        "include_reasoning",
-        "max_tokens",
-        "reasoning",
-        "reasoning_effort",
-        "response_format",
-        "structured_outputs",
-        "temperature",
-        "tool_choice",
-        "tools",
-        "top_p"
-      ]
-    },
-    {
-      "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 262144,
       "displayName" : "StepFun: Step 3.5 Flash",
       "id" : "stepfun/step-3.5-flash",
@@ -10921,7 +10966,7 @@
     },
     {
       "cachesOnlyMarkedPrompts" : false,
-      "contextSize" : 1048576,
+      "contextSize" : 1000000,
       "defaultReasoningEffort" : "medium",
       "displayName" : "StepFun: Step 5 Preview",
       "id" : "stepfun/step-5-preview",
@@ -11197,7 +11242,6 @@
         "max_completion_tokens",
         "max_tokens",
         "min_p",
-        "parallel_tool_calls",
         "presence_penalty",
         "reasoning",
         "reasoning_effort",
@@ -11354,6 +11398,40 @@
         "tool_choice",
         "tools",
         "top_k",
+        "top_p"
+      ]
+    },
+    {
+      "cachesOnlyMarkedPrompts" : false,
+      "contextSize" : 1048576,
+      "defaultReasoningEffort" : "high",
+      "displayName" : "Thinking Machines: Inkling 2 Small (free)",
+      "id" : "thinkingmachines/inkling-2-small:free",
+      "inputModalities" : [
+        "image",
+        "text"
+      ],
+      "outputModalities" : [
+        "text"
+      ],
+      "reasoning" : "mandatory",
+      "reasoningEfforts" : [
+        "max",
+        "high",
+        "medium",
+        "low",
+        "minimal"
+      ],
+      "releasedAt" : 1794261847,
+      "supportedParameters" : [
+        "include_reasoning",
+        "max_tokens",
+        "reasoning",
+        "reasoning_effort",
+        "seed",
+        "stop",
+        "temperature",
+        "tools",
         "top_p"
       ]
     },
@@ -11932,7 +12010,7 @@
     },
     {
       "cachesOnlyMarkedPrompts" : false,
-      "contextSize" : 1050000,
+      "contextSize" : 1024000,
       "displayName" : "Xiaomi: MiMo-V2.5-Pro",
       "id" : "xiaomi/mimo-v2.5-pro",
       "inputModalities" : [
@@ -11952,7 +12030,6 @@
         "max_tokens",
         "reasoning",
         "response_format",
-        "seed",
         "structured_outputs",
         "temperature",
         "tool_choice",
@@ -12288,7 +12365,6 @@
       "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 204800,
       "displayName" : "Z.ai: GLM 4.7",
-      "expirationDate" : "2026-12-31",
       "id" : "z-ai/glm-4.7",
       "inputModalities" : [
         "text"
@@ -12731,7 +12807,7 @@
       ]
     },
     {
-      "aliasTarget" : "anthropic/claude-fable-5.1",
+      "aliasTarget" : "anthropic/claude-fable-5.2",
       "cachesOnlyMarkedPrompts" : true,
       "contextSize" : 1000000,
       "defaultReasoningEffort" : "high",
@@ -13498,7 +13574,84 @@
     }
   ],
   "removed" : [
+    {
+      "model" : {
+        "cachesOnlyMarkedPrompts" : false,
+        "contextSize" : 1000000,
+        "displayName" : "MiniMax: MiniMax M1",
+        "id" : "minimax/minimax-m1",
+        "inputModalities" : [
+          "text"
+        ],
+        "knowledgeCutoff" : "2024-06-30",
+        "outputModalities" : [
+          "text"
+        ],
+        "reasoning" : "offByDefault",
+        "reasoningEfforts" : [
 
+        ],
+        "releasedAt" : 1750200414,
+        "supportedParameters" : [
+          "frequency_penalty",
+          "include_reasoning",
+          "max_tokens",
+          "presence_penalty",
+          "reasoning",
+          "repetition_penalty",
+          "seed",
+          "stop",
+          "temperature",
+          "tool_choice",
+          "tools",
+          "top_k",
+          "top_p"
+        ]
+      },
+      "removedOn" : "2026-11-10"
+    },
+    {
+      "model" : {
+        "cachesOnlyMarkedPrompts" : false,
+        "contextSize" : 1048576,
+        "defaultReasoningEffort" : "max",
+        "displayName" : "Crouton Alpha",
+        "id" : "stealth/crouton-alpha",
+        "inputModalities" : [
+          "audio",
+          "file",
+          "image",
+          "text",
+          "video"
+        ],
+        "outputModalities" : [
+          "text"
+        ],
+        "reasoning" : "mandatory",
+        "reasoningEfforts" : [
+          "max",
+          "xhigh",
+          "high",
+          "medium",
+          "low",
+          "minimal"
+        ],
+        "releasedAt" : 1793669930,
+        "supportedParameters" : [
+          "include_reasoning",
+          "max_tokens",
+          "reasoning",
+          "reasoning_effort",
+          "response_format",
+          "structured_outputs",
+          "temperature",
+          "tool_choice",
+          "tools",
+          "top_p"
+        ]
+      },
+      "removedOn" : "2026-11-10"
+    }
   ],
   "source" : "openrouter",
   "vocabularies" : {

@@ -5,5 +5,8 @@ import LanguageModels
 
 extension ModelRemovals {
     /// The models OpenRouter stopped listing, which its catalog keeps as deprecated members.
-    static let openRouter = ModelRemovals([:])
+    static let openRouter = ModelRemovals([
+        "minimax/minimax-m1": Date(timeIntervalSince1970: 1_794_268_800),
+        "stealth/crouton-alpha": Date(timeIntervalSince1970: 1_794_268_800),
+    ])
 }
