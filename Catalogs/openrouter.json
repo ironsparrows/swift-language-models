@@ -950,30 +950,27 @@
     },
     {
       "cachesOnlyMarkedPrompts" : false,
-      "contextSize" : 262144,
-      "displayName" : "ByteDance Seed: Seed 1.6",
-      "expirationDate" : "2026-11-11",
-      "id" : "bytedance-seed/seed-1.6",
+      "contextSize" : 1024000,
+      "defaultReasoningEffort" : "high",
+      "displayName" : "Baidu: ERNIE-5.5-Flash-Preview (free)",
+      "id" : "baidu/ernie-5.5-flash-preview:free",
       "inputModalities" : [
-        "image",
-        "text",
-        "video"
+        "text"
       ],
       "outputModalities" : [
         "text"
       ],
-      "reasoning" : "offByDefault",
+      "reasoning" : "mandatory",
       "reasoningEfforts" : [
-
+        "high"
       ],
-      "releasedAt" : 1766504997,
+      "releasedAt" : 1794333533,
       "supportedParameters" : [
-        "frequency_penalty",
         "include_reasoning",
         "max_tokens",
         "reasoning",
+        "reasoning_effort",
         "response_format",
-        "stop",
         "structured_outputs",
         "temperature",
         "tool_choice",
@@ -983,30 +980,30 @@
     },
     {
       "cachesOnlyMarkedPrompts" : false,
-      "contextSize" : 262144,
-      "displayName" : "ByteDance Seed: Seed 1.6 Flash",
-      "expirationDate" : "2026-11-11",
-      "id" : "bytedance-seed/seed-1.6-flash",
+      "contextSize" : 1024000,
+      "defaultReasoningEffort" : "max",
+      "displayName" : "Baidu: ERNIE-Light-DT-1.0",
+      "id" : "baidu/ernie-light-dt-1.0-intl",
       "inputModalities" : [
-        "image",
-        "text",
-        "video"
+        "text"
       ],
       "outputModalities" : [
         "text"
       ],
-      "reasoning" : "offByDefault",
+      "reasoning" : "onByDefault",
       "reasoningEfforts" : [
-
+        "max",
+        "high",
+        "low",
+        "none"
       ],
-      "releasedAt" : 1766505011,
+      "releasedAt" : 1794331260,
       "supportedParameters" : [
-        "frequency_penalty",
         "include_reasoning",
         "max_tokens",
         "reasoning",
+        "reasoning_effort",
         "response_format",
-        "stop",
         "structured_outputs",
         "temperature",
         "tool_choice",
@@ -1037,44 +1034,6 @@
         "include_reasoning",
         "max_tokens",
         "reasoning",
-        "response_format",
-        "stop",
-        "structured_outputs",
-        "temperature",
-        "tool_choice",
-        "tools",
-        "top_p"
-      ]
-    },
-    {
-      "cachesOnlyMarkedPrompts" : false,
-      "contextSize" : 262144,
-      "defaultReasoningEffort" : "medium",
-      "displayName" : "ByteDance Seed: Seed-2.0-Code",
-      "expirationDate" : "2026-11-11",
-      "id" : "bytedance-seed/seed-2.0-code",
-      "inputModalities" : [
-        "image",
-        "text",
-        "video"
-      ],
-      "outputModalities" : [
-        "text"
-      ],
-      "reasoning" : "offByDefault",
-      "reasoningEfforts" : [
-        "high",
-        "medium",
-        "low",
-        "none"
-      ],
-      "releasedAt" : 1786550701,
-      "supportedParameters" : [
-        "frequency_penalty",
-        "include_reasoning",
-        "max_tokens",
-        "reasoning",
-        "reasoning_effort",
         "response_format",
         "stop",
         "structured_outputs",
@@ -2838,6 +2797,83 @@
     },
     {
       "cachesOnlyMarkedPrompts" : false,
+      "contextSize" : 1048576,
+      "defaultReasoningEffort" : "medium",
+      "displayName" : "Google: Gemini 4 Carbon",
+      "id" : "google/gemini-4-carbon",
+      "inputModalities" : [
+        "audio",
+        "file",
+        "image",
+        "text",
+        "video"
+      ],
+      "outputModalities" : [
+        "text"
+      ],
+      "reasoning" : "mandatory",
+      "reasoningEfforts" : [
+        "high",
+        "medium",
+        "low"
+      ],
+      "releasedAt" : 1794326871,
+      "supportedParameters" : [
+        "include_reasoning",
+        "max_tokens",
+        "reasoning",
+        "reasoning_effort",
+        "response_format",
+        "seed",
+        "stop",
+        "structured_outputs",
+        "temperature",
+        "tool_choice",
+        "tools",
+        "top_p"
+      ]
+    },
+    {
+      "cachesOnlyMarkedPrompts" : false,
+      "contextSize" : 1048576,
+      "defaultReasoningEffort" : "medium",
+      "displayName" : "Google: Gemini 4 Hydrogen",
+      "id" : "google/gemini-4-hydrogen",
+      "inputModalities" : [
+        "audio",
+        "file",
+        "image",
+        "text",
+        "video"
+      ],
+      "outputModalities" : [
+        "text"
+      ],
+      "reasoning" : "mandatory",
+      "reasoningEfforts" : [
+        "xhigh",
+        "high",
+        "medium",
+        "low"
+      ],
+      "releasedAt" : 1794506460,
+      "supportedParameters" : [
+        "include_reasoning",
+        "max_tokens",
+        "reasoning",
+        "reasoning_effort",
+        "response_format",
+        "seed",
+        "stop",
+        "structured_outputs",
+        "temperature",
+        "tool_choice",
+        "tools",
+        "top_p"
+      ]
+    },
+    {
+      "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 65536,
       "defaultReasoningEffort" : "minimal",
       "displayName" : "Google: Nano Banana 2.1",
@@ -3473,13 +3509,44 @@
       "supportedParameters" : [
         "frequency_penalty",
         "include_reasoning",
-        "logit_bias",
         "logprobs",
         "max_tokens",
-        "min_p",
         "presence_penalty",
         "reasoning",
         "repetition_penalty",
+        "seed",
+        "stop",
+        "temperature",
+        "tool_choice",
+        "tools",
+        "top_k",
+        "top_logprobs",
+        "top_p"
+      ]
+    },
+    {
+      "cachesOnlyMarkedPrompts" : false,
+      "contextSize" : 1048576,
+      "displayName" : "inclusionAI: Ling 3.2 Flash (free)",
+      "id" : "inclusionai/ling-3.2-flash:free",
+      "inputModalities" : [
+        "image",
+        "text"
+      ],
+      "outputModalities" : [
+        "text"
+      ],
+      "reasoning" : "onByDefault",
+      "reasoningEfforts" : [
+
+      ],
+      "releasedAt" : 1794591958,
+      "supportedParameters" : [
+        "frequency_penalty",
+        "include_reasoning",
+        "max_tokens",
+        "presence_penalty",
+        "reasoning",
         "response_format",
         "seed",
         "stop",
@@ -3488,7 +3555,6 @@
         "tool_choice",
         "tools",
         "top_k",
-        "top_logprobs",
         "top_p"
       ]
     },
@@ -3558,73 +3624,29 @@
     },
     {
       "cachesOnlyMarkedPrompts" : false,
-      "contextSize" : 128000,
-      "displayName" : "LiquidAI: LFM2.5-2.6B",
-      "expirationDate" : "2026-11-13",
-      "id" : "liquid/lfm-2.5-2.6b",
+      "contextSize" : 261795,
+      "displayName" : "KT: Mi:dm K 3.0 Pro",
+      "id" : "kt/midm-k-3.0-pro",
       "inputModalities" : [
         "text"
       ],
       "outputModalities" : [
         "text"
       ],
-      "reasoning" : "mandatory",
+      "reasoning" : "offByDefault",
       "reasoningEfforts" : [
 
       ],
-      "releasedAt" : 1786470519,
+      "releasedAt" : 1793897701,
       "supportedParameters" : [
         "frequency_penalty",
         "include_reasoning",
         "logprobs",
-        "max_completion_tokens",
         "max_tokens",
-        "min_p",
         "presence_penalty",
         "reasoning",
         "repetition_penalty",
         "response_format",
-        "seed",
-        "stop",
-        "structured_outputs",
-        "temperature",
-        "tool_choice",
-        "tools",
-        "top_k",
-        "top_logprobs",
-        "top_p"
-      ]
-    },
-    {
-      "cachesOnlyMarkedPrompts" : false,
-      "contextSize" : 65536,
-      "displayName" : "LiquidAI: LFM2.5-2.6B (free)",
-      "expirationDate" : "2026-11-13",
-      "id" : "liquid/lfm-2.5-2.6b:free",
-      "inputModalities" : [
-        "text"
-      ],
-      "outputModalities" : [
-        "text"
-      ],
-      "reasoning" : "mandatory",
-      "reasoningEfforts" : [
-
-      ],
-      "releasedAt" : 1786470519,
-      "supportedParameters" : [
-        "frequency_penalty",
-        "include_reasoning",
-        "logprobs",
-        "max_completion_tokens",
-        "max_tokens",
-        "min_p",
-        "presence_penalty",
-        "reasoning",
-        "repetition_penalty",
-        "response_format",
-        "seed",
-        "stop",
         "structured_outputs",
         "temperature",
         "tool_choice",
@@ -3838,6 +3860,8 @@
         "max_tokens",
         "stop",
         "temperature",
+        "tool_choice",
+        "tools",
         "top_k",
         "top_p"
       ]
@@ -3915,6 +3939,7 @@
       "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 131072,
       "displayName" : "Meta: Llama 3.2 3B Instruct",
+      "expirationDate" : "2026-11-20",
       "id" : "meta-llama/llama-3.2-3b-instruct",
       "inputModalities" : [
         "text"
@@ -4120,6 +4145,7 @@
         "reasoning_effort",
         "repetition_penalty",
         "response_format",
+        "seed",
         "structured_outputs",
         "temperature",
         "tool_choice",
@@ -4153,6 +4179,7 @@
         "frequency_penalty",
         "include_reasoning",
         "logit_bias",
+        "logprobs",
         "max_tokens",
         "min_p",
         "presence_penalty",
@@ -4167,6 +4194,7 @@
         "tool_choice",
         "tools",
         "top_k",
+        "top_logprobs",
         "top_p"
       ]
     },
@@ -4319,6 +4347,7 @@
         "reasoning_effort",
         "repetition_penalty",
         "response_format",
+        "seed",
         "structured_outputs",
         "temperature",
         "tool_choice",
@@ -4447,6 +4476,7 @@
         "reasoning_effort",
         "repetition_penalty",
         "response_format",
+        "seed",
         "structured_outputs",
         "temperature",
         "tool_choice",
@@ -4490,7 +4520,7 @@
     },
     {
       "cachesOnlyMarkedPrompts" : false,
-      "contextSize" : 200000,
+      "contextSize" : 198000,
       "displayName" : "MiniMax: MiniMax M2.5",
       "id" : "minimax/minimax-m2.5",
       "inputModalities" : [
@@ -5468,7 +5498,6 @@
       "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 262144,
       "displayName" : "MoonshotAI: Kimi K2.5",
-      "expirationDate" : "2026-11-18",
       "id" : "moonshotai/kimi-k2.5",
       "inputModalities" : [
         "image",
@@ -5611,10 +5640,8 @@
         "include_reasoning",
         "logit_bias",
         "logprobs",
-        "max_completion_tokens",
         "max_tokens",
         "min_p",
-        "parallel_tool_calls",
         "presence_penalty",
         "reasoning",
         "reasoning_effort",
@@ -5726,6 +5753,40 @@
         "structured_outputs",
         "temperature",
         "top_logprobs"
+      ]
+    },
+    {
+      "cachesOnlyMarkedPrompts" : false,
+      "contextSize" : 262144,
+      "displayName" : "Motif Technologies: Motif 3",
+      "id" : "motif-technologies/motif-3",
+      "inputModalities" : [
+        "text"
+      ],
+      "outputModalities" : [
+        "text"
+      ],
+      "reasoning" : "offByDefault",
+      "reasoningEfforts" : [
+
+      ],
+      "releasedAt" : 1793655334,
+      "supportedParameters" : [
+        "frequency_penalty",
+        "include_reasoning",
+        "logprobs",
+        "max_tokens",
+        "presence_penalty",
+        "reasoning",
+        "repetition_penalty",
+        "response_format",
+        "structured_outputs",
+        "temperature",
+        "tool_choice",
+        "tools",
+        "top_k",
+        "top_logprobs",
+        "top_p"
       ]
     },
     {
@@ -5934,7 +5995,7 @@
     },
     {
       "cachesOnlyMarkedPrompts" : false,
-      "contextSize" : 1048576,
+      "contextSize" : 262144,
       "defaultReasoningEffort" : "medium",
       "displayName" : "NVIDIA: Nemotron 3 Super",
       "id" : "nvidia/nemotron-3-super-120b-a12b",
@@ -5997,6 +6058,7 @@
         "frequency_penalty",
         "include_reasoning",
         "logit_bias",
+        "logprobs",
         "max_tokens",
         "min_p",
         "presence_penalty",
@@ -6011,6 +6073,7 @@
         "tool_choice",
         "tools",
         "top_k",
+        "top_logprobs",
         "top_p"
       ]
     },
@@ -6662,6 +6725,7 @@
       "contextSize" : 400000,
       "defaultReasoningEffort" : "medium",
       "displayName" : "OpenAI: GPT-5",
+      "expirationDate" : "2026-12-11",
       "id" : "openai/gpt-5",
       "inputModalities" : [
         "file",
@@ -6698,6 +6762,7 @@
       "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 400000,
       "displayName" : "OpenAI: GPT-5 Image",
+      "expirationDate" : "2026-12-11",
       "id" : "openai/gpt-5-image",
       "inputModalities" : [
         "file",
@@ -6766,6 +6831,7 @@
       "contextSize" : 400000,
       "defaultReasoningEffort" : "medium",
       "displayName" : "OpenAI: GPT-5 Mini",
+      "expirationDate" : "2026-12-11",
       "id" : "openai/gpt-5-mini",
       "inputModalities" : [
         "file",
@@ -6803,6 +6869,7 @@
       "contextSize" : 400000,
       "defaultReasoningEffort" : "medium",
       "displayName" : "OpenAI: GPT-5 Nano",
+      "expirationDate" : "2026-12-11",
       "id" : "openai/gpt-5-nano",
       "inputModalities" : [
         "file",
@@ -6840,6 +6907,7 @@
       "contextSize" : 400000,
       "defaultReasoningEffort" : "high",
       "displayName" : "OpenAI: GPT-5 Pro",
+      "expirationDate" : "2026-12-11",
       "id" : "openai/gpt-5-pro",
       "inputModalities" : [
         "file",
@@ -8259,6 +8327,7 @@
       "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 200000,
       "displayName" : "OpenAI: o3",
+      "expirationDate" : "2026-12-11",
       "id" : "openai/o3",
       "inputModalities" : [
         "file",
@@ -8289,6 +8358,7 @@
       "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 200000,
       "displayName" : "OpenAI: o3 Pro",
+      "expirationDate" : "2026-12-11",
       "id" : "openai/o3-pro",
       "inputModalities" : [
         "file",
@@ -8584,6 +8654,52 @@
       "defaultReasoningEffort" : "high",
       "displayName" : "Particle AI: Particle-1",
       "id" : "particle-ai/particle-1",
+      "inputModalities" : [
+        "image",
+        "text"
+      ],
+      "outputModalities" : [
+        "text"
+      ],
+      "reasoning" : "onByDefault",
+      "reasoningEfforts" : [
+        "max",
+        "xhigh",
+        "high",
+        "medium",
+        "low",
+        "minimal",
+        "none"
+      ],
+      "releasedAt" : 1793207893,
+      "supportedParameters" : [
+        "frequency_penalty",
+        "include_reasoning",
+        "logprobs",
+        "max_tokens",
+        "min_p",
+        "presence_penalty",
+        "reasoning",
+        "reasoning_effort",
+        "repetition_penalty",
+        "response_format",
+        "seed",
+        "stop",
+        "structured_outputs",
+        "temperature",
+        "tool_choice",
+        "tools",
+        "top_k",
+        "top_logprobs",
+        "top_p"
+      ]
+    },
+    {
+      "cachesOnlyMarkedPrompts" : false,
+      "contextSize" : 1048576,
+      "defaultReasoningEffort" : "high",
+      "displayName" : "Particle AI: Particle-1 (free)",
+      "id" : "particle-ai/particle-1:free",
       "inputModalities" : [
         "image",
         "text"
@@ -8932,40 +9048,6 @@
       "supportedParameters" : [
         "frequency_penalty",
         "logit_bias",
-        "max_tokens",
-        "min_p",
-        "presence_penalty",
-        "repetition_penalty",
-        "response_format",
-        "seed",
-        "stop",
-        "structured_outputs",
-        "temperature",
-        "tool_choice",
-        "tools",
-        "top_k",
-        "top_p"
-      ]
-    },
-    {
-      "cachesOnlyMarkedPrompts" : false,
-      "contextSize" : 32768,
-      "displayName" : "Qwen: Qwen2.5 7B Instruct",
-      "id" : "qwen/qwen-2.5-7b-instruct",
-      "inputModalities" : [
-        "text"
-      ],
-      "knowledgeCutoff" : "2024-06-30",
-      "outputModalities" : [
-        "text"
-      ],
-      "reasoning" : "unsupported",
-      "reasoningEfforts" : [
-
-      ],
-      "releasedAt" : 1729036800,
-      "supportedParameters" : [
-        "frequency_penalty",
         "max_tokens",
         "min_p",
         "presence_penalty",
@@ -9552,6 +9634,7 @@
       "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 262144,
       "displayName" : "Qwen: Qwen3 VL 30B A3B Thinking",
+      "expirationDate" : "2026-11-15",
       "id" : "qwen/qwen3-vl-30b-a3b-thinking",
       "inputModalities" : [
         "image",
@@ -10226,7 +10309,7 @@
     },
     {
       "cachesOnlyMarkedPrompts" : false,
-      "contextSize" : 1048575,
+      "contextSize" : 1024000,
       "defaultReasoningEffort" : "xhigh",
       "displayName" : "Qwen: Qwen3.8 27B",
       "id" : "qwen/qwen3.8-27b",
@@ -10898,6 +10981,7 @@
       "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 262144,
       "displayName" : "StepFun: Step 3.5 Flash",
+      "expirationDate" : "2026-11-15",
       "id" : "stepfun/step-3.5-flash",
       "inputModalities" : [
         "text"
@@ -11011,6 +11095,7 @@
       "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 131072,
       "displayName" : "Tencent: Hunyuan A13B Instruct",
+      "expirationDate" : "2026-11-15",
       "id" : "tencent/hunyuan-a13b-instruct",
       "inputModalities" : [
         "text"
@@ -11405,6 +11490,51 @@
       "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 1048576,
       "defaultReasoningEffort" : "high",
+      "displayName" : "Thinking Machines: Inkling 2 Small",
+      "id" : "thinkingmachines/inkling-2-small",
+      "inputModalities" : [
+        "image",
+        "text"
+      ],
+      "outputModalities" : [
+        "text"
+      ],
+      "reasoning" : "mandatory",
+      "reasoningEfforts" : [
+        "max",
+        "high",
+        "medium",
+        "low",
+        "minimal"
+      ],
+      "releasedAt" : 1794261847,
+      "supportedParameters" : [
+        "frequency_penalty",
+        "include_reasoning",
+        "logit_bias",
+        "logprobs",
+        "max_tokens",
+        "min_p",
+        "presence_penalty",
+        "reasoning",
+        "reasoning_effort",
+        "repetition_penalty",
+        "response_format",
+        "seed",
+        "stop",
+        "structured_outputs",
+        "temperature",
+        "tool_choice",
+        "tools",
+        "top_k",
+        "top_logprobs",
+        "top_p"
+      ]
+    },
+    {
+      "cachesOnlyMarkedPrompts" : false,
+      "contextSize" : 1048576,
+      "defaultReasoningEffort" : "high",
       "displayName" : "Thinking Machines: Inkling 2 Small (free)",
       "id" : "thinkingmachines/inkling-2-small:free",
       "inputModalities" : [
@@ -11552,6 +11682,32 @@
     },
     {
       "cachesOnlyMarkedPrompts" : false,
+      "contextSize" : 1048576,
+      "displayName" : "Pareto 26.10 Preview",
+      "id" : "unbiased/pareto-26.10-preview",
+      "inputModalities" : [
+        "image",
+        "text"
+      ],
+      "outputModalities" : [
+        "text"
+      ],
+      "reasoning" : "unsupported",
+      "reasoningEfforts" : [
+
+      ],
+      "releasedAt" : 1790863623,
+      "supportedParameters" : [
+        "max_tokens",
+        "response_format",
+        "temperature",
+        "tool_choice",
+        "tools",
+        "top_p"
+      ]
+    },
+    {
+      "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 262144,
       "displayName" : "Pareto 26.9",
       "id" : "unbiased/pareto-26.9",
@@ -11677,16 +11833,20 @@
       "supportedParameters" : [
         "frequency_penalty",
         "include_reasoning",
+        "logprobs",
         "max_tokens",
         "parallel_tool_calls",
         "presence_penalty",
         "reasoning",
         "reasoning_effort",
+        "repetition_penalty",
         "response_format",
         "structured_outputs",
         "temperature",
         "tool_choice",
         "tools",
+        "top_k",
+        "top_logprobs",
         "top_p"
       ]
     },
@@ -12152,41 +12312,6 @@
         "temperature",
         "tool_choice",
         "tools",
-        "top_p"
-      ]
-    },
-    {
-      "cachesOnlyMarkedPrompts" : false,
-      "contextSize" : 262144,
-      "displayName" : "XingChen: Xing4.0 29B A4B (free)",
-      "id" : "xingchen-agi/xing4.0-29b-a4b:free",
-      "inputModalities" : [
-        "text"
-      ],
-      "outputModalities" : [
-        "text"
-      ],
-      "reasoning" : "onByDefault",
-      "reasoningEfforts" : [
-
-      ],
-      "releasedAt" : 1792177496,
-      "supportedParameters" : [
-        "frequency_penalty",
-        "include_reasoning",
-        "max_tokens",
-        "min_p",
-        "presence_penalty",
-        "reasoning",
-        "repetition_penalty",
-        "response_format",
-        "seed",
-        "stop",
-        "structured_outputs",
-        "temperature",
-        "tool_choice",
-        "tools",
-        "top_k",
         "top_p"
       ]
     },
@@ -12696,6 +12821,7 @@
         "reasoning",
         "reasoning_effort",
         "response_format",
+        "structured_outputs",
         "temperature",
         "tool_choice",
         "tools",
@@ -13097,7 +13223,7 @@
       ]
     },
     {
-      "aliasTarget" : "google/gemini-3.8-flash",
+      "aliasTarget" : "google/gemini-4-hydrogen",
       "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 1048576,
       "defaultReasoningEffort" : "medium",
@@ -13115,6 +13241,7 @@
       ],
       "reasoning" : "mandatory",
       "reasoningEfforts" : [
+        "xhigh",
         "high",
         "medium",
         "low"
@@ -13136,7 +13263,7 @@
       ]
     },
     {
-      "aliasTarget" : "google/gemini-4-argon",
+      "aliasTarget" : "google/gemini-4-carbon",
       "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 1048576,
       "defaultReasoningEffort" : "medium",
@@ -13202,10 +13329,8 @@
         "include_reasoning",
         "logit_bias",
         "logprobs",
-        "max_completion_tokens",
         "max_tokens",
         "min_p",
-        "parallel_tool_calls",
         "presence_penalty",
         "reasoning",
         "reasoning_effort",
@@ -13577,6 +13702,203 @@
     {
       "model" : {
         "cachesOnlyMarkedPrompts" : false,
+        "contextSize" : 262144,
+        "displayName" : "ByteDance Seed: Seed 1.6",
+        "expirationDate" : "2026-11-11",
+        "id" : "bytedance-seed/seed-1.6",
+        "inputModalities" : [
+          "image",
+          "text",
+          "video"
+        ],
+        "outputModalities" : [
+          "text"
+        ],
+        "reasoning" : "offByDefault",
+        "reasoningEfforts" : [
+
+        ],
+        "releasedAt" : 1766504997,
+        "supportedParameters" : [
+          "frequency_penalty",
+          "include_reasoning",
+          "max_tokens",
+          "reasoning",
+          "response_format",
+          "stop",
+          "structured_outputs",
+          "temperature",
+          "tool_choice",
+          "tools",
+          "top_p"
+        ]
+      },
+      "removedOn" : "2026-11-11"
+    },
+    {
+      "model" : {
+        "cachesOnlyMarkedPrompts" : false,
+        "contextSize" : 262144,
+        "displayName" : "ByteDance Seed: Seed 1.6 Flash",
+        "expirationDate" : "2026-11-11",
+        "id" : "bytedance-seed/seed-1.6-flash",
+        "inputModalities" : [
+          "image",
+          "text",
+          "video"
+        ],
+        "outputModalities" : [
+          "text"
+        ],
+        "reasoning" : "offByDefault",
+        "reasoningEfforts" : [
+
+        ],
+        "releasedAt" : 1766505011,
+        "supportedParameters" : [
+          "frequency_penalty",
+          "include_reasoning",
+          "max_tokens",
+          "reasoning",
+          "response_format",
+          "stop",
+          "structured_outputs",
+          "temperature",
+          "tool_choice",
+          "tools",
+          "top_p"
+        ]
+      },
+      "removedOn" : "2026-11-11"
+    },
+    {
+      "model" : {
+        "cachesOnlyMarkedPrompts" : false,
+        "contextSize" : 262144,
+        "defaultReasoningEffort" : "medium",
+        "displayName" : "ByteDance Seed: Seed-2.0-Code",
+        "expirationDate" : "2026-11-11",
+        "id" : "bytedance-seed/seed-2.0-code",
+        "inputModalities" : [
+          "image",
+          "text",
+          "video"
+        ],
+        "outputModalities" : [
+          "text"
+        ],
+        "reasoning" : "offByDefault",
+        "reasoningEfforts" : [
+          "high",
+          "medium",
+          "low",
+          "none"
+        ],
+        "releasedAt" : 1786550701,
+        "supportedParameters" : [
+          "frequency_penalty",
+          "include_reasoning",
+          "max_tokens",
+          "reasoning",
+          "reasoning_effort",
+          "response_format",
+          "stop",
+          "structured_outputs",
+          "temperature",
+          "tool_choice",
+          "tools",
+          "top_p"
+        ]
+      },
+      "removedOn" : "2026-11-11"
+    },
+    {
+      "model" : {
+        "cachesOnlyMarkedPrompts" : false,
+        "contextSize" : 128000,
+        "displayName" : "LiquidAI: LFM2.5-2.6B",
+        "expirationDate" : "2026-11-13",
+        "id" : "liquid/lfm-2.5-2.6b",
+        "inputModalities" : [
+          "text"
+        ],
+        "outputModalities" : [
+          "text"
+        ],
+        "reasoning" : "mandatory",
+        "reasoningEfforts" : [
+
+        ],
+        "releasedAt" : 1786470519,
+        "supportedParameters" : [
+          "frequency_penalty",
+          "include_reasoning",
+          "logprobs",
+          "max_completion_tokens",
+          "max_tokens",
+          "min_p",
+          "presence_penalty",
+          "reasoning",
+          "repetition_penalty",
+          "response_format",
+          "seed",
+          "stop",
+          "structured_outputs",
+          "temperature",
+          "tool_choice",
+          "tools",
+          "top_k",
+          "top_logprobs",
+          "top_p"
+        ]
+      },
+      "removedOn" : "2026-11-13"
+    },
+    {
+      "model" : {
+        "cachesOnlyMarkedPrompts" : false,
+        "contextSize" : 65536,
+        "displayName" : "LiquidAI: LFM2.5-2.6B (free)",
+        "expirationDate" : "2026-11-13",
+        "id" : "liquid/lfm-2.5-2.6b:free",
+        "inputModalities" : [
+          "text"
+        ],
+        "outputModalities" : [
+          "text"
+        ],
+        "reasoning" : "mandatory",
+        "reasoningEfforts" : [
+
+        ],
+        "releasedAt" : 1786470519,
+        "supportedParameters" : [
+          "frequency_penalty",
+          "include_reasoning",
+          "logprobs",
+          "max_completion_tokens",
+          "max_tokens",
+          "min_p",
+          "presence_penalty",
+          "reasoning",
+          "repetition_penalty",
+          "response_format",
+          "seed",
+          "stop",
+          "structured_outputs",
+          "temperature",
+          "tool_choice",
+          "tools",
+          "top_k",
+          "top_logprobs",
+          "top_p"
+        ]
+      },
+      "removedOn" : "2026-11-13"
+    },
+    {
+      "model" : {
+        "cachesOnlyMarkedPrompts" : false,
         "contextSize" : 1000000,
         "displayName" : "MiniMax: MiniMax M1",
         "id" : "minimax/minimax-m1",
@@ -13609,6 +13931,43 @@
         ]
       },
       "removedOn" : "2026-11-10"
+    },
+    {
+      "model" : {
+        "cachesOnlyMarkedPrompts" : false,
+        "contextSize" : 32768,
+        "displayName" : "Qwen: Qwen2.5 7B Instruct",
+        "id" : "qwen/qwen-2.5-7b-instruct",
+        "inputModalities" : [
+          "text"
+        ],
+        "knowledgeCutoff" : "2024-06-30",
+        "outputModalities" : [
+          "text"
+        ],
+        "reasoning" : "unsupported",
+        "reasoningEfforts" : [
+
+        ],
+        "releasedAt" : 1729036800,
+        "supportedParameters" : [
+          "frequency_penalty",
+          "max_tokens",
+          "min_p",
+          "presence_penalty",
+          "repetition_penalty",
+          "response_format",
+          "seed",
+          "stop",
+          "structured_outputs",
+          "temperature",
+          "tool_choice",
+          "tools",
+          "top_k",
+          "top_p"
+        ]
+      },
+      "removedOn" : "2026-11-11"
     },
     {
       "model" : {
@@ -13651,6 +14010,44 @@
         ]
       },
       "removedOn" : "2026-11-10"
+    },
+    {
+      "model" : {
+        "cachesOnlyMarkedPrompts" : false,
+        "contextSize" : 262144,
+        "displayName" : "XingChen: Xing4.0 29B A4B (free)",
+        "id" : "xingchen-agi/xing4.0-29b-a4b:free",
+        "inputModalities" : [
+          "text"
+        ],
+        "outputModalities" : [
+          "text"
+        ],
+        "reasoning" : "onByDefault",
+        "reasoningEfforts" : [
+
+        ],
+        "releasedAt" : 1792177496,
+        "supportedParameters" : [
+          "frequency_penalty",
+          "include_reasoning",
+          "max_tokens",
+          "min_p",
+          "presence_penalty",
+          "reasoning",
+          "repetition_penalty",
+          "response_format",
+          "seed",
+          "stop",
+          "structured_outputs",
+          "temperature",
+          "tool_choice",
+          "tools",
+          "top_k",
+          "top_p"
+        ]
+      },
+      "removedOn" : "2026-11-11"
     }
   ],
   "source" : "openrouter",
