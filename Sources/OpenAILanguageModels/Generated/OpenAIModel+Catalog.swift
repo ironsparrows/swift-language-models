@@ -728,7 +728,16 @@ extension OpenAIModel where Effort == Efforts.Of<OpenAICatalog.Gpt5_5> {
             knowledgeCutoff: Date(timeIntervalSince1970: 1_764_547_200),
             contextSize: 1_050_000,
             inputModalities: [.image, .pdf, .text],
-            supportedParameters: [.maxOutputTokens, .parallelToolCalls, .reasoning, .structuredOutputs, .toolChoice, .tools],
+            supportedParameters: [
+                .maxOutputTokens,
+                .parallelToolCalls,
+                .reasoning,
+                .structuredOutputs,
+                .temperature,
+                .toolChoice,
+                .tools,
+                .topP,
+            ],
             reasoning: .onByDefault,
             reasoningEfforts: [.xhigh, .high, .medium, .low, .off]
         )
@@ -745,7 +754,16 @@ extension OpenAIModel where Effort == Efforts.Of<OpenAICatalog.Gpt5_5_2026_04_23
             knowledgeCutoff: Date(timeIntervalSince1970: 1_764_547_200),
             contextSize: 1_050_000,
             inputModalities: [.image, .pdf, .text],
-            supportedParameters: [.maxOutputTokens, .parallelToolCalls, .reasoning, .structuredOutputs, .toolChoice, .tools],
+            supportedParameters: [
+                .maxOutputTokens,
+                .parallelToolCalls,
+                .reasoning,
+                .structuredOutputs,
+                .temperature,
+                .toolChoice,
+                .tools,
+                .topP,
+            ],
             reasoning: .onByDefault,
             reasoningEfforts: [.xhigh, .high, .medium, .low, .off]
         )
@@ -796,7 +814,16 @@ extension OpenAIModel where Effort == Efforts.Of<OpenAICatalog.Gpt5_6Luna> {
             knowledgeCutoff: Date(timeIntervalSince1970: 1_771_200_000),
             contextSize: 1_050_000,
             inputModalities: [.image, .pdf, .text],
-            supportedParameters: [.maxOutputTokens, .parallelToolCalls, .reasoning, .structuredOutputs, .toolChoice, .tools],
+            supportedParameters: [
+                .maxOutputTokens,
+                .parallelToolCalls,
+                .reasoning,
+                .structuredOutputs,
+                .temperature,
+                .toolChoice,
+                .tools,
+                .topP,
+            ],
             reasoning: .onByDefault,
             reasoningEfforts: [.max, .xhigh, .high, .medium, .low, .off]
         )
@@ -813,7 +840,16 @@ extension OpenAIModel where Effort == Efforts.Of<OpenAICatalog.Gpt5_6Sol> {
             knowledgeCutoff: Date(timeIntervalSince1970: 1_771_200_000),
             contextSize: 1_050_000,
             inputModalities: [.image, .pdf, .text],
-            supportedParameters: [.maxOutputTokens, .parallelToolCalls, .reasoning, .structuredOutputs, .toolChoice, .tools],
+            supportedParameters: [
+                .maxOutputTokens,
+                .parallelToolCalls,
+                .reasoning,
+                .structuredOutputs,
+                .temperature,
+                .toolChoice,
+                .tools,
+                .topP,
+            ],
             reasoning: .onByDefault,
             reasoningEfforts: [.max, .xhigh, .high, .medium, .low, .off]
         )
@@ -830,7 +866,16 @@ extension OpenAIModel where Effort == Efforts.Of<OpenAICatalog.Gpt5_6Terra> {
             knowledgeCutoff: Date(timeIntervalSince1970: 1_771_200_000),
             contextSize: 1_050_000,
             inputModalities: [.image, .pdf, .text],
-            supportedParameters: [.maxOutputTokens, .parallelToolCalls, .reasoning, .structuredOutputs, .toolChoice, .tools],
+            supportedParameters: [
+                .maxOutputTokens,
+                .parallelToolCalls,
+                .reasoning,
+                .structuredOutputs,
+                .temperature,
+                .toolChoice,
+                .tools,
+                .topP,
+            ],
             reasoning: .onByDefault,
             reasoningEfforts: [.max, .xhigh, .high, .medium, .low, .off]
         )
@@ -864,7 +909,16 @@ extension OpenAIModel where Effort == Efforts.Of<OpenAICatalog.Gpt6Luna> {
             knowledgeCutoff: Date(timeIntervalSince1970: 1_779_062_400),
             contextSize: 1_050_000,
             inputModalities: [.image, .pdf, .text],
-            supportedParameters: [.maxOutputTokens, .parallelToolCalls, .reasoning, .structuredOutputs, .toolChoice, .tools],
+            supportedParameters: [
+                .maxOutputTokens,
+                .parallelToolCalls,
+                .reasoning,
+                .structuredOutputs,
+                .temperature,
+                .toolChoice,
+                .tools,
+                .topP,
+            ],
             reasoning: .onByDefault,
             reasoningEfforts: [.max, .xhigh, .high, .medium, .low, .off]
         )
@@ -881,7 +935,16 @@ extension OpenAIModel where Effort == Efforts.Of<OpenAICatalog.Gpt6Sol> {
             knowledgeCutoff: Date(timeIntervalSince1970: 1_776_643_200),
             contextSize: 1_050_000,
             inputModalities: [.image, .pdf, .text],
-            supportedParameters: [.maxOutputTokens, .parallelToolCalls, .reasoning, .structuredOutputs, .toolChoice, .tools],
+            supportedParameters: [
+                .maxOutputTokens,
+                .parallelToolCalls,
+                .reasoning,
+                .structuredOutputs,
+                .temperature,
+                .toolChoice,
+                .tools,
+                .topP,
+            ],
             reasoning: .onByDefault,
             reasoningEfforts: [.max, .xhigh, .high, .medium, .low, .off]
         )
@@ -915,7 +978,16 @@ extension OpenAIModel where Effort == Efforts.Of<OpenAICatalog.Gpt6_1Terra> {
             knowledgeCutoff: Date(timeIntervalSince1970: 1_780_272_000),
             contextSize: 1_050_000,
             inputModalities: [.image, .pdf, .text],
-            supportedParameters: [.maxOutputTokens, .parallelToolCalls, .reasoning, .structuredOutputs, .toolChoice, .tools],
+            supportedParameters: [
+                .maxOutputTokens,
+                .parallelToolCalls,
+                .reasoning,
+                .structuredOutputs,
+                .temperature,
+                .toolChoice,
+                .tools,
+                .topP,
+            ],
             reasoning: .onByDefault,
             reasoningEfforts: [.max, .xhigh, .high, .medium, .low, .off]
         )

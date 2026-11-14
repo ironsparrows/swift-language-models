@@ -688,12 +688,64 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.Anthropic
     }
 }
 
+extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.BaiduErnie5_5FlashPreviewFree> {
+    /// Baidu: ERNIE-5.5-Flash-Preview (free)
+    public static var baiduErnie5_5FlashPreviewFree: Self {
+        Self(
+            id: "baidu/ernie-5.5-flash-preview:free",
+            displayName: "Baidu: ERNIE-5.5-Flash-Preview (free)",
+            releaseDate: Date(timeIntervalSince1970: 1_794_333_533),
+            contextSize: 1_024_000,
+            supportedParameters: [
+                .includeReasoning,
+                .maxTokens,
+                .reasoning,
+                .reasoningEffort,
+                .responseFormat,
+                .structuredOutputs,
+                .temperature,
+                .toolChoice,
+                .tools,
+                .topP,
+            ],
+            reasoning: .mandatory,
+            reasoningEfforts: [.high],
+            defaultReasoningEffort: .high
+        )
+    }
+}
+
+extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.BaiduErnieLightDt1_0Intl> {
+    /// Baidu: ERNIE-Light-DT-1.0
+    public static var baiduErnieLightDt1_0Intl: Self {
+        Self(
+            id: "baidu/ernie-light-dt-1.0-intl",
+            displayName: "Baidu: ERNIE-Light-DT-1.0",
+            releaseDate: Date(timeIntervalSince1970: 1_794_331_260),
+            contextSize: 1_024_000,
+            supportedParameters: [
+                .includeReasoning,
+                .maxTokens,
+                .reasoning,
+                .reasoningEffort,
+                .responseFormat,
+                .structuredOutputs,
+                .temperature,
+                .toolChoice,
+                .tools,
+                .topP,
+            ],
+            reasoning: .onByDefault,
+            reasoningEfforts: [.max, .high, .low, .off],
+            defaultReasoningEffort: .max
+        )
+    }
+}
+
 extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.BytedanceSeedSeed1_6> {
     /// ByteDance Seed: Seed 1.6
-    @available(*, deprecated, message: "OpenRouter retires this model on 2026-11-11")
-    public static var bytedanceSeedSeed1_6: Self { bytedanceSeedSeed1_6Entry }
-
-    fileprivate static var bytedanceSeedSeed1_6Entry: Self {
+    @available(*, deprecated, message: "Removed from OpenRouter on 2026-11-11")
+    public static var bytedanceSeedSeed1_6: Self {
         Self(
             id: "bytedance-seed/seed-1.6",
             displayName: "ByteDance Seed: Seed 1.6",
@@ -721,10 +773,8 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.Bytedance
 
 extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.BytedanceSeedSeed1_6Flash> {
     /// ByteDance Seed: Seed 1.6 Flash
-    @available(*, deprecated, message: "OpenRouter retires this model on 2026-11-11")
-    public static var bytedanceSeedSeed1_6Flash: Self { bytedanceSeedSeed1_6FlashEntry }
-
-    fileprivate static var bytedanceSeedSeed1_6FlashEntry: Self {
+    @available(*, deprecated, message: "Removed from OpenRouter on 2026-11-11")
+    public static var bytedanceSeedSeed1_6Flash: Self {
         Self(
             id: "bytedance-seed/seed-1.6-flash",
             displayName: "ByteDance Seed: Seed 1.6 Flash",
@@ -779,10 +829,8 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.Bytedance
 
 extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.BytedanceSeedSeed2_0Code> {
     /// ByteDance Seed: Seed-2.0-Code
-    @available(*, deprecated, message: "OpenRouter retires this model on 2026-11-11")
-    public static var bytedanceSeedSeed2_0Code: Self { bytedanceSeedSeed2_0CodeEntry }
-
-    fileprivate static var bytedanceSeedSeed2_0CodeEntry: Self {
+    @available(*, deprecated, message: "Removed from OpenRouter on 2026-11-11")
+    public static var bytedanceSeedSeed2_0Code: Self {
         Self(
             id: "bytedance-seed/seed-2.0-code",
             displayName: "ByteDance Seed: Seed-2.0-Code",
@@ -2258,6 +2306,66 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.GoogleGem
     }
 }
 
+extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.GoogleGemini4Carbon> {
+    /// Google: Gemini 4 Carbon
+    public static var googleGemini4Carbon: Self {
+        Self(
+            id: "google/gemini-4-carbon",
+            displayName: "Google: Gemini 4 Carbon",
+            releaseDate: Date(timeIntervalSince1970: 1_794_326_871),
+            contextSize: 1_048_576,
+            inputModalities: [.audio, .file, .image, .text, .video],
+            supportedParameters: [
+                .includeReasoning,
+                .maxTokens,
+                .reasoning,
+                .reasoningEffort,
+                .responseFormat,
+                .seed,
+                .stop,
+                .structuredOutputs,
+                .temperature,
+                .toolChoice,
+                .tools,
+                .topP,
+            ],
+            reasoning: .mandatory,
+            reasoningEfforts: [.high, .medium, .low],
+            defaultReasoningEffort: .medium
+        )
+    }
+}
+
+extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.GoogleGemini4Hydrogen> {
+    /// Google: Gemini 4 Hydrogen
+    public static var googleGemini4Hydrogen: Self {
+        Self(
+            id: "google/gemini-4-hydrogen",
+            displayName: "Google: Gemini 4 Hydrogen",
+            releaseDate: Date(timeIntervalSince1970: 1_794_506_460),
+            contextSize: 1_048_576,
+            inputModalities: [.audio, .file, .image, .text, .video],
+            supportedParameters: [
+                .includeReasoning,
+                .maxTokens,
+                .reasoning,
+                .reasoningEffort,
+                .responseFormat,
+                .seed,
+                .stop,
+                .structuredOutputs,
+                .temperature,
+                .toolChoice,
+                .tools,
+                .topP,
+            ],
+            reasoning: .mandatory,
+            reasoningEfforts: [.xhigh, .high, .medium, .low],
+            defaultReasoningEffort: .medium
+        )
+    }
+}
+
 extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.GoogleGeminiNanoBanana2_1> {
     /// Google: Nano Banana 2.1
     public static var googleGeminiNanoBanana2_1: Self {
@@ -2771,13 +2879,40 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.Inclusion
             supportedParameters: [
                 .frequencyPenalty,
                 .includeReasoning,
-                .logitBias,
                 .logprobs,
                 .maxTokens,
-                .minP,
                 .presencePenalty,
                 .reasoning,
                 .repetitionPenalty,
+                .seed,
+                .stop,
+                .temperature,
+                .toolChoice,
+                .tools,
+                .topK,
+                .topLogprobs,
+                .topP,
+            ],
+            reasoning: .onByDefault
+        )
+    }
+}
+
+extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.InclusionaiLing3_2FlashFree> {
+    /// inclusionAI: Ling 3.2 Flash (free)
+    public static var inclusionaiLing3_2FlashFree: Self {
+        Self(
+            id: "inclusionai/ling-3.2-flash:free",
+            displayName: "inclusionAI: Ling 3.2 Flash (free)",
+            releaseDate: Date(timeIntervalSince1970: 1_794_591_958),
+            contextSize: 1_048_576,
+            inputModalities: [.image, .text],
+            supportedParameters: [
+                .frequencyPenalty,
+                .includeReasoning,
+                .maxTokens,
+                .presencePenalty,
+                .reasoning,
                 .responseFormat,
                 .seed,
                 .stop,
@@ -2786,7 +2921,6 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.Inclusion
                 .toolChoice,
                 .tools,
                 .topK,
-                .topLogprobs,
                 .topP,
             ],
             reasoning: .onByDefault
@@ -2848,12 +2982,40 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.Inference
     }
 }
 
+extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.KtMidmK3_0Pro> {
+    /// KT: Mi:dm K 3.0 Pro
+    public static var ktMidmK3_0Pro: Self {
+        Self(
+            id: "kt/midm-k-3.0-pro",
+            displayName: "KT: Mi:dm K 3.0 Pro",
+            releaseDate: Date(timeIntervalSince1970: 1_793_897_701),
+            contextSize: 261_795,
+            supportedParameters: [
+                .frequencyPenalty,
+                .includeReasoning,
+                .logprobs,
+                .maxTokens,
+                .presencePenalty,
+                .reasoning,
+                .repetitionPenalty,
+                .responseFormat,
+                .structuredOutputs,
+                .temperature,
+                .toolChoice,
+                .tools,
+                .topK,
+                .topLogprobs,
+                .topP,
+            ],
+            reasoning: .offByDefault
+        )
+    }
+}
+
 extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.LiquidLfm2_5_2_6b> {
     /// LiquidAI: LFM2.5-2.6B
-    @available(*, deprecated, message: "OpenRouter retires this model on 2026-11-13")
-    public static var liquidLfm2_5_2_6b: Self { liquidLfm2_5_2_6bEntry }
-
-    fileprivate static var liquidLfm2_5_2_6bEntry: Self {
+    @available(*, deprecated, message: "Removed from OpenRouter on 2026-11-13")
+    public static var liquidLfm2_5_2_6b: Self {
         Self(
             id: "liquid/lfm-2.5-2.6b",
             displayName: "LiquidAI: LFM2.5-2.6B",
@@ -2888,10 +3050,8 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.LiquidLfm
 
 extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.LiquidLfm2_5_2_6bFree> {
     /// LiquidAI: LFM2.5-2.6B (free)
-    @available(*, deprecated, message: "OpenRouter retires this model on 2026-11-13")
-    public static var liquidLfm2_5_2_6bFree: Self { liquidLfm2_5_2_6bFreeEntry }
-
-    fileprivate static var liquidLfm2_5_2_6bFreeEntry: Self {
+    @available(*, deprecated, message: "Removed from OpenRouter on 2026-11-13")
+    public static var liquidLfm2_5_2_6bFree: Self {
         Self(
             id: "liquid/lfm-2.5-2.6b:free",
             displayName: "LiquidAI: LFM2.5-2.6B (free)",
@@ -3095,7 +3255,7 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.MetaLlama
             releaseDate: Date(timeIntervalSince1970: 1_721_692_800),
             knowledgeCutoff: Date(timeIntervalSince1970: 1_703_980_800),
             contextSize: 131_072,
-            supportedParameters: [.maxTokens, .stop, .temperature, .topK, .topP]
+            supportedParameters: [.maxTokens, .stop, .temperature, .toolChoice, .tools, .topK, .topP]
         )
     }
 }
@@ -3164,12 +3324,16 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.MetaLlama
 
 extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.MetaLlamaLlama3_2_3bInstruct> {
     /// Meta: Llama 3.2 3B Instruct
-    public static var metaLlamaLlama3_2_3bInstruct: Self {
+    @available(*, deprecated, message: "OpenRouter retires this model on 2026-11-20")
+    public static var metaLlamaLlama3_2_3bInstruct: Self { metaLlamaLlama3_2_3bInstructEntry }
+
+    fileprivate static var metaLlamaLlama3_2_3bInstructEntry: Self {
         Self(
             id: "meta-llama/llama-3.2-3b-instruct",
             displayName: "Meta: Llama 3.2 3B Instruct",
             releaseDate: Date(timeIntervalSince1970: 1_727_222_400),
             knowledgeCutoff: Date(timeIntervalSince1970: 1_703_980_800),
+            expirationDate: Date(timeIntervalSince1970: 1_795_132_800),
             contextSize: 131_072,
             supportedParameters: [
                 .frequencyPenalty,
@@ -3329,6 +3493,7 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.MetaMuseE
                 .reasoningEffort,
                 .repetitionPenalty,
                 .responseFormat,
+                .seed,
                 .structuredOutputs,
                 .temperature,
                 .toolChoice,
@@ -3356,6 +3521,7 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.MetaMuseG
                 .frequencyPenalty,
                 .includeReasoning,
                 .logitBias,
+                .logprobs,
                 .maxTokens,
                 .minP,
                 .presencePenalty,
@@ -3370,6 +3536,7 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.MetaMuseG
                 .toolChoice,
                 .tools,
                 .topK,
+                .topLogprobs,
                 .topP,
             ],
             reasoning: .mandatory,
@@ -3485,6 +3652,7 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.MetaMuseS
                 .reasoningEffort,
                 .repetitionPenalty,
                 .responseFormat,
+                .seed,
                 .structuredOutputs,
                 .temperature,
                 .toolChoice,
@@ -3583,6 +3751,7 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.MetaMuseW
                 .reasoningEffort,
                 .repetitionPenalty,
                 .responseFormat,
+                .seed,
                 .structuredOutputs,
                 .temperature,
                 .toolChoice,
@@ -3662,7 +3831,7 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.MinimaxMi
             id: "minimax/minimax-m2.5",
             displayName: "MiniMax: MiniMax M2.5",
             releaseDate: Date(timeIntervalSince1970: 1_770_908_502),
-            contextSize: 200_000,
+            contextSize: 198_000,
             supportedParameters: [
                 .frequencyPenalty,
                 .includeReasoning,
@@ -4474,15 +4643,11 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.Moonshota
 
 extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.MoonshotaiKimiK2_5> {
     /// MoonshotAI: Kimi K2.5
-    @available(*, deprecated, message: "OpenRouter retires this model on 2026-11-18")
-    public static var moonshotaiKimiK2_5: Self { moonshotaiKimiK2_5Entry }
-
-    fileprivate static var moonshotaiKimiK2_5Entry: Self {
+    public static var moonshotaiKimiK2_5: Self {
         Self(
             id: "moonshotai/kimi-k2.5",
             displayName: "MoonshotAI: Kimi K2.5",
             releaseDate: Date(timeIntervalSince1970: 1_769_487_076),
-            expirationDate: Date(timeIntervalSince1970: 1_794_960_000),
             contextSize: 262_144,
             inputModalities: [.image, .text],
             supportedParameters: [
@@ -4597,10 +4762,8 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.Moonshota
                 .includeReasoning,
                 .logitBias,
                 .logprobs,
-                .maxCompletionTokens,
                 .maxTokens,
                 .minP,
-                .parallelToolCalls,
                 .presencePenalty,
                 .reasoning,
                 .reasoningEffort,
@@ -4683,6 +4846,36 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.MorphMorp
             releaseDate: Date(timeIntervalSince1970: 1_751_910_858),
             contextSize: 262_144,
             supportedParameters: [.logprobs, .maxTokens, .responseFormat, .stop, .structuredOutputs, .temperature, .topLogprobs]
+        )
+    }
+}
+
+extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.MotifTechnologiesMotif3> {
+    /// Motif Technologies: Motif 3
+    public static var motifTechnologiesMotif3: Self {
+        Self(
+            id: "motif-technologies/motif-3",
+            displayName: "Motif Technologies: Motif 3",
+            releaseDate: Date(timeIntervalSince1970: 1_793_655_334),
+            contextSize: 262_144,
+            supportedParameters: [
+                .frequencyPenalty,
+                .includeReasoning,
+                .logprobs,
+                .maxTokens,
+                .presencePenalty,
+                .reasoning,
+                .repetitionPenalty,
+                .responseFormat,
+                .structuredOutputs,
+                .temperature,
+                .toolChoice,
+                .tools,
+                .topK,
+                .topLogprobs,
+                .topP,
+            ],
+            reasoning: .offByDefault
         )
     }
 }
@@ -4861,7 +5054,7 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.NvidiaNem
             id: "nvidia/nemotron-3-super-120b-a12b",
             displayName: "NVIDIA: Nemotron 3 Super",
             releaseDate: Date(timeIntervalSince1970: 1_773_245_239),
-            contextSize: 1_048_576,
+            contextSize: 262_144,
             supportedParameters: [
                 .frequencyPenalty,
                 .includeReasoning,
@@ -4903,6 +5096,7 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.NvidiaNem
                 .frequencyPenalty,
                 .includeReasoning,
                 .logitBias,
+                .logprobs,
                 .maxTokens,
                 .minP,
                 .presencePenalty,
@@ -4917,6 +5111,7 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.NvidiaNem
                 .toolChoice,
                 .tools,
                 .topK,
+                .topLogprobs,
                 .topP,
             ],
             reasoning: .onByDefault,
@@ -5459,12 +5654,16 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.OpenaiGpt
 
 extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.OpenaiGpt5> {
     /// OpenAI: GPT-5
-    public static var openaiGpt5: Self {
+    @available(*, deprecated, message: "OpenRouter retires this model on 2026-12-11")
+    public static var openaiGpt5: Self { openaiGpt5Entry }
+
+    fileprivate static var openaiGpt5Entry: Self {
         Self(
             id: "openai/gpt-5",
             displayName: "OpenAI: GPT-5",
             releaseDate: Date(timeIntervalSince1970: 1_754_587_413),
             knowledgeCutoff: Date(timeIntervalSince1970: 1_727_654_400),
+            expirationDate: Date(timeIntervalSince1970: 1_796_947_200),
             contextSize: 400_000,
             inputModalities: [.file, .image, .text],
             supportedParameters: [
@@ -5489,11 +5688,15 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.OpenaiGpt
 
 extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.OpenaiGpt5Image> {
     /// OpenAI: GPT-5 Image
-    public static var openaiGpt5Image: Self {
+    @available(*, deprecated, message: "OpenRouter retires this model on 2026-12-11")
+    public static var openaiGpt5Image: Self { openaiGpt5ImageEntry }
+
+    fileprivate static var openaiGpt5ImageEntry: Self {
         Self(
             id: "openai/gpt-5-image",
             displayName: "OpenAI: GPT-5 Image",
             releaseDate: Date(timeIntervalSince1970: 1_760_447_986),
+            expirationDate: Date(timeIntervalSince1970: 1_796_947_200),
             contextSize: 400_000,
             inputModalities: [.file, .image, .text],
             outputModalities: [.image, .text],
@@ -5549,12 +5752,16 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.OpenaiGpt
 
 extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.OpenaiGpt5Mini> {
     /// OpenAI: GPT-5 Mini
-    public static var openaiGpt5Mini: Self {
+    @available(*, deprecated, message: "OpenRouter retires this model on 2026-12-11")
+    public static var openaiGpt5Mini: Self { openaiGpt5MiniEntry }
+
+    fileprivate static var openaiGpt5MiniEntry: Self {
         Self(
             id: "openai/gpt-5-mini",
             displayName: "OpenAI: GPT-5 Mini",
             releaseDate: Date(timeIntervalSince1970: 1_754_587_407),
             knowledgeCutoff: Date(timeIntervalSince1970: 1_717_113_600),
+            expirationDate: Date(timeIntervalSince1970: 1_796_947_200),
             contextSize: 400_000,
             inputModalities: [.file, .image, .text],
             supportedParameters: [
@@ -5579,12 +5786,16 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.OpenaiGpt
 
 extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.OpenaiGpt5Nano> {
     /// OpenAI: GPT-5 Nano
-    public static var openaiGpt5Nano: Self {
+    @available(*, deprecated, message: "OpenRouter retires this model on 2026-12-11")
+    public static var openaiGpt5Nano: Self { openaiGpt5NanoEntry }
+
+    fileprivate static var openaiGpt5NanoEntry: Self {
         Self(
             id: "openai/gpt-5-nano",
             displayName: "OpenAI: GPT-5 Nano",
             releaseDate: Date(timeIntervalSince1970: 1_754_587_402),
             knowledgeCutoff: Date(timeIntervalSince1970: 1_717_113_600),
+            expirationDate: Date(timeIntervalSince1970: 1_796_947_200),
             contextSize: 400_000,
             inputModalities: [.file, .image, .text],
             supportedParameters: [
@@ -5609,12 +5820,16 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.OpenaiGpt
 
 extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.OpenaiGpt5Pro> {
     /// OpenAI: GPT-5 Pro
-    public static var openaiGpt5Pro: Self {
+    @available(*, deprecated, message: "OpenRouter retires this model on 2026-12-11")
+    public static var openaiGpt5Pro: Self { openaiGpt5ProEntry }
+
+    fileprivate static var openaiGpt5ProEntry: Self {
         Self(
             id: "openai/gpt-5-pro",
             displayName: "OpenAI: GPT-5 Pro",
             releaseDate: Date(timeIntervalSince1970: 1_759_776_663),
             knowledgeCutoff: Date(timeIntervalSince1970: 1_727_654_400),
+            expirationDate: Date(timeIntervalSince1970: 1_796_947_200),
             contextSize: 400_000,
             inputModalities: [.file, .image, .text],
             supportedParameters: [
@@ -6732,12 +6947,16 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.OpenaiGpt
 
 extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.OpenaiO3> {
     /// OpenAI: o3
-    public static var openaiO3: Self {
+    @available(*, deprecated, message: "OpenRouter retires this model on 2026-12-11")
+    public static var openaiO3: Self { openaiO3Entry }
+
+    fileprivate static var openaiO3Entry: Self {
         Self(
             id: "openai/o3",
             displayName: "OpenAI: o3",
             releaseDate: Date(timeIntervalSince1970: 1_744_823_457),
             knowledgeCutoff: Date(timeIntervalSince1970: 1_719_705_600),
+            expirationDate: Date(timeIntervalSince1970: 1_796_947_200),
             contextSize: 200_000,
             inputModalities: [.file, .image, .text],
             supportedParameters: [
@@ -6757,12 +6976,16 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.OpenaiO3>
 
 extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.OpenaiO3Pro> {
     /// OpenAI: o3 Pro
-    public static var openaiO3Pro: Self {
+    @available(*, deprecated, message: "OpenRouter retires this model on 2026-12-11")
+    public static var openaiO3Pro: Self { openaiO3ProEntry }
+
+    fileprivate static var openaiO3ProEntry: Self {
         Self(
             id: "openai/o3-pro",
             displayName: "OpenAI: o3 Pro",
             releaseDate: Date(timeIntervalSince1970: 1_749_598_352),
             knowledgeCutoff: Date(timeIntervalSince1970: 1_719_705_600),
+            expirationDate: Date(timeIntervalSince1970: 1_796_947_200),
             contextSize: 200_000,
             inputModalities: [.file, .image, .text],
             supportedParameters: [
@@ -7006,6 +7229,43 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.ParticleA
         Self(
             id: "particle-ai/particle-1",
             displayName: "Particle AI: Particle-1",
+            releaseDate: Date(timeIntervalSince1970: 1_793_207_893),
+            contextSize: 1_048_576,
+            inputModalities: [.image, .text],
+            supportedParameters: [
+                .frequencyPenalty,
+                .includeReasoning,
+                .logprobs,
+                .maxTokens,
+                .minP,
+                .presencePenalty,
+                .reasoning,
+                .reasoningEffort,
+                .repetitionPenalty,
+                .responseFormat,
+                .seed,
+                .stop,
+                .structuredOutputs,
+                .temperature,
+                .toolChoice,
+                .tools,
+                .topK,
+                .topLogprobs,
+                .topP,
+            ],
+            reasoning: .onByDefault,
+            reasoningEfforts: [.max, .xhigh, .high, .medium, .low, .minimal, .off],
+            defaultReasoningEffort: .high
+        )
+    }
+}
+
+extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.ParticleAiParticle1Free> {
+    /// Particle AI: Particle-1 (free)
+    public static var particleAiParticle1Free: Self {
+        Self(
+            id: "particle-ai/particle-1:free",
+            displayName: "Particle AI: Particle-1 (free)",
             releaseDate: Date(timeIntervalSince1970: 1_793_207_893),
             contextSize: 1_048_576,
             inputModalities: [.image, .text],
@@ -7296,6 +7556,7 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.QwenQwen2
 
 extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.QwenQwen2_5_7bInstruct> {
     /// Qwen: Qwen2.5 7B Instruct
+    @available(*, deprecated, message: "Removed from OpenRouter on 2026-11-11")
     public static var qwenQwen2_5_7bInstruct: Self {
         Self(
             id: "qwen/qwen-2.5-7b-instruct",
@@ -7818,12 +8079,16 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.QwenQwen3
 
 extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.QwenQwen3Vl30bA3bThinking> {
     /// Qwen: Qwen3 VL 30B A3B Thinking
-    public static var qwenQwen3Vl30bA3bThinking: Self {
+    @available(*, deprecated, message: "OpenRouter retires this model on 2026-11-15")
+    public static var qwenQwen3Vl30bA3bThinking: Self { qwenQwen3Vl30bA3bThinkingEntry }
+
+    fileprivate static var qwenQwen3Vl30bA3bThinkingEntry: Self {
         Self(
             id: "qwen/qwen3-vl-30b-a3b-thinking",
             displayName: "Qwen: Qwen3 VL 30B A3B Thinking",
             releaseDate: Date(timeIntervalSince1970: 1_759_794_479),
             knowledgeCutoff: Date(timeIntervalSince1970: 1_743_379_200),
+            expirationDate: Date(timeIntervalSince1970: 1_794_700_800),
             contextSize: 262_144,
             inputModalities: [.image, .text],
             supportedParameters: [
@@ -8418,7 +8683,7 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.QwenQwen3
             id: "qwen/qwen3.8-27b",
             displayName: "Qwen: Qwen3.8 27B",
             releaseDate: Date(timeIntervalSince1970: 1_786_722_910),
-            contextSize: 1_048_575,
+            contextSize: 1_024_000,
             inputModalities: [.image, .text, .video],
             supportedParameters: [
                 .frequencyPenalty,
@@ -8982,11 +9247,15 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.StealthCr
 
 extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.StepfunStep3_5Flash> {
     /// StepFun: Step 3.5 Flash
-    public static var stepfunStep3_5Flash: Self {
+    @available(*, deprecated, message: "OpenRouter retires this model on 2026-11-15")
+    public static var stepfunStep3_5Flash: Self { stepfunStep3_5FlashEntry }
+
+    fileprivate static var stepfunStep3_5FlashEntry: Self {
         Self(
             id: "stepfun/step-3.5-flash",
             displayName: "StepFun: Step 3.5 Flash",
             releaseDate: Date(timeIntervalSince1970: 1_769_728_337),
+            expirationDate: Date(timeIntervalSince1970: 1_794_700_800),
             contextSize: 262_144,
             supportedParameters: [
                 .frequencyPenalty,
@@ -9079,12 +9348,16 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.StepfunSt
 
 extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.TencentHunyuanA13bInstruct> {
     /// Tencent: Hunyuan A13B Instruct
-    public static var tencentHunyuanA13bInstruct: Self {
+    @available(*, deprecated, message: "OpenRouter retires this model on 2026-11-15")
+    public static var tencentHunyuanA13bInstruct: Self { tencentHunyuanA13bInstructEntry }
+
+    fileprivate static var tencentHunyuanA13bInstructEntry: Self {
         Self(
             id: "tencent/hunyuan-a13b-instruct",
             displayName: "Tencent: Hunyuan A13B Instruct",
             releaseDate: Date(timeIntervalSince1970: 1_751_987_664),
             knowledgeCutoff: Date(timeIntervalSince1970: 1_743_379_200),
+            expirationDate: Date(timeIntervalSince1970: 1_794_700_800),
             contextSize: 131_072,
             supportedParameters: [
                 .frequencyPenalty,
@@ -9389,6 +9662,44 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.Thinkingm
     }
 }
 
+extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.ThinkingmachinesInkling2Small> {
+    /// Thinking Machines: Inkling 2 Small
+    public static var thinkingmachinesInkling2Small: Self {
+        Self(
+            id: "thinkingmachines/inkling-2-small",
+            displayName: "Thinking Machines: Inkling 2 Small",
+            releaseDate: Date(timeIntervalSince1970: 1_794_261_847),
+            contextSize: 1_048_576,
+            inputModalities: [.image, .text],
+            supportedParameters: [
+                .frequencyPenalty,
+                .includeReasoning,
+                .logitBias,
+                .logprobs,
+                .maxTokens,
+                .minP,
+                .presencePenalty,
+                .reasoning,
+                .reasoningEffort,
+                .repetitionPenalty,
+                .responseFormat,
+                .seed,
+                .stop,
+                .structuredOutputs,
+                .temperature,
+                .toolChoice,
+                .tools,
+                .topK,
+                .topLogprobs,
+                .topP,
+            ],
+            reasoning: .mandatory,
+            reasoningEfforts: [.max, .high, .medium, .low, .minimal],
+            defaultReasoningEffort: .high
+        )
+    }
+}
+
 extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.ThinkingmachinesInkling2SmallFree> {
     /// Thinking Machines: Inkling 2 Small (free)
     public static var thinkingmachinesInkling2SmallFree: Self {
@@ -9494,6 +9805,20 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.UnbiasedP
     }
 }
 
+extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.UnbiasedPareto26_10Preview> {
+    /// Pareto 26.10 Preview
+    public static var unbiasedPareto26_10Preview: Self {
+        Self(
+            id: "unbiased/pareto-26.10-preview",
+            displayName: "Pareto 26.10 Preview",
+            releaseDate: Date(timeIntervalSince1970: 1_790_863_623),
+            contextSize: 1_048_576,
+            inputModalities: [.image, .text],
+            supportedParameters: [.maxTokens, .responseFormat, .temperature, .toolChoice, .tools, .topP]
+        )
+    }
+}
+
 extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.UnbiasedPareto26_9> {
     /// Pareto 26.9
     public static var unbiasedPareto26_9: Self {
@@ -9580,16 +9905,20 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.UpstageSo
             supportedParameters: [
                 .frequencyPenalty,
                 .includeReasoning,
+                .logprobs,
                 .maxTokens,
                 .parallelToolCalls,
                 .presencePenalty,
                 .reasoning,
                 .reasoningEffort,
+                .repetitionPenalty,
                 .responseFormat,
                 .structuredOutputs,
                 .temperature,
                 .toolChoice,
                 .tools,
+                .topK,
+                .topLogprobs,
                 .topP,
             ],
             reasoning: .offByDefault,
@@ -9983,6 +10312,7 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.XiaomiMim
 
 extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.XingchenAgiXing4_0_29bA4bFree> {
     /// XingChen: Xing4.0 29B A4B (free)
+    @available(*, deprecated, message: "Removed from OpenRouter on 2026-11-11")
     public static var xingchenAgiXing4_0_29bA4bFree: Self {
         Self(
             id: "xingchen-agi/xing4.0-29b-a4b:free",
@@ -10455,6 +10785,7 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.ZAiGlm5_3
                 .reasoning,
                 .reasoningEffort,
                 .responseFormat,
+                .structuredOutputs,
                 .temperature,
                 .toolChoice,
                 .tools,
@@ -10815,13 +11146,13 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.DeepseekD
 extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.GoogleGeminiFlashLatest> {
     /// Google: Gemini Flash Latest
     ///
-    /// An alias that points to `google/gemini-3.8-flash` now.
+    /// An alias that points to `google/gemini-4-hydrogen` now.
     public static var googleGeminiFlashLatest: Self {
         Self(
             id: "~google/gemini-flash-latest",
             displayName: "Google: Gemini Flash Latest",
             releaseDate: Date(timeIntervalSince1970: 1_777_318_398),
-            aliasTarget: "google/gemini-3.8-flash",
+            aliasTarget: "google/gemini-4-hydrogen",
             contextSize: 1_048_576,
             inputModalities: [.audio, .file, .image, .text, .video],
             supportedParameters: [
@@ -10839,7 +11170,7 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.GoogleGem
                 .topP,
             ],
             reasoning: .mandatory,
-            reasoningEfforts: [.high, .medium, .low],
+            reasoningEfforts: [.xhigh, .high, .medium, .low],
             defaultReasoningEffort: .medium
         )
     }
@@ -10848,13 +11179,13 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.GoogleGem
 extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.GoogleGeminiProLatest> {
     /// Google: Gemini Pro Latest
     ///
-    /// An alias that points to `google/gemini-4-argon` now.
+    /// An alias that points to `google/gemini-4-carbon` now.
     public static var googleGeminiProLatest: Self {
         Self(
             id: "~google/gemini-pro-latest",
             displayName: "Google: Gemini Pro Latest",
             releaseDate: Date(timeIntervalSince1970: 1_777_318_451),
-            aliasTarget: "google/gemini-4-argon",
+            aliasTarget: "google/gemini-4-carbon",
             contextSize: 1_048_576,
             inputModalities: [.audio, .file, .image, .text, .video],
             supportedParameters: [
@@ -10895,10 +11226,8 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.Moonshota
                 .includeReasoning,
                 .logitBias,
                 .logprobs,
-                .maxCompletionTokens,
                 .maxTokens,
                 .minP,
-                .parallelToolCalls,
                 .presencePenalty,
                 .reasoning,
                 .reasoningEffort,
@@ -11281,14 +11610,12 @@ extension OpenRouterModel where Effort == ContextOptions.ReasoningLevel {
             self.init(OpenRouterModel<_>.anthropicClaudeSonnet5)
         case "anthropic/claude-sonnet-5.5":
             self.init(OpenRouterModel<_>.anthropicClaudeSonnet5_5)
-        case "bytedance-seed/seed-1.6":
-            self.init(OpenRouterModel<_>.bytedanceSeedSeed1_6Entry)
-        case "bytedance-seed/seed-1.6-flash":
-            self.init(OpenRouterModel<_>.bytedanceSeedSeed1_6FlashEntry)
+        case "baidu/ernie-5.5-flash-preview:free":
+            self.init(OpenRouterModel<_>.baiduErnie5_5FlashPreviewFree)
+        case "baidu/ernie-light-dt-1.0-intl":
+            self.init(OpenRouterModel<_>.baiduErnieLightDt1_0Intl)
         case "bytedance-seed/seed-2-1-turbo":
             self.init(OpenRouterModel<_>.bytedanceSeedSeed2_1Turbo)
-        case "bytedance-seed/seed-2.0-code":
-            self.init(OpenRouterModel<_>.bytedanceSeedSeed2_0CodeEntry)
         case "bytedance-seed/seed-2.0-lite":
             self.init(OpenRouterModel<_>.bytedanceSeedSeed2_0Lite)
         case "bytedance-seed/seed-2.0-mini":
@@ -11385,6 +11712,10 @@ extension OpenRouterModel where Effort == ContextOptions.ReasoningLevel {
             self.init(OpenRouterModel<_>.googleGemini3_8Flash)
         case "google/gemini-4-argon":
             self.init(OpenRouterModel<_>.googleGemini4Argon)
+        case "google/gemini-4-carbon":
+            self.init(OpenRouterModel<_>.googleGemini4Carbon)
+        case "google/gemini-4-hydrogen":
+            self.init(OpenRouterModel<_>.googleGemini4Hydrogen)
         case "google/gemini-nano-banana-2.1":
             self.init(OpenRouterModel<_>.googleGeminiNanoBanana2_1)
         case "google/gemini-omni-1.1-flash":
@@ -11423,14 +11754,14 @@ extension OpenRouterModel where Effort == ContextOptions.ReasoningLevel {
             self.init(OpenRouterModel<_>.inclusionaiLing3_0Tiny)
         case "inclusionai/ling-3.1-flash":
             self.init(OpenRouterModel<_>.inclusionaiLing3_1Flash)
+        case "inclusionai/ling-3.2-flash:free":
+            self.init(OpenRouterModel<_>.inclusionaiLing3_2FlashFree)
         case "inference-net/schematron-v2-small":
             self.init(OpenRouterModel<_>.inferenceNetSchematronV2Small)
         case "inference-net/schematron-v2-turbo":
             self.init(OpenRouterModel<_>.inferenceNetSchematronV2Turbo)
-        case "liquid/lfm-2.5-2.6b":
-            self.init(OpenRouterModel<_>.liquidLfm2_5_2_6bEntry)
-        case "liquid/lfm-2.5-2.6b:free":
-            self.init(OpenRouterModel<_>.liquidLfm2_5_2_6bFreeEntry)
+        case "kt/midm-k-3.0-pro":
+            self.init(OpenRouterModel<_>.ktMidmK3_0Pro)
         case "liquid/lfm-2.5-24b-a2b":
             self.init(OpenRouterModel<_>.liquidLfm2_5_24bA2b)
         case "liquid/lfm-3-1.7b":
@@ -11448,7 +11779,7 @@ extension OpenRouterModel where Effort == ContextOptions.ReasoningLevel {
         case "meta-llama/llama-3.2-1b-instruct":
             self.init(OpenRouterModel<_>.metaLlamaLlama3_2_1bInstructEntry)
         case "meta-llama/llama-3.2-3b-instruct":
-            self.init(OpenRouterModel<_>.metaLlamaLlama3_2_3bInstruct)
+            self.init(OpenRouterModel<_>.metaLlamaLlama3_2_3bInstructEntry)
         case "meta-llama/llama-3.3-70b-instruct":
             self.init(OpenRouterModel<_>.metaLlamaLlama3_3_70bInstruct)
         case "meta-llama/llama-4-maverick":
@@ -11536,7 +11867,7 @@ extension OpenRouterModel where Effort == ContextOptions.ReasoningLevel {
         case "moonshotai/kimi-k2-thinking":
             self.init(OpenRouterModel<_>.moonshotaiKimiK2Thinking)
         case "moonshotai/kimi-k2.5":
-            self.init(OpenRouterModel<_>.moonshotaiKimiK2_5Entry)
+            self.init(OpenRouterModel<_>.moonshotaiKimiK2_5)
         case "moonshotai/kimi-k2.6":
             self.init(OpenRouterModel<_>.moonshotaiKimiK2_6)
         case "moonshotai/kimi-k2.7-code":
@@ -11549,6 +11880,8 @@ extension OpenRouterModel where Effort == ContextOptions.ReasoningLevel {
             self.init(OpenRouterModel<_>.morphMorphV3Fast)
         case "morph/morph-v3-large":
             self.init(OpenRouterModel<_>.morphMorphV3Large)
+        case "motif-technologies/motif-3":
+            self.init(OpenRouterModel<_>.motifTechnologiesMotif3)
         case "nex-agi/nex-n2.5-mini":
             self.init(OpenRouterModel<_>.nexAgiNexN2_5Mini)
         case "nex-agi/nex-n2.5-pro":
@@ -11604,17 +11937,17 @@ extension OpenRouterModel where Effort == ContextOptions.ReasoningLevel {
         case "openai/gpt-4o-mini-2024-07-18":
             self.init(OpenRouterModel<_>.openaiGpt4oMini2024_07_18)
         case "openai/gpt-5":
-            self.init(OpenRouterModel<_>.openaiGpt5)
+            self.init(OpenRouterModel<_>.openaiGpt5Entry)
         case "openai/gpt-5-image":
-            self.init(OpenRouterModel<_>.openaiGpt5Image)
+            self.init(OpenRouterModel<_>.openaiGpt5ImageEntry)
         case "openai/gpt-5-image-mini":
             self.init(OpenRouterModel<_>.openaiGpt5ImageMiniEntry)
         case "openai/gpt-5-mini":
-            self.init(OpenRouterModel<_>.openaiGpt5Mini)
+            self.init(OpenRouterModel<_>.openaiGpt5MiniEntry)
         case "openai/gpt-5-nano":
-            self.init(OpenRouterModel<_>.openaiGpt5Nano)
+            self.init(OpenRouterModel<_>.openaiGpt5NanoEntry)
         case "openai/gpt-5-pro":
-            self.init(OpenRouterModel<_>.openaiGpt5Pro)
+            self.init(OpenRouterModel<_>.openaiGpt5ProEntry)
         case "openai/gpt-5.1":
             self.init(OpenRouterModel<_>.openaiGpt5_1)
         case "openai/gpt-5.1-codex":
@@ -11692,9 +12025,9 @@ extension OpenRouterModel where Effort == ContextOptions.ReasoningLevel {
         case "openai/gpt-oss-safeguard-20b":
             self.init(OpenRouterModel<_>.openaiGptOssSafeguard20b)
         case "openai/o3":
-            self.init(OpenRouterModel<_>.openaiO3)
+            self.init(OpenRouterModel<_>.openaiO3Entry)
         case "openai/o3-pro":
-            self.init(OpenRouterModel<_>.openaiO3Pro)
+            self.init(OpenRouterModel<_>.openaiO3ProEntry)
         case "openrouter/auto":
             self.init(OpenRouterModel<_>.openRouterAuto)
         case "openrouter/auto-beta":
@@ -11711,6 +12044,8 @@ extension OpenRouterModel where Effort == ContextOptions.ReasoningLevel {
             self.init(OpenRouterModel<_>.openRouterParetoCode)
         case "particle-ai/particle-1":
             self.init(OpenRouterModel<_>.particleAiParticle1)
+        case "particle-ai/particle-1:free":
+            self.init(OpenRouterModel<_>.particleAiParticle1Free)
         case "perceptron/perceptron-mk1":
             self.init(OpenRouterModel<_>.perceptronPerceptronMk1)
         case "perceptron/perceptron-mk1.5":
@@ -11731,8 +12066,6 @@ extension OpenRouterModel where Effort == ContextOptions.ReasoningLevel {
             self.init(OpenRouterModel<_>.prismMlTernaryBonsai2_9b)
         case "qwen/qwen-2.5-72b-instruct":
             self.init(OpenRouterModel<_>.qwenQwen2_5_72bInstruct)
-        case "qwen/qwen-2.5-7b-instruct":
-            self.init(OpenRouterModel<_>.qwenQwen2_5_7bInstruct)
         case "qwen/qwen-2.5-coder-32b-instruct":
             self.init(OpenRouterModel<_>.qwenQwen2_5Coder32bInstruct)
         case "qwen/qwen-plus":
@@ -11766,7 +12099,7 @@ extension OpenRouterModel where Effort == ContextOptions.ReasoningLevel {
         case "qwen/qwen3-vl-30b-a3b-instruct":
             self.init(OpenRouterModel<_>.qwenQwen3Vl30bA3bInstruct)
         case "qwen/qwen3-vl-30b-a3b-thinking":
-            self.init(OpenRouterModel<_>.qwenQwen3Vl30bA3bThinking)
+            self.init(OpenRouterModel<_>.qwenQwen3Vl30bA3bThinkingEntry)
         case "qwen/qwen3-vl-8b-instruct":
             self.init(OpenRouterModel<_>.qwenQwen3Vl8bInstruct)
         case "qwen/qwen3.5-122b-a10b":
@@ -11842,13 +12175,13 @@ extension OpenRouterModel where Effort == ContextOptions.ReasoningLevel {
         case "scaledown/summarize":
             self.init(OpenRouterModel<_>.scaledownSummarize)
         case "stepfun/step-3.5-flash":
-            self.init(OpenRouterModel<_>.stepfunStep3_5Flash)
+            self.init(OpenRouterModel<_>.stepfunStep3_5FlashEntry)
         case "stepfun/step-3.7-flash":
             self.init(OpenRouterModel<_>.stepfunStep3_7Flash)
         case "stepfun/step-5-preview":
             self.init(OpenRouterModel<_>.stepfunStep5Preview)
         case "tencent/hunyuan-a13b-instruct":
-            self.init(OpenRouterModel<_>.tencentHunyuanA13bInstruct)
+            self.init(OpenRouterModel<_>.tencentHunyuanA13bInstructEntry)
         case "tencent/hy-mt2-1.8b":
             self.init(OpenRouterModel<_>.tencentHyMt2_1_8b)
         case "tencent/hy-mt2-30b-a3b":
@@ -11871,6 +12204,8 @@ extension OpenRouterModel where Effort == ContextOptions.ReasoningLevel {
             self.init(OpenRouterModel<_>.thedrummerUnslopnemo12b)
         case "thinkingmachines/inkling":
             self.init(OpenRouterModel<_>.thinkingmachinesInkling)
+        case "thinkingmachines/inkling-2-small":
+            self.init(OpenRouterModel<_>.thinkingmachinesInkling2Small)
         case "thinkingmachines/inkling-2-small:free":
             self.init(OpenRouterModel<_>.thinkingmachinesInkling2SmallFree)
         case "thinkingmachines/inkling-small":
@@ -11879,6 +12214,8 @@ extension OpenRouterModel where Effort == ContextOptions.ReasoningLevel {
             self.init(OpenRouterModel<_>.typesafeJevRouter)
         case "unbiased/pareto-26.10":
             self.init(OpenRouterModel<_>.unbiasedPareto26_10)
+        case "unbiased/pareto-26.10-preview":
+            self.init(OpenRouterModel<_>.unbiasedPareto26_10Preview)
         case "unbiased/pareto-26.9":
             self.init(OpenRouterModel<_>.unbiasedPareto26_9)
         case "undi95/remm-slerp-l2-13b":
@@ -11913,8 +12250,6 @@ extension OpenRouterModel where Effort == ContextOptions.ReasoningLevel {
             self.init(OpenRouterModel<_>.xiaomiMimoV2_6Pro)
         case "xiaomi/mimo-v2.6-pro-ultraspeed":
             self.init(OpenRouterModel<_>.xiaomiMimoV2_6ProUltraspeed)
-        case "xingchen-agi/xing4.0-29b-a4b:free":
-            self.init(OpenRouterModel<_>.xingchenAgiXing4_0_29bA4bFree)
         case "z-ai/glm-4.5":
             self.init(OpenRouterModel<_>.zAiGlm4_5Entry)
         case "z-ai/glm-4.5-air":
@@ -12034,10 +12369,9 @@ private let openRouterCatalogModels: [OpenModel] = [
     OpenModel(OpenRouterModel<_>.anthropicClaudeSonnet4_6),
     OpenModel(OpenRouterModel<_>.anthropicClaudeSonnet5),
     OpenModel(OpenRouterModel<_>.anthropicClaudeSonnet5_5),
-    OpenModel(OpenRouterModel<_>.bytedanceSeedSeed1_6Entry),
-    OpenModel(OpenRouterModel<_>.bytedanceSeedSeed1_6FlashEntry),
+    OpenModel(OpenRouterModel<_>.baiduErnie5_5FlashPreviewFree),
+    OpenModel(OpenRouterModel<_>.baiduErnieLightDt1_0Intl),
     OpenModel(OpenRouterModel<_>.bytedanceSeedSeed2_1Turbo),
-    OpenModel(OpenRouterModel<_>.bytedanceSeedSeed2_0CodeEntry),
     OpenModel(OpenRouterModel<_>.bytedanceSeedSeed2_0Lite),
     OpenModel(OpenRouterModel<_>.bytedanceSeedSeed2_0Mini),
     OpenModel(OpenRouterModel<_>.bytedanceUiTars1_5_7b),
@@ -12086,6 +12420,8 @@ private let openRouterCatalogModels: [OpenModel] = [
     OpenModel(OpenRouterModel<_>.googleGemini3_7Flash),
     OpenModel(OpenRouterModel<_>.googleGemini3_8Flash),
     OpenModel(OpenRouterModel<_>.googleGemini4Argon),
+    OpenModel(OpenRouterModel<_>.googleGemini4Carbon),
+    OpenModel(OpenRouterModel<_>.googleGemini4Hydrogen),
     OpenModel(OpenRouterModel<_>.googleGeminiNanoBanana2_1),
     OpenModel(OpenRouterModel<_>.googleGeminiOmni1_1Flash),
     OpenModel(OpenRouterModel<_>.googleGeminiOmni1_2Flash),
@@ -12105,10 +12441,10 @@ private let openRouterCatalogModels: [OpenModel] = [
     OpenModel(OpenRouterModel<_>.inclusionaiLing3_0FlashVl),
     OpenModel(OpenRouterModel<_>.inclusionaiLing3_0Tiny),
     OpenModel(OpenRouterModel<_>.inclusionaiLing3_1Flash),
+    OpenModel(OpenRouterModel<_>.inclusionaiLing3_2FlashFree),
     OpenModel(OpenRouterModel<_>.inferenceNetSchematronV2Small),
     OpenModel(OpenRouterModel<_>.inferenceNetSchematronV2Turbo),
-    OpenModel(OpenRouterModel<_>.liquidLfm2_5_2_6bEntry),
-    OpenModel(OpenRouterModel<_>.liquidLfm2_5_2_6bFreeEntry),
+    OpenModel(OpenRouterModel<_>.ktMidmK3_0Pro),
     OpenModel(OpenRouterModel<_>.liquidLfm2_5_24bA2b),
     OpenModel(OpenRouterModel<_>.liquidLfm3_1_7b),
     OpenModel(OpenRouterModel<_>.liquidLfm3_1_7bFree),
@@ -12117,7 +12453,7 @@ private let openRouterCatalogModels: [OpenModel] = [
     OpenModel(OpenRouterModel<_>.metaLlamaLlama3_1_70bInstruct),
     OpenModel(OpenRouterModel<_>.metaLlamaLlama3_1_8bInstruct),
     OpenModel(OpenRouterModel<_>.metaLlamaLlama3_2_1bInstructEntry),
-    OpenModel(OpenRouterModel<_>.metaLlamaLlama3_2_3bInstruct),
+    OpenModel(OpenRouterModel<_>.metaLlamaLlama3_2_3bInstructEntry),
     OpenModel(OpenRouterModel<_>.metaLlamaLlama3_3_70bInstruct),
     OpenModel(OpenRouterModel<_>.metaLlamaLlama4Maverick),
     OpenModel(OpenRouterModel<_>.metaLlamaLlama4Scout),
@@ -12161,13 +12497,14 @@ private let openRouterCatalogModels: [OpenModel] = [
     OpenModel(OpenRouterModel<_>.moonshotaiKimiK2),
     OpenModel(OpenRouterModel<_>.moonshotaiKimiK2_0905),
     OpenModel(OpenRouterModel<_>.moonshotaiKimiK2Thinking),
-    OpenModel(OpenRouterModel<_>.moonshotaiKimiK2_5Entry),
+    OpenModel(OpenRouterModel<_>.moonshotaiKimiK2_5),
     OpenModel(OpenRouterModel<_>.moonshotaiKimiK2_6),
     OpenModel(OpenRouterModel<_>.moonshotaiKimiK2_7Code),
     OpenModel(OpenRouterModel<_>.moonshotaiKimiK3),
     OpenModel(OpenRouterModel<_>.moonshotaiKimiK3_1Pro),
     OpenModel(OpenRouterModel<_>.morphMorphV3Fast),
     OpenModel(OpenRouterModel<_>.morphMorphV3Large),
+    OpenModel(OpenRouterModel<_>.motifTechnologiesMotif3),
     OpenModel(OpenRouterModel<_>.nexAgiNexN2_5Mini),
     OpenModel(OpenRouterModel<_>.nexAgiNexN2_5Pro),
     OpenModel(OpenRouterModel<_>.nexAgiNexN2_6),
@@ -12195,12 +12532,12 @@ private let openRouterCatalogModels: [OpenModel] = [
     OpenModel(OpenRouterModel<_>.openaiGpt4o2024_11_20),
     OpenModel(OpenRouterModel<_>.openaiGpt4oMini),
     OpenModel(OpenRouterModel<_>.openaiGpt4oMini2024_07_18),
-    OpenModel(OpenRouterModel<_>.openaiGpt5),
-    OpenModel(OpenRouterModel<_>.openaiGpt5Image),
+    OpenModel(OpenRouterModel<_>.openaiGpt5Entry),
+    OpenModel(OpenRouterModel<_>.openaiGpt5ImageEntry),
     OpenModel(OpenRouterModel<_>.openaiGpt5ImageMiniEntry),
-    OpenModel(OpenRouterModel<_>.openaiGpt5Mini),
-    OpenModel(OpenRouterModel<_>.openaiGpt5Nano),
-    OpenModel(OpenRouterModel<_>.openaiGpt5Pro),
+    OpenModel(OpenRouterModel<_>.openaiGpt5MiniEntry),
+    OpenModel(OpenRouterModel<_>.openaiGpt5NanoEntry),
+    OpenModel(OpenRouterModel<_>.openaiGpt5ProEntry),
     OpenModel(OpenRouterModel<_>.openaiGpt5_1),
     OpenModel(OpenRouterModel<_>.openaiGpt5_1Codex),
     OpenModel(OpenRouterModel<_>.openaiGpt5_1CodexMax),
@@ -12239,8 +12576,8 @@ private let openRouterCatalogModels: [OpenModel] = [
     OpenModel(OpenRouterModel<_>.openaiGptOss120b),
     OpenModel(OpenRouterModel<_>.openaiGptOss20b),
     OpenModel(OpenRouterModel<_>.openaiGptOssSafeguard20b),
-    OpenModel(OpenRouterModel<_>.openaiO3),
-    OpenModel(OpenRouterModel<_>.openaiO3Pro),
+    OpenModel(OpenRouterModel<_>.openaiO3Entry),
+    OpenModel(OpenRouterModel<_>.openaiO3ProEntry),
     OpenModel(OpenRouterModel<_>.openRouterAuto),
     OpenModel(OpenRouterModel<_>.openRouterAutoBeta),
     OpenModel(OpenRouterModel<_>.openRouterAutoCode),
@@ -12249,6 +12586,7 @@ private let openRouterCatalogModels: [OpenModel] = [
     OpenModel(OpenRouterModel<_>.openRouterFusion),
     OpenModel(OpenRouterModel<_>.openRouterParetoCode),
     OpenModel(OpenRouterModel<_>.particleAiParticle1),
+    OpenModel(OpenRouterModel<_>.particleAiParticle1Free),
     OpenModel(OpenRouterModel<_>.perceptronPerceptronMk1),
     OpenModel(OpenRouterModel<_>.perceptronPerceptronMk1_5),
     OpenModel(OpenRouterModel<_>.perplexitySonar),
@@ -12259,7 +12597,6 @@ private let openRouterCatalogModels: [OpenModel] = [
     OpenModel(OpenRouterModel<_>.prismMlTernaryBonsai2_27b),
     OpenModel(OpenRouterModel<_>.prismMlTernaryBonsai2_9b),
     OpenModel(OpenRouterModel<_>.qwenQwen2_5_72bInstruct),
-    OpenModel(OpenRouterModel<_>.qwenQwen2_5_7bInstruct),
     OpenModel(OpenRouterModel<_>.qwenQwen2_5Coder32bInstruct),
     OpenModel(OpenRouterModel<_>.qwenQwenPlus),
     OpenModel(OpenRouterModel<_>.qwenQwen2_5Vl72bInstruct),
@@ -12276,7 +12613,7 @@ private let openRouterCatalogModels: [OpenModel] = [
     OpenModel(OpenRouterModel<_>.qwenQwen3Next80bA3bInstruct),
     OpenModel(OpenRouterModel<_>.qwenQwen3Vl235bA22bInstruct),
     OpenModel(OpenRouterModel<_>.qwenQwen3Vl30bA3bInstruct),
-    OpenModel(OpenRouterModel<_>.qwenQwen3Vl30bA3bThinking),
+    OpenModel(OpenRouterModel<_>.qwenQwen3Vl30bA3bThinkingEntry),
     OpenModel(OpenRouterModel<_>.qwenQwen3Vl8bInstruct),
     OpenModel(OpenRouterModel<_>.qwenQwen3_5_122bA10b),
     OpenModel(OpenRouterModel<_>.qwenQwen3_5_27b),
@@ -12314,10 +12651,10 @@ private let openRouterCatalogModels: [OpenModel] = [
     OpenModel(OpenRouterModel<_>.sao10kL3_1Euryale70b),
     OpenModel(OpenRouterModel<_>.scaledownExtract),
     OpenModel(OpenRouterModel<_>.scaledownSummarize),
-    OpenModel(OpenRouterModel<_>.stepfunStep3_5Flash),
+    OpenModel(OpenRouterModel<_>.stepfunStep3_5FlashEntry),
     OpenModel(OpenRouterModel<_>.stepfunStep3_7Flash),
     OpenModel(OpenRouterModel<_>.stepfunStep5Preview),
-    OpenModel(OpenRouterModel<_>.tencentHunyuanA13bInstruct),
+    OpenModel(OpenRouterModel<_>.tencentHunyuanA13bInstructEntry),
     OpenModel(OpenRouterModel<_>.tencentHyMt2_1_8b),
     OpenModel(OpenRouterModel<_>.tencentHyMt2_30bA3b),
     OpenModel(OpenRouterModel<_>.tencentHyMt2_7b),
@@ -12329,10 +12666,12 @@ private let openRouterCatalogModels: [OpenModel] = [
     OpenModel(OpenRouterModel<_>.thedrummerSkyfall36bV2),
     OpenModel(OpenRouterModel<_>.thedrummerUnslopnemo12b),
     OpenModel(OpenRouterModel<_>.thinkingmachinesInkling),
+    OpenModel(OpenRouterModel<_>.thinkingmachinesInkling2Small),
     OpenModel(OpenRouterModel<_>.thinkingmachinesInkling2SmallFree),
     OpenModel(OpenRouterModel<_>.thinkingmachinesInklingSmall),
     OpenModel(OpenRouterModel<_>.typesafeJevRouter),
     OpenModel(OpenRouterModel<_>.unbiasedPareto26_10),
+    OpenModel(OpenRouterModel<_>.unbiasedPareto26_10Preview),
     OpenModel(OpenRouterModel<_>.unbiasedPareto26_9),
     OpenModel(OpenRouterModel<_>.undi95RemmSlerpL2_13b),
     OpenModel(OpenRouterModel<_>.upstageSolarMini4),
@@ -12350,7 +12689,6 @@ private let openRouterCatalogModels: [OpenModel] = [
     OpenModel(OpenRouterModel<_>.xiaomiMimoV2_6Flash),
     OpenModel(OpenRouterModel<_>.xiaomiMimoV2_6Pro),
     OpenModel(OpenRouterModel<_>.xiaomiMimoV2_6ProUltraspeed),
-    OpenModel(OpenRouterModel<_>.xingchenAgiXing4_0_29bA4bFree),
     OpenModel(OpenRouterModel<_>.zAiGlm4_5Entry),
     OpenModel(OpenRouterModel<_>.zAiGlm4_5Air),
     OpenModel(OpenRouterModel<_>.zAiGlm4_5vEntry),

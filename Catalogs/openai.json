@@ -1042,8 +1042,10 @@
         "parallel_tool_calls",
         "reasoning",
         "structured_outputs",
+        "temperature",
         "tool_choice",
-        "tools"
+        "tools",
+        "top_p"
       ]
     },
     {
@@ -1074,8 +1076,10 @@
         "parallel_tool_calls",
         "reasoning",
         "structured_outputs",
+        "temperature",
         "tool_choice",
-        "tools"
+        "tools",
+        "top_p"
       ]
     },
     {
@@ -1167,8 +1171,10 @@
         "parallel_tool_calls",
         "reasoning",
         "structured_outputs",
+        "temperature",
         "tool_choice",
-        "tools"
+        "tools",
+        "top_p"
       ]
     },
     {
@@ -1200,8 +1206,10 @@
         "parallel_tool_calls",
         "reasoning",
         "structured_outputs",
+        "temperature",
         "tool_choice",
-        "tools"
+        "tools",
+        "top_p"
       ]
     },
     {
@@ -1233,8 +1241,10 @@
         "parallel_tool_calls",
         "reasoning",
         "structured_outputs",
+        "temperature",
         "tool_choice",
-        "tools"
+        "tools",
+        "top_p"
       ]
     },
     {
@@ -1298,8 +1308,10 @@
         "parallel_tool_calls",
         "reasoning",
         "structured_outputs",
+        "temperature",
         "tool_choice",
-        "tools"
+        "tools",
+        "top_p"
       ]
     },
     {
@@ -1331,8 +1343,10 @@
         "parallel_tool_calls",
         "reasoning",
         "structured_outputs",
+        "temperature",
         "tool_choice",
-        "tools"
+        "tools",
+        "top_p"
       ]
     },
     {
@@ -1396,8 +1410,10 @@
         "parallel_tool_calls",
         "reasoning",
         "structured_outputs",
+        "temperature",
         "tool_choice",
-        "tools"
+        "tools",
+        "top_p"
       ]
     },
     {

@@ -6,7 +6,14 @@ import LanguageModels
 extension ModelRemovals {
     /// The models OpenRouter stopped listing, which its catalog keeps as deprecated members.
     static let openRouter = ModelRemovals([
+        "bytedance-seed/seed-1.6": Date(timeIntervalSince1970: 1_794_355_200),
+        "bytedance-seed/seed-1.6-flash": Date(timeIntervalSince1970: 1_794_355_200),
+        "bytedance-seed/seed-2.0-code": Date(timeIntervalSince1970: 1_794_355_200),
+        "liquid/lfm-2.5-2.6b": Date(timeIntervalSince1970: 1_794_528_000),
+        "liquid/lfm-2.5-2.6b:free": Date(timeIntervalSince1970: 1_794_528_000),
         "minimax/minimax-m1": Date(timeIntervalSince1970: 1_794_268_800),
+        "qwen/qwen-2.5-7b-instruct": Date(timeIntervalSince1970: 1_794_355_200),
         "stealth/crouton-alpha": Date(timeIntervalSince1970: 1_794_268_800),
+        "xingchen-agi/xing4.0-29b-a4b:free": Date(timeIntervalSince1970: 1_794_355_200),
     ])
 }
