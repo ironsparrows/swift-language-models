@@ -173,6 +173,18 @@ public enum OpenRouterCatalog {
         public static var efforts: [String] { ["max", "xhigh", "high", "medium", "low"] }
     }
 
+    /// Baidu: ERNIE-5.5-Flash-Preview (free)
+    public enum BaiduErnie5_5FlashPreviewFree: Efforts.List {
+        /// The levels the model accepts, highest first.
+        public static var efforts: [String] { ["high"] }
+    }
+
+    /// Baidu: ERNIE-Light-DT-1.0
+    public enum BaiduErnieLightDt1_0Intl: Efforts.List {
+        /// The levels the model accepts, highest first.
+        public static var efforts: [String] { ["max", "high", "low", "none"] }
+    }
+
     /// ByteDance Seed: Seed 1.6
     public enum BytedanceSeedSeed1_6: Efforts.List {
         /// The levels the model accepts, highest first.
@@ -485,6 +497,18 @@ public enum OpenRouterCatalog {
         public static var efforts: [String] { ["high", "medium", "low"] }
     }
 
+    /// Google: Gemini 4 Carbon
+    public enum GoogleGemini4Carbon: Efforts.List {
+        /// The levels the model accepts, highest first.
+        public static var efforts: [String] { ["high", "medium", "low"] }
+    }
+
+    /// Google: Gemini 4 Hydrogen
+    public enum GoogleGemini4Hydrogen: Efforts.List {
+        /// The levels the model accepts, highest first.
+        public static var efforts: [String] { ["xhigh", "high", "medium", "low"] }
+    }
+
     /// Google: Nano Banana 2.1
     public enum GoogleGeminiNanoBanana2_1: Efforts.List {
         /// The levels the model accepts, highest first.
@@ -599,6 +623,12 @@ public enum OpenRouterCatalog {
         public static var efforts: [String] { [] }
     }
 
+    /// inclusionAI: Ling 3.2 Flash (free)
+    public enum InclusionaiLing3_2FlashFree: Efforts.List {
+        /// The levels the model accepts, highest first.
+        public static var efforts: [String] { [] }
+    }
+
     /// Inference.net: Schematron V2 Small
     public enum InferenceNetSchematronV2Small: Efforts.List {
         /// The levels the model accepts, highest first.
@@ -607,6 +637,12 @@ public enum OpenRouterCatalog {
 
     /// Inference.net: Schematron V2 Turbo
     public enum InferenceNetSchematronV2Turbo: Efforts.List {
+        /// The levels the model accepts, highest first.
+        public static var efforts: [String] { [] }
+    }
+
+    /// KT: Mi:dm K 3.0 Pro
+    public enum KtMidmK3_0Pro: Efforts.List {
         /// The levels the model accepts, highest first.
         public static var efforts: [String] { [] }
     }
@@ -979,6 +1015,12 @@ public enum OpenRouterCatalog {
 
     /// Morph: Morph V3 Large
     public enum MorphMorphV3Large: Efforts.List {
+        /// The levels the model accepts, highest first.
+        public static var efforts: [String] { [] }
+    }
+
+    /// Motif Technologies: Motif 3
+    public enum MotifTechnologiesMotif3: Efforts.List {
         /// The levels the model accepts, highest first.
         public static var efforts: [String] { [] }
     }
@@ -1469,6 +1511,12 @@ public enum OpenRouterCatalog {
         public static var efforts: [String] { ["max", "xhigh", "high", "medium", "low", "minimal", "none"] }
     }
 
+    /// Particle AI: Particle-1 (free)
+    public enum ParticleAiParticle1Free: Efforts.List {
+        /// The levels the model accepts, highest first.
+        public static var efforts: [String] { ["max", "xhigh", "high", "medium", "low", "minimal", "none"] }
+    }
+
     /// Perceptron: Perceptron Mk1
     public enum PerceptronPerceptronMk1: Efforts.List {
         /// The levels the model accepts, highest first.
@@ -1955,6 +2003,12 @@ public enum OpenRouterCatalog {
         public static var efforts: [String] { ["max", "high", "medium", "low", "minimal", "none"] }
     }
 
+    /// Thinking Machines: Inkling 2 Small
+    public enum ThinkingmachinesInkling2Small: Efforts.List {
+        /// The levels the model accepts, highest first.
+        public static var efforts: [String] { ["max", "high", "medium", "low", "minimal"] }
+    }
+
     /// Thinking Machines: Inkling 2 Small (free)
     public enum ThinkingmachinesInkling2SmallFree: Efforts.List {
         /// The levels the model accepts, highest first.
@@ -1975,6 +2029,12 @@ public enum OpenRouterCatalog {
 
     /// Pareto 26.10
     public enum UnbiasedPareto26_10: Efforts.List {
+        /// The levels the model accepts, highest first.
+        public static var efforts: [String] { [] }
+    }
+
+    /// Pareto 26.10 Preview
+    public enum UnbiasedPareto26_10Preview: Efforts.List {
         /// The levels the model accepts, highest first.
         public static var efforts: [String] { [] }
     }
@@ -2234,7 +2294,7 @@ public enum OpenRouterCatalog {
     /// Google: Gemini Flash Latest
     public enum GoogleGeminiFlashLatest: Efforts.List {
         /// The levels the model accepts, highest first.
-        public static var efforts: [String] { ["high", "medium", "low"] }
+        public static var efforts: [String] { ["xhigh", "high", "medium", "low"] }
     }
 
     /// Google: Gemini Pro Latest
@@ -2543,6 +2603,25 @@ extension Efforts.Of where Tag == OpenRouterCatalog.AnthropicClaudeSonnet5_5 {
 
     /// The `low` effort.
     public static var low: Self { Self(listed: "low") }
+}
+
+extension Efforts.Of where Tag == OpenRouterCatalog.BaiduErnie5_5FlashPreviewFree {
+    /// The `high` effort.
+    public static var high: Self { Self(listed: "high") }
+}
+
+extension Efforts.Of where Tag == OpenRouterCatalog.BaiduErnieLightDt1_0Intl {
+    /// The `max` effort.
+    public static var max: Self { Self(listed: "max") }
+
+    /// The `high` effort.
+    public static var high: Self { Self(listed: "high") }
+
+    /// The `low` effort.
+    public static var low: Self { Self(listed: "low") }
+
+    /// The `none` effort, which turns reasoning off.
+    public static var off: Self { Self(listed: "none") }
 }
 
 extension Efforts.Of where Tag == OpenRouterCatalog.BytedanceSeedSeed2_0Code {
@@ -2870,6 +2949,31 @@ extension Efforts.Of where Tag == OpenRouterCatalog.GoogleGemini3_8Flash {
 }
 
 extension Efforts.Of where Tag == OpenRouterCatalog.GoogleGemini4Argon {
+    /// The `high` effort.
+    public static var high: Self { Self(listed: "high") }
+
+    /// The `medium` effort.
+    public static var medium: Self { Self(listed: "medium") }
+
+    /// The `low` effort.
+    public static var low: Self { Self(listed: "low") }
+}
+
+extension Efforts.Of where Tag == OpenRouterCatalog.GoogleGemini4Carbon {
+    /// The `high` effort.
+    public static var high: Self { Self(listed: "high") }
+
+    /// The `medium` effort.
+    public static var medium: Self { Self(listed: "medium") }
+
+    /// The `low` effort.
+    public static var low: Self { Self(listed: "low") }
+}
+
+extension Efforts.Of where Tag == OpenRouterCatalog.GoogleGemini4Hydrogen {
+    /// The `xhigh` effort.
+    public static var xhigh: Self { Self(listed: "xhigh") }
+
     /// The `high` effort.
     public static var high: Self { Self(listed: "high") }
 
@@ -3822,6 +3926,29 @@ extension Efforts.Of where Tag == OpenRouterCatalog.ParticleAiParticle1 {
     public static var off: Self { Self(listed: "none") }
 }
 
+extension Efforts.Of where Tag == OpenRouterCatalog.ParticleAiParticle1Free {
+    /// The `max` effort.
+    public static var max: Self { Self(listed: "max") }
+
+    /// The `xhigh` effort.
+    public static var xhigh: Self { Self(listed: "xhigh") }
+
+    /// The `high` effort.
+    public static var high: Self { Self(listed: "high") }
+
+    /// The `medium` effort.
+    public static var medium: Self { Self(listed: "medium") }
+
+    /// The `low` effort.
+    public static var low: Self { Self(listed: "low") }
+
+    /// The `minimal` effort.
+    public static var minimal: Self { Self(listed: "minimal") }
+
+    /// The `none` effort, which turns reasoning off.
+    public static var off: Self { Self(listed: "none") }
+}
+
 extension Efforts.Of where Tag == OpenRouterCatalog.PerceptronPerceptronMk1_5 {
     /// The `high` effort.
     public static var high: Self { Self(listed: "high") }
@@ -4071,6 +4198,23 @@ extension Efforts.Of where Tag == OpenRouterCatalog.ThinkingmachinesInkling {
 
     /// The `none` effort, which turns reasoning off.
     public static var off: Self { Self(listed: "none") }
+}
+
+extension Efforts.Of where Tag == OpenRouterCatalog.ThinkingmachinesInkling2Small {
+    /// The `max` effort.
+    public static var max: Self { Self(listed: "max") }
+
+    /// The `high` effort.
+    public static var high: Self { Self(listed: "high") }
+
+    /// The `medium` effort.
+    public static var medium: Self { Self(listed: "medium") }
+
+    /// The `low` effort.
+    public static var low: Self { Self(listed: "low") }
+
+    /// The `minimal` effort.
+    public static var minimal: Self { Self(listed: "minimal") }
 }
 
 extension Efforts.Of where Tag == OpenRouterCatalog.ThinkingmachinesInkling2SmallFree {
@@ -4403,6 +4547,9 @@ extension Efforts.Of where Tag == OpenRouterCatalog.DeepseekDeepseekV4FlashLates
 }
 
 extension Efforts.Of where Tag == OpenRouterCatalog.GoogleGeminiFlashLatest {
+    /// The `xhigh` effort.
+    public static var xhigh: Self { Self(listed: "xhigh") }
+
     /// The `high` effort.
     public static var high: Self { Self(listed: "high") }
 
