@@ -30,6 +30,7 @@
     "models[].experimental.modes.fast.cost.output",
     "models[].experimental.modes.fast.provider.body.service_tier",
     "models[].experimental.modes.flex.cost.cache_read",
+    "models[].experimental.modes.flex.cost.cache_write",
     "models[].experimental.modes.flex.cost.input",
     "models[].experimental.modes.flex.cost.output",
     "models[].experimental.modes.flex.provider.body.service_tier",
