@@ -254,7 +254,7 @@ A bot keeps the catalog current. Models OpenRouter retires or stops listing stay
 ```swift
 let model = OpenRouterLanguageModel(
     .anthropicClaudeHaiku5_5,
-    fallbacks: .openaiGpt5Mini, .googleGemini3_1FlashLite,  // Tried in order when the model fails
+    fallbacks: .openaiGpt5_4Mini, .googleGemini3_1FlashLite,  // Tried in order when the model fails
     // Only hosts that keep no prompts, lowest price first
     routing: OpenRouterRouting(dataCollection: .deny, zeroDataRetention: .required, sort: .price),
     auth: .apiKey { try await keyStore.openRouterKey() }
@@ -282,7 +282,7 @@ Server tools run on OpenRouter while the model answers:
 
 ```swift
 let model = OpenRouterLanguageModel(
-    .openaiGpt5Mini,
+    .openaiGpt5_4Mini,
     serverTools: [.webSearch(maximumResults: 5), .webFetch(), .datetime(timeZone: .current)],
     auth: .apiKey { try await keyStore.openRouterKey() }
 )
@@ -299,7 +299,7 @@ Advisors and subagents are other models the answering model consults or hands ta
 
 ```swift
 let researcher = OpenRouterLanguageModel(
-    .openaiGpt5Mini,
+    .openaiGpt5_4Mini,
     serverTools: [
         .advisor(model: "~anthropic/claude-opus-latest", forwardsTranscript: true),  // Consulted while it answers
         .subagent(model: "~anthropic/claude-haiku-latest", tools: [.webSearch()]),  // Takes self-contained tasks

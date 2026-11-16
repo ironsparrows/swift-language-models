@@ -17,8 +17,8 @@ let evaluationApp = OpenRouterApp(
     isHidden: true
 )
 
-/// The model the feature ships with: OpenAI's GPT-5 mini.
-let recipeModel = OpenRouterLanguageModel(.openaiGpt5Mini, app: evaluationApp, auth: .apiKey { openRouterKey ?? "" })
+/// The model the feature ships with: OpenAI's GPT-5.4 mini.
+let recipeModel = OpenRouterLanguageModel(.openaiGpt5_4Mini, app: evaluationApp, auth: .apiKey { openRouterKey ?? "" })
 
 /// A larger model from another family, Anthropic's, to judge it.
 let judge = OpenRouterLanguageModel(.anthropicClaudeSonnet5_5, app: evaluationApp, auth: .apiKey { openRouterKey ?? "" })

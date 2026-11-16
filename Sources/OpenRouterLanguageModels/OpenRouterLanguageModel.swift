@@ -81,7 +81,7 @@ public struct OpenRouterLanguageModel<Effort: ModelEffort>: DetailedLanguageMode
     /// - Parameters:
     ///   - details: The model, usually from the catalog, such as `.anthropicClaudeSonnet4_6`.
     ///   - fallbacks: The models to try in order when the model fails, such as
-    ///     `.openaiGpt5Nano, .googleGemini3_1FlashLite`. Each can have its own effort type.
+    ///     `.openaiGpt5_4Nano, .googleGemini3_1FlashLite`. Each can have its own effort type.
     ///   - serverTools: Tools that OpenRouter runs for the model while it answers, such as `.webSearch()`.
     ///   - routing: Which of the model's hosts OpenRouter may use.
     ///   - options: Request settings that only OpenRouter has.
@@ -269,7 +269,7 @@ public struct OpenRouterAuthentication: Sendable {
 ///
 /// ```swift
 /// let model = OpenRouterLanguageModel(
-///     .openaiGpt5Mini,
+///     .openaiGpt5_4Mini,
 ///     app: OpenRouterApp(name: "Trip Planner", url: URL(string: "https://example.com"), categories: [.personalAgent]),
 ///     auth: .apiKey { try await keyStore.openRouterKey() }
 /// )

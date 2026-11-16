@@ -7,7 +7,7 @@ func capabilities() {
     // snippet.capabilities
     let model = OpenRouterLanguageModel(
         .anthropicClaudeHaiku5_5,
-        fallbacks: .openaiGpt5Mini,
+        fallbacks: .openaiGpt5_4Mini,
         auth: .apiKey { try await keyStore.openRouterKey() }
     )
     print(model.capabilities.contains(.toolCalling))  // Every model lists `tools`

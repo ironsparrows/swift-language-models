@@ -5,7 +5,7 @@ import OpenRouterLanguageModels
 func responseCache() async throws {
     // snippet.show
     // snippet.cache
-    var model = OpenRouterLanguageModel(.openaiGpt5Mini, auth: .apiKey { try await keyStore.openRouterKey() })
+    var model = OpenRouterLanguageModel(.openaiGpt5_4Mini, auth: .apiKey { try await keyStore.openRouterKey() })
     model.responseCache = OpenRouterResponseCache(timeToLive: .seconds(600))
 
     let session = LanguageModelSession(model: model, instructions: "Suggest one recipe.")

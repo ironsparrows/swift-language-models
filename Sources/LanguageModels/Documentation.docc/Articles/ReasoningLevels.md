@@ -5,7 +5,7 @@ Choose how much a model reasons, with the model's own levels or Apple's.
 ## Overview
 
 Each model accepts its own reasoning levels: Claude Haiku 5.5 takes `max`, `xhigh`, `high`, `medium`, `low` and
-`off`, and GPT-5 Mini takes `high`, `medium`, `low` and `minimal`. ``DetailedLanguageModel/reasoningLevel(_:)``
+`off`, and GPT-5.4 Mini takes `xhigh`, `high`, `medium`, `low` and `off`. ``DetailedLanguageModel/reasoningLevel(_:)``
 takes only the levels the model accepts, so code completion offers exactly those:
 
 @Snippet(path: "swift-language-models/Snippets/Effort", slice: "modelLevel")

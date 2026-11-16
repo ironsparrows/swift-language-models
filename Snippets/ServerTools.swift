@@ -6,7 +6,7 @@ func webSearch() async throws {
     // snippet.show
     // snippet.search
     let model = OpenRouterLanguageModel(
-        .openaiGpt5Mini,
+        .openaiGpt5_4Mini,
         serverTools: [.webSearch(maximumResults: 5, maximumSearches: 3), .webFetch(), .datetime(timeZone: .current)],
         auth: .apiKey { try await keyStore.openRouterKey() }
     )
@@ -25,7 +25,7 @@ func searchOptions() {
     // snippet.show
     // snippet.options
     let model = OpenRouterLanguageModel(
-        .openaiGpt5Mini,
+        .openaiGpt5_4Mini,
         serverTools: [
             .webSearch(engine: .exa, searchContextSize: .high, allowedDomains: ["swift.org", "developer.apple.com"]),
             .webFetch(engine: .openRouter, excludedDomains: ["example.com"]),
@@ -41,7 +41,7 @@ func otherModels() {
     // snippet.show
     // snippet.models
     let model = OpenRouterLanguageModel(
-        .openaiGpt5Mini,
+        .openaiGpt5_4Mini,
         serverTools: [
             .advisor(model: "~anthropic/claude-opus-latest", forwardsTranscript: true),
             .subagent(model: "~anthropic/claude-haiku-latest", tools: [.webSearch()]),

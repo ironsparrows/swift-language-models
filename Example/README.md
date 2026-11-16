@@ -25,7 +25,7 @@ Every command but `catalog` and `providers` calls a model, so it needs an API ke
 [openrouter.ai/keys](https://openrouter.ai/keys). The showcase reads it from the `OPENROUTER_API_KEY` environment
 variable; in a terminal without it, the showcase asks for the key when it starts, with the typing hidden, and keeps it
 in memory for that run. It never prints or stores the key. The commands use inexpensive models, such as Claude Haiku
-5.5, GPT-5 Mini and Gemini 2.5 Flash Lite, and each answer's footer shows what it cost.
+5.5, GPT-5.4 Mini and Gemini 2.5 Flash Lite, and each answer's footer shows what it cost.
 
 The project builds with Xcode 27.2 and runs on macOS 27. A PDF or another file that isn't an image needs macOS 27.2.
 
