@@ -1979,6 +1979,12 @@ public enum OpenRouterCatalog {
         public static var efforts: [String] { ["high", "low", "none"] }
     }
 
+    /// Tencent: Hy4 flash
+    public enum TencentHy4Flash: Efforts.List {
+        /// The levels the model accepts, highest first.
+        public static var efforts: [String] { [] }
+    }
+
     /// Tencent: Hy4 preview
     public enum TencentHy4Preview: Efforts.List {
         /// The levels the model accepts, highest first.
