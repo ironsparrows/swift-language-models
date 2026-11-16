@@ -60,12 +60,12 @@ struct CuisineEvaluation: Evaluation {
 @Suite struct CuisineEvaluations {
     static let onDevice = CuisineEvaluation(model: SystemLanguageModel.default, modelID: "apple-on-device")
 
-    static let gpt5Nano = CuisineEvaluation(
+    static let openRouter = CuisineEvaluation(
         model: OpenRouterLanguageModel(
-            .openaiGpt5Nano,
+            .openaiGpt5_4Nano,
             auth: .apiKey { ProcessInfo.processInfo.environment["OPENROUTER_API_KEY"] ?? "" }
         ),
-        modelID: OpenRouterModel.openaiGpt5Nano.id.rawValue
+        modelID: OpenRouterModel.openaiGpt5_4Nano.id.rawValue
     )
 
     @Test(
@@ -81,10 +81,10 @@ struct CuisineEvaluation: Evaluation {
 
     @Test(
         .enabled(if: ProcessInfo.processInfo.environment["OPENROUTER_API_KEY"] != nil, "Set OPENROUTER_API_KEY."),
-        .evaluates(Self.gpt5Nano, info: ["model": Self.gpt5Nano.modelID])
+        .evaluates(Self.openRouter, info: ["model": Self.openRouter.modelID])
     )
     func openRouterModel() {
-        check(EvaluationContext.current.result, of: Self.gpt5Nano)
+        check(EvaluationContext.current.result, of: Self.openRouter)
     }
 
     private func check(_ result: EvaluationResult, of evaluation: CuisineEvaluation) {

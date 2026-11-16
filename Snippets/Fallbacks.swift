@@ -7,7 +7,7 @@ func fallbacks() async throws {
     // snippet.fallbacks
     let model = OpenRouterLanguageModel(
         .anthropicClaudeSonnet4_6,
-        fallbacks: .openaiGpt5Nano, .googleGemini3_1FlashLite,
+        fallbacks: .openaiGpt5_4Nano, .googleGemini3_1FlashLite,
         routing: OpenRouterRouting(dataCollection: .deny, zeroDataRetention: .required, sort: .price),
         auth: .apiKey { try await keyStore.openRouterKey() }
     )

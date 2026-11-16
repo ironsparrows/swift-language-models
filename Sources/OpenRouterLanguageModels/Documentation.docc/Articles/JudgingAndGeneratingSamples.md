@@ -11,7 +11,7 @@ and a `SampleGenerator` writes new samples with the model of a session it's give
 ``OpenRouterLanguageModel`` fits in any of them, whether the feature runs on Apple's on-device model, on OpenRouter or
 on another provider.
 
-The examples here evaluate the recipes a meal planner suggests with GPT-5 mini. The evaluation's models get an app of
+The examples here evaluate the recipes a meal planner suggests with GPT-5.4 mini. The evaluation's models get an app of
 their own, which keeps their usage apart from the shipping app's:
 
 @Snippet(path: "swift-language-models/Snippets/Judging", slice: "models")
@@ -23,7 +23,7 @@ Running one evaluation against several models, labeling the runs and reading the
 
 Apple's advice is a judge at least as capable as the model under test, from another model family: models tend to rate
 their own family's answers higher, and a stronger judge weighs substance over style. So a model never judges its own
-family. For a feature on GPT-5 mini, a Claude model judges, as here; for a feature on Claude, a model from another
+family. For a feature on GPT-5.4 mini, a Claude model judges, as here; for a feature on Claude, a model from another
 vendor does.
 
 The judge returns its rating as a score from the scale and a rationale. With a model whose

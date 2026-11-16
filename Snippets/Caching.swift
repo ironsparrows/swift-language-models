@@ -35,7 +35,7 @@ func always() {
     // snippet.always
     let model = OpenRouterLanguageModel(
         .anthropicClaudeHaiku5_5,
-        fallbacks: .openaiGpt5Mini,
+        fallbacks: .openaiGpt5_4Mini,
         cacheControl: .always,
         auth: .apiKey { try await keyStore.openRouterKey() }
     )

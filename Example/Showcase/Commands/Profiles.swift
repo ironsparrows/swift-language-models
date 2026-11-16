@@ -5,8 +5,8 @@ import OpenRouterLanguageModels
 /// A Dynamic Profile that moves a session between models and reasoning levels, keeping the conversation.
 ///
 /// The profile reads a session property, so setting `session.properties.thinksHard` sends the next request to Claude
-/// at a high level instead of GPT-5 Mini at its lowest. Each model's effort type lists only the levels it accepts, so
-/// a level it doesn't take fails to compile.
+/// at a high level instead of GPT-5.4 Mini with reasoning off. Each model's effort type lists only the levels it
+/// accepts, so a level it doesn't take fails to compile.
 struct Profiles: Command {
     let name = "profiles"
     let summary = "Switch models and effort mid-session with a Dynamic Profile"
@@ -34,7 +34,7 @@ extension SessionPropertyValues {
 
 /// A math tutor that answers quick questions fast and cheaply, and hard ones with more thought.
 struct TutorProfile: LanguageModelSession.DynamicProfile {
-    let quick = OpenRouterLanguageModel(.openaiGpt5Mini, auth: .apiKey(openRouterKey))
+    let quick = OpenRouterLanguageModel(.openaiGpt5_4Mini, auth: .apiKey(openRouterKey))
     let thorough = OpenRouterLanguageModel(.anthropicClaudeHaiku5_5, auth: .apiKey(openRouterKey))
 
     @SessionProperty(\.thinksHard) var thinksHard
@@ -43,7 +43,7 @@ struct TutorProfile: LanguageModelSession.DynamicProfile {
         if thinksHard {
             Profile { Instructions("You're a patient math tutor. Keep answers short.") }.model(thorough, effort: .high)
         } else {
-            Profile { Instructions("You're a patient math tutor. Keep answers short.") }.model(quick, effort: .minimal)
+            Profile { Instructions("You're a patient math tutor. Keep answers short.") }.model(quick, effort: .off)
         }
     }
 }

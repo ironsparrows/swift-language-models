@@ -14,7 +14,7 @@ struct Fallbacks: Command {
     func run(_ arguments: [String]) async throws {
         let model = OpenRouterLanguageModel(
             .anthropicClaudeHaiku5_5,
-            fallbacks: .openaiGpt5Mini, .googleGemini2_5FlashLite,
+            fallbacks: .openaiGpt5_4Mini, .googleGemini2_5FlashLite,
             routing: OpenRouterRouting(dataCollection: .deny, sort: .price),
             auth: .apiKey(openRouterKey)
         )

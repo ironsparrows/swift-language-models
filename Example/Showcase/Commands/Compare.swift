@@ -16,7 +16,7 @@ struct Compare: Command {
     func run(_ arguments: [String]) async throws {
         var models: [(name: String, model: any LanguageModel)] = [
             ("Claude Haiku 5.5", OpenRouterLanguageModel(.anthropicClaudeHaiku5_5, auth: .apiKey(openRouterKey))),
-            ("GPT-5 Mini", OpenRouterLanguageModel(.openaiGpt5Mini, auth: .apiKey(openRouterKey))),
+            ("GPT-5.4 Mini", OpenRouterLanguageModel(.openaiGpt5_4Mini, auth: .apiKey(openRouterKey))),
             ("Gemini 2.5 Flash Lite", OpenRouterLanguageModel(.googleGemini2_5FlashLite, auth: .apiKey(openRouterKey))),
         ]
         if SystemLanguageModel.default.isAvailable {

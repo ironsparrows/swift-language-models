@@ -27,7 +27,7 @@ logged, and a debug build shows a runtime warning for it.
 - A temperature sends `temperature`.
 
 Claude Haiku 5.5 and Claude Sonnet 5.5 list none of `temperature`, `top_k` and `seed`, so greedy sampling and seeds
-never reach them, and GPT-5 mini lists `seed` but not `temperature`. The catalog says what each model lists:
+never reach them, and GPT-5.4 mini lists `seed` but not `temperature`. The catalog says what each model lists:
 
 @Snippet(path: "swift-language-models/Snippets/RepeatableRuns", slice: "parameters")
 

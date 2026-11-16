@@ -32,10 +32,13 @@ extension OpenRouterOptionsTests {
 
         @Test func `catalog models of any effort type follow the model, in their open form`() {
             let model = OpenRouterLanguageModel(
-                .anthropicClaudeSonnet4_6, fallbacks: .openaiGpt5Nano, .googleGemini3_1FlashLite, auth: .apiKey { "sk-or-test" })
+                .anthropicClaudeSonnet4_6,
+                fallbacks: .openaiGpt5_4Nano, .googleGemini3_1FlashLite,
+                auth: .apiKey { "sk-or-test" }
+            )
 
-            #expect(model.fallbacks.map(\.id) == ["openai/gpt-5-nano", "google/gemini-3.1-flash-lite"])
-            #expect(model.fallbacks.first == OpenRouterModel(.openaiGpt5Nano))
+            #expect(model.fallbacks.map(\.id) == ["openai/gpt-5.4-nano", "google/gemini-3.1-flash-lite"])
+            #expect(model.fallbacks.first == OpenRouterModel(.openaiGpt5_4Nano))
             #expect(OpenRouterLanguageModel(model).fallbacks == model.fallbacks)
             #expect(Set(model.fallbacks).count == 2)
         }

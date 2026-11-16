@@ -12,7 +12,7 @@ struct Search: Command {
 
     func run(_ arguments: [String]) async throws {
         let model = OpenRouterLanguageModel(
-            .openaiGpt5Mini,
+            .openaiGpt5_4Mini,
             serverTools: [.webSearch(maximumResults: 5)],
             auth: .apiKey(openRouterKey)
         )
