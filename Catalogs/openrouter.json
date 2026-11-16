@@ -11250,6 +11250,36 @@
     {
       "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 1048576,
+      "displayName" : "Tencent: Hy4 flash",
+      "id" : "tencent/hy4-flash",
+      "inputModalities" : [
+        "image",
+        "text"
+      ],
+      "outputModalities" : [
+        "text"
+      ],
+      "reasoning" : "onByDefault",
+      "reasoningEfforts" : [
+
+      ],
+      "releasedAt" : 1794838706,
+      "supportedParameters" : [
+        "include_reasoning",
+        "max_completion_tokens",
+        "max_tokens",
+        "reasoning",
+        "response_format",
+        "stop",
+        "structured_outputs",
+        "temperature",
+        "tool_choice",
+        "tools"
+      ]
+    },
+    {
+      "cachesOnlyMarkedPrompts" : false,
+      "contextSize" : 1048576,
       "defaultReasoningEffort" : "high",
       "displayName" : "Tencent: Hy4 preview",
       "id" : "tencent/hy4-preview",

@@ -9524,6 +9524,32 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.TencentHy
     }
 }
 
+extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.TencentHy4Flash> {
+    /// Tencent: Hy4 flash
+    public static var tencentHy4Flash: Self {
+        Self(
+            id: "tencent/hy4-flash",
+            displayName: "Tencent: Hy4 flash",
+            releaseDate: Date(timeIntervalSince1970: 1_794_838_706),
+            contextSize: 1_048_576,
+            inputModalities: [.image, .text],
+            supportedParameters: [
+                .includeReasoning,
+                .maxCompletionTokens,
+                .maxTokens,
+                .reasoning,
+                .responseFormat,
+                .stop,
+                .structuredOutputs,
+                .temperature,
+                .toolChoice,
+                .tools,
+            ],
+            reasoning: .onByDefault
+        )
+    }
+}
+
 extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.TencentHy4Preview> {
     /// Tencent: Hy4 preview
     public static var tencentHy4Preview: Self {
@@ -12215,6 +12241,8 @@ extension OpenRouterModel where Effort == ContextOptions.ReasoningLevel {
             self.init(OpenRouterModel<_>.tencentHy3Preview)
         case "tencent/hy4":
             self.init(OpenRouterModel<_>.tencentHy4)
+        case "tencent/hy4-flash":
+            self.init(OpenRouterModel<_>.tencentHy4Flash)
         case "tencent/hy4-preview":
             self.init(OpenRouterModel<_>.tencentHy4Preview)
         case "thedrummer/cydonia-24b-v4.1":
@@ -12680,6 +12708,7 @@ private let openRouterCatalogModels: [OpenModel] = [
     OpenModel(OpenRouterModel<_>.tencentHy3),
     OpenModel(OpenRouterModel<_>.tencentHy3Preview),
     OpenModel(OpenRouterModel<_>.tencentHy4),
+    OpenModel(OpenRouterModel<_>.tencentHy4Flash),
     OpenModel(OpenRouterModel<_>.tencentHy4Preview),
     OpenModel(OpenRouterModel<_>.thedrummerCydonia24bV4_1),
     OpenModel(OpenRouterModel<_>.thedrummerSkyfall36bV2),
