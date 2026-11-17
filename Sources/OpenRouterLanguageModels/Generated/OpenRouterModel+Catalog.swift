@@ -4231,11 +4231,15 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.Mistralai
 
 extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.MistralaiMistralMedium3_5> {
     /// Mistral: Mistral Medium 3.5
-    public static var mistralaiMistralMedium3_5: Self {
+    @available(*, deprecated, message: "OpenRouter retires this model on 2027-01-31")
+    public static var mistralaiMistralMedium3_5: Self { mistralaiMistralMedium3_5Entry }
+
+    fileprivate static var mistralaiMistralMedium3_5Entry: Self {
         Self(
             id: "mistralai/mistral-medium-3-5",
             displayName: "Mistral: Mistral Medium 3.5",
             releaseDate: Date(timeIntervalSince1970: 1_777_570_439),
+            expirationDate: Date(timeIntervalSince1970: 1_801_353_600),
             contextSize: 262_144,
             inputModalities: [.file, .image, .text],
             supportedParameters: [
@@ -4762,10 +4766,8 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.Moonshota
                 .includeReasoning,
                 .logitBias,
                 .logprobs,
-                .maxCompletionTokens,
                 .maxTokens,
                 .minP,
-                .parallelToolCalls,
                 .presencePenalty,
                 .reasoning,
                 .reasoningEffort,
@@ -5185,7 +5187,7 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.NvidiaNem
             id: "nvidia/nemotron-3.5-lightning",
             displayName: "NVIDIA: Nemotron 3.5 Lightning",
             releaseDate: Date(timeIntervalSince1970: 1_786_452_751),
-            contextSize: 262_144,
+            contextSize: 1_048_576,
             supportedParameters: [
                 .frequencyPenalty,
                 .includeReasoning,
@@ -11275,10 +11277,8 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.Moonshota
                 .includeReasoning,
                 .logitBias,
                 .logprobs,
-                .maxCompletionTokens,
                 .maxTokens,
                 .minP,
-                .parallelToolCalls,
                 .presencePenalty,
                 .reasoning,
                 .reasoningEffort,
@@ -11888,7 +11888,7 @@ extension OpenRouterModel where Effort == ContextOptions.ReasoningLevel {
         case "mistralai/mistral-medium-3":
             self.init(OpenRouterModel<_>.mistralaiMistralMedium3)
         case "mistralai/mistral-medium-3-5":
-            self.init(OpenRouterModel<_>.mistralaiMistralMedium3_5)
+            self.init(OpenRouterModel<_>.mistralaiMistralMedium3_5Entry)
         case "mistralai/mistral-medium-3.1":
             self.init(OpenRouterModel<_>.mistralaiMistralMedium3_1)
         case "mistralai/mistral-nemo":
@@ -12531,7 +12531,7 @@ private let openRouterCatalogModels: [OpenModel] = [
     OpenModel(OpenRouterModel<_>.mistralaiMistralLarge2512),
     OpenModel(OpenRouterModel<_>.mistralaiMistralLarge4_0),
     OpenModel(OpenRouterModel<_>.mistralaiMistralMedium3),
-    OpenModel(OpenRouterModel<_>.mistralaiMistralMedium3_5),
+    OpenModel(OpenRouterModel<_>.mistralaiMistralMedium3_5Entry),
     OpenModel(OpenRouterModel<_>.mistralaiMistralMedium3_1),
     OpenModel(OpenRouterModel<_>.mistralaiMistralNemo),
     OpenModel(OpenRouterModel<_>.mistralaiMistralSaba),
