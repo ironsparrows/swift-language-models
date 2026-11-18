@@ -994,6 +994,40 @@ extension OpenAIModel where Effort == Efforts.Of<OpenAICatalog.Gpt6_1Terra> {
     }
 }
 
+extension OpenAIModel where Effort == Efforts.Of<OpenAICatalog.Gpt6_2Astra> {
+    /// GPT-6.2 Astra
+    public static var gpt6_2Astra: Self {
+        Self(
+            id: "gpt-6.2-astra",
+            displayName: "GPT-6.2 Astra",
+            releaseDate: Date(timeIntervalSince1970: 1_793_430_042),
+            knowledgeCutoff: Date(timeIntervalSince1970: 1_779_062_400),
+            contextSize: 1_050_000,
+            inputModalities: [.image, .pdf, .text],
+            supportedParameters: [.maxOutputTokens, .parallelToolCalls, .reasoning, .structuredOutputs, .toolChoice, .tools],
+            reasoning: .mandatory,
+            reasoningEfforts: [.max, .xhigh, .high, .medium, .low]
+        )
+    }
+}
+
+extension OpenAIModel where Effort == Efforts.Of<OpenAICatalog.Gpt6_2Sol> {
+    /// GPT-6.2 Sol
+    public static var gpt6_2Sol: Self {
+        Self(
+            id: "gpt-6.2-sol",
+            displayName: "GPT-6.2 Sol",
+            releaseDate: Date(timeIntervalSince1970: 1_793_642_820),
+            knowledgeCutoff: Date(timeIntervalSince1970: 1_780_272_000),
+            contextSize: 1_050_000,
+            inputModalities: [.image, .pdf, .text],
+            supportedParameters: [.maxOutputTokens, .parallelToolCalls, .reasoning, .structuredOutputs, .toolChoice, .tools],
+            reasoning: .mandatory,
+            reasoningEfforts: [.max, .xhigh, .high, .medium, .low]
+        )
+    }
+}
+
 extension OpenAIModel where Effort == Efforts.Of<OpenAICatalog.O3> {
     /// o3
     @available(*, deprecated, message: "OpenAI retires this model on 2026-12-11")
@@ -1131,6 +1165,10 @@ extension OpenAIModel where Effort == ContextOptions.ReasoningLevel {
             self.init(OpenAIModel<_>.gpt6_1Sol)
         case "gpt-6.1-terra":
             self.init(OpenAIModel<_>.gpt6_1Terra)
+        case "gpt-6.2-astra":
+            self.init(OpenAIModel<_>.gpt6_2Astra)
+        case "gpt-6.2-sol":
+            self.init(OpenAIModel<_>.gpt6_2Sol)
         case "o3":
             self.init(OpenAIModel<_>.o3Entry)
         case "o3-2025-04-16":
@@ -1198,6 +1236,8 @@ private let openAICatalogModels: [OpenModel] = [
     OpenModel(OpenAIModel<_>.gpt6Sol),
     OpenModel(OpenAIModel<_>.gpt6_1Sol),
     OpenModel(OpenAIModel<_>.gpt6_1Terra),
+    OpenModel(OpenAIModel<_>.gpt6_2Astra),
+    OpenModel(OpenAIModel<_>.gpt6_2Sol),
     OpenModel(OpenAIModel<_>.o3Entry),
     OpenModel(OpenAIModel<_>.o3_2025_04_16Entry),
 ]

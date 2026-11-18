@@ -269,6 +269,18 @@ public enum OpenAICatalog {
         public static var efforts: [String] { ["max", "xhigh", "high", "medium", "low", "none"] }
     }
 
+    /// GPT-6.2 Astra
+    public enum Gpt6_2Astra: Efforts.List {
+        /// The levels the model accepts, highest first.
+        public static var efforts: [String] { ["max", "xhigh", "high", "medium", "low"] }
+    }
+
+    /// GPT-6.2 Sol
+    public enum Gpt6_2Sol: Efforts.List {
+        /// The levels the model accepts, highest first.
+        public static var efforts: [String] { ["max", "xhigh", "high", "medium", "low"] }
+    }
+
     /// o3
     public enum O3: Efforts.List {
         /// The levels the model accepts, highest first.
@@ -809,6 +821,40 @@ extension Efforts.Of where Tag == OpenAICatalog.Gpt6_1Terra {
 
     /// The `none` effort, which turns reasoning off.
     public static var off: Self { Self(listed: "none") }
+}
+
+extension Efforts.Of where Tag == OpenAICatalog.Gpt6_2Astra {
+    /// The `max` effort.
+    public static var max: Self { Self(listed: "max") }
+
+    /// The `xhigh` effort.
+    public static var xhigh: Self { Self(listed: "xhigh") }
+
+    /// The `high` effort.
+    public static var high: Self { Self(listed: "high") }
+
+    /// The `medium` effort.
+    public static var medium: Self { Self(listed: "medium") }
+
+    /// The `low` effort.
+    public static var low: Self { Self(listed: "low") }
+}
+
+extension Efforts.Of where Tag == OpenAICatalog.Gpt6_2Sol {
+    /// The `max` effort.
+    public static var max: Self { Self(listed: "max") }
+
+    /// The `xhigh` effort.
+    public static var xhigh: Self { Self(listed: "xhigh") }
+
+    /// The `high` effort.
+    public static var high: Self { Self(listed: "high") }
+
+    /// The `medium` effort.
+    public static var medium: Self { Self(listed: "medium") }
+
+    /// The `low` effort.
+    public static var low: Self { Self(listed: "low") }
 }
 
 extension Efforts.Of where Tag == OpenAICatalog.O3 {
