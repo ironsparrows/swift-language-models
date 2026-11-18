@@ -6772,6 +6772,122 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.OpenaiGpt
     }
 }
 
+extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.OpenaiGpt6_2Astra> {
+    /// OpenAI: GPT-6.2 Astra
+    public static var openaiGpt6_2Astra: Self {
+        Self(
+            id: "openai/gpt-6.2-astra",
+            displayName: "OpenAI: GPT-6.2 Astra",
+            releaseDate: Date(timeIntervalSince1970: 1_794_938_423),
+            contextSize: 1_050_000,
+            inputModalities: [.file, .image, .text],
+            supportedParameters: [
+                .includeReasoning,
+                .maxCompletionTokens,
+                .maxTokens,
+                .reasoning,
+                .reasoningEffort,
+                .responseFormat,
+                .seed,
+                .structuredOutputs,
+                .toolChoice,
+                .tools,
+                .verbosity,
+            ],
+            reasoning: .mandatory,
+            reasoningEfforts: [.max, .xhigh, .high, .medium, .low],
+            defaultReasoningEffort: .medium
+        )
+    }
+}
+
+extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.OpenaiGpt6_2AstraPro> {
+    /// OpenAI: GPT-6.2 Astra Pro
+    public static var openaiGpt6_2AstraPro: Self {
+        Self(
+            id: "openai/gpt-6.2-astra-pro",
+            displayName: "OpenAI: GPT-6.2 Astra Pro",
+            releaseDate: Date(timeIntervalSince1970: 1_794_938_432),
+            contextSize: 1_050_000,
+            inputModalities: [.file, .image, .text],
+            supportedParameters: [
+                .includeReasoning,
+                .maxCompletionTokens,
+                .maxTokens,
+                .reasoning,
+                .reasoningEffort,
+                .responseFormat,
+                .seed,
+                .structuredOutputs,
+                .toolChoice,
+                .tools,
+                .verbosity,
+            ],
+            reasoning: .mandatory,
+            reasoningEfforts: [.max, .xhigh, .high, .medium, .low],
+            defaultReasoningEffort: .medium
+        )
+    }
+}
+
+extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.OpenaiGpt6_2Sol> {
+    /// OpenAI: GPT-6.2 Sol
+    public static var openaiGpt6_2Sol: Self {
+        Self(
+            id: "openai/gpt-6.2-sol",
+            displayName: "OpenAI: GPT-6.2 Sol",
+            releaseDate: Date(timeIntervalSince1970: 1_794_938_371),
+            contextSize: 1_050_000,
+            inputModalities: [.file, .image, .text],
+            supportedParameters: [
+                .includeReasoning,
+                .maxCompletionTokens,
+                .maxTokens,
+                .reasoning,
+                .reasoningEffort,
+                .responseFormat,
+                .seed,
+                .structuredOutputs,
+                .toolChoice,
+                .tools,
+                .verbosity,
+            ],
+            reasoning: .mandatory,
+            reasoningEfforts: [.max, .xhigh, .high, .medium, .low],
+            defaultReasoningEffort: .medium
+        )
+    }
+}
+
+extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.OpenaiGpt6_2SolPro> {
+    /// OpenAI: GPT-6.2 Sol Pro
+    public static var openaiGpt6_2SolPro: Self {
+        Self(
+            id: "openai/gpt-6.2-sol-pro",
+            displayName: "OpenAI: GPT-6.2 Sol Pro",
+            releaseDate: Date(timeIntervalSince1970: 1_794_938_409),
+            contextSize: 1_050_000,
+            inputModalities: [.file, .image, .text],
+            supportedParameters: [
+                .includeReasoning,
+                .maxCompletionTokens,
+                .maxTokens,
+                .reasoning,
+                .reasoningEffort,
+                .responseFormat,
+                .seed,
+                .structuredOutputs,
+                .toolChoice,
+                .tools,
+                .verbosity,
+            ],
+            reasoning: .mandatory,
+            reasoningEfforts: [.max, .xhigh, .high, .medium, .low],
+            defaultReasoningEffort: .medium
+        )
+    }
+}
+
 extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.OpenaiGptAudio> {
     /// OpenAI: GPT Audio
     public static var openaiGptAudio: Self {
@@ -7908,7 +8024,18 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.QwenQwen3
             releaseDate: Date(timeIntervalSince1970: 1_753_972_379),
             knowledgeCutoff: Date(timeIntervalSince1970: 1_751_241_600),
             contextSize: 262_144,
-            supportedParameters: [.maxTokens, .stop, .temperature, .toolChoice, .tools, .topK, .topP]
+            supportedParameters: [
+                .frequencyPenalty,
+                .maxTokens,
+                .responseFormat,
+                .stop,
+                .structuredOutputs,
+                .temperature,
+                .toolChoice,
+                .tools,
+                .topK,
+                .topP,
+            ]
         )
     }
 }
@@ -9749,11 +9876,15 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.Thinkingm
 
 extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.ThinkingmachinesInkling2SmallFree> {
     /// Thinking Machines: Inkling 2 Small (free)
-    public static var thinkingmachinesInkling2SmallFree: Self {
+    @available(*, deprecated, message: "OpenRouter retires this model on 2026-11-19")
+    public static var thinkingmachinesInkling2SmallFree: Self { thinkingmachinesInkling2SmallFreeEntry }
+
+    fileprivate static var thinkingmachinesInkling2SmallFreeEntry: Self {
         Self(
             id: "thinkingmachines/inkling-2-small:free",
             displayName: "Thinking Machines: Inkling 2 Small (free)",
             releaseDate: Date(timeIntervalSince1970: 1_794_261_847),
+            expirationDate: Date(timeIntervalSince1970: 1_795_046_400),
             contextSize: 1_048_576,
             inputModalities: [.image, .text],
             supportedParameters: [.includeReasoning, .maxTokens, .reasoning, .reasoningEffort, .seed, .stop, .temperature, .tools, .topP],
@@ -10239,7 +10370,7 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.XiaomiMim
             id: "xiaomi/mimo-v2.5-pro",
             displayName: "Xiaomi: MiMo-V2.5-Pro",
             releaseDate: Date(timeIntervalSince1970: 1_776_874_273),
-            contextSize: 1_024_000,
+            contextSize: 262_144,
             supportedParameters: [
                 .includeReasoning,
                 .logprobs,
@@ -10721,7 +10852,6 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.ZAiGlm5_2
                 .logprobs,
                 .maxTokens,
                 .minP,
-                .parallelToolCalls,
                 .presencePenalty,
                 .reasoning,
                 .reasoningEffort,
@@ -11304,13 +11434,13 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.Moonshota
 extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.OpenaiGptAstraLatest> {
     /// OpenAI: GPT Astra Latest
     ///
-    /// An alias that points to `openai/gpt-6-astra` now.
+    /// An alias that points to `openai/gpt-6.2-astra` now.
     public static var openaiGptAstraLatest: Self {
         Self(
             id: "~openai/gpt-astra-latest",
             displayName: "OpenAI: GPT Astra Latest",
             releaseDate: Date(timeIntervalSince1970: 1_789_130_932),
-            aliasTarget: "openai/gpt-6-astra",
+            aliasTarget: "openai/gpt-6.2-astra",
             contextSize: 1_050_000,
             inputModalities: [.file, .image, .text],
             supportedParameters: [
@@ -11401,13 +11531,13 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.OpenaiGpt
 extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.OpenaiGptSolLatest> {
     /// OpenAI: GPT Sol Latest
     ///
-    /// An alias that points to `openai/gpt-6.1-sol` now.
+    /// An alias that points to `openai/gpt-6.2-sol` now.
     public static var openaiGptSolLatest: Self {
         Self(
             id: "~openai/gpt-sol-latest",
             displayName: "OpenAI: GPT Sol Latest",
             releaseDate: Date(timeIntervalSince1970: 1_789_130_928),
-            aliasTarget: "openai/gpt-6.1-sol",
+            aliasTarget: "openai/gpt-6.2-sol",
             contextSize: 1_050_000,
             inputModalities: [.file, .image, .text],
             supportedParameters: [
@@ -12063,6 +12193,14 @@ extension OpenRouterModel where Effort == ContextOptions.ReasoningLevel {
             self.init(OpenRouterModel<_>.openaiGpt6_1Terra)
         case "openai/gpt-6.1-terra-pro":
             self.init(OpenRouterModel<_>.openaiGpt6_1TerraPro)
+        case "openai/gpt-6.2-astra":
+            self.init(OpenRouterModel<_>.openaiGpt6_2Astra)
+        case "openai/gpt-6.2-astra-pro":
+            self.init(OpenRouterModel<_>.openaiGpt6_2AstraPro)
+        case "openai/gpt-6.2-sol":
+            self.init(OpenRouterModel<_>.openaiGpt6_2Sol)
+        case "openai/gpt-6.2-sol-pro":
+            self.init(OpenRouterModel<_>.openaiGpt6_2SolPro)
         case "openai/gpt-audio":
             self.init(OpenRouterModel<_>.openaiGptAudio)
         case "openai/gpt-audio-mini":
@@ -12256,7 +12394,7 @@ extension OpenRouterModel where Effort == ContextOptions.ReasoningLevel {
         case "thinkingmachines/inkling-2-small":
             self.init(OpenRouterModel<_>.thinkingmachinesInkling2Small)
         case "thinkingmachines/inkling-2-small:free":
-            self.init(OpenRouterModel<_>.thinkingmachinesInkling2SmallFree)
+            self.init(OpenRouterModel<_>.thinkingmachinesInkling2SmallFreeEntry)
         case "thinkingmachines/inkling-small":
             self.init(OpenRouterModel<_>.thinkingmachinesInklingSmall)
         case "typesafe/jev-router":
@@ -12619,6 +12757,10 @@ private let openRouterCatalogModels: [OpenModel] = [
     OpenModel(OpenRouterModel<_>.openaiGpt6_1SolPro),
     OpenModel(OpenRouterModel<_>.openaiGpt6_1Terra),
     OpenModel(OpenRouterModel<_>.openaiGpt6_1TerraPro),
+    OpenModel(OpenRouterModel<_>.openaiGpt6_2Astra),
+    OpenModel(OpenRouterModel<_>.openaiGpt6_2AstraPro),
+    OpenModel(OpenRouterModel<_>.openaiGpt6_2Sol),
+    OpenModel(OpenRouterModel<_>.openaiGpt6_2SolPro),
     OpenModel(OpenRouterModel<_>.openaiGptAudio),
     OpenModel(OpenRouterModel<_>.openaiGptAudioMini),
     OpenModel(OpenRouterModel<_>.openaiGptChatLatest),
@@ -12715,7 +12857,7 @@ private let openRouterCatalogModels: [OpenModel] = [
     OpenModel(OpenRouterModel<_>.thedrummerUnslopnemo12b),
     OpenModel(OpenRouterModel<_>.thinkingmachinesInkling),
     OpenModel(OpenRouterModel<_>.thinkingmachinesInkling2Small),
-    OpenModel(OpenRouterModel<_>.thinkingmachinesInkling2SmallFree),
+    OpenModel(OpenRouterModel<_>.thinkingmachinesInkling2SmallFreeEntry),
     OpenModel(OpenRouterModel<_>.thinkingmachinesInklingSmall),
     OpenModel(OpenRouterModel<_>.typesafeJevRouter),
     OpenModel(OpenRouterModel<_>.unbiasedPareto26_10),

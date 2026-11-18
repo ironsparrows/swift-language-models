@@ -1418,6 +1418,70 @@
     },
     {
       "cachesOnlyMarkedPrompts" : false,
+      "contextSize" : 1050000,
+      "displayName" : "GPT-6.2 Astra",
+      "id" : "gpt-6.2-astra",
+      "inputModalities" : [
+        "image",
+        "pdf",
+        "text"
+      ],
+      "knowledgeCutoff" : "2026-05-18",
+      "outputModalities" : [
+        "text"
+      ],
+      "reasoning" : "mandatory",
+      "reasoningEfforts" : [
+        "max",
+        "xhigh",
+        "high",
+        "medium",
+        "low"
+      ],
+      "releasedAt" : 1793430042,
+      "supportedParameters" : [
+        "max_output_tokens",
+        "parallel_tool_calls",
+        "reasoning",
+        "structured_outputs",
+        "tool_choice",
+        "tools"
+      ]
+    },
+    {
+      "cachesOnlyMarkedPrompts" : false,
+      "contextSize" : 1050000,
+      "displayName" : "GPT-6.2 Sol",
+      "id" : "gpt-6.2-sol",
+      "inputModalities" : [
+        "image",
+        "pdf",
+        "text"
+      ],
+      "knowledgeCutoff" : "2026-06-01",
+      "outputModalities" : [
+        "text"
+      ],
+      "reasoning" : "mandatory",
+      "reasoningEfforts" : [
+        "max",
+        "xhigh",
+        "high",
+        "medium",
+        "low"
+      ],
+      "releasedAt" : 1793642820,
+      "supportedParameters" : [
+        "max_output_tokens",
+        "parallel_tool_calls",
+        "reasoning",
+        "structured_outputs",
+        "tool_choice",
+        "tools"
+      ]
+    },
+    {
+      "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 200000,
       "displayName" : "o3",
       "expirationDate" : "2026-12-11",

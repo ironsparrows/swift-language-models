@@ -1415,6 +1415,30 @@ public enum OpenRouterCatalog {
         public static var efforts: [String] { ["max", "xhigh", "high", "medium", "low"] }
     }
 
+    /// OpenAI: GPT-6.2 Astra
+    public enum OpenaiGpt6_2Astra: Efforts.List {
+        /// The levels the model accepts, highest first.
+        public static var efforts: [String] { ["max", "xhigh", "high", "medium", "low"] }
+    }
+
+    /// OpenAI: GPT-6.2 Astra Pro
+    public enum OpenaiGpt6_2AstraPro: Efforts.List {
+        /// The levels the model accepts, highest first.
+        public static var efforts: [String] { ["max", "xhigh", "high", "medium", "low"] }
+    }
+
+    /// OpenAI: GPT-6.2 Sol
+    public enum OpenaiGpt6_2Sol: Efforts.List {
+        /// The levels the model accepts, highest first.
+        public static var efforts: [String] { ["max", "xhigh", "high", "medium", "low"] }
+    }
+
+    /// OpenAI: GPT-6.2 Sol Pro
+    public enum OpenaiGpt6_2SolPro: Efforts.List {
+        /// The levels the model accepts, highest first.
+        public static var efforts: [String] { ["max", "xhigh", "high", "medium", "low"] }
+    }
+
     /// OpenAI: GPT Audio
     public enum OpenaiGptAudio: Efforts.List {
         /// The levels the model accepts, highest first.
@@ -3877,6 +3901,74 @@ extension Efforts.Of where Tag == OpenRouterCatalog.OpenaiGpt6_1Terra {
 }
 
 extension Efforts.Of where Tag == OpenRouterCatalog.OpenaiGpt6_1TerraPro {
+    /// The `max` effort.
+    public static var max: Self { Self(listed: "max") }
+
+    /// The `xhigh` effort.
+    public static var xhigh: Self { Self(listed: "xhigh") }
+
+    /// The `high` effort.
+    public static var high: Self { Self(listed: "high") }
+
+    /// The `medium` effort.
+    public static var medium: Self { Self(listed: "medium") }
+
+    /// The `low` effort.
+    public static var low: Self { Self(listed: "low") }
+}
+
+extension Efforts.Of where Tag == OpenRouterCatalog.OpenaiGpt6_2Astra {
+    /// The `max` effort.
+    public static var max: Self { Self(listed: "max") }
+
+    /// The `xhigh` effort.
+    public static var xhigh: Self { Self(listed: "xhigh") }
+
+    /// The `high` effort.
+    public static var high: Self { Self(listed: "high") }
+
+    /// The `medium` effort.
+    public static var medium: Self { Self(listed: "medium") }
+
+    /// The `low` effort.
+    public static var low: Self { Self(listed: "low") }
+}
+
+extension Efforts.Of where Tag == OpenRouterCatalog.OpenaiGpt6_2AstraPro {
+    /// The `max` effort.
+    public static var max: Self { Self(listed: "max") }
+
+    /// The `xhigh` effort.
+    public static var xhigh: Self { Self(listed: "xhigh") }
+
+    /// The `high` effort.
+    public static var high: Self { Self(listed: "high") }
+
+    /// The `medium` effort.
+    public static var medium: Self { Self(listed: "medium") }
+
+    /// The `low` effort.
+    public static var low: Self { Self(listed: "low") }
+}
+
+extension Efforts.Of where Tag == OpenRouterCatalog.OpenaiGpt6_2Sol {
+    /// The `max` effort.
+    public static var max: Self { Self(listed: "max") }
+
+    /// The `xhigh` effort.
+    public static var xhigh: Self { Self(listed: "xhigh") }
+
+    /// The `high` effort.
+    public static var high: Self { Self(listed: "high") }
+
+    /// The `medium` effort.
+    public static var medium: Self { Self(listed: "medium") }
+
+    /// The `low` effort.
+    public static var low: Self { Self(listed: "low") }
+}
+
+extension Efforts.Of where Tag == OpenRouterCatalog.OpenaiGpt6_2SolPro {
     /// The `max` effort.
     public static var max: Self { Self(listed: "max") }
 

@@ -8112,6 +8112,154 @@
     },
     {
       "cachesOnlyMarkedPrompts" : false,
+      "contextSize" : 1050000,
+      "defaultReasoningEffort" : "medium",
+      "displayName" : "OpenAI: GPT-6.2 Astra",
+      "id" : "openai/gpt-6.2-astra",
+      "inputModalities" : [
+        "file",
+        "image",
+        "text"
+      ],
+      "outputModalities" : [
+        "text"
+      ],
+      "reasoning" : "mandatory",
+      "reasoningEfforts" : [
+        "max",
+        "xhigh",
+        "high",
+        "medium",
+        "low"
+      ],
+      "releasedAt" : 1794938423,
+      "supportedParameters" : [
+        "include_reasoning",
+        "max_completion_tokens",
+        "max_tokens",
+        "reasoning",
+        "reasoning_effort",
+        "response_format",
+        "seed",
+        "structured_outputs",
+        "tool_choice",
+        "tools",
+        "verbosity"
+      ]
+    },
+    {
+      "cachesOnlyMarkedPrompts" : false,
+      "contextSize" : 1050000,
+      "defaultReasoningEffort" : "medium",
+      "displayName" : "OpenAI: GPT-6.2 Astra Pro",
+      "id" : "openai/gpt-6.2-astra-pro",
+      "inputModalities" : [
+        "file",
+        "image",
+        "text"
+      ],
+      "outputModalities" : [
+        "text"
+      ],
+      "reasoning" : "mandatory",
+      "reasoningEfforts" : [
+        "max",
+        "xhigh",
+        "high",
+        "medium",
+        "low"
+      ],
+      "releasedAt" : 1794938432,
+      "supportedParameters" : [
+        "include_reasoning",
+        "max_completion_tokens",
+        "max_tokens",
+        "reasoning",
+        "reasoning_effort",
+        "response_format",
+        "seed",
+        "structured_outputs",
+        "tool_choice",
+        "tools",
+        "verbosity"
+      ]
+    },
+    {
+      "cachesOnlyMarkedPrompts" : false,
+      "contextSize" : 1050000,
+      "defaultReasoningEffort" : "medium",
+      "displayName" : "OpenAI: GPT-6.2 Sol",
+      "id" : "openai/gpt-6.2-sol",
+      "inputModalities" : [
+        "file",
+        "image",
+        "text"
+      ],
+      "outputModalities" : [
+        "text"
+      ],
+      "reasoning" : "mandatory",
+      "reasoningEfforts" : [
+        "max",
+        "xhigh",
+        "high",
+        "medium",
+        "low"
+      ],
+      "releasedAt" : 1794938371,
+      "supportedParameters" : [
+        "include_reasoning",
+        "max_completion_tokens",
+        "max_tokens",
+        "reasoning",
+        "reasoning_effort",
+        "response_format",
+        "seed",
+        "structured_outputs",
+        "tool_choice",
+        "tools",
+        "verbosity"
+      ]
+    },
+    {
+      "cachesOnlyMarkedPrompts" : false,
+      "contextSize" : 1050000,
+      "defaultReasoningEffort" : "medium",
+      "displayName" : "OpenAI: GPT-6.2 Sol Pro",
+      "id" : "openai/gpt-6.2-sol-pro",
+      "inputModalities" : [
+        "file",
+        "image",
+        "text"
+      ],
+      "outputModalities" : [
+        "text"
+      ],
+      "reasoning" : "mandatory",
+      "reasoningEfforts" : [
+        "max",
+        "xhigh",
+        "high",
+        "medium",
+        "low"
+      ],
+      "releasedAt" : 1794938409,
+      "supportedParameters" : [
+        "include_reasoning",
+        "max_completion_tokens",
+        "max_tokens",
+        "reasoning",
+        "reasoning_effort",
+        "response_format",
+        "seed",
+        "structured_outputs",
+        "tool_choice",
+        "tools",
+        "verbosity"
+      ]
+    },
+    {
+      "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 128000,
       "displayName" : "OpenAI: GPT Audio",
       "id" : "openai/gpt-audio",
@@ -9438,8 +9586,11 @@
       ],
       "releasedAt" : 1753972379,
       "supportedParameters" : [
+        "frequency_penalty",
         "max_tokens",
+        "response_format",
         "stop",
+        "structured_outputs",
         "temperature",
         "tool_choice",
         "tools",
@@ -11512,6 +11663,7 @@
       "contextSize" : 1048576,
       "defaultReasoningEffort" : "high",
       "displayName" : "Thinking Machines: Inkling 2 Small (free)",
+      "expirationDate" : "2026-11-19",
       "id" : "thinkingmachines/inkling-2-small:free",
       "inputModalities" : [
         "image",
@@ -12146,7 +12298,7 @@
     },
     {
       "cachesOnlyMarkedPrompts" : false,
-      "contextSize" : 1024000,
+      "contextSize" : 262144,
       "displayName" : "Xiaomi: MiMo-V2.5-Pro",
       "id" : "xiaomi/mimo-v2.5-pro",
       "inputModalities" : [
@@ -12666,7 +12818,6 @@
         "logprobs",
         "max_tokens",
         "min_p",
-        "parallel_tool_calls",
         "presence_penalty",
         "reasoning",
         "reasoning_effort",
@@ -13325,7 +13476,7 @@
       ]
     },
     {
-      "aliasTarget" : "openai/gpt-6-astra",
+      "aliasTarget" : "openai/gpt-6.2-astra",
       "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 1050000,
       "defaultReasoningEffort" : "medium",
@@ -13441,7 +13592,7 @@
       ]
     },
     {
-      "aliasTarget" : "openai/gpt-6.1-sol",
+      "aliasTarget" : "openai/gpt-6.2-sol",
       "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 1050000,
       "defaultReasoningEffort" : "medium",
