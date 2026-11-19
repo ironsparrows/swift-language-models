@@ -17,6 +17,7 @@ extension ModelRemovals {
         "stealth/crouton-alpha": Date(timeIntervalSince1970: 1_794_268_800),
         "stepfun/step-3.5-flash": Date(timeIntervalSince1970: 1_794_700_800),
         "tencent/hunyuan-a13b-instruct": Date(timeIntervalSince1970: 1_794_700_800),
+        "thinkingmachines/inkling-2-small:free": Date(timeIntervalSince1970: 1_795_046_400),
         "xingchen-agi/xing4.0-29b-a4b:free": Date(timeIntervalSince1970: 1_794_355_200),
     ])
 }

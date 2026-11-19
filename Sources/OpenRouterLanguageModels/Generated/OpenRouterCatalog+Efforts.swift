@@ -509,6 +509,12 @@ public enum OpenRouterCatalog {
         public static var efforts: [String] { ["xhigh", "high", "medium", "low"] }
     }
 
+    /// Google: Gemini 4 Neon
+    public enum GoogleGemini4Neon: Efforts.List {
+        /// The levels the model accepts, highest first.
+        public static var efforts: [String] { ["xhigh", "high", "medium", "low"] }
+    }
+
     /// Google: Nano Banana 2.1
     public enum GoogleGeminiNanoBanana2_1: Efforts.List {
         /// The levels the model accepts, highest first.
@@ -3007,6 +3013,20 @@ extension Efforts.Of where Tag == OpenRouterCatalog.GoogleGemini4Carbon {
 }
 
 extension Efforts.Of where Tag == OpenRouterCatalog.GoogleGemini4Hydrogen {
+    /// The `xhigh` effort.
+    public static var xhigh: Self { Self(listed: "xhigh") }
+
+    /// The `high` effort.
+    public static var high: Self { Self(listed: "high") }
+
+    /// The `medium` effort.
+    public static var medium: Self { Self(listed: "medium") }
+
+    /// The `low` effort.
+    public static var low: Self { Self(listed: "low") }
+}
+
+extension Efforts.Of where Tag == OpenRouterCatalog.GoogleGemini4Neon {
     /// The `xhigh` effort.
     public static var xhigh: Self { Self(listed: "xhigh") }
 

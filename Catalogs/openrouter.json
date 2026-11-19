@@ -2874,6 +2874,45 @@
     },
     {
       "cachesOnlyMarkedPrompts" : false,
+      "contextSize" : 1048576,
+      "defaultReasoningEffort" : "medium",
+      "displayName" : "Google: Gemini 4 Neon",
+      "id" : "google/gemini-4-neon",
+      "inputModalities" : [
+        "audio",
+        "file",
+        "image",
+        "text",
+        "video"
+      ],
+      "outputModalities" : [
+        "text"
+      ],
+      "reasoning" : "mandatory",
+      "reasoningEfforts" : [
+        "xhigh",
+        "high",
+        "medium",
+        "low"
+      ],
+      "releasedAt" : 1795006977,
+      "supportedParameters" : [
+        "include_reasoning",
+        "max_tokens",
+        "reasoning",
+        "reasoning_effort",
+        "response_format",
+        "seed",
+        "stop",
+        "structured_outputs",
+        "temperature",
+        "tool_choice",
+        "tools",
+        "top_p"
+      ]
+    },
+    {
+      "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 65536,
       "defaultReasoningEffort" : "minimal",
       "displayName" : "Google: Nano Banana 2.1",
@@ -11660,41 +11699,6 @@
     },
     {
       "cachesOnlyMarkedPrompts" : false,
-      "contextSize" : 1048576,
-      "defaultReasoningEffort" : "high",
-      "displayName" : "Thinking Machines: Inkling 2 Small (free)",
-      "expirationDate" : "2026-11-19",
-      "id" : "thinkingmachines/inkling-2-small:free",
-      "inputModalities" : [
-        "image",
-        "text"
-      ],
-      "outputModalities" : [
-        "text"
-      ],
-      "reasoning" : "mandatory",
-      "reasoningEfforts" : [
-        "max",
-        "high",
-        "medium",
-        "low",
-        "minimal"
-      ],
-      "releasedAt" : 1794261847,
-      "supportedParameters" : [
-        "include_reasoning",
-        "max_tokens",
-        "reasoning",
-        "reasoning_effort",
-        "seed",
-        "stop",
-        "temperature",
-        "tools",
-        "top_p"
-      ]
-    },
-    {
-      "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 524288,
       "defaultReasoningEffort" : "high",
       "displayName" : "Thinking Machines: Inkling Small",
@@ -12757,7 +12761,6 @@
       "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 204800,
       "displayName" : "Z.ai: GLM 5.1",
-      "expirationDate" : "2026-11-20",
       "id" : "z-ai/glm-5.1",
       "inputModalities" : [
         "text"
@@ -14239,6 +14242,44 @@
         ]
       },
       "removedOn" : "2026-11-15"
+    },
+    {
+      "model" : {
+        "cachesOnlyMarkedPrompts" : false,
+        "contextSize" : 1048576,
+        "defaultReasoningEffort" : "high",
+        "displayName" : "Thinking Machines: Inkling 2 Small (free)",
+        "expirationDate" : "2026-11-19",
+        "id" : "thinkingmachines/inkling-2-small:free",
+        "inputModalities" : [
+          "image",
+          "text"
+        ],
+        "outputModalities" : [
+          "text"
+        ],
+        "reasoning" : "mandatory",
+        "reasoningEfforts" : [
+          "max",
+          "high",
+          "medium",
+          "low",
+          "minimal"
+        ],
+        "releasedAt" : 1794261847,
+        "supportedParameters" : [
+          "include_reasoning",
+          "max_tokens",
+          "reasoning",
+          "reasoning_effort",
+          "seed",
+          "stop",
+          "temperature",
+          "tools",
+          "top_p"
+        ]
+      },
+      "removedOn" : "2026-11-19"
     },
     {
       "model" : {
