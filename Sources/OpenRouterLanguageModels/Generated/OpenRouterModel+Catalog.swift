@@ -2366,6 +2366,36 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.GoogleGem
     }
 }
 
+extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.GoogleGemini4Neon> {
+    /// Google: Gemini 4 Neon
+    public static var googleGemini4Neon: Self {
+        Self(
+            id: "google/gemini-4-neon",
+            displayName: "Google: Gemini 4 Neon",
+            releaseDate: Date(timeIntervalSince1970: 1_795_006_977),
+            contextSize: 1_048_576,
+            inputModalities: [.audio, .file, .image, .text, .video],
+            supportedParameters: [
+                .includeReasoning,
+                .maxTokens,
+                .reasoning,
+                .reasoningEffort,
+                .responseFormat,
+                .seed,
+                .stop,
+                .structuredOutputs,
+                .temperature,
+                .toolChoice,
+                .tools,
+                .topP,
+            ],
+            reasoning: .mandatory,
+            reasoningEfforts: [.xhigh, .high, .medium, .low],
+            defaultReasoningEffort: .medium
+        )
+    }
+}
+
 extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.GoogleGeminiNanoBanana2_1> {
     /// Google: Nano Banana 2.1
     public static var googleGeminiNanoBanana2_1: Self {
@@ -9876,10 +9906,8 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.Thinkingm
 
 extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.ThinkingmachinesInkling2SmallFree> {
     /// Thinking Machines: Inkling 2 Small (free)
-    @available(*, deprecated, message: "OpenRouter retires this model on 2026-11-19")
-    public static var thinkingmachinesInkling2SmallFree: Self { thinkingmachinesInkling2SmallFreeEntry }
-
-    fileprivate static var thinkingmachinesInkling2SmallFreeEntry: Self {
+    @available(*, deprecated, message: "Removed from OpenRouter on 2026-11-19")
+    public static var thinkingmachinesInkling2SmallFree: Self {
         Self(
             id: "thinkingmachines/inkling-2-small:free",
             displayName: "Thinking Machines: Inkling 2 Small (free)",
@@ -10801,15 +10829,11 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.ZAiGlm5Tu
 
 extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.ZAiGlm5_1> {
     /// Z.ai: GLM 5.1
-    @available(*, deprecated, message: "OpenRouter retires this model on 2026-11-20")
-    public static var zAiGlm5_1: Self { zAiGlm5_1Entry }
-
-    fileprivate static var zAiGlm5_1Entry: Self {
+    public static var zAiGlm5_1: Self {
         Self(
             id: "z-ai/glm-5.1",
             displayName: "Z.ai: GLM 5.1",
             releaseDate: Date(timeIntervalSince1970: 1_775_578_025),
-            expirationDate: Date(timeIntervalSince1970: 1_795_132_800),
             contextSize: 204_800,
             supportedParameters: [
                 .frequencyPenalty,
@@ -11897,6 +11921,8 @@ extension OpenRouterModel where Effort == ContextOptions.ReasoningLevel {
             self.init(OpenRouterModel<_>.googleGemini4Carbon)
         case "google/gemini-4-hydrogen":
             self.init(OpenRouterModel<_>.googleGemini4Hydrogen)
+        case "google/gemini-4-neon":
+            self.init(OpenRouterModel<_>.googleGemini4Neon)
         case "google/gemini-nano-banana-2.1":
             self.init(OpenRouterModel<_>.googleGeminiNanoBanana2_1)
         case "google/gemini-omni-1.1-flash":
@@ -12393,8 +12419,6 @@ extension OpenRouterModel where Effort == ContextOptions.ReasoningLevel {
             self.init(OpenRouterModel<_>.thinkingmachinesInkling)
         case "thinkingmachines/inkling-2-small":
             self.init(OpenRouterModel<_>.thinkingmachinesInkling2Small)
-        case "thinkingmachines/inkling-2-small:free":
-            self.init(OpenRouterModel<_>.thinkingmachinesInkling2SmallFreeEntry)
         case "thinkingmachines/inkling-small":
             self.init(OpenRouterModel<_>.thinkingmachinesInklingSmall)
         case "typesafe/jev-router":
@@ -12456,7 +12480,7 @@ extension OpenRouterModel where Effort == ContextOptions.ReasoningLevel {
         case "z-ai/glm-5-turbo":
             self.init(OpenRouterModel<_>.zAiGlm5Turbo)
         case "z-ai/glm-5.1":
-            self.init(OpenRouterModel<_>.zAiGlm5_1Entry)
+            self.init(OpenRouterModel<_>.zAiGlm5_1)
         case "z-ai/glm-5.2":
             self.init(OpenRouterModel<_>.zAiGlm5_2)
         case "z-ai/glm-5.3":
@@ -12609,6 +12633,7 @@ private let openRouterCatalogModels: [OpenModel] = [
     OpenModel(OpenRouterModel<_>.googleGemini4Argon),
     OpenModel(OpenRouterModel<_>.googleGemini4Carbon),
     OpenModel(OpenRouterModel<_>.googleGemini4Hydrogen),
+    OpenModel(OpenRouterModel<_>.googleGemini4Neon),
     OpenModel(OpenRouterModel<_>.googleGeminiNanoBanana2_1),
     OpenModel(OpenRouterModel<_>.googleGeminiOmni1_1Flash),
     OpenModel(OpenRouterModel<_>.googleGeminiOmni1_2Flash),
@@ -12857,7 +12882,6 @@ private let openRouterCatalogModels: [OpenModel] = [
     OpenModel(OpenRouterModel<_>.thedrummerUnslopnemo12b),
     OpenModel(OpenRouterModel<_>.thinkingmachinesInkling),
     OpenModel(OpenRouterModel<_>.thinkingmachinesInkling2Small),
-    OpenModel(OpenRouterModel<_>.thinkingmachinesInkling2SmallFreeEntry),
     OpenModel(OpenRouterModel<_>.thinkingmachinesInklingSmall),
     OpenModel(OpenRouterModel<_>.typesafeJevRouter),
     OpenModel(OpenRouterModel<_>.unbiasedPareto26_10),
@@ -12888,7 +12912,7 @@ private let openRouterCatalogModels: [OpenModel] = [
     OpenModel(OpenRouterModel<_>.zAiGlm4_7Flash),
     OpenModel(OpenRouterModel<_>.zAiGlm5),
     OpenModel(OpenRouterModel<_>.zAiGlm5Turbo),
-    OpenModel(OpenRouterModel<_>.zAiGlm5_1Entry),
+    OpenModel(OpenRouterModel<_>.zAiGlm5_1),
     OpenModel(OpenRouterModel<_>.zAiGlm5_2),
     OpenModel(OpenRouterModel<_>.zAiGlm5_3),
     OpenModel(OpenRouterModel<_>.zAiGlm5_3Flash),
