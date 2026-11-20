@@ -55,6 +55,9 @@ extension OpenRouterParameter {
     /// Stop sequences (up to 4).
     public static let stop: Self = "stop"
 
+    /// The `strict_tool_schemas` parameter.
+    public static let strictToolSchemas: Self = "strict_tool_schemas"
+
     /// The `structured_outputs` parameter.
     public static let structuredOutputs: Self = "structured_outputs"
 

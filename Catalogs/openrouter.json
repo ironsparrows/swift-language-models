@@ -1345,37 +1345,6 @@
     },
     {
       "cachesOnlyMarkedPrompts" : false,
-      "contextSize" : 256000,
-      "displayName" : "Cohere: North Mini Code (free)",
-      "id" : "cohere/north-mini-code:free",
-      "inputModalities" : [
-        "text"
-      ],
-      "outputModalities" : [
-        "text"
-      ],
-      "reasoning" : "offByDefault",
-      "reasoningEfforts" : [
-
-      ],
-      "releasedAt" : 1781723748,
-      "supportedParameters" : [
-        "frequency_penalty",
-        "include_reasoning",
-        "max_tokens",
-        "presence_penalty",
-        "reasoning",
-        "seed",
-        "stop",
-        "temperature",
-        "tool_choice",
-        "tools",
-        "top_k",
-        "top_p"
-      ]
-    },
-    {
-      "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 163840,
       "displayName" : "DeepSeek: DeepSeek V3",
       "id" : "deepseek/deepseek-chat",
@@ -3944,41 +3913,8 @@
     },
     {
       "cachesOnlyMarkedPrompts" : false,
-      "contextSize" : 60000,
-      "displayName" : "Meta: Llama 3.2 1B Instruct",
-      "expirationDate" : "2026-11-20",
-      "id" : "meta-llama/llama-3.2-1b-instruct",
-      "inputModalities" : [
-        "text"
-      ],
-      "knowledgeCutoff" : "2023-12-31",
-      "outputModalities" : [
-        "text"
-      ],
-      "reasoning" : "unsupported",
-      "reasoningEfforts" : [
-
-      ],
-      "releasedAt" : 1727222400,
-      "supportedParameters" : [
-        "frequency_penalty",
-        "logit_bias",
-        "max_tokens",
-        "min_p",
-        "presence_penalty",
-        "repetition_penalty",
-        "seed",
-        "stop",
-        "temperature",
-        "top_k",
-        "top_p"
-      ]
-    },
-    {
-      "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 131072,
       "displayName" : "Meta: Llama 3.2 3B Instruct",
-      "expirationDate" : "2026-11-20",
       "id" : "meta-llama/llama-3.2-3b-instruct",
       "inputModalities" : [
         "text"
@@ -3997,7 +3933,6 @@
         "logit_bias",
         "logprobs",
         "max_tokens",
-        "min_p",
         "presence_penalty",
         "repetition_penalty",
         "seed",
@@ -5352,6 +5287,31 @@
     },
     {
       "cachesOnlyMarkedPrompts" : false,
+      "contextSize" : 128000,
+      "displayName" : "Mistral: Pixtral Large 2502",
+      "id" : "mistralai/pixtral-large-2502",
+      "inputModalities" : [
+        "image",
+        "text"
+      ],
+      "outputModalities" : [
+        "text"
+      ],
+      "reasoning" : "unsupported",
+      "reasoningEfforts" : [
+
+      ],
+      "releasedAt" : 1795135865,
+      "supportedParameters" : [
+        "max_tokens",
+        "stop",
+        "temperature",
+        "top_k",
+        "top_p"
+      ]
+    },
+    {
+      "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 32768,
       "displayName" : "Mistral: Voxtral Small 24B 2507",
       "id" : "mistralai/voxtral-small-24b-2507",
@@ -5636,7 +5596,6 @@
         "logit_bias",
         "logprobs",
         "max_tokens",
-        "min_p",
         "parallel_tool_calls",
         "presence_penalty",
         "reasoning",
@@ -8508,6 +8467,7 @@
         "temperature",
         "tool_choice",
         "tools",
+        "top_k",
         "top_p"
       ]
     },
@@ -11423,17 +11383,26 @@
       ],
       "releasedAt" : 1793766031,
       "supportedParameters" : [
+        "frequency_penalty",
         "include_reasoning",
+        "logit_bias",
+        "logprobs",
         "max_completion_tokens",
         "max_tokens",
+        "min_p",
+        "presence_penalty",
         "reasoning",
         "reasoning_effort",
+        "repetition_penalty",
         "response_format",
         "stop",
         "structured_outputs",
         "temperature",
         "tool_choice",
-        "tools"
+        "tools",
+        "top_k",
+        "top_logprobs",
+        "top_p"
       ]
     },
     {
@@ -12009,7 +11978,7 @@
     {
       "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 2000000,
-      "displayName" : "SpaceXAI: Grok 4.20",
+      "displayName" : "SpaceXSI: Grok 4.20",
       "id" : "x-ai/grok-4.20",
       "inputModalities" : [
         "file",
@@ -12044,7 +12013,7 @@
       "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 2000000,
       "defaultReasoningEffort" : "medium",
-      "displayName" : "SpaceXAI: Grok 4.20 Multi-Agent",
+      "displayName" : "SpaceXSI: Grok 4.20 Multi-Agent",
       "id" : "x-ai/grok-4.20-multi-agent",
       "inputModalities" : [
         "file",
@@ -12081,7 +12050,7 @@
       "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 1000000,
       "defaultReasoningEffort" : "low",
-      "displayName" : "SpaceXAI: Grok 4.3",
+      "displayName" : "SpaceXSI: Grok 4.3",
       "id" : "x-ai/grok-4.3",
       "inputModalities" : [
         "file",
@@ -12119,7 +12088,7 @@
       "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 500000,
       "defaultReasoningEffort" : "high",
-      "displayName" : "SpaceXAI: Grok 4.5",
+      "displayName" : "SpaceXSI: Grok 4.5",
       "id" : "x-ai/grok-4.5",
       "inputModalities" : [
         "file",
@@ -12156,7 +12125,7 @@
       "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 500000,
       "defaultReasoningEffort" : "high",
-      "displayName" : "SpaceXAI: Grok 4.6",
+      "displayName" : "SpaceXSI: Grok 4.6",
       "id" : "x-ai/grok-4.6",
       "inputModalities" : [
         "file",
@@ -12196,7 +12165,7 @@
       "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 500000,
       "defaultReasoningEffort" : "high",
-      "displayName" : "SpaceXAI: Grok 4.7",
+      "displayName" : "SpaceXSI: Grok 4.7",
       "id" : "x-ai/grok-4.7",
       "inputModalities" : [
         "file",
@@ -12228,39 +12197,6 @@
         "tool_choice",
         "tools",
         "top_k",
-        "top_logprobs",
-        "top_p"
-      ]
-    },
-    {
-      "cachesOnlyMarkedPrompts" : false,
-      "contextSize" : 256000,
-      "displayName" : "SpaceXAI: Grok Build 0.1",
-      "id" : "x-ai/grok-build-0.1",
-      "inputModalities" : [
-        "file",
-        "image",
-        "text"
-      ],
-      "outputModalities" : [
-        "text"
-      ],
-      "reasoning" : "mandatory",
-      "reasoningEfforts" : [
-
-      ],
-      "releasedAt" : 1779298123,
-      "supportedParameters" : [
-        "include_reasoning",
-        "logprobs",
-        "max_tokens",
-        "reasoning",
-        "response_format",
-        "seed",
-        "structured_outputs",
-        "temperature",
-        "tool_choice",
-        "tools",
         "top_logprobs",
         "top_p"
       ]
@@ -13946,6 +13882,40 @@
     {
       "model" : {
         "cachesOnlyMarkedPrompts" : false,
+        "contextSize" : 256000,
+        "displayName" : "Cohere: North Mini Code (free)",
+        "id" : "cohere/north-mini-code:free",
+        "inputModalities" : [
+          "text"
+        ],
+        "outputModalities" : [
+          "text"
+        ],
+        "reasoning" : "offByDefault",
+        "reasoningEfforts" : [
+
+        ],
+        "releasedAt" : 1781723748,
+        "supportedParameters" : [
+          "frequency_penalty",
+          "include_reasoning",
+          "max_tokens",
+          "presence_penalty",
+          "reasoning",
+          "seed",
+          "stop",
+          "temperature",
+          "tool_choice",
+          "tools",
+          "top_k",
+          "top_p"
+        ]
+      },
+      "removedOn" : "2026-11-20"
+    },
+    {
+      "model" : {
+        "cachesOnlyMarkedPrompts" : false,
         "contextSize" : 128000,
         "displayName" : "LiquidAI: LFM2.5-2.6B",
         "expirationDate" : "2026-11-13",
@@ -14026,6 +13996,41 @@
         ]
       },
       "removedOn" : "2026-11-13"
+    },
+    {
+      "model" : {
+        "cachesOnlyMarkedPrompts" : false,
+        "contextSize" : 60000,
+        "displayName" : "Meta: Llama 3.2 1B Instruct",
+        "expirationDate" : "2026-11-20",
+        "id" : "meta-llama/llama-3.2-1b-instruct",
+        "inputModalities" : [
+          "text"
+        ],
+        "knowledgeCutoff" : "2023-12-31",
+        "outputModalities" : [
+          "text"
+        ],
+        "reasoning" : "unsupported",
+        "reasoningEfforts" : [
+
+        ],
+        "releasedAt" : 1727222400,
+        "supportedParameters" : [
+          "frequency_penalty",
+          "logit_bias",
+          "max_tokens",
+          "min_p",
+          "presence_penalty",
+          "repetition_penalty",
+          "seed",
+          "stop",
+          "temperature",
+          "top_k",
+          "top_p"
+        ]
+      },
+      "removedOn" : "2026-11-20"
     },
     {
       "model" : {
@@ -14284,6 +14289,42 @@
     {
       "model" : {
         "cachesOnlyMarkedPrompts" : false,
+        "contextSize" : 256000,
+        "displayName" : "SpaceXAI: Grok Build 0.1",
+        "id" : "x-ai/grok-build-0.1",
+        "inputModalities" : [
+          "file",
+          "image",
+          "text"
+        ],
+        "outputModalities" : [
+          "text"
+        ],
+        "reasoning" : "mandatory",
+        "reasoningEfforts" : [
+
+        ],
+        "releasedAt" : 1779298123,
+        "supportedParameters" : [
+          "include_reasoning",
+          "logprobs",
+          "max_tokens",
+          "reasoning",
+          "response_format",
+          "seed",
+          "structured_outputs",
+          "temperature",
+          "tool_choice",
+          "tools",
+          "top_logprobs",
+          "top_p"
+        ]
+      },
+      "removedOn" : "2026-11-20"
+    },
+    {
+      "model" : {
+        "cachesOnlyMarkedPrompts" : false,
         "contextSize" : 262144,
         "displayName" : "XingChen: Xing4.0 29B A4B (free)",
         "id" : "xingchen-agi/xing4.0-29b-a4b:free",
@@ -14431,6 +14472,9 @@
       {
         "summary" : "Stop sequences (up to 4).",
         "word" : "stop"
+      },
+      {
+        "word" : "strict_tool_schemas"
       },
       {
         "word" : "structured_outputs"

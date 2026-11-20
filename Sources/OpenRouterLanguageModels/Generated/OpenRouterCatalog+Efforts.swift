@@ -947,6 +947,12 @@ public enum OpenRouterCatalog {
         public static var efforts: [String] { [] }
     }
 
+    /// Mistral: Pixtral Large 2502
+    public enum MistralaiPixtralLarge2502: Efforts.List {
+        /// The levels the model accepts, highest first.
+        public static var efforts: [String] { [] }
+    }
+
     /// Mistral: Voxtral Small 24B 2507
     public enum MistralaiVoxtralSmall24b2507: Efforts.List {
         /// The levels the model accepts, highest first.
@@ -2111,37 +2117,37 @@ public enum OpenRouterCatalog {
         public static var efforts: [String] { [] }
     }
 
-    /// SpaceXAI: Grok 4.20
+    /// SpaceXSI: Grok 4.20
     public enum XAiGrok4_20: Efforts.List {
         /// The levels the model accepts, highest first.
         public static var efforts: [String] { [] }
     }
 
-    /// SpaceXAI: Grok 4.20 Multi-Agent
+    /// SpaceXSI: Grok 4.20 Multi-Agent
     public enum XAiGrok4_20MultiAgent: Efforts.List {
         /// The levels the model accepts, highest first.
         public static var efforts: [String] { ["xhigh", "high", "medium", "low"] }
     }
 
-    /// SpaceXAI: Grok 4.3
+    /// SpaceXSI: Grok 4.3
     public enum XAiGrok4_3: Efforts.List {
         /// The levels the model accepts, highest first.
         public static var efforts: [String] { ["high", "medium", "low", "none"] }
     }
 
-    /// SpaceXAI: Grok 4.5
+    /// SpaceXSI: Grok 4.5
     public enum XAiGrok4_5: Efforts.List {
         /// The levels the model accepts, highest first.
         public static var efforts: [String] { ["high", "medium", "low"] }
     }
 
-    /// SpaceXAI: Grok 4.6
+    /// SpaceXSI: Grok 4.6
     public enum XAiGrok4_6: Efforts.List {
         /// The levels the model accepts, highest first.
         public static var efforts: [String] { ["xhigh", "high", "medium", "low"] }
     }
 
-    /// SpaceXAI: Grok 4.7
+    /// SpaceXSI: Grok 4.7
     public enum XAiGrok4_7: Efforts.List {
         /// The levels the model accepts, highest first.
         public static var efforts: [String] { ["xhigh", "high", "medium", "low"] }
