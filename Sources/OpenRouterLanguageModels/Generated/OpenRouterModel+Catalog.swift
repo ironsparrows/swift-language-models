@@ -1102,6 +1102,7 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.CohereCom
 
 extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.CohereNorthMiniCodeFree> {
     /// Cohere: North Mini Code (free)
+    @available(*, deprecated, message: "Removed from OpenRouter on 2026-11-20")
     public static var cohereNorthMiniCodeFree: Self {
         Self(
             id: "cohere/north-mini-code:free",
@@ -3324,10 +3325,8 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.MetaLlama
 
 extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.MetaLlamaLlama3_2_1bInstruct> {
     /// Meta: Llama 3.2 1B Instruct
-    @available(*, deprecated, message: "OpenRouter retires this model on 2026-11-20")
-    public static var metaLlamaLlama3_2_1bInstruct: Self { metaLlamaLlama3_2_1bInstructEntry }
-
-    fileprivate static var metaLlamaLlama3_2_1bInstructEntry: Self {
+    @available(*, deprecated, message: "Removed from OpenRouter on 2026-11-20")
+    public static var metaLlamaLlama3_2_1bInstruct: Self {
         Self(
             id: "meta-llama/llama-3.2-1b-instruct",
             displayName: "Meta: Llama 3.2 1B Instruct",
@@ -3354,23 +3353,18 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.MetaLlama
 
 extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.MetaLlamaLlama3_2_3bInstruct> {
     /// Meta: Llama 3.2 3B Instruct
-    @available(*, deprecated, message: "OpenRouter retires this model on 2026-11-20")
-    public static var metaLlamaLlama3_2_3bInstruct: Self { metaLlamaLlama3_2_3bInstructEntry }
-
-    fileprivate static var metaLlamaLlama3_2_3bInstructEntry: Self {
+    public static var metaLlamaLlama3_2_3bInstruct: Self {
         Self(
             id: "meta-llama/llama-3.2-3b-instruct",
             displayName: "Meta: Llama 3.2 3B Instruct",
             releaseDate: Date(timeIntervalSince1970: 1_727_222_400),
             knowledgeCutoff: Date(timeIntervalSince1970: 1_703_980_800),
-            expirationDate: Date(timeIntervalSince1970: 1_795_132_800),
             contextSize: 131_072,
             supportedParameters: [
                 .frequencyPenalty,
                 .logitBias,
                 .logprobs,
                 .maxTokens,
-                .minP,
                 .presencePenalty,
                 .repetitionPenalty,
                 .seed,
@@ -4533,6 +4527,20 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.Mistralai
     }
 }
 
+extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.MistralaiPixtralLarge2502> {
+    /// Mistral: Pixtral Large 2502
+    public static var mistralaiPixtralLarge2502: Self {
+        Self(
+            id: "mistralai/pixtral-large-2502",
+            displayName: "Mistral: Pixtral Large 2502",
+            releaseDate: Date(timeIntervalSince1970: 1_795_135_865),
+            contextSize: 128_000,
+            inputModalities: [.image, .text],
+            supportedParameters: [.maxTokens, .stop, .temperature, .topK, .topP]
+        )
+    }
+}
+
 extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.MistralaiVoxtralSmall24b2507> {
     /// Mistral: Voxtral Small 24B 2507
     public static var mistralaiVoxtralSmall24b2507: Self {
@@ -4761,7 +4769,6 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.Moonshota
                 .logitBias,
                 .logprobs,
                 .maxTokens,
-                .minP,
                 .parallelToolCalls,
                 .presencePenalty,
                 .reasoning,
@@ -7088,6 +7095,7 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.OpenaiGpt
                 .temperature,
                 .toolChoice,
                 .tools,
+                .topK,
                 .topP,
             ],
             reasoning: .mandatory
@@ -9664,17 +9672,26 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.TencentHy
             contextSize: 1_048_576,
             inputModalities: [.image, .text],
             supportedParameters: [
+                .frequencyPenalty,
                 .includeReasoning,
+                .logitBias,
+                .logprobs,
                 .maxCompletionTokens,
                 .maxTokens,
+                .minP,
+                .presencePenalty,
                 .reasoning,
                 .reasoningEffort,
+                .repetitionPenalty,
                 .responseFormat,
                 .stop,
                 .structuredOutputs,
                 .temperature,
                 .toolChoice,
                 .tools,
+                .topK,
+                .topLogprobs,
+                .topP,
             ],
             reasoning: .onByDefault,
             reasoningEfforts: [.high, .low, .off],
@@ -10148,11 +10165,11 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.WriterPal
 }
 
 extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.XAiGrok4_20> {
-    /// SpaceXAI: Grok 4.20
+    /// SpaceXSI: Grok 4.20
     public static var xAiGrok4_20: Self {
         Self(
             id: "x-ai/grok-4.20",
-            displayName: "SpaceXAI: Grok 4.20",
+            displayName: "SpaceXSI: Grok 4.20",
             releaseDate: Date(timeIntervalSince1970: 1_774_979_019),
             knowledgeCutoff: Date(timeIntervalSince1970: 1_756_684_800),
             contextSize: 2_000_000,
@@ -10177,11 +10194,11 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.XAiGrok4_
 }
 
 extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.XAiGrok4_20MultiAgent> {
-    /// SpaceXAI: Grok 4.20 Multi-Agent
+    /// SpaceXSI: Grok 4.20 Multi-Agent
     public static var xAiGrok4_20MultiAgent: Self {
         Self(
             id: "x-ai/grok-4.20-multi-agent",
-            displayName: "SpaceXAI: Grok 4.20 Multi-Agent",
+            displayName: "SpaceXSI: Grok 4.20 Multi-Agent",
             releaseDate: Date(timeIntervalSince1970: 1_774_979_158),
             knowledgeCutoff: Date(timeIntervalSince1970: 1_756_684_800),
             contextSize: 2_000_000,
@@ -10207,11 +10224,11 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.XAiGrok4_
 }
 
 extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.XAiGrok4_3> {
-    /// SpaceXAI: Grok 4.3
+    /// SpaceXSI: Grok 4.3
     public static var xAiGrok4_3: Self {
         Self(
             id: "x-ai/grok-4.3",
-            displayName: "SpaceXAI: Grok 4.3",
+            displayName: "SpaceXSI: Grok 4.3",
             releaseDate: Date(timeIntervalSince1970: 1_777_591_821),
             contextSize: 1_000_000,
             inputModalities: [.file, .image, .text],
@@ -10238,11 +10255,11 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.XAiGrok4_
 }
 
 extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.XAiGrok4_5> {
-    /// SpaceXAI: Grok 4.5
+    /// SpaceXSI: Grok 4.5
     public static var xAiGrok4_5: Self {
         Self(
             id: "x-ai/grok-4.5",
-            displayName: "SpaceXAI: Grok 4.5",
+            displayName: "SpaceXSI: Grok 4.5",
             releaseDate: Date(timeIntervalSince1970: 1_783_523_154),
             contextSize: 500_000,
             inputModalities: [.file, .image, .text],
@@ -10269,11 +10286,11 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.XAiGrok4_
 }
 
 extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.XAiGrok4_6> {
-    /// SpaceXAI: Grok 4.6
+    /// SpaceXSI: Grok 4.6
     public static var xAiGrok4_6: Self {
         Self(
             id: "x-ai/grok-4.6",
-            displayName: "SpaceXAI: Grok 4.6",
+            displayName: "SpaceXSI: Grok 4.6",
             releaseDate: Date(timeIntervalSince1970: 1_786_548_957),
             contextSize: 500_000,
             inputModalities: [.file, .image, .text],
@@ -10302,11 +10319,11 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.XAiGrok4_
 }
 
 extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.XAiGrok4_7> {
-    /// SpaceXAI: Grok 4.7
+    /// SpaceXSI: Grok 4.7
     public static var xAiGrok4_7: Self {
         Self(
             id: "x-ai/grok-4.7",
-            displayName: "SpaceXAI: Grok 4.7",
+            displayName: "SpaceXSI: Grok 4.7",
             releaseDate: Date(timeIntervalSince1970: 1_790_007_541),
             contextSize: 500_000,
             inputModalities: [.file, .image, .text],
@@ -10336,6 +10353,7 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.XAiGrok4_
 
 extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.XAiGrokBuild0_1> {
     /// SpaceXAI: Grok Build 0.1
+    @available(*, deprecated, message: "Removed from OpenRouter on 2026-11-20")
     public static var xAiGrokBuild0_1: Self {
         Self(
             id: "x-ai/grok-build-0.1",
@@ -11839,8 +11857,6 @@ extension OpenRouterModel where Effort == ContextOptions.ReasoningLevel {
             self.init(OpenRouterModel<_>.cohereCommandRPlus08_2024)
         case "cohere/command-r7b-12-2024":
             self.init(OpenRouterModel<_>.cohereCommandR7b12_2024)
-        case "cohere/north-mini-code:free":
-            self.init(OpenRouterModel<_>.cohereNorthMiniCodeFree)
         case "deepseek/deepseek-chat":
             self.init(OpenRouterModel<_>.deepseekDeepseekChat)
         case "deepseek/deepseek-chat-v3-0324":
@@ -11983,10 +11999,8 @@ extension OpenRouterModel where Effort == ContextOptions.ReasoningLevel {
             self.init(OpenRouterModel<_>.metaLlamaLlama3_1_70bInstruct)
         case "meta-llama/llama-3.1-8b-instruct":
             self.init(OpenRouterModel<_>.metaLlamaLlama3_1_8bInstruct)
-        case "meta-llama/llama-3.2-1b-instruct":
-            self.init(OpenRouterModel<_>.metaLlamaLlama3_2_1bInstructEntry)
         case "meta-llama/llama-3.2-3b-instruct":
-            self.init(OpenRouterModel<_>.metaLlamaLlama3_2_3bInstructEntry)
+            self.init(OpenRouterModel<_>.metaLlamaLlama3_2_3bInstruct)
         case "meta-llama/llama-3.3-70b-instruct":
             self.init(OpenRouterModel<_>.metaLlamaLlama3_3_70bInstruct)
         case "meta-llama/llama-4-maverick":
@@ -12061,6 +12075,8 @@ extension OpenRouterModel where Effort == ContextOptions.ReasoningLevel {
             self.init(OpenRouterModel<_>.mistralaiMistralSmall3_2_24bInstruct)
         case "mistralai/mixtral-8x22b-instruct":
             self.init(OpenRouterModel<_>.mistralaiMixtral8x22bInstruct)
+        case "mistralai/pixtral-large-2502":
+            self.init(OpenRouterModel<_>.mistralaiPixtralLarge2502)
         case "mistralai/voxtral-small-24b-2507":
             self.init(OpenRouterModel<_>.mistralaiVoxtralSmall24b2507)
         case "moondream/moondream3-preview":
@@ -12449,8 +12465,6 @@ extension OpenRouterModel where Effort == ContextOptions.ReasoningLevel {
             self.init(OpenRouterModel<_>.xAiGrok4_6)
         case "x-ai/grok-4.7":
             self.init(OpenRouterModel<_>.xAiGrok4_7)
-        case "x-ai/grok-build-0.1":
-            self.init(OpenRouterModel<_>.xAiGrokBuild0_1)
         case "xiaomi/mimo-v2.5":
             self.init(OpenRouterModel<_>.xiaomiMimoV2_5)
         case "xiaomi/mimo-v2.5-pro":
@@ -12592,7 +12606,6 @@ private let openRouterCatalogModels: [OpenModel] = [
     OpenModel(OpenRouterModel<_>.cohereCommandR08_2024),
     OpenModel(OpenRouterModel<_>.cohereCommandRPlus08_2024),
     OpenModel(OpenRouterModel<_>.cohereCommandR7b12_2024),
-    OpenModel(OpenRouterModel<_>.cohereNorthMiniCodeFree),
     OpenModel(OpenRouterModel<_>.deepseekDeepseekChat),
     OpenModel(OpenRouterModel<_>.deepseekDeepseekChatV3_0324),
     OpenModel(OpenRouterModel<_>.deepseekDeepseekChatV3_1),
@@ -12664,8 +12677,7 @@ private let openRouterCatalogModels: [OpenModel] = [
     OpenModel(OpenRouterModel<_>.meituanLongcat2_0),
     OpenModel(OpenRouterModel<_>.metaLlamaLlama3_1_70bInstruct),
     OpenModel(OpenRouterModel<_>.metaLlamaLlama3_1_8bInstruct),
-    OpenModel(OpenRouterModel<_>.metaLlamaLlama3_2_1bInstructEntry),
-    OpenModel(OpenRouterModel<_>.metaLlamaLlama3_2_3bInstructEntry),
+    OpenModel(OpenRouterModel<_>.metaLlamaLlama3_2_3bInstruct),
     OpenModel(OpenRouterModel<_>.metaLlamaLlama3_3_70bInstruct),
     OpenModel(OpenRouterModel<_>.metaLlamaLlama4Maverick),
     OpenModel(OpenRouterModel<_>.metaLlamaLlama4Scout),
@@ -12703,6 +12715,7 @@ private let openRouterCatalogModels: [OpenModel] = [
     OpenModel(OpenRouterModel<_>.mistralaiMistralSmall3_1_24bInstruct),
     OpenModel(OpenRouterModel<_>.mistralaiMistralSmall3_2_24bInstruct),
     OpenModel(OpenRouterModel<_>.mistralaiMixtral8x22bInstruct),
+    OpenModel(OpenRouterModel<_>.mistralaiPixtralLarge2502),
     OpenModel(OpenRouterModel<_>.mistralaiVoxtralSmall24b2507),
     OpenModel(OpenRouterModel<_>.moondreamMoondream3Preview),
     OpenModel(OpenRouterModel<_>.moondreamMoondream3_1_9bA2b),
@@ -12897,7 +12910,6 @@ private let openRouterCatalogModels: [OpenModel] = [
     OpenModel(OpenRouterModel<_>.xAiGrok4_5),
     OpenModel(OpenRouterModel<_>.xAiGrok4_6),
     OpenModel(OpenRouterModel<_>.xAiGrok4_7),
-    OpenModel(OpenRouterModel<_>.xAiGrokBuild0_1),
     OpenModel(OpenRouterModel<_>.xiaomiMimoV2_5),
     OpenModel(OpenRouterModel<_>.xiaomiMimoV2_5Pro),
     OpenModel(OpenRouterModel<_>.xiaomiMimoV2_6Flash),

@@ -9,8 +9,10 @@ extension ModelRemovals {
         "bytedance-seed/seed-1.6": Date(timeIntervalSince1970: 1_794_355_200),
         "bytedance-seed/seed-1.6-flash": Date(timeIntervalSince1970: 1_794_355_200),
         "bytedance-seed/seed-2.0-code": Date(timeIntervalSince1970: 1_794_355_200),
+        "cohere/north-mini-code:free": Date(timeIntervalSince1970: 1_795_132_800),
         "liquid/lfm-2.5-2.6b": Date(timeIntervalSince1970: 1_794_528_000),
         "liquid/lfm-2.5-2.6b:free": Date(timeIntervalSince1970: 1_794_528_000),
+        "meta-llama/llama-3.2-1b-instruct": Date(timeIntervalSince1970: 1_795_132_800),
         "minimax/minimax-m1": Date(timeIntervalSince1970: 1_794_268_800),
         "qwen/qwen-2.5-7b-instruct": Date(timeIntervalSince1970: 1_794_355_200),
         "qwen/qwen3-vl-30b-a3b-thinking": Date(timeIntervalSince1970: 1_794_700_800),
@@ -18,6 +20,7 @@ extension ModelRemovals {
         "stepfun/step-3.5-flash": Date(timeIntervalSince1970: 1_794_700_800),
         "tencent/hunyuan-a13b-instruct": Date(timeIntervalSince1970: 1_794_700_800),
         "thinkingmachines/inkling-2-small:free": Date(timeIntervalSince1970: 1_795_046_400),
+        "x-ai/grok-build-0.1": Date(timeIntervalSince1970: 1_795_132_800),
         "xingchen-agi/xing4.0-29b-a4b:free": Date(timeIntervalSince1970: 1_794_355_200),
     ])
 }

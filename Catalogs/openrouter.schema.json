@@ -109,6 +109,7 @@
       "response_format",
       "seed",
       "stop",
+      "strict_tool_schemas",
       "structured_outputs",
       "temperature",
       "tool_choice",
