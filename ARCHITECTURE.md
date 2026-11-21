@@ -297,7 +297,7 @@ model has no info calls.
 
 ```mermaid
 flowchart LR
-    schedule(["Daily workflow"]) --> fetch["fetch"]:::tool
+    schedule(["Weekly workflow"]) --> fetch["fetch"]:::tool
     fetch --> json["Catalogs/openrouter.json · Catalogs/openai.json"]
     json --> render["render"]:::tool
     render --> generated["Generated/*.swift"]:::provider
@@ -312,4 +312,4 @@ flowchart LR
 model list and API description. OpenAI's come from three: the models its `/v1/models` still serves, which needs an API
 key, what models.dev says each model takes, and the effort words in its API description. A model past its shutdown day
 is left out, and so is one that works only with an endpoint other than the Responses API. `model-catalog.yml` runs both
-daily and opens a pull request whose release label `release.yml` reads.
+every Sunday and opens a pull request whose release label `release.yml` reads.
