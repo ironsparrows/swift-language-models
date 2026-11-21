@@ -1169,16 +1169,13 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.DeepseekD
             contextSize: 163_840,
             supportedParameters: [
                 .frequencyPenalty,
-                .logprobs,
                 .maxTokens,
                 .responseFormat,
-                .seed,
                 .structuredOutputs,
                 .temperature,
                 .toolChoice,
                 .tools,
                 .topK,
-                .topLogprobs,
                 .topP,
             ]
         )
@@ -1434,7 +1431,6 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.DeepseekD
                 .frequencyPenalty,
                 .includeReasoning,
                 .logitBias,
-                .logprobs,
                 .maxTokens,
                 .minP,
                 .presencePenalty,
@@ -1449,7 +1445,6 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.DeepseekD
                 .toolChoice,
                 .tools,
                 .topK,
-                .topLogprobs,
                 .topP,
             ],
             reasoning: .onByDefault,
@@ -1616,10 +1611,8 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.DeepseekD
 
 extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.DotsStudioDots3NotePreviewFree> {
     /// Dots Studio: Dots3-Note Preview (free)
-    @available(*, deprecated, message: "OpenRouter retires this model on 2026-12-31")
-    public static var dotsStudioDots3NotePreviewFree: Self { dotsStudioDots3NotePreviewFreeEntry }
-
-    fileprivate static var dotsStudioDots3NotePreviewFreeEntry: Self {
+    @available(*, deprecated, message: "Removed from OpenRouter on 2026-11-21")
+    public static var dotsStudioDots3NotePreviewFree: Self {
         Self(
             id: "dots-studio/dots-3-note-preview:free",
             displayName: "Dots Studio: Dots3-Note Preview (free)",
@@ -3249,6 +3242,7 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.MancerWea
 
 extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.MeituanLongcat2_0> {
     /// Meituan: LongCat 2.0
+    @available(*, deprecated, message: "Removed from OpenRouter on 2026-11-21")
     public static var meituanLongcat2_0: Self {
         Self(
             id: "meituan/longcat-2.0",
@@ -3859,15 +3853,11 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.MinimaxMi
             supportedParameters: [
                 .frequencyPenalty,
                 .includeReasoning,
-                .logitBias,
                 .logprobs,
                 .maxTokens,
-                .minP,
                 .presencePenalty,
                 .reasoning,
-                .repetitionPenalty,
                 .responseFormat,
-                .seed,
                 .stop,
                 .structuredOutputs,
                 .temperature,
@@ -3890,18 +3880,7 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.MinimaxMi
             displayName: "MiniMax: MiniMax M2.7",
             releaseDate: Date(timeIntervalSince1970: 1_773_836_697),
             contextSize: 196_608,
-            supportedParameters: [
-                .includeReasoning,
-                .maxTokens,
-                .reasoning,
-                .responseFormat,
-                .seed,
-                .stop,
-                .temperature,
-                .toolChoice,
-                .tools,
-                .topP,
-            ],
+            supportedParameters: [.includeReasoning, .maxTokens, .reasoning, .seed, .stop, .temperature, .toolChoice, .tools, .topP],
             reasoning: .mandatory
         )
     }
@@ -4695,10 +4674,8 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.Moonshota
             supportedParameters: [
                 .frequencyPenalty,
                 .includeReasoning,
-                .logitBias,
                 .logprobs,
                 .maxTokens,
-                .minP,
                 .presencePenalty,
                 .reasoning,
                 .repetitionPenalty,
@@ -8308,10 +8285,8 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.QwenQwen3
             supportedParameters: [
                 .frequencyPenalty,
                 .includeReasoning,
-                .logitBias,
                 .logprobs,
                 .maxTokens,
-                .minP,
                 .presencePenalty,
                 .reasoning,
                 .repetitionPenalty,
@@ -9041,6 +9016,42 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.QwenQwen4
     }
 }
 
+extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.RadixarkDaisyrose27b> {
+    /// RadixArk: DaisyRose 27B
+    public static var radixarkDaisyrose27b: Self {
+        Self(
+            id: "radixark/daisyrose-27b",
+            displayName: "RadixArk: DaisyRose 27B",
+            releaseDate: Date(timeIntervalSince1970: 1_795_222_188),
+            contextSize: 262_144,
+            inputModalities: [.image, .text],
+            supportedParameters: [
+                .frequencyPenalty,
+                .includeReasoning,
+                .logitBias,
+                .maxTokens,
+                .minP,
+                .presencePenalty,
+                .reasoning,
+                .reasoningEffort,
+                .repetitionPenalty,
+                .responseFormat,
+                .seed,
+                .stop,
+                .structuredOutputs,
+                .temperature,
+                .toolChoice,
+                .tools,
+                .topK,
+                .topP,
+            ],
+            reasoning: .onByDefault,
+            reasoningEfforts: [.xhigh, .medium, .low, .off],
+            defaultReasoningEffort: .xhigh
+        )
+    }
+}
+
 extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.RecursiveFlintV1_0Free> {
     /// Recursive: Flint (free)
     public static var recursiveFlintV1_0Free: Self {
@@ -9638,6 +9649,7 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.TencentHy
 
 extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.TencentHy3Preview> {
     /// Tencent: Hy3 preview
+    @available(*, deprecated, message: "Removed from OpenRouter on 2026-11-21")
     public static var tencentHy3Preview: Self {
         Self(
             id: "tencent/hy3-preview",
@@ -9738,7 +9750,6 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.TencentHy
                 .frequencyPenalty,
                 .includeReasoning,
                 .logitBias,
-                .logprobs,
                 .maxCompletionTokens,
                 .maxTokens,
                 .minP,
@@ -9754,7 +9765,6 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.TencentHy
                 .toolChoice,
                 .tools,
                 .topK,
-                .topLogprobs,
                 .topP,
             ],
             reasoning: .onByDefault,
@@ -9874,6 +9884,44 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.Thinkingm
                 .toolChoice,
                 .tools,
                 .topK,
+                .topP,
+            ],
+            reasoning: .onByDefault,
+            reasoningEfforts: [.max, .high, .medium, .low, .minimal, .off],
+            defaultReasoningEffort: .high
+        )
+    }
+}
+
+extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.ThinkingmachinesInkling2Mini> {
+    /// Thinking Machines: Inkling 2 Mini
+    public static var thinkingmachinesInkling2Mini: Self {
+        Self(
+            id: "thinkingmachines/inkling-2-mini",
+            displayName: "Thinking Machines: Inkling 2 Mini",
+            releaseDate: Date(timeIntervalSince1970: 1_795_227_585),
+            contextSize: 1_048_576,
+            inputModalities: [.image, .text],
+            supportedParameters: [
+                .frequencyPenalty,
+                .includeReasoning,
+                .logprobs,
+                .maxCompletionTokens,
+                .maxTokens,
+                .minP,
+                .presencePenalty,
+                .reasoning,
+                .reasoningEffort,
+                .repetitionPenalty,
+                .responseFormat,
+                .seed,
+                .stop,
+                .structuredOutputs,
+                .temperature,
+                .toolChoice,
+                .tools,
+                .topK,
+                .topLogprobs,
                 .topP,
             ],
             reasoning: .onByDefault,
@@ -10442,7 +10490,7 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.XiaomiMim
             id: "xiaomi/mimo-v2.6-flash",
             displayName: "Xiaomi: MiMo-V2.6-Flash",
             releaseDate: Date(timeIntervalSince1970: 1_790_021_264),
-            contextSize: 1_050_000,
+            contextSize: 1_048_576,
             inputModalities: [.audio, .image, .text, .video],
             supportedParameters: [
                 .frequencyPenalty,
@@ -10478,7 +10526,7 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.XiaomiMim
             id: "xiaomi/mimo-v2.6-pro",
             displayName: "Xiaomi: MiMo-V2.6-Pro",
             releaseDate: Date(timeIntervalSince1970: 1_790_021_259),
-            contextSize: 1_050_000,
+            contextSize: 1_048_576,
             inputModalities: [.audio, .image, .text, .video],
             supportedParameters: [
                 .frequencyPenalty,
@@ -10856,10 +10904,8 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.ZAiGlm5_1
             supportedParameters: [
                 .frequencyPenalty,
                 .includeReasoning,
-                .logitBias,
                 .logprobs,
                 .maxTokens,
-                .minP,
                 .presencePenalty,
                 .reasoning,
                 .repetitionPenalty,
@@ -11885,8 +11931,6 @@ extension OpenRouterModel where Effort == ContextOptions.ReasoningLevel {
             self.init(OpenRouterModel<_>.deepseekDeepseekV4_1Flash)
         case "deepseek/deepseek-v4.1-flash-1017":
             self.init(OpenRouterModel<_>.deepseekDeepseekV4_1Flash1017)
-        case "dots-studio/dots-3-note-preview:free":
-            self.init(OpenRouterModel<_>.dotsStudioDots3NotePreviewFreeEntry)
         case "elorian/glimpse":
             self.init(OpenRouterModel<_>.elorianGlimpse)
         case "fireworks/ember-1":
@@ -11993,8 +12037,6 @@ extension OpenRouterModel where Effort == ContextOptions.ReasoningLevel {
             self.init(OpenRouterModel<_>.liquidLfm3_1_7bFree)
         case "mancer/weaver":
             self.init(OpenRouterModel<_>.mancerWeaver)
-        case "meituan/longcat-2.0":
-            self.init(OpenRouterModel<_>.meituanLongcat2_0)
         case "meta-llama/llama-3.1-70b-instruct":
             self.init(OpenRouterModel<_>.metaLlamaLlama3_1_70bInstruct)
         case "meta-llama/llama-3.1-8b-instruct":
@@ -12375,6 +12417,8 @@ extension OpenRouterModel where Effort == ContextOptions.ReasoningLevel {
             self.init(OpenRouterModel<_>.qwenQwen3_8OmniFlash)
         case "qwen/qwen4-max":
             self.init(OpenRouterModel<_>.qwenQwen4Max)
+        case "radixark/daisyrose-27b":
+            self.init(OpenRouterModel<_>.radixarkDaisyrose27b)
         case "recursive/flint-v1.0:free":
             self.init(OpenRouterModel<_>.recursiveFlintV1_0Free)
         case "reflection/beam-1.0-501b-a23b":
@@ -12417,8 +12461,6 @@ extension OpenRouterModel where Effort == ContextOptions.ReasoningLevel {
             self.init(OpenRouterModel<_>.tencentHyMt2_7b)
         case "tencent/hy3":
             self.init(OpenRouterModel<_>.tencentHy3)
-        case "tencent/hy3-preview":
-            self.init(OpenRouterModel<_>.tencentHy3Preview)
         case "tencent/hy4":
             self.init(OpenRouterModel<_>.tencentHy4)
         case "tencent/hy4-flash":
@@ -12433,6 +12475,8 @@ extension OpenRouterModel where Effort == ContextOptions.ReasoningLevel {
             self.init(OpenRouterModel<_>.thedrummerUnslopnemo12b)
         case "thinkingmachines/inkling":
             self.init(OpenRouterModel<_>.thinkingmachinesInkling)
+        case "thinkingmachines/inkling-2-mini":
+            self.init(OpenRouterModel<_>.thinkingmachinesInkling2Mini)
         case "thinkingmachines/inkling-2-small":
             self.init(OpenRouterModel<_>.thinkingmachinesInkling2Small)
         case "thinkingmachines/inkling-small":
@@ -12620,7 +12664,6 @@ private let openRouterCatalogModels: [OpenModel] = [
     OpenModel(OpenRouterModel<_>.deepseekDeepseekV4Pro0813),
     OpenModel(OpenRouterModel<_>.deepseekDeepseekV4_1Flash),
     OpenModel(OpenRouterModel<_>.deepseekDeepseekV4_1Flash1017),
-    OpenModel(OpenRouterModel<_>.dotsStudioDots3NotePreviewFreeEntry),
     OpenModel(OpenRouterModel<_>.elorianGlimpse),
     OpenModel(OpenRouterModel<_>.fireworksEmber1),
     OpenModel(OpenRouterModel<_>.googleGemini2_5Flash),
@@ -12674,7 +12717,6 @@ private let openRouterCatalogModels: [OpenModel] = [
     OpenModel(OpenRouterModel<_>.liquidLfm3_1_7b),
     OpenModel(OpenRouterModel<_>.liquidLfm3_1_7bFree),
     OpenModel(OpenRouterModel<_>.mancerWeaver),
-    OpenModel(OpenRouterModel<_>.meituanLongcat2_0),
     OpenModel(OpenRouterModel<_>.metaLlamaLlama3_1_70bInstruct),
     OpenModel(OpenRouterModel<_>.metaLlamaLlama3_1_8bInstruct),
     OpenModel(OpenRouterModel<_>.metaLlamaLlama3_2_3bInstruct),
@@ -12865,6 +12907,7 @@ private let openRouterCatalogModels: [OpenModel] = [
     OpenModel(OpenRouterModel<_>.qwenQwen3_8MaxPrime),
     OpenModel(OpenRouterModel<_>.qwenQwen3_8OmniFlash),
     OpenModel(OpenRouterModel<_>.qwenQwen4Max),
+    OpenModel(OpenRouterModel<_>.radixarkDaisyrose27b),
     OpenModel(OpenRouterModel<_>.recursiveFlintV1_0Free),
     OpenModel(OpenRouterModel<_>.reflectionBeam1_0_501bA23b),
     OpenModel(OpenRouterModel<_>.rekaaiRekaEdge),
@@ -12886,7 +12929,6 @@ private let openRouterCatalogModels: [OpenModel] = [
     OpenModel(OpenRouterModel<_>.tencentHyMt2_30bA3b),
     OpenModel(OpenRouterModel<_>.tencentHyMt2_7b),
     OpenModel(OpenRouterModel<_>.tencentHy3),
-    OpenModel(OpenRouterModel<_>.tencentHy3Preview),
     OpenModel(OpenRouterModel<_>.tencentHy4),
     OpenModel(OpenRouterModel<_>.tencentHy4Flash),
     OpenModel(OpenRouterModel<_>.tencentHy4Preview),
@@ -12894,6 +12936,7 @@ private let openRouterCatalogModels: [OpenModel] = [
     OpenModel(OpenRouterModel<_>.thedrummerSkyfall36bV2),
     OpenModel(OpenRouterModel<_>.thedrummerUnslopnemo12b),
     OpenModel(OpenRouterModel<_>.thinkingmachinesInkling),
+    OpenModel(OpenRouterModel<_>.thinkingmachinesInkling2Mini),
     OpenModel(OpenRouterModel<_>.thinkingmachinesInkling2Small),
     OpenModel(OpenRouterModel<_>.thinkingmachinesInklingSmall),
     OpenModel(OpenRouterModel<_>.typesafeJevRouter),
