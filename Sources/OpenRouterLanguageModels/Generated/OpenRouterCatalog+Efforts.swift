@@ -1859,6 +1859,12 @@ public enum OpenRouterCatalog {
         public static var efforts: [String] { ["xhigh", "high", "low", "none"] }
     }
 
+    /// RadixArk: DaisyRose 27B
+    public enum RadixarkDaisyrose27b: Efforts.List {
+        /// The levels the model accepts, highest first.
+        public static var efforts: [String] { ["xhigh", "medium", "low", "none"] }
+    }
+
     /// Recursive: Flint (free)
     public enum RecursiveFlintV1_0Free: Efforts.List {
         /// The levels the model accepts, highest first.
@@ -2047,6 +2053,12 @@ public enum OpenRouterCatalog {
 
     /// Thinking Machines: Inkling
     public enum ThinkingmachinesInkling: Efforts.List {
+        /// The levels the model accepts, highest first.
+        public static var efforts: [String] { ["max", "high", "medium", "low", "minimal", "none"] }
+    }
+
+    /// Thinking Machines: Inkling 2 Mini
+    public enum ThinkingmachinesInkling2Mini: Efforts.List {
         /// The levels the model accepts, highest first.
         public static var efforts: [String] { ["max", "high", "medium", "low", "minimal", "none"] }
     }
@@ -4180,6 +4192,20 @@ extension Efforts.Of where Tag == OpenRouterCatalog.QwenQwen4Max {
     public static var off: Self { Self(listed: "none") }
 }
 
+extension Efforts.Of where Tag == OpenRouterCatalog.RadixarkDaisyrose27b {
+    /// The `xhigh` effort.
+    public static var xhigh: Self { Self(listed: "xhigh") }
+
+    /// The `medium` effort.
+    public static var medium: Self { Self(listed: "medium") }
+
+    /// The `low` effort.
+    public static var low: Self { Self(listed: "low") }
+
+    /// The `none` effort, which turns reasoning off.
+    public static var off: Self { Self(listed: "none") }
+}
+
 extension Efforts.Of where Tag == OpenRouterCatalog.ReflectionBeam1_0_501bA23b {
     /// The `max` effort.
     public static var max: Self { Self(listed: "max") }
@@ -4325,6 +4351,26 @@ extension Efforts.Of where Tag == OpenRouterCatalog.TencentHy4Preview {
 }
 
 extension Efforts.Of where Tag == OpenRouterCatalog.ThinkingmachinesInkling {
+    /// The `max` effort.
+    public static var max: Self { Self(listed: "max") }
+
+    /// The `high` effort.
+    public static var high: Self { Self(listed: "high") }
+
+    /// The `medium` effort.
+    public static var medium: Self { Self(listed: "medium") }
+
+    /// The `low` effort.
+    public static var low: Self { Self(listed: "low") }
+
+    /// The `minimal` effort.
+    public static var minimal: Self { Self(listed: "minimal") }
+
+    /// The `none` effort, which turns reasoning off.
+    public static var off: Self { Self(listed: "none") }
+}
+
+extension Efforts.Of where Tag == OpenRouterCatalog.ThinkingmachinesInkling2Mini {
     /// The `max` effort.
     public static var max: Self { Self(listed: "max") }
 
