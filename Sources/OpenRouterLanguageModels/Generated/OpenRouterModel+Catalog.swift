@@ -8783,6 +8783,7 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.QwenQwen3
             supportedParameters: [
                 .frequencyPenalty,
                 .includeReasoning,
+                .logitBias,
                 .logprobs,
                 .maxTokens,
                 .presencePenalty,
@@ -9696,6 +9697,7 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.TencentHy
                 .reasoningEffort,
                 .repetitionPenalty,
                 .responseFormat,
+                .seed,
                 .stop,
                 .structuredOutputs,
                 .temperature,

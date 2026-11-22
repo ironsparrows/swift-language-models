@@ -10326,6 +10326,7 @@
       "supportedParameters" : [
         "frequency_penalty",
         "include_reasoning",
+        "logit_bias",
         "logprobs",
         "max_tokens",
         "presence_penalty",
@@ -11328,6 +11329,7 @@
         "reasoning_effort",
         "repetition_penalty",
         "response_format",
+        "seed",
         "stop",
         "structured_outputs",
         "temperature",
