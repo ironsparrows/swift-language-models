@@ -1896,6 +1896,36 @@
     },
     {
       "cachesOnlyMarkedPrompts" : false,
+      "contextSize" : 512000,
+      "displayName" : "Dots Studio: Dots3-Note Preview (free)",
+      "expirationDate" : "2026-12-31",
+      "id" : "dots-studio/dots-3-note-preview:free",
+      "inputModalities" : [
+        "image",
+        "text"
+      ],
+      "outputModalities" : [
+        "text"
+      ],
+      "reasoning" : "offByDefault",
+      "reasoningEfforts" : [
+
+      ],
+      "releasedAt" : 1786680361,
+      "supportedParameters" : [
+        "include_reasoning",
+        "max_tokens",
+        "reasoning",
+        "response_format",
+        "structured_outputs",
+        "temperature",
+        "tool_choice",
+        "tools",
+        "top_p"
+      ]
+    },
+    {
+      "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 262144,
       "displayName" : "Elorian: Glimpse",
       "id" : "elorian/glimpse",
@@ -3465,7 +3495,7 @@
     },
     {
       "cachesOnlyMarkedPrompts" : false,
-      "contextSize" : 1000000,
+      "contextSize" : 1048576,
       "displayName" : "inclusionAI: Ling 3.1 Flash",
       "id" : "inclusionai/ling-3.1-flash",
       "inputModalities" : [
@@ -3487,8 +3517,10 @@
         "presence_penalty",
         "reasoning",
         "repetition_penalty",
+        "response_format",
         "seed",
         "stop",
+        "structured_outputs",
         "temperature",
         "tool_choice",
         "tools",
@@ -5939,7 +5971,6 @@
         "frequency_penalty",
         "include_reasoning",
         "logit_bias",
-        "logprobs",
         "max_tokens",
         "min_p",
         "presence_penalty",
@@ -5954,7 +5985,6 @@
         "tool_choice",
         "tools",
         "top_k",
-        "top_logprobs",
         "top_p"
       ]
     },
@@ -6035,6 +6065,7 @@
       "cachesOnlyMarkedPrompts" : false,
       "contextSize" : 131072,
       "displayName" : "NVIDIA: Nemotron 3.5 Content Safety",
+      "expirationDate" : "2026-11-30",
       "id" : "nvidia/nemotron-3.5-content-safety",
       "inputModalities" : [
         "image",
@@ -9400,7 +9431,6 @@
       "supportedParameters" : [
         "frequency_penalty",
         "logit_bias",
-        "logprobs",
         "max_tokens",
         "presence_penalty",
         "repetition_penalty",
@@ -9412,7 +9442,6 @@
         "tool_choice",
         "tools",
         "top_k",
-        "top_logprobs",
         "top_p"
       ]
     },
@@ -11514,7 +11543,7 @@
     },
     {
       "cachesOnlyMarkedPrompts" : false,
-      "contextSize" : 524288,
+      "contextSize" : 1048576,
       "defaultReasoningEffort" : "high",
       "displayName" : "Thinking Machines: Inkling",
       "id" : "thinkingmachines/inkling",
@@ -13889,39 +13918,6 @@
         ]
       },
       "removedOn" : "2026-11-20"
-    },
-    {
-      "model" : {
-        "cachesOnlyMarkedPrompts" : false,
-        "contextSize" : 512000,
-        "displayName" : "Dots Studio: Dots3-Note Preview (free)",
-        "expirationDate" : "2026-12-31",
-        "id" : "dots-studio/dots-3-note-preview:free",
-        "inputModalities" : [
-          "image",
-          "text"
-        ],
-        "outputModalities" : [
-          "text"
-        ],
-        "reasoning" : "offByDefault",
-        "reasoningEfforts" : [
-
-        ],
-        "releasedAt" : 1786680361,
-        "supportedParameters" : [
-          "include_reasoning",
-          "max_tokens",
-          "reasoning",
-          "response_format",
-          "structured_outputs",
-          "temperature",
-          "tool_choice",
-          "tools",
-          "top_p"
-        ]
-      },
-      "removedOn" : "2026-11-21"
     },
     {
       "model" : {
