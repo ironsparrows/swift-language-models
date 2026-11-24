@@ -2,7 +2,7 @@ name: Model catalog
 
 on:
   schedule:
-    - cron: "30 9 * * *"
+    - cron: "30 9 * * 0"
       timezone: "Europe/Athens"
   workflow_dispatch:
 
