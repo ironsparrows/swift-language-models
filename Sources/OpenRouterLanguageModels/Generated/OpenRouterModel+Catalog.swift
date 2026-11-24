@@ -1611,8 +1611,10 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.DeepseekD
 
 extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.DotsStudioDots3NotePreviewFree> {
     /// Dots Studio: Dots3-Note Preview (free)
-    @available(*, deprecated, message: "Removed from OpenRouter on 2026-11-21")
-    public static var dotsStudioDots3NotePreviewFree: Self {
+    @available(*, deprecated, message: "OpenRouter retires this model on 2026-12-31")
+    public static var dotsStudioDots3NotePreviewFree: Self { dotsStudioDots3NotePreviewFreeEntry }
+
+    fileprivate static var dotsStudioDots3NotePreviewFreeEntry: Self {
         Self(
             id: "dots-studio/dots-3-note-preview:free",
             displayName: "Dots Studio: Dots3-Note Preview (free)",
@@ -2899,7 +2901,7 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.Inclusion
             id: "inclusionai/ling-3.1-flash",
             displayName: "inclusionAI: Ling 3.1 Flash",
             releaseDate: Date(timeIntervalSince1970: 1_790_950_024),
-            contextSize: 1_000_000,
+            contextSize: 1_048_576,
             supportedParameters: [
                 .frequencyPenalty,
                 .includeReasoning,
@@ -2908,8 +2910,10 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.Inclusion
                 .presencePenalty,
                 .reasoning,
                 .repetitionPenalty,
+                .responseFormat,
                 .seed,
                 .stop,
+                .structuredOutputs,
                 .temperature,
                 .toolChoice,
                 .tools,
@@ -5077,7 +5081,6 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.NvidiaNem
                 .frequencyPenalty,
                 .includeReasoning,
                 .logitBias,
-                .logprobs,
                 .maxTokens,
                 .minP,
                 .presencePenalty,
@@ -5092,7 +5095,6 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.NvidiaNem
                 .toolChoice,
                 .tools,
                 .topK,
-                .topLogprobs,
                 .topP,
             ],
             reasoning: .onByDefault,
@@ -5167,11 +5169,15 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.NvidiaNem
 
 extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.NvidiaNemotron3_5ContentSafety> {
     /// NVIDIA: Nemotron 3.5 Content Safety
-    public static var nvidiaNemotron3_5ContentSafety: Self {
+    @available(*, deprecated, message: "OpenRouter retires this model on 2026-11-30")
+    public static var nvidiaNemotron3_5ContentSafety: Self { nvidiaNemotron3_5ContentSafetyEntry }
+
+    fileprivate static var nvidiaNemotron3_5ContentSafetyEntry: Self {
         Self(
             id: "nvidia/nemotron-3.5-content-safety",
             displayName: "NVIDIA: Nemotron 3.5 Content Safety",
             releaseDate: Date(timeIntervalSince1970: 1_780_581_864),
+            expirationDate: Date(timeIntervalSince1970: 1_795_996_800),
             contextSize: 131_072,
             inputModalities: [.image, .text],
             supportedParameters: [
@@ -7945,7 +7951,6 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.QwenQwen3
             supportedParameters: [
                 .frequencyPenalty,
                 .logitBias,
-                .logprobs,
                 .maxTokens,
                 .presencePenalty,
                 .repetitionPenalty,
@@ -7957,7 +7962,6 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.QwenQwen3
                 .toolChoice,
                 .tools,
                 .topK,
-                .topLogprobs,
                 .topP,
             ]
         )
@@ -9869,7 +9873,7 @@ extension OpenRouterModel where Effort == Efforts.Of<OpenRouterCatalog.Thinkingm
             id: "thinkingmachines/inkling",
             displayName: "Thinking Machines: Inkling",
             releaseDate: Date(timeIntervalSince1970: 1_784_325_956),
-            contextSize: 524_288,
+            contextSize: 1_048_576,
             inputModalities: [.audio, .image, .text],
             supportedParameters: [
                 .frequencyPenalty,
@@ -11933,6 +11937,8 @@ extension OpenRouterModel where Effort == ContextOptions.ReasoningLevel {
             self.init(OpenRouterModel<_>.deepseekDeepseekV4_1Flash)
         case "deepseek/deepseek-v4.1-flash-1017":
             self.init(OpenRouterModel<_>.deepseekDeepseekV4_1Flash1017)
+        case "dots-studio/dots-3-note-preview:free":
+            self.init(OpenRouterModel<_>.dotsStudioDots3NotePreviewFreeEntry)
         case "elorian/glimpse":
             self.init(OpenRouterModel<_>.elorianGlimpse)
         case "fireworks/ember-1":
@@ -12168,7 +12174,7 @@ extension OpenRouterModel where Effort == ContextOptions.ReasoningLevel {
         case "nvidia/nemotron-3-ultra-550b-a55b:free":
             self.init(OpenRouterModel<_>.nvidiaNemotron3Ultra550bA55bFree)
         case "nvidia/nemotron-3.5-content-safety":
-            self.init(OpenRouterModel<_>.nvidiaNemotron3_5ContentSafety)
+            self.init(OpenRouterModel<_>.nvidiaNemotron3_5ContentSafetyEntry)
         case "nvidia/nemotron-3.5-lightning":
             self.init(OpenRouterModel<_>.nvidiaNemotron3_5Lightning)
         case "nvidia/nemotron-3.5-lightning:free":
@@ -12666,6 +12672,7 @@ private let openRouterCatalogModels: [OpenModel] = [
     OpenModel(OpenRouterModel<_>.deepseekDeepseekV4Pro0813),
     OpenModel(OpenRouterModel<_>.deepseekDeepseekV4_1Flash),
     OpenModel(OpenRouterModel<_>.deepseekDeepseekV4_1Flash1017),
+    OpenModel(OpenRouterModel<_>.dotsStudioDots3NotePreviewFreeEntry),
     OpenModel(OpenRouterModel<_>.elorianGlimpse),
     OpenModel(OpenRouterModel<_>.fireworksEmber1),
     OpenModel(OpenRouterModel<_>.googleGemini2_5Flash),
@@ -12783,7 +12790,7 @@ private let openRouterCatalogModels: [OpenModel] = [
     OpenModel(OpenRouterModel<_>.nvidiaNemotron3Super120bA12b),
     OpenModel(OpenRouterModel<_>.nvidiaNemotron3Ultra550bA55b),
     OpenModel(OpenRouterModel<_>.nvidiaNemotron3Ultra550bA55bFree),
-    OpenModel(OpenRouterModel<_>.nvidiaNemotron3_5ContentSafety),
+    OpenModel(OpenRouterModel<_>.nvidiaNemotron3_5ContentSafetyEntry),
     OpenModel(OpenRouterModel<_>.nvidiaNemotron3_5Lightning),
     OpenModel(OpenRouterModel<_>.nvidiaNemotron3_5LightningFree),
     OpenModel(OpenRouterModel<_>.nvidiaNemotron3_5SuperVl),

@@ -10,7 +10,6 @@ extension ModelRemovals {
         "bytedance-seed/seed-1.6-flash": Date(timeIntervalSince1970: 1_794_355_200),
         "bytedance-seed/seed-2.0-code": Date(timeIntervalSince1970: 1_794_355_200),
         "cohere/north-mini-code:free": Date(timeIntervalSince1970: 1_795_132_800),
-        "dots-studio/dots-3-note-preview:free": Date(timeIntervalSince1970: 1_795_219_200),
         "liquid/lfm-2.5-2.6b": Date(timeIntervalSince1970: 1_794_528_000),
         "liquid/lfm-2.5-2.6b:free": Date(timeIntervalSince1970: 1_794_528_000),
         "meituan/longcat-2.0": Date(timeIntervalSince1970: 1_795_219_200),
